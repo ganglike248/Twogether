@@ -1,0 +1,315 @@
+.day-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.day-modal-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 400px;
+  max-height: 80vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.day-modal-header {
+  padding: 1rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  background: linear-gradient(135deg, var(--main-bg) 0%, var(--main-pink) 100%);
+}
+
+.day-modal-date {
+  flex: 1;
+}
+
+.day-modal-title {
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0 0 0.2rem 0;
+}
+
+.day-modal-subtitle {
+  font-size: 0.875rem;
+  color: var(--text-sub);
+  margin: 0;
+}
+
+.day-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-gray-500);
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: background-color 0.2s ease;
+}
+
+.day-modal-close:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+  color: var(--color-gray-700);
+}
+
+.day-modal-content {
+  flex: 1;
+  overflow-y: auto;
+  padding: 1rem;
+}
+
+.day-modal-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 3rem 1rem;
+  text-align: center;
+}
+
+.empty-icon {
+  font-size: 3rem;
+  margin-bottom: 1rem;
+  opacity: 0.5;
+}
+
+.empty-text {
+  color: var(--color-gray-500);
+  font-size: 1rem;
+  margin: 0;
+}
+
+/* 공휴일·커플기념일 */
+.day-special-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+  margin-bottom: 0.75rem;
+}
+
+.day-special-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.45rem 0.7rem;
+  border-radius: 0.6rem;
+  cursor: default;
+  user-select: none;
+}
+
+.day-special-item.holiday {
+  background: rgba(232, 67, 90, 0.07);
+  border: 1px solid rgba(232, 67, 90, 0.15);
+}
+
+.day-special-item.couple {
+  background: rgba(255, 155, 172, 0.07);
+  border: 1px solid rgba(255, 155, 172, 0.18);
+}
+
+.day-special-prefix {
+  font-size: 0.82rem;
+  font-weight: 500;
+  color: #444;
+  flex-shrink: 0;
+}
+
+.day-special-name {
+  font-size: 0.82rem;
+  font-weight: 600;
+}
+
+.day-special-item.holiday .day-special-name { color: #f08090; }
+.day-special-item.couple  .day-special-name { color: #ff7096; }
+
+.day-events-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.day-event-item {
+  display: flex;
+  align-items: center;
+  padding: 0.75rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  border: 1px solid transparent;
+}
+
+.day-event-item.couple {
+  background-color: var(--color-couple-background);
+  border-color: rgba(255, 107, 107, 0.1);
+}
+
+.day-event-item.boyfriend {
+  background-color: var(--color-boyfriend-background);
+  border-color: rgba(161, 188, 255, 0.1);
+}
+
+.day-event-item.girlfriend {
+  background-color: var(--color-girlfriend-background);
+  border-color: rgba(148, 255, 134, 0.1);
+}
+
+.day-event-item:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.day-event-item.couple:hover {
+  border-color: var(--color-couple);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+}
+
+.day-event-item.boyfriend:hover {
+  border-color: var(--color-boyfriend);
+  box-shadow: 0 4px 12px rgba(161, 188, 255, 0.2);
+}
+
+.day-event-item.girlfriend:hover {
+  border-color: var(--color-girlfriend);
+  box-shadow: 0 4px 12px rgba(148, 255, 134, 0.2);
+}
+
+.event-icon {
+  font-size: 1.25rem;
+  margin-right: 0.75rem;
+  flex-shrink: 0;
+}
+
+.event-details {
+  flex: 1;
+  min-width: 0;
+}
+
+.event-title {
+  font-weight: 600;
+  font-size: 0.875rem;
+  color: var(--text-main);
+  margin-bottom: 0.2rem;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-wrap: wrap;
+}
+
+.event-type {
+  font-size: 0.75rem;
+  font-weight: 500;
+  padding: 0.25rem 0.5rem;
+  border-radius: 12px;
+  flex-shrink: 0;
+}
+
+.event-type.couple {
+  background-color: rgba(255, 107, 107, 0.2);
+  color: #d94f4f;
+}
+
+.event-type.boyfriend {
+  background-color: rgba(161, 188, 255, 0.2);
+  color: #4a7fc4;
+}
+
+.event-type.girlfriend {
+  background-color: rgba(148, 255, 134, 0.2);
+  color: #3da05a;
+}
+
+.event-description {
+  font-size: 0.875rem;
+  color: var(--color-gray-600);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex: 1;
+  min-width: 0;
+}
+
+.event-arrow {
+  font-size: 1.25rem;
+  color: var(--color-gray-400);
+  margin-left: 0.5rem;
+  flex-shrink: 0;
+}
+
+.day-modal-footer {
+  padding: 0.75rem 1rem;
+  border-top: 1px solid var(--color-gray-200);
+  background-color: var(--color-gray-100);
+}
+
+.add-event-btn {
+  width: 100%;
+  padding: 0.65rem;
+  background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
+  color: white;
+  border: none;
+  border-radius: var(--border-radius);
+  font-weight: 600;
+  font-size: 0.875rem;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.add-event-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+.add-icon {
+  font-size: 1.25rem;
+  font-weight: bold;
+}
+
+@media (max-width: 480px) {
+  .day-modal-overlay {
+    align-items: flex-end;
+    padding: 0;
+  }
+
+  .day-modal-container {
+    max-width: 100%;
+    max-height: 88vh;
+    border-radius: var(--border-radius) var(--border-radius) 0 0;
+  }
+
+  .day-modal-header {
+    padding: 1.25rem;
+  }
+
+  .day-modal-title {
+    font-size: 1.25rem;
+  }
+}

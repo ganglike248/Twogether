@@ -1,0 +1,57 @@
+/* src/components/common/AppHeader.css */
+.app-header {
+  position: fixed;
+  top: 0;
+  left: 50%;
+  transform: translateX(-50%);
+  width: 100%;
+  max-width: 420px;
+  height: 52px;
+  background: white;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.3);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 1.25rem;
+  z-index: 100;
+  box-shadow: 0 1px 8px rgba(255, 107, 107, 0.07);
+  cursor: pointer;
+  user-select: none;
+}
+
+.app-header-title {
+  font-size: 1rem;
+  font-weight: 700;
+  background: linear-gradient(90deg, #ff6b6b, #ffb6c1);
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  letter-spacing: -0.02em;
+}
+
+.app-header-right {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+}
+
+.app-header-heart {
+  color: #ffb6c1;
+  font-size: 1.25rem;
+  animation: heartbeat 2s ease-in-out infinite;
+}
+
+.app-header-dday {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #ffb6c1;
+  letter-spacing: -0.01em;
+}
+
+@keyframes heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.15); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.1); }
+  56% { transform: scale(1); }
+}

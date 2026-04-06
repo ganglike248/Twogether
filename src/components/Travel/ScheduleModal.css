@@ -1,0 +1,193 @@
+/* src/components/Travel/ScheduleModal.css */
+.schedule-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.schedule-modal-container {
+    background-color: white;
+    border-radius: 1.25rem 1.25rem 0 0;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    animation: scheduleModalSlideUp 0.28s ease;
+}
+
+@keyframes scheduleModalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.schedule-modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+}
+
+.schedule-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.schedule-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+}
+
+.schedule-modal-body {
+    padding: 1rem;
+    flex: 1;
+}
+
+.schedule-modal-form-group {
+    margin-bottom: 1rem;
+}
+
+.schedule-modal-form-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.8rem;
+}
+
+.schedule-modal-required {
+    color: #ff6b6b;
+}
+
+.schedule-modal-form-group input,
+.schedule-modal-form-group textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid rgba(255, 182, 193, 0.35);
+    border-radius: 0.625rem;
+    font-size: 16px; /* iOS zoom 방지 */
+    transition: all 0.15s ease;
+    outline: none;
+    box-sizing: border-box;
+    background: white;
+}
+
+.schedule-modal-form-group input:focus,
+.schedule-modal-form-group textarea:focus {
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
+}
+
+.schedule-modal-form-group input.schedule-modal-error,
+.schedule-modal-form-group textarea.schedule-modal-error {
+    border-color: #ff6b6b;
+}
+
+.schedule-modal-form-group textarea {
+    resize: vertical;
+    min-height: 80px;
+}
+
+.schedule-modal-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.schedule-modal-error-text {
+    display: block;
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.schedule-modal-footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid rgba(255, 182, 193, 0.2);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+}
+
+.schedule-modal-btn {
+    padding: 0.6rem 1.25rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    width: 100%;
+    min-height: 40px;
+    touch-action: manipulation;
+}
+
+.schedule-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.schedule-modal-btn-secondary {
+    background: #fff0f3;
+    color: var(--text-sub);
+    border: 1px solid rgba(255, 182, 193, 0.35);
+}
+
+.schedule-modal-btn-primary {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    color: white;
+}
+
+.schedule-modal-loading-indicator {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: schedule-modal-spin 1s linear infinite;
+}
+
+@keyframes schedule-modal-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}
+
+.schedule-modal-form-group input[type="time"] {
+    display: block;
+    width: 100%;
+    max-width: 100%;
+    -webkit-min-logical-width: 100%;
+}

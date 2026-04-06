@@ -1,0 +1,375 @@
+/* src/components/Calendar/EventModal.css */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.modal-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.modal-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  background-color: white;
+  z-index: 10;
+}
+
+.modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-gray-500);
+}
+
+.modal-close:hover {
+  color: var(--color-gray-700);
+}
+
+.modal-body {
+  padding: 1rem 1.25rem;
+}
+
+.form-group {
+  margin-bottom: 1rem;
+}
+
+.form-label {
+  display: block;
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.date-input-group {
+  display: flex;
+  flex-direction: column;
+}
+
+.date-input-group .form-label {
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--color-gray-600);
+  margin-bottom: 0.4rem;
+  text-align: center;
+}
+
+.date-input-group input[type="date"] {
+  width: 100%;
+  padding: 0.7rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius);
+  font-size: 0.85rem;
+  text-align: center;
+  background-color: white;
+  transition: all 0.2s ease;
+}
+
+.date-input-group input[type="date"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 2px var(--color-primary-light);
+  transform: translateY(-1px);
+}
+
+.form-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+  margin: 0;
+}
+
+/* 날짜 입력 필드 컨테이너 스타일 개선 */
+.form-grid > div {
+  display: flex;
+  flex-direction: column;
+}
+
+.form-grid .form-label {
+  margin-bottom: 0.5rem;
+  font-size: 0.875rem;
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.form-grid input[type="date"] {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.75rem;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius);
+  font-size: 0.875rem;
+  transition: border-color 0.2s ease, box-shadow 0.2s ease;
+}
+
+.form-grid input[type="date"]:focus {
+  outline: none;
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.toggle-container {
+  display: flex;
+  align-items: center;
+}
+
+.toggle-switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+  margin-right: 0.75rem;
+}
+
+.toggle-switch input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.toggle-slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: var(--color-gray-300);
+  transition: .4s;
+  border-radius: 34px;
+}
+
+.toggle-slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  transition: .4s;
+  border-radius: 50%;
+}
+
+.toggle-switch input:checked + .toggle-slider {
+  background-color: var(--color-primary);
+}
+
+.toggle-switch input:checked + .toggle-slider:before {
+  transform: translateX(26px);
+}
+
+.toggle-label {
+  font-weight: 500;
+  color: var(--color-gray-700);
+}
+
+.dropzone {
+  border: 2px dashed var(--color-gray-300);
+  border-radius: var(--border-radius);
+  padding: 2rem;
+  text-align: center;
+  background-color: var(--color-gray-100);
+  transition: border-color 0.2s ease;
+  cursor: pointer;
+}
+
+.dropzone:hover {
+  border-color: var(--color-primary);
+}
+
+.dropzone-text {
+  margin-bottom: 0.75rem;
+  color: var(--color-gray-600);
+}
+
+.dropzone-icon {
+  font-size: 2rem;
+  color: var(--color-gray-400);
+  margin-bottom: 0.75rem;
+}
+
+.image-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
+  gap: 0.75rem;
+  margin-top: 1rem;
+}
+
+.image-item {
+  position: relative;
+  aspect-ratio: 1;
+  border-radius: var(--border-radius);
+  overflow: hidden;
+  border: 1px solid var(--color-gray-200);
+}
+
+.image-preview {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.image-delete {
+  position: absolute;
+  top: 0.25rem;
+  right: 0.25rem;
+  background-color: rgba(255, 255, 255, 0.8);
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  color: #e74c3c;
+}
+
+.modal-footer {
+  padding: 0.875rem 1rem;
+  border-top: 1px solid var(--color-gray-200);
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.buttons-right {
+  display: flex;
+  gap: 0.75rem;
+}
+
+.loading-indicator {
+  display: inline-block;
+  width: 1rem;
+  height: 1rem;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+  border-radius: 50%;
+  border-top-color: #fff;
+  animation: spin 1s linear infinite;
+  margin-right: 0.5rem;
+}
+
+/* 라디오 버튼 스타일 수정 */
+.radio-group {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+  justify-content: space-around;
+}
+
+.radio-option {
+  flex: 1;
+  min-width: 0;
+}
+
+/* 실제 라디오 버튼 숨기기 */
+.radio-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+/* 라벨 스타일 수정 */
+.radio-label {
+  display: block;
+  text-align: center;
+  font-weight: 500;
+  padding: 0.7rem 0.3rem;
+  border-radius: var(--border-radius);
+  cursor: pointer;
+  transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  border: 1px solid transparent;
+  font-size: 0.85rem;
+}
+
+.radio-label.boyfriend {
+  color: #4a7fc4;
+  background-color: var(--color-boyfriend-background);
+}
+
+.radio-label.girlfriend {
+  color: #3da05a;
+  background-color: var(--color-girlfriend-background);
+}
+
+.radio-label.couple {
+  color: #d94f4f;
+  background-color: var(--color-couple-background);
+}
+
+/* 선택된 라벨 스타일 */
+.radio-option input[type="radio"]:checked + .radio-label.boyfriend {
+  background-color: rgba(74, 123, 247, 0.2);
+  border: 1px solid var(--color-boyfriend);
+  box-shadow: 0 0 0 2px rgba(74, 123, 247, 0.3);
+}
+
+.radio-option input[type="radio"]:checked + .radio-label.girlfriend {
+  background-color: rgba(139, 195, 74, 0.2);
+  border: 1px solid var(--color-girlfriend);
+  box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.3);
+}
+
+.radio-option input[type="radio"]:checked + .radio-label.couple {
+  background-color: rgba(255, 107, 107, 0.2);
+  border: 1px solid var(--color-couple);
+  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3);
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+/* 날짜 입력 섹션 전체 스타일 개선 */
+.date-inputs-section {
+  background-color: var(--color-gray-50);
+  border-radius: var(--border-radius);
+  margin-bottom: 1rem;
+}
+
+.date-inputs-title {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+  margin-bottom: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}

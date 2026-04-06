@@ -1,0 +1,202 @@
+/* src/components/Travel/TripModal.css */
+.trip-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background-color: rgba(0, 0, 0, 0.45);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+}
+
+.trip-modal-container {
+    background-color: white;
+    border-radius: 1.25rem 1.25rem 0 0;
+    box-shadow: var(--shadow-lg);
+    width: 100%;
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    animation: tripModalSlideUp 0.28s ease;
+}
+
+@keyframes tripModalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
+}
+
+.trip-modal-header {
+    padding: 1rem 1.5rem;
+    border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: white;
+}
+
+.trip-modal-title {
+    font-size: 1.05rem;
+    font-weight: 700;
+    color: #333;
+    margin: 0;
+}
+
+.trip-modal-close {
+    background: none;
+    border: none;
+    font-size: 1.5rem;
+    cursor: pointer;
+    color: #666;
+    width: 44px;
+    height: 44px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 50%;
+    transition: all 0.2s ease;
+    touch-action: manipulation;
+}
+
+.trip-modal-body {
+    padding: 1rem;
+    flex: 1;
+}
+
+.trip-modal-form-group {
+    margin-bottom: 1rem;
+}
+
+.trip-modal-form-label {
+    display: block;
+    margin-bottom: 0.375rem;
+    font-weight: 600;
+    color: var(--text-main);
+    font-size: 0.8rem;
+}
+
+.trip-modal-required {
+    color: #ff6b6b;
+}
+
+.trip-modal-form-group input,
+.trip-modal-form-group textarea {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid rgba(255, 182, 193, 0.35);
+    border-radius: 0.625rem;
+    font-size: 16px;
+    transition: all 0.15s ease;
+    outline: none;
+    box-sizing: border-box;
+    background: white;
+}
+
+.trip-modal-form-group input:focus,
+.trip-modal-form-group textarea:focus {
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
+}
+
+.trip-modal-form-group input.trip-modal-error,
+.trip-modal-form-group textarea.trip-modal-error {
+    border-color: #ff6b6b;
+}
+
+.trip-modal-form-group textarea {
+    resize: vertical;
+    min-height: 100px;
+}
+
+.trip-modal-form-row {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+}
+
+.trip-modal-error-text {
+    display: block;
+    color: #ff6b6b;
+    font-size: 0.8rem;
+    margin-top: 0.25rem;
+}
+
+.trip-modal-footer {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid rgba(255, 182, 193, 0.2);
+    display: flex;
+    flex-direction: column-reverse;
+    gap: 0.625rem;
+}
+
+.trip-modal-btn {
+    padding: 0.6rem 1.25rem;
+    border: none;
+    border-radius: 0.75rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    font-size: 0.875rem;
+    width: 100%;
+    min-height: 40px;
+}
+
+.trip-modal-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+.trip-modal-btn-secondary {
+    background: #fff0f3;
+    color: var(--text-sub);
+    border: 1px solid rgba(255, 182, 193, 0.35);
+}
+
+.trip-modal-btn-primary {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    color: white;
+}
+
+.trip-modal-loading-indicator {
+    width: 16px;
+    height: 16px;
+    border: 2px solid rgba(255, 255, 255, 0.3);
+    border-top: 2px solid white;
+    border-radius: 50%;
+    animation: trip-modal-spin 1s linear infinite;
+}
+
+.trip-modal-form-select {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid rgba(255, 182, 193, 0.35);
+    border-radius: 0.625rem;
+    font-size: 16px;
+    transition: all 0.15s ease;
+    outline: none;
+    box-sizing: border-box;
+    background: white;
+}
+
+.trip-modal-form-select:focus {
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
+}
+
+@keyframes trip-modal-spin {
+    0% {
+        transform: rotate(0deg);
+    }
+
+    100% {
+        transform: rotate(360deg);
+    }
+}

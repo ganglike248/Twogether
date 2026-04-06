@@ -1,0 +1,15 @@
+/* src/components/common/Layout.css */
+.layout {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+.main-content {
+  flex-grow: 1;
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  padding-top: 52px;    /* 상단 헤더 높이 */
+  padding-bottom: 60px; /* 하단 탭바 높이 */
+}

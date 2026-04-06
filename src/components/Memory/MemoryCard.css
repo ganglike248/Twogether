@@ -1,0 +1,103 @@
+/* src/components/Memory/MemoryCard.css */
+.memory-card {
+  background-color: white;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+  cursor: pointer;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+  padding: 1rem;
+}
+
+.memory-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.card-header-container {
+  display: flex;
+  align-items: center;
+  margin-bottom: 0.625rem;
+}
+
+.card-icon {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 0.625rem;
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.icon-boyfriend {
+  background-color: rgba(161, 188, 255, 0.2);
+}
+
+.icon-girlfriend {
+  background-color: rgba(148, 255, 134, 0.2);
+}
+
+.icon-couple {
+  background-color: rgba(255, 107, 107, 0.2);
+}
+
+.card-title {
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: var(--color-gray-800);
+  margin: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  flex-grow: 1;
+}
+
+.card-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 0.375rem;
+}
+
+.card-date {
+  font-size: 0.75rem;
+  color: var(--color-gray-500);
+}
+
+.card-badge {
+  display: inline-block;
+  padding: 0.2rem 0.5rem;
+  font-size: 0.68rem;
+  border-radius: 10px;
+  font-weight: 500;
+}
+
+.badge-boyfriend {
+  background-color: var(--color-boyfriend-background);
+  color: var(--color-boyfriend-font);
+}
+
+.badge-girlfriend {
+  background-color: var(--color-girlfriend-background);
+  color: var(--color-girlfriend-font);
+}
+
+.badge-couple {
+  background-color: var(--color-couple-background);
+  color: var(--color-couple-font);
+}
+
+.card-description {
+  font-size: 0.8rem;
+  color: var(--color-gray-600);
+  line-height: 1.5;
+  display: -webkit-box;
+  -webkit-line-clamp: 3;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+  white-space: pre-line;
+}

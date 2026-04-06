@@ -1,0 +1,114 @@
+/* src/components/Memory/MemoryDetail.css */
+.memory-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(0, 0, 0, 0.75);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.memory-modal-container {
+  background-color: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 500px;
+  max-height: 90vh;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+}
+
+.memory-modal-header {
+  padding: 1.25rem;
+  border-bottom: 1px solid var(--color-gray-200);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.memory-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0;
+}
+
+.memory-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: var(--color-gray-500);
+}
+
+.memory-modal-close:hover {
+  color: var(--color-gray-700);
+}
+
+.memory-modal-content {
+  flex-grow: 1;
+  overflow: auto;
+}
+
+.memory-details {
+  padding: 1rem;
+}
+
+.memory-badge {
+  display: inline-block;
+  padding: 0.25rem 0.625rem;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 1rem;
+}
+
+.memory-badge.boyfriend {
+  background-color: rgba(161, 188, 255, 0.2);
+  color: #4a7fc4;
+}
+
+.memory-badge.girlfriend {
+  background-color: rgba(148, 255, 134, 0.2);
+  color: #3da05a;
+}
+
+.memory-badge.couple {
+  background-color: rgba(255, 107, 107, 0.2);
+  color: #d94f4f;
+}
+
+.memory-section {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid var(--color-gray-200);
+}
+
+.memory-section:last-child {
+  border-bottom: none;
+  margin-bottom: 0;
+  padding-bottom: 0;
+}
+
+.memory-section-title {
+  font-size: 0.875rem;
+  text-transform: uppercase;
+  color: var(--color-gray-500);
+  margin-bottom: 0.5rem;
+  font-weight: 500;
+}
+
+.memory-date {
+  font-weight: 500;
+  color: var(--color-gray-800);
+}
+
+.memory-description {
+  white-space: pre-line;
+  color: var(--color-gray-700);
+  line-height: 1.6;
+}

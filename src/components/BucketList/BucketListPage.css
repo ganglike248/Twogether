@@ -1,0 +1,454 @@
+/* src/components/BucketListPage/BucketListPage.css */
+/* 전체 컨테이너 */
+.bucket-container {
+    padding: 1rem;
+    background-color: var(--main-bg);
+    min-height: 80vh;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    justify-content: flex-start;
+    align-items: stretch;
+    gap: 0.75rem;
+}
+
+.bucket-header {
+    display: flex;
+    flex-direction: row;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+}
+
+/* 타이틀 */
+.bucket-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: var(--text-main);
+    letter-spacing: 0.01em;
+}
+
+/* 카테고리 탭 */
+.bucket-toolbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 0.25rem;
+    width: 100%;
+}
+
+.category-tabs {
+    display: flex;
+    gap: 0.375rem;
+}
+
+.cat-tab {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 1rem;
+    color: var(--color-gray-600);
+    font-weight: 600;
+    font-size: 0.78rem;
+    padding: 0.3rem 0.75rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.cat-tab.active,
+.cat-tab:hover {
+    background: var(--main-pink);
+    color: #fff;
+    border-color: var(--main-pink);
+}
+
+/* 토글 */
+.bucket-toggle {
+    display: flex;
+    justify-content: flex-end;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+}
+
+.toggle-btn {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 1rem;
+    color: var(--color-gray-500);
+    font-weight: 600;
+    font-size: 0.75rem;
+    padding: 0.25rem 0.875rem;
+    cursor: pointer;
+    transition: background 0.15s, color 0.15s;
+}
+
+.toggle-btn.active,
+.toggle-btn:hover {
+    background: var(--main-mint);
+    color: #fff;
+    border-color: var(--main-mint);
+}
+
+/* 리스트 영역 */
+.bucket-list-section {
+    background: #fff;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    padding: 0.5rem 0.5rem;
+    margin-bottom: 0.375rem;
+    min-height: 120px;
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+}
+
+.bucket-list {
+    list-style: none;
+    padding: 0.25rem 0.375rem;
+    margin: 0;
+    background-color: white;
+    border-radius: 12px;
+    height: 100%;
+    width: 100%;
+    box-sizing: border-box;
+}
+
+.bucket-item {
+    display: flex;
+    align-items: center;
+    border-radius: 0.625rem;
+    padding: 0.4rem 0.375rem;
+    margin-bottom: 0.125rem;
+    font-size: 0.82rem;
+    font-weight: 600;
+    transition: background 0.15s;
+    gap: 0.4rem;
+    background: #fff;
+    position: relative;
+}
+
+/* 카테고리별 컬러 점 */
+.bucket-category-dot {
+    width: 0.7em;
+    height: 0.7em;
+    border-radius: 50%;
+    margin-right: 0.3em;
+    flex-shrink: 0;
+    display: inline-block;
+}
+
+.bucket-item.food .bucket-category-dot { background: var(--cat-food); }
+.bucket-item.place .bucket-category-dot { background: var(--cat-place); }
+.bucket-item.date .bucket-category-dot { background: var(--cat-date); }
+.bucket-item.all .bucket-category-dot { background: var(--cat-all); }
+
+.bucket-item.food  { border: 2px solid var(--cat-food-light); padding: 5px 6px; }
+.bucket-item.place { border: 2px solid var(--cat-place-light); padding: 5px 6px; }
+.bucket-item.date  { border: 2px solid var(--cat-date-light); padding: 5px 6px; }
+.bucket-item.all   { border: 2px solid var(--cat-all-light); padding: 5px 6px; }
+
+.bucket-item.completed {
+    opacity: 0.5;
+    text-decoration: line-through;
+    background: #f7f7f9;
+}
+
+.bucket-checkbox {
+    position: relative;
+    margin-right: 0.2rem;
+    display: flex;
+    align-items: center;
+}
+
+.bucket-checkbox input[type="checkbox"] {
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.checkbox-custom {
+    width: 18px;
+    height: 18px;
+    min-width: 18px;
+    border-radius: 0.3em;
+    background: #f5f5f7;
+    border: 2px solid #d1cfe2;
+    display: inline-block;
+    position: relative;
+    transition: background 0.15s, border 0.15s;
+    margin-right: 0.1em;
+}
+
+.bucket-checkbox input[type="checkbox"]:checked+.checkbox-custom {
+    background: var(--main-lavender);
+    border: 2px solid var(--main-pink);
+}
+
+.bucket-item.food .bucket-checkbox input[type="checkbox"]:checked+.checkbox-custom {
+    background: var(--cat-food);
+    border: 2px solid #7bc1ae;
+}
+
+.bucket-item.place .bucket-checkbox input[type="checkbox"]:checked+.checkbox-custom {
+    background: var(--cat-place);
+    border: 2px solid #a89bd7;
+}
+
+.bucket-item.date .bucket-checkbox input[type="checkbox"]:checked+.checkbox-custom {
+    background: var(--cat-date);
+    border: 2px solid #ffb6c1;
+}
+
+.bucket-checkbox .checkbox-custom:after {
+    left: 0.28em;
+    top: 0.09em;
+    width: 0.27em;
+    height: 0.48em;
+    border: solid #fff;
+    border-width: 0 0.17em 0.17em 0;
+    border-radius: 0.07em;
+    transform: rotate(45deg);
+    content: '';
+    position: absolute;
+    display: none;
+}
+
+.bucket-checkbox input[type="checkbox"]:checked+.checkbox-custom:after {
+    display: block;
+}
+
+.bucket-title-text {
+    flex: 1;
+    font-size: inherit;
+    font-weight: 600;
+    color: var(--text-main);
+    margin-right: 0.4em;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.bucket-date {
+    font-size: 0.72em;
+    color: #b5838d;
+    font-weight: 500;
+    margin-left: 0.2em;
+}
+
+.bucket-empty {
+    text-align: center;
+    color: #b5838d;
+    font-size: 0.85rem;
+    padding: 1.5rem 0;
+}
+
+/* 추가 버튼 */
+.bucket-add-btn-wrap {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: 0.375rem;
+}
+
+.add-btn {
+    background: white;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 1rem;
+    color: rgb(255, 160, 179);
+    font-weight: 700;
+    font-size: 0.8rem;
+    padding: 0.4rem 1rem;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    gap: 0.25rem;
+    box-shadow: var(--shadow-sm);
+    transition: background 0.15s;
+}
+
+.add-btn:hover {
+    background: var(--main-pink);
+    color: white;
+    border-color: var(--main-pink);
+}
+
+.add-icon {
+    font-size: 1rem;
+}
+
+/* 모달 */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    overflow-y: auto;
+    padding: 1rem;
+}
+
+.modal-box {
+    background: #fff;
+    border-radius: var(--border-radius-lg);
+    box-shadow: var(--shadow-lg);
+    padding: 1.5rem 1.25rem 1.25rem;
+    min-width: 0;
+    width: 90%;
+    max-width: 380px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.875rem;
+}
+
+.modal-input,
+.modal-textarea {
+    width: 100%;
+    border: 1px solid var(--color-gray-300);
+    border-radius: var(--border-radius);
+    padding: 0.6em 0.875em;
+    font-size: 0.875em;
+    margin-bottom: 0.5em;
+    box-sizing: border-box;
+    background: #fff;
+    color: #333;
+    outline: none;
+    transition: border 0.15s;
+}
+
+.modal-input:focus,
+.modal-textarea:focus {
+    border-color: var(--color-primary);
+}
+
+.modal-textarea {
+    min-height: 56px;
+    resize: vertical;
+}
+
+.radio-group.bucket-category-radio-group {
+    display: flex;
+    gap: 0.375rem;
+    margin-top: 0.375rem;
+    justify-content: space-around;
+    width: 100%;
+}
+
+.radio-option {
+    flex: 1;
+    position: relative;
+}
+
+.radio-option input[type="radio"] {
+    position: absolute;
+    opacity: 0;
+    width: 0;
+    height: 0;
+}
+
+.radio-label {
+    display: block;
+    text-align: center;
+    font-weight: 500;
+    padding: 0.5rem 0.25rem;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    width: 100%;
+    box-sizing: border-box;
+    border: 1.5px solid transparent;
+    font-size: 0.8rem;
+    background: #f5f5f7;
+}
+
+.radio-label.bucket-food  { color: #5e8e7e; background-color: var(--cat-food-light); }
+.radio-label.bucket-place { color: #7a6ea7; background-color: var(--cat-place-light); }
+.radio-label.bucket-date  { color: #e09ca5; background-color: var(--cat-date-light); }
+
+.radio-option input[type="radio"]:checked+.radio-label.bucket-food {
+    background-color: var(--cat-food);
+    border-color: #5e8e7e;
+    color: #fff;
+}
+
+.radio-option input[type="radio"]:checked+.radio-label.bucket-place {
+    background-color: var(--cat-place);
+    border-color: #7a6ea7;
+    color: #fff;
+}
+
+.radio-option input[type="radio"]:checked+.radio-label.bucket-date {
+    background-color: var(--cat-date);
+    border-color: #e09ca5;
+    color: #fff;
+}
+
+.modal-actions {
+    display: flex;
+    gap: 0.875rem;
+    margin-top: 0.5em;
+}
+
+.modal-btn {
+    background: var(--main-lavender);
+    color: #fff;
+    border: none;
+    border-radius: 0.75em;
+    font-weight: 700;
+    font-size: 0.875em;
+    padding: 0.45em 1.1em;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.modal-btn:hover {
+    background: var(--main-pink);
+}
+
+.modal-btn.cancel {
+    background: #f5f5f7;
+    color: var(--main-lavender);
+}
+
+.modal-btn.cancel:hover {
+    background: var(--main-lavender);
+    color: #fff;
+}
+
+.bucket-edit-btn,
+.bucket-delete-btn {
+    background: none;
+    border: none;
+    font-size: 0.95rem;
+    cursor: pointer;
+    opacity: 0.6;
+    transition: opacity 0.15s, color 0.15s;
+}
+
+.bucket-edit-btn:hover {
+    color: var(--main-lavender);
+    opacity: 1;
+}
+
+.bucket-delete-btn:hover {
+    color: #e09ca5;
+    opacity: 1;
+}
+
+@media (max-width: 480px) {
+    .bucket-container {
+        padding: 1rem 0.75rem 2rem;
+    }
+
+    .modal-box {
+        padding: 1.25rem 1rem 1rem;
+        width: 95%;
+    }
+
+    .bucket-list-section {
+        padding: 0.5rem 0.375rem;
+    }
+}

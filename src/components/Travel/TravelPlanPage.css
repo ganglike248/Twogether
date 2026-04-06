@@ -1,0 +1,189 @@
+/* src/components/Travel/TravelPlanPage.css */
+.travel-plan-container {
+    padding: 1rem;
+    background-color: var(--main-bg);
+    min-height: 100vh;
+}
+
+.travel-plan-header {
+    margin-bottom: 1rem;
+}
+
+.travel-plan-title {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #333;
+    margin-bottom: 0.25rem;
+}
+
+.travel-plan-subtitle {
+    color: var(--color-gray-500);
+    font-size: 0.8rem;
+}
+
+.travel-plan-toolbar {
+    display: flex;
+    flex-direction: column;
+    gap: 0.625rem;
+    margin-bottom: 1rem;
+}
+
+.travel-plan-filter-search-section {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 0.625rem;
+}
+
+.travel-plan-filter-container {
+    display: flex;
+    padding: 0.2rem;
+    border-radius: 0.875rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    gap: 0.375rem;
+}
+
+.travel-plan-filter-button {
+    padding: 0.4rem 0.75rem;
+    border-radius: 0.625rem;
+    background: transparent;
+    border: none;
+    color: var(--color-gray-500);
+    font-size: 0.78rem;
+    font-weight: 500;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    flex: 1;
+    min-height: 36px;
+}
+
+.travel-plan-filter-button.travel-plan-active {
+    background-color: #ffb6c1;
+    color: white;
+}
+
+.travel-plan-search-container {
+    width: 100%;
+}
+
+.travel-plan-search-input {
+    width: 100%;
+    padding: 0.6rem 0.875rem;
+    border: 1px solid var(--color-gray-200);
+    border-radius: 0.875rem;
+    background: white;
+    font-size: 0.875rem;
+    outline: none;
+    box-shadow: var(--shadow-sm);
+    transition: box-shadow 0.15s ease;
+    box-sizing: border-box;
+}
+
+.travel-plan-search-input:focus {
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.2);
+    border-color: #ffb6c1;
+}
+
+.travel-plan-add-trip-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.375rem;
+    padding: 0.6rem 1.25rem;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    color: white;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: transform 0.15s ease;
+    width: 100%;
+    min-height: 40px;
+}
+
+.travel-plan-add-trip-btn:hover {
+    transform: translateY(-1px);
+}
+
+.travel-plan-add-icon {
+    font-size: 1rem;
+}
+
+.travel-plan-loading-container {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 240px;
+    gap: 0.75rem;
+}
+
+.travel-plan-loading-spinner {
+    width: 32px;
+    height: 32px;
+    border: 3px solid #f3f3f3;
+    border-top: 3px solid #ffb6c1;
+    border-radius: 50%;
+    animation: travel-plan-spin 1s linear infinite;
+}
+
+.travel-plan-loading-text {
+    color: var(--color-gray-500);
+    font-size: 0.8rem;
+}
+
+.travel-plan-empty-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    height: 300px;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    padding: 2rem;
+}
+
+.travel-plan-empty-icon {
+    font-size: 3rem;
+    margin-bottom: 0.75rem;
+}
+
+.travel-plan-empty-title {
+    font-size: 1rem;
+    font-weight: 600;
+    color: #333;
+    margin-bottom: 0.375rem;
+}
+
+.travel-plan-empty-text {
+    color: var(--color-gray-500);
+    font-size: 0.8rem;
+    margin-bottom: 1.25rem;
+    text-align: center;
+}
+
+.travel-plan-empty-button {
+    padding: 0.6rem 1.5rem;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    color: white;
+    border: none;
+    border-radius: 0.875rem;
+    font-size: 0.875rem;
+    font-weight: 600;
+    cursor: pointer;
+    min-height: 40px;
+}
+
+.travel-plan-trips-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 0.875rem;
+}
+
+@keyframes travel-plan-spin {
+    0%   { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
