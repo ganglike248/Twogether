@@ -99,10 +99,14 @@ const MemoryList = () => {
         setLoadingMore(false);
       }
     }
-  }, [lastDoc]);
+  }, [coupleId, lastDoc]);
 
-  // 초기 로드
+  // coupleId 변경 시 상태 초기화 후 초기 로드
   useEffect(() => {
+    setMemories([]);
+    setFilteredMemories([]);
+    setLastDoc(null);
+    setHasMore(true);
     fetchMemories(true);
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupleId]);

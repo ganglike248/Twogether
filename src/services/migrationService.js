@@ -1,6 +1,6 @@
 // src/services/migrationService.js
 // 기존 Firebase(krhj-1111)의 데이터를 새 Firebase(twogether-206fb)로 복사
-import { initializeApp } from 'firebase/app';
+import { initializeApp, getApps, getApp } from 'firebase/app';
 import { getFirestore, collection, getDocs, writeBatch, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -12,20 +12,14 @@ const oldFirebaseConfig = {
   appId: import.meta.env.VITE_OLD_FIREBASE_APP_ID,
 };
 
-let oldApp;
 let oldDb;
 
 const getOldDb = () => {
   if (!oldDb) {
-    try {
-      oldApp = initializeApp(oldFirebaseConfig, 'old-firebase');
-      oldDb = getFirestore(oldApp);
-    } catch (e) {
-      // 이미 초기화된 경우
-      const { getApp } = require('firebase/app');
-      oldApp = getApp('old-firebase');
-      oldDb = getFirestore(oldApp);
-    }
+    // 이미 초기화된 앱이 있으면 재사용, 없으면 새로 초기화
+    const existingApp = getApps().find(app => app.name === 'old-firebase');
+    const oldApp = existingApp ?? initializeApp(oldFirebaseConfig, 'old-firebase');
+    oldDb = getFirestore(oldApp);
   }
   return oldDb;
 };
