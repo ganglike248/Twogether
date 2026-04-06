@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { useTrips } from '../../hooks/useTrip';
 import { createTrip, updateTrip, deleteTrip } from '../../services/tripService';
+import { useAuthContext } from '../../contexts/AuthContext';
 import TripModal from './TripModal';
 import TripCard from './TripCard';
 import TripDetail from './TripDetail';
@@ -18,7 +19,8 @@ const TravelPlanPage = () => {
 
     const navigate = useNavigate();
     const { tripId } = useParams();
-    const { trips, loading } = useTrips();
+    const { user, coupleId } = useAuthContext();
+    const { trips, loading } = useTrips(coupleId);
 
     // 특정 여행 상세 보기
     useEffect(() => {
@@ -66,7 +68,7 @@ const TravelPlanPage = () => {
             if (tripData.id) {
                 await updateTrip(tripData.id, tripData);
             } else {
-                await createTrip(tripData);
+                await createTrip(tripData, user?.uid, coupleId);
             }
             setShowTripModal(false);
         } catch (error) {

@@ -1,0 +1,80 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    // 인증된 사용자인지 확인
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    // 요청자가 해당 커플의 멤버인지 확인
+    function isCoupleMe(coupleId) {
+      return isAuthenticated() &&
+        exists(/databases/$(database)/documents/couples/$(coupleId)) &&
+        request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.members;
+    }
+
+    // users: 본인만 읽기/쓰기 가능
+    match /users/{userId} {
+      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+    }
+
+    // couples: 멤버만 읽기 가능, 생성은 인증된 사용자, 업데이트는 멤버만
+    match /couples/{coupleId} {
+      allow read: if isAuthenticated() &&
+        request.auth.uid in resource.data.members;
+      allow create: if isAuthenticated() &&
+        request.auth.uid in request.resource.data.members;
+      allow update: if isAuthenticated() &&
+        request.auth.uid in resource.data.members;
+    }
+
+    // coupleId 기반 컬렉션: 해당 커플 멤버만 접근 가능
+    match /events/{docId} {
+      allow read, write: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId);
+    }
+
+    match /edit_logs/{docId} {
+      allow read: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId);
+    }
+
+    match /trips/{docId} {
+      allow read, write: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId);
+    }
+
+    match /tripSchedules/{docId} {
+      allow read, write: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId);
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(request.resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.coupleId);
+    }
+
+    match /travelTimes/{docId} {
+      allow read, write: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId);
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(request.resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.coupleId);
+    }
+
+    match /bucketlists/{docId} {
+      allow read, write: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId);
+    }
+  }
+}

@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, orderBy, where, getDocs, startAfter, limit } from 'firebase/firestore';
 import { db } from '../../firebase';
+import { useAuthContext } from '../../contexts/AuthContext';
 import MemoryCard from './MemoryCard';
 import { Link } from 'react-router-dom';
 import './MemoryList.css';
@@ -9,6 +10,7 @@ import './MemoryList.css';
 const PAGE_SIZE = 10;
 
 const MemoryList = () => {
+  const { coupleId } = useAuthContext();
   const [memories, setMemories] = useState([]);
   const [filteredMemories, setFilteredMemories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -16,11 +18,12 @@ const MemoryList = () => {
   const [filter, setFilter] = useState('all'); // 'all', 'boyfriend', 'girlfriend', 'couple'
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
-  
+
   const containerRef = useRef(null);
 
   // 모든 메모리 데이터 가져오기 (페이지네이션)
   const fetchMemories = useCallback(async (isInitial = false) => {
+    if (!coupleId) return;
     if (isInitial) {
       setIsLoading(true);
     } else {
@@ -36,6 +39,7 @@ const MemoryList = () => {
       // 기본 쿼리 구성
       let q = query(
         collection(db, "events"),
+        where("coupleId", "==", coupleId),
         where("start", "<=", todayStr),
         orderBy("start", "desc"),
         limit(PAGE_SIZE)
@@ -45,6 +49,7 @@ const MemoryList = () => {
       if (!isInitial && lastDoc) {
         q = query(
           collection(db, "events"),
+          where("coupleId", "==", coupleId),
           where("start", "<=", todayStr),
           orderBy("start", "desc"),
           startAfter(lastDoc),
@@ -99,7 +104,8 @@ const MemoryList = () => {
   // 초기 로드
   useEffect(() => {
     fetchMemories(true);
-  }, []);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [coupleId]);
 
   // 필터 변경 시 메모리 필터링
   useEffect(() => {
