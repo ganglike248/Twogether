@@ -1,10 +1,13 @@
 // src/components/Auth/LoginPage.jsx
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { signUpWithEmail, signInWithEmail } from '../../services/authService';
+import { useAuthContext } from '../../contexts/AuthContext';
 import { HiHeart } from 'react-icons/hi2';
 import './LoginPage.css';
 
 const LoginPage = () => {
+  const { user, loading: authLoading } = useAuthContext();
   const [tab, setTab] = useState('login'); // 'login' | 'signup'
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
@@ -76,6 +79,9 @@ const LoginPage = () => {
       setLoading(false);
     }
   };
+
+  // 이미 로그인된 경우 홈으로 리다이렉트
+  if (!authLoading && user) return <Navigate to="/" replace />;
 
   return (
     <div className="login-page">

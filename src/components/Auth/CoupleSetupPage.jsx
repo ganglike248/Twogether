@@ -1,20 +1,23 @@
 // src/components/Auth/CoupleSetupPage.jsx
 import React, { useState } from 'react';
+import { Navigate } from 'react-router-dom';
 import { HiHeart, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
-import { createCouple, joinCouple } from '../../services/authService';
-import { signOut } from '../../services/authService';
+import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
-  const { user } = useAuthContext();
+  const { user, loading: authLoading } = useAuthContext();
   const [tab, setTab] = useState('create'); // 'create' | 'join'
   const [anniversaryDate, setAnniversaryDate] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
+
+  // 로그아웃 후 또는 미로그인 상태 → 로그인 페이지
+  if (!authLoading && !user) return <Navigate to="/login" replace />;
 
   const handleTabChange = (newTab) => {
     setTab(newTab);
@@ -26,14 +29,14 @@ const CoupleSetupPage = () => {
     e.preventDefault();
     if (!anniversaryDate) { setError('연애 시작일을 입력해주세요.'); return; }
     setError('');
-    setLoading(true);
+    setFormLoading(true);
     try {
       const { inviteCode: code } = await createCouple(user.uid, anniversaryDate);
       setGeneratedCode(code);
     } catch (err) {
       setError('커플 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -41,14 +44,14 @@ const CoupleSetupPage = () => {
     e.preventDefault();
     if (!inviteCode.trim()) { setError('초대 코드를 입력해주세요.'); return; }
     setError('');
-    setLoading(true);
+    setFormLoading(true);
     try {
       await joinCouple(user.uid, inviteCode.trim());
-      // AuthContext가 자동으로 coupleId 감지 → App에서 리다이렉트
+      // AuthContext가 자동으로 coupleId 감지 → ProtectedRoute에서 리다이렉트
     } catch (err) {
       setError(err.message || '초대 코드가 유효하지 않습니다.');
     } finally {
-      setLoading(false);
+      setFormLoading(false);
     }
   };
 
@@ -99,8 +102,8 @@ const CoupleSetupPage = () => {
                   <span className="couple-setup-hint">우리가 처음 만난 날을 입력해주세요</span>
                 </div>
                 {error && <p className="couple-setup-error">{error}</p>}
-                <button type="submit" className="couple-setup-btn" disabled={loading}>
-                  {loading ? '생성 중...' : '초대 코드 생성'}
+                <button type="submit" className="couple-setup-btn" disabled={formLoading}>
+                  {formLoading ? '생성 중...' : '초대 코드 생성'}
                 </button>
               </form>
             ) : (
@@ -136,8 +139,8 @@ const CoupleSetupPage = () => {
                 <span className="couple-setup-hint">상대방이 생성한 6자리 코드를 입력하세요</span>
               </div>
               {error && <p className="couple-setup-error">{error}</p>}
-              <button type="submit" className="couple-setup-btn" disabled={loading}>
-                {loading ? '연결 중...' : '커플 연결하기'}
+              <button type="submit" className="couple-setup-btn" disabled={formLoading}>
+                {formLoading ? '연결 중...' : '커플 연결하기'}
               </button>
             </form>
           </div>

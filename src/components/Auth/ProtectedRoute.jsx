@@ -29,7 +29,10 @@ const ProtectedRoute = ({ children }) => {
 
   if (!userDoc?.coupleId) return <Navigate to="/couple-setup" replace />;
 
-  if (coupleDoc && !coupleDoc.migrationDone) return <Navigate to="/migration" replace />;
+  if (coupleDoc && !coupleDoc.migrationDone) {
+    console.log('[ProtectedRoute] migrationDone=false → /migration 유지');
+    return <Navigate to="/migration" replace />;
+  }
 
   return children;
 };

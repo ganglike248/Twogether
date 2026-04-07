@@ -1,5 +1,6 @@
 // src/components/Migration/MigrationPage.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -17,7 +18,16 @@ const COLLECTION_LABELS = {
 };
 
 const MigrationPage = () => {
-  const { coupleId } = useAuthContext();
+  const { coupleId, coupleDoc } = useAuthContext();
+  const navigate = useNavigate();
+
+  // coupleDoc.migrationDone이 true로 바뀌면 홈으로 이동
+  useEffect(() => {
+    if (coupleDoc?.migrationDone) {
+      console.log('[Migration] migrationDone 감지 → 홈으로 이동');
+      navigate('/', { replace: true });
+    }
+  }, [coupleDoc?.migrationDone, navigate]);
   const [status, setStatus] = useState('idle'); // 'idle' | 'running' | 'done' | 'error'
   const [progress, setProgress] = useState({});
   const [errorMsg, setErrorMsg] = useState('');
@@ -33,7 +43,9 @@ const MigrationPage = () => {
       });
 
       // migrationDone 플래그 설정
+      console.log('[Migration] migrationDone: true 저장 중...');
       await updateDoc(doc(db, 'couples', coupleId), { migrationDone: true });
+      console.log('[Migration] 저장 완료, AuthContext 업데이트 대기 중...');
       setStatus('done');
     } catch (err) {
       setErrorMsg(err.message || '마이그레이션 중 오류가 발생했습니다.');
@@ -43,9 +55,11 @@ const MigrationPage = () => {
 
   const handleSkip = async () => {
     try {
+      console.log('[Migration] 건너뛰기: migrationDone: true 저장 중...');
       await updateDoc(doc(db, 'couples', coupleId), { migrationDone: true });
-    } catch {
-      // 무시
+      console.log('[Migration] 저장 완료, AuthContext 업데이트 대기 중...');
+    } catch (err) {
+      console.error('[Migration] 건너뛰기 실패:', err);
     }
   };
 
