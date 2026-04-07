@@ -1,8 +1,9 @@
 // src/components/common/AppHeader.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HiHeart } from 'react-icons/hi2';
+import { HiHeart, HiArrowRightOnRectangle } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { signOut } from '../../services/authService';
 import './AppHeader.css';
 
 const getDday = (anniversaryDate) => {
@@ -19,12 +20,20 @@ const AppHeader = () => {
   const { coupleDoc } = useAuthContext();
   const dday = getDday(coupleDoc?.anniversaryDate);
 
+  const handleLogout = (e) => {
+    e.stopPropagation();
+    signOut();
+  };
+
   return (
     <header className="app-header" onClick={() => navigate('/')}>
       <span className="app-header-title">우리두리</span>
       <div className="app-header-right">
         <HiHeart className="app-header-heart" />
         {dday !== null && <span className="app-header-dday">+ {dday}</span>}
+        <button className="app-header-logout" onClick={handleLogout}>
+          <HiArrowRightOnRectangle />
+        </button>
       </div>
     </header>
   );
