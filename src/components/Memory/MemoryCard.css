@@ -15,6 +15,33 @@
   box-shadow: var(--shadow-md);
 }
 
+.card-thumbnail {
+  position: relative;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  margin: -1rem -1rem 0.75rem -1rem;
+  width: calc(100% + 2rem);
+  overflow: hidden;
+  border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+}
+
+.card-thumbnail-img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.card-thumbnail-count {
+  position: absolute;
+  bottom: 0.4rem;
+  right: 0.5rem;
+  background-color: rgba(0, 0, 0, 0.55);
+  color: white;
+  font-size: 0.72rem;
+  padding: 0.15rem 0.45rem;
+  border-radius: 10px;
+}
+
 .card-header-container {
   display: flex;
   align-items: center;

@@ -1,9 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { format, subDays } from 'date-fns';
+import { doc, collection } from 'firebase/firestore';
+import { db } from '../../firebase';
+import { uploadEventImage, deleteEventImage } from '../../services/storageService';
 import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
 
-const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
+const EventModal = ({ isOpen, onClose, event, onSave, onDelete, coupleId }) => {
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -12,27 +15,60 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [showEventLog, setShowEventLog] = useState(false);
 
+  // 이미지 상태
+  const [existingUrls, setExistingUrls] = useState([]); // 이미 저장된 URL
+  const [pendingFiles, setPendingFiles] = useState([]);  // 새로 선택한 파일
+  const [deletedUrls, setDeletedUrls] = useState([]);    // 삭제할 URL
+  const fileInputRef = useRef(null);
+
   useEffect(() => {
     if (event) {
       setTitle(event.title || '');
       setDescription(event.description || '');
       setStartDate(event.start ? event.start.split('T')[0] : '');
 
-      // 종료일이 있으면 1일 빼서 표시
       let displayEndDate = event.end ? event.end.split('T')[0] : (event.start ? event.start.split('T')[0] : '');
       if (event.end && event.start) {
         const start = new Date(event.start.split('T')[0]);
         const end = new Date(event.end.split('T')[0]);
-        // 종료일이 시작일보다 크면 1일 빼기
         if (end > start) {
           displayEndDate = format(subDays(end, 1), 'yyyy-MM-dd');
         }
       }
       setEndDate(displayEndDate);
-
       setEventType(event.eventType || 'couple');
+      setExistingUrls(event.imageUrls || []);
     }
+    setPendingFiles([]);
+    setDeletedUrls([]);
   }, [event]);
+
+  const handleFileChange = (e) => {
+    const files = Array.from(e.target.files);
+    const totalCount = existingUrls.length + pendingFiles.length + files.length;
+    if (totalCount > 10) {
+      alert('이미지는 최대 10장까지 첨부할 수 있습니다.');
+      return;
+    }
+    const withPreview = files.map(file => ({
+      file,
+      preview: URL.createObjectURL(file),
+    }));
+    setPendingFiles(prev => [...prev, ...withPreview]);
+    e.target.value = '';
+  };
+
+  const handleRemoveExisting = (url) => {
+    setExistingUrls(prev => prev.filter(u => u !== url));
+    setDeletedUrls(prev => [...prev, url]);
+  };
+
+  const handleRemovePending = (index) => {
+    setPendingFiles(prev => {
+      URL.revokeObjectURL(prev[index].preview);
+      return prev.filter((_, i) => i !== index);
+    });
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -42,12 +78,10 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       let adjustedStartDate = startDate;
       let adjustedEndDate = endDate || startDate;
 
-      // 시작일은 00:00으로 설정
       if (!adjustedStartDate.includes('T')) {
         adjustedStartDate = `${adjustedStartDate}T00:00:00`;
       }
 
-      // 종료일 처리: 여러 날 일정이면 +1일 00:00:00, 하루 일정이면 23:59:59
       if (adjustedEndDate !== startDate) {
         const end = new Date(adjustedEndDate);
         end.setDate(end.getDate() + 1);
@@ -58,13 +92,29 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         }
       }
 
+      // Storage에 쓸 경로용 ID: 기존 이벤트면 event.id, 신규면 임시 생성
+      const storageId = event?.id || doc(collection(db, 'events')).id;
+
+      // 삭제할 이미지 Storage에서 제거
+      await Promise.all(deletedUrls.map(url => deleteEventImage(url)));
+
+      // 새 이미지 업로드
+      const uploadedUrls = coupleId
+        ? await Promise.all(
+            pendingFiles.map(({ file }) => uploadEventImage(coupleId, storageId, file))
+          )
+        : [];
+
+      const imageUrls = [...existingUrls, ...uploadedUrls];
+
       const eventData = {
         id: event?.id,
         title,
         description,
         start: adjustedStartDate,
         end: adjustedEndDate,
-        eventType
+        eventType,
+        imageUrls,
       };
 
       await onSave(eventData);
@@ -84,6 +134,8 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   };
 
   if (!isOpen) return null;
+
+  const totalImages = existingUrls.length + pendingFiles.length;
 
   return (
     <div className="modal-overlay">
@@ -161,9 +213,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     checked={eventType === 'couple'}
                     onChange={() => setEventType('couple')}
                   />
-                  <label htmlFor="couple" className="radio-label couple">
-                    데이트
-                  </label>
+                  <label htmlFor="couple" className="radio-label couple">데이트</label>
                 </div>
                 <div className="radio-option">
                   <input
@@ -174,9 +224,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     checked={eventType === 'boyfriend'}
                     onChange={() => setEventType('boyfriend')}
                   />
-                  <label htmlFor="boyfriend" className="radio-label boyfriend">
-                    경락
-                  </label>
+                  <label htmlFor="boyfriend" className="radio-label boyfriend">경락</label>
                 </div>
                 <div className="radio-option">
                   <input
@@ -187,11 +235,61 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     checked={eventType === 'girlfriend'}
                     onChange={() => setEventType('girlfriend')}
                   />
-                  <label htmlFor="girlfriend" className="radio-label girlfriend">
-                    효정
-                  </label>
+                  <label htmlFor="girlfriend" className="radio-label girlfriend">효정</label>
                 </div>
               </div>
+            </div>
+
+            {/* 이미지 업로드 */}
+            <div className="form-group">
+              <label className="form-label">사진</label>
+              {totalImages > 0 && (
+                <div className="image-grid">
+                  {existingUrls.map((url) => (
+                    <div key={url} className="image-item">
+                      <img src={url} alt="" className="image-preview" />
+                      <button
+                        type="button"
+                        className="image-delete"
+                        onClick={() => handleRemoveExisting(url)}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                  {pendingFiles.map(({ preview }, i) => (
+                    <div key={preview} className="image-item image-item-pending">
+                      <img src={preview} alt="" className="image-preview" />
+                      <button
+                        type="button"
+                        className="image-delete"
+                        onClick={() => handleRemovePending(i)}
+                      >
+                        &times;
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              {totalImages < 10 && (
+                <>
+                  <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept="image/*"
+                    multiple
+                    style={{ display: 'none' }}
+                    onChange={handleFileChange}
+                  />
+                  <button
+                    type="button"
+                    className="image-add-btn"
+                    onClick={() => fileInputRef.current.click()}
+                  >
+                    + 사진 추가 ({totalImages}/10)
+                  </button>
+                </>
+              )}
             </div>
           </div>
 

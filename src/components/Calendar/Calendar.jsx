@@ -365,6 +365,7 @@ const Calendar = () => {
         event={selectedEvent}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
+        coupleId={coupleId}
       />
       <DayModal
         isOpen={isDayModalOpen}

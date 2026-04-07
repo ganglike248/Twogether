@@ -29,6 +29,19 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
         </div>
         
         <div className="memory-modal-content">
+          {memory.imageUrls?.length > 0 && (
+            <div className="memory-image-gallery">
+              {memory.imageUrls.map((url, i) => (
+                <img
+                  key={url}
+                  src={url}
+                  alt={`${memory.title} ${i + 1}`}
+                  className="memory-gallery-img"
+                  onClick={() => window.open(url, '_blank')}
+                />
+              ))}
+            </div>
+          )}
           <div className="memory-details">
             <div className={`memory-badge ${
               memory.eventType === 'boyfriend' ? 'boyfriend' : 

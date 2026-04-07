@@ -17,9 +17,19 @@ const MemoryCard = ({ memory }) => {
     }
   };
   
+  const thumbnail = memory.imageUrls?.[0];
+
   return (
     <>
       <div className="memory-card" onClick={() => setShowDetail(true)}>
+        {thumbnail && (
+          <div className="card-thumbnail">
+            <img src={thumbnail} alt={memory.title} className="card-thumbnail-img" />
+            {memory.imageUrls.length > 1 && (
+              <span className="card-thumbnail-count">+{memory.imageUrls.length - 1}</span>
+            )}
+          </div>
+        )}
         <div className="card-header-container">
           <div className={`card-icon ${
             memory.eventType === 'boyfriend' ? 'icon-boyfriend' : 
