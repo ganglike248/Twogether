@@ -1,7 +1,7 @@
 // src/components/common/AppHeader.jsx
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HiHeart, HiArrowRightOnRectangle } from 'react-icons/hi2';
+import { HiHeart, HiArrowRightOnRectangle, HiUser } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
 import './AppHeader.css';
@@ -25,8 +25,16 @@ const AppHeader = () => {
     signOut();
   };
 
+  const handleProfile = (e) => {
+    e.stopPropagation();
+    navigate('/profile');
+  };
+
   return (
     <header className="app-header" onClick={() => navigate('/')}>
+      <button className="app-header-profile" onClick={handleProfile}>
+        <HiUser />
+      </button>
       <span className="app-header-title">우리두리</span>
       <div className="app-header-right">
         <HiHeart className="app-header-heart" />

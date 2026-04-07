@@ -17,6 +17,7 @@ import Calendar from './components/Calendar/Calendar';
 import MemoryList from './components/Memory/MemoryList';
 import BucketListPage from './components/BucketList/BucketListPage';
 import TravelPlanPage from './components/Travel/TravelPlanPage';
+import ProfilePage from './components/Profile/ProfilePage';
 
 import './App.css';
 
@@ -92,6 +93,17 @@ function App() {
               <ProtectedRoute>
                 <Layout>
                   <TravelPlanPage />
+                </Layout>
+              </ProtectedRoute>
+            }
+          />
+
+          <Route
+            path="/profile"
+            element={
+              <ProtectedRoute>
+                <Layout>
+                  <ProfilePage />
                 </Layout>
               </ProtectedRoute>
             }

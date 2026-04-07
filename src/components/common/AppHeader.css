@@ -48,6 +48,24 @@
   letter-spacing: -0.01em;
 }
 
+.app-header-profile {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #ffb6c1;
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  padding: 0.25rem;
+  border-radius: 50%;
+  transition: color 0.15s, background 0.15s;
+}
+
+.app-header-profile:hover {
+  color: #ff6b6b;
+  background: rgba(255, 107, 107, 0.08);
+}
+
 .app-header-logout {
   background: none;
   border: none;

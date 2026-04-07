@@ -15,9 +15,16 @@ service cloud.firestore {
         request.auth.uid in get(/databases/$(database)/documents/couples/$(coupleId)).data.members;
     }
 
-    // users: 본인만 읽기/쓰기 가능
+    // users: 본인만 쓰기, 같은 커플 멤버는 읽기 가능
     match /users/{userId} {
-      allow read, write: if isAuthenticated() && request.auth.uid == userId;
+      allow write: if isAuthenticated() && request.auth.uid == userId;
+      allow read: if isAuthenticated() && (
+        request.auth.uid == userId ||
+        (
+          get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId != null &&
+          userId in get(/databases/$(database)/documents/couples/$(get(/databases/$(database)/documents/users/$(request.auth.uid)).data.coupleId)).data.members
+        )
+      );
     }
 
     // couples: 멤버만 읽기 가능, 생성은 인증된 사용자, 업데이트는 멤버만
