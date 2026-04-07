@@ -1,6 +1,6 @@
 // src/App.jsx
 import React from 'react';
-import { BrowserRouter as Router, Routes, Route, Navigate } from 'react-router-dom';
+import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
@@ -21,101 +21,57 @@ import ProfilePage from './components/Profile/ProfilePage';
 
 import './App.css';
 
+// AuthProvider와 공통 컴포넌트를 라우터 내부에 배치해야 useNavigate 등이 동작함
+const RootLayout = () => (
+  <AuthProvider>
+    <ScrollToTop />
+    <ToastContainer position="bottom-right" />
+    <Outlet />
+  </AuthProvider>
+);
+
+const router = createBrowserRouter([
+  {
+    element: <RootLayout />,
+    children: [
+      { path: '/login', element: <LoginPage /> },
+      { path: '/couple-setup', element: <CoupleSetupPage /> },
+      { path: '/migration', element: <MigrationPage /> },
+      {
+        path: '/',
+        element: <ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/calendar',
+        element: <ProtectedRoute><Layout><Calendar /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/memories',
+        element: <ProtectedRoute><Layout><MemoryList /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/bucket',
+        element: <ProtectedRoute><Layout><BucketListPage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/travel',
+        element: <ProtectedRoute><Layout><TravelPlanPage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/travel/:tripId',
+        element: <ProtectedRoute><Layout><TravelPlanPage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/profile',
+        element: <ProtectedRoute><Layout><ProfilePage /></Layout></ProtectedRoute>,
+      },
+      { path: '*', element: <Navigate to="/" replace /> },
+    ],
+  },
+]);
+
 function App() {
-  return (
-    <AuthProvider>
-      <Router>
-        <ScrollToTop />
-        <Routes>
-          {/* 공개 라우트 */}
-          <Route path="/login" element={<LoginPage />} />
-
-          {/* 로그인 후, 커플 연결 전 */}
-          <Route path="/couple-setup" element={<CoupleSetupPage />} />
-
-          {/* 커플 연결 후, 마이그레이션 페이지 */}
-          <Route path="/migration" element={<MigrationPage />} />
-
-          {/* 보호된 라우트 (로그인 + 커플 연결 + 마이그레이션 완료 필요) */}
-          <Route
-            path="/"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Home />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/calendar"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <Calendar />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/memories"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <MemoryList />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/bucket"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <BucketListPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/travel"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <TravelPlanPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/travel/:tripId"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <TravelPlanPage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          <Route
-            path="/profile"
-            element={
-              <ProtectedRoute>
-                <Layout>
-                  <ProfilePage />
-                </Layout>
-              </ProtectedRoute>
-            }
-          />
-
-          {/* 없는 경로 → 홈 */}
-          <Route path="*" element={<Navigate to="/" replace />} />
-        </Routes>
-        <ToastContainer position="bottom-right" />
-      </Router>
-    </AuthProvider>
-  );
+  return <RouterProvider router={router} />;
 }
 
 export default App;

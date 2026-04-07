@@ -22,6 +22,7 @@ const AppHeader = () => {
 
   const handleLogout = (e) => {
     e.stopPropagation();
+    if (!window.confirm('정말 로그아웃하시겠습니까?')) return;
     signOut();
   };
 
@@ -32,15 +33,15 @@ const AppHeader = () => {
 
   return (
     <header className="app-header" onClick={() => navigate('/')}>
-      <button className="app-header-profile" onClick={handleProfile}>
-        <HiUser />
+      <button className="app-header-logout" onClick={handleLogout}>
+        <HiArrowRightOnRectangle />
       </button>
       <span className="app-header-title">우리두리</span>
       <div className="app-header-right">
         <HiHeart className="app-header-heart" />
         {dday !== null && <span className="app-header-dday">+ {dday}</span>}
-        <button className="app-header-logout" onClick={handleLogout}>
-          <HiArrowRightOnRectangle />
+        <button className="app-header-profile" onClick={handleProfile}>
+          <HiUser />
         </button>
       </div>
     </header>

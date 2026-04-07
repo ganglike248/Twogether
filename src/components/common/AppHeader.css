@@ -20,6 +20,9 @@
 }
 
 .app-header-title {
+  position: absolute;
+  left: 50%;
+  transform: translateX(-50%);
   font-size: 1rem;
   font-weight: 700;
   background: linear-gradient(90deg, #ff6b6b, #ffb6c1);
@@ -27,6 +30,7 @@
   background-clip: text;
   color: transparent;
   letter-spacing: -0.02em;
+  pointer-events: none;
 }
 
 .app-header-right {

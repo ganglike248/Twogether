@@ -81,6 +81,7 @@ function BucketListPage() {
   };
 
   const handleUncheck = async (id) => {
+    if (!window.confirm('완료를 취소하시겠습니까?')) return;
     await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
     setBucketList(list =>
       list.map(item => item.id === id ? { ...item, completed: false, completedAt: null } : item)
