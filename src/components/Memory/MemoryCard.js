@@ -3,10 +3,12 @@ import React, { useState } from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import MemoryDetail from './MemoryDetail';
+import { useAuthContext } from '../../contexts/AuthContext';
 import './MemoryCard.css';
 
 const MemoryCard = ({ memory }) => {
   const [showDetail, setShowDetail] = useState(false);
+  const { getMemberName } = useAuthContext();
   
   // 날짜 형식 지정
   const formatDate = (dateString) => {
@@ -38,8 +40,7 @@ const MemoryCard = ({ memory }) => {
               memory.eventType === 'boyfriend' ? 'badge-boyfriend' : 
               memory.eventType === 'girlfriend' ? 'badge-girlfriend' : 'badge-couple'
             }`}>
-              {memory.eventType === 'boyfriend' ? '경락' : 
-              memory.eventType === 'girlfriend' ? '효정' : '데이트'}
+              {getMemberName(memory.eventType)}
             </span>
           </div>
           

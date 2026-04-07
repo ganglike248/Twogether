@@ -3,8 +3,10 @@ import { format, differenceInDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { subDays } from 'date-fns';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const DayModal = ({ isOpen, onClose, selectedDate, dayEvents, specialDays = [], onAddEvent, onEditEvent }) => {
+  const { getMemberName } = useAuthContext();
   if (!isOpen || !selectedDate) return null;
 
   const formatDate = (dateString) => {
@@ -57,12 +59,9 @@ const DayModal = ({ isOpen, onClose, selectedDate, dayEvents, specialDays = [], 
   };
 
   const getEventTypeName = (eventType) => {
-    switch(eventType) {
-      case 'boyfriend': return '경락';
-      case 'girlfriend': return '효정';
-      case 'couple': return '데이트';
-      default: return '일정';
-    }
+    if (eventType === 'couple') return '데이트';
+    if (eventType === 'boyfriend' || eventType === 'girlfriend') return getMemberName(eventType);
+    return '일정';
   };
 
   // 이벤트를 시작일 기준으로 정렬

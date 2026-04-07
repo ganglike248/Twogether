@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
+import { useAuthContext } from '../../contexts/AuthContext';
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
+  const { getMemberName } = useAuthContext();
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -175,7 +177,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     onChange={() => setEventType('boyfriend')}
                   />
                   <label htmlFor="boyfriend" className="radio-label boyfriend">
-                    경락
+                    {getMemberName('boyfriend')}
                   </label>
                 </div>
                 <div className="radio-option">
@@ -188,7 +190,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     onChange={() => setEventType('girlfriend')}
                   />
                   <label htmlFor="girlfriend" className="radio-label girlfriend">
-                    효정
+                    {getMemberName('girlfriend')}
                   </label>
                 </div>
               </div>

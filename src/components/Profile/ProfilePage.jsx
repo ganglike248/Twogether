@@ -1,7 +1,7 @@
 // src/components/Profile/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { doc, updateDoc, getDoc } from 'firebase/firestore';
+import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { HiArrowLeft, HiUser, HiHeart, HiCalendarDays, HiEnvelope } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
@@ -10,13 +10,12 @@ import './ProfilePage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, userDoc, coupleDoc, coupleId } = useAuthContext();
+  const { user, userDoc, coupleDoc, coupleId, partnerDoc } = useAuthContext();
 
   const [displayName, setDisplayName] = useState('');
   const [anniversaryDate, setAnniversaryDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
-  const [partnerDoc, setPartnerDoc] = useState(null);
 
   useEffect(() => {
     if (userDoc) setDisplayName(userDoc.displayName || '');
@@ -25,21 +24,6 @@ const ProfilePage = () => {
   useEffect(() => {
     if (coupleDoc) setAnniversaryDate(coupleDoc.anniversaryDate || '');
   }, [coupleDoc]);
-
-  // 상대방 정보 조회
-  useEffect(() => {
-    if (!coupleDoc?.members || !user) return;
-    const partnerUid = coupleDoc.members.find(uid => uid !== user.uid);
-    if (!partnerUid) { setPartnerDoc(null); return; }
-
-    getDoc(doc(db, 'users', partnerUid))
-      .then(snap => {
-        setPartnerDoc(snap.exists() ? snap.data() : null);
-      })
-      .catch(() => {
-        setPartnerDoc(null);
-      });
-  }, [coupleDoc?.members, user]);
 
   const handleSave = async (e) => {
     e.preventDefault();

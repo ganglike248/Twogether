@@ -10,7 +10,7 @@ import './MemoryList.css';
 const PAGE_SIZE = 10;
 
 const MemoryList = () => {
-  const { coupleId } = useAuthContext();
+  const { coupleId, getMemberName } = useAuthContext();
   const [memories, setMemories] = useState([]);
   const [filteredMemories, setFilteredMemories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -166,13 +166,13 @@ const MemoryList = () => {
           onClick={() => setFilter('boyfriend')}
           className={`filter-button ${filter === 'boyfriend' ? 'active' : ''}`}
         >
-          경락
+          {getMemberName('boyfriend')}
         </button>
         <button
           onClick={() => setFilter('girlfriend')}
           className={`filter-button ${filter === 'girlfriend' ? 'active' : ''}`}
         >
-          효정
+          {getMemberName('girlfriend')}
         </button>
       </div>
 

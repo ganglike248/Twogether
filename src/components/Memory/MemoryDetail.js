@@ -2,9 +2,11 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { useAuthContext } from '../../contexts/AuthContext';
 import './MemoryDetail.css';
 
 const MemoryDetail = ({ isOpen, onClose, memory }) => {
+  const { getMemberName } = useAuthContext();
   if (!isOpen || !memory) return null;
   
   const formatDate = (dateString) => {
@@ -34,8 +36,7 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
               memory.eventType === 'boyfriend' ? 'boyfriend' : 
               memory.eventType === 'girlfriend' ? 'girlfriend' : 'couple'
             }`}>
-              {memory.eventType === 'boyfriend' ? '경락' : 
-               memory.eventType === 'girlfriend' ? '효정' : '데이트'}
+              {getMemberName(memory.eventType)}
             </div>
             
             <div className="memory-section">
