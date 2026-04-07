@@ -238,28 +238,6 @@
   object-fit: cover;
 }
 
-.image-item-pending {
-  opacity: 0.85;
-}
-
-.image-add-btn {
-  margin-top: 0.5rem;
-  width: 100%;
-  padding: 0.6rem;
-  border: 1.5px dashed var(--color-gray-300);
-  border-radius: var(--border-radius);
-  background: none;
-  color: var(--color-gray-500);
-  font-size: 0.85rem;
-  cursor: pointer;
-  transition: border-color 0.2s, color 0.2s;
-}
-
-.image-add-btn:hover {
-  border-color: var(--color-primary);
-  color: var(--color-primary);
-}
-
 .image-delete {
   position: absolute;
   top: 0.25rem;

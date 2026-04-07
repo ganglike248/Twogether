@@ -1,5 +1,5 @@
 // src/components/Home/Home.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import {
   differenceInCalendarDays, differenceInMonths, addMonths,
@@ -7,13 +7,14 @@ import {
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
-  HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart
+  HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiCamera
 } from 'react-icons/hi2';
 import useCalendar from '../../hooks/useCalendar';
 import { useTrips, useTripSchedules } from '../../hooks/useTrip';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, getDocs, query, where, doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { uploadHeroImage } from '../../services/storageService';
 import MainImg from '../images/main.png';
 import './Home.css';
 
@@ -24,9 +25,32 @@ const Home = () => {
   const [dday, setDday] = useState(0);
   const [isSpecialDay, setIsSpecialDay] = useState(false);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
+  const [heroUploading, setHeroUploading] = useState(false);
   const { events } = useCalendar(coupleId);
   const { trips } = useTrips(coupleId);
   const navigate = useNavigate();
+  const heroInputRef = useRef(null);
+
+  const heroImageUrl = coupleDoc?.heroImageUrl || null;
+
+  const handleHeroClick = () => {
+    if (!heroUploading) heroInputRef.current.click();
+  };
+
+  const handleHeroFileChange = async (e) => {
+    const file = e.target.files[0];
+    if (!file || !coupleId) return;
+    setHeroUploading(true);
+    try {
+      const url = await uploadHeroImage(coupleId, file);
+      await updateDoc(doc(db, 'couples', coupleId), { heroImageUrl: url });
+    } catch (err) {
+      alert('사진 업로드 중 오류가 발생했습니다.');
+    } finally {
+      setHeroUploading(false);
+      e.target.value = '';
+    }
+  };
 
   useEffect(() => {
     if (!anniversaryDate) return;
@@ -151,12 +175,26 @@ const Home = () => {
 
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
-        <div className="hero-photo-col">
-          <img src={MainImg} alt="우리" className="hero-img" />
+        <div className="hero-photo-col hero-photo-clickable" onClick={handleHeroClick}>
+          <img
+            src={heroImageUrl || MainImg}
+            alt="우리"
+            className="hero-img"
+          />
           <div className="hero-overlay" />
           <div className="hero-text">
             <div className="hero-dday">❤+{dday}</div>
           </div>
+          <div className={`hero-camera-hint${heroUploading ? ' uploading' : ''}`}>
+            <HiCamera className="hero-camera-icon" />
+          </div>
+          <input
+            ref={heroInputRef}
+            type="file"
+            accept="image/*"
+            style={{ display: 'none' }}
+            onChange={handleHeroFileChange}
+          />
         </div>
         <div className="hero-info-col">
           <div className="hero-stat-card">

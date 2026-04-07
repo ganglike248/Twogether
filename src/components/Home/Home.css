@@ -25,6 +25,44 @@
   min-width: 0;
 }
 
+.hero-photo-clickable {
+  cursor: pointer;
+}
+
+.hero-camera-hint {
+  position: absolute;
+  top: 0.6rem;
+  right: 0.6rem;
+  background: rgba(0, 0, 0, 0.38);
+  border-radius: 50%;
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s;
+}
+
+.hero-photo-clickable:hover .hero-camera-hint,
+.hero-photo-clickable:active .hero-camera-hint {
+  opacity: 1;
+}
+
+.hero-camera-hint.uploading {
+  opacity: 1;
+  animation: hero-spin 0.9s linear infinite;
+}
+
+.hero-camera-icon {
+  color: white;
+  font-size: 0.95rem;
+}
+
+@keyframes hero-spin {
+  to { transform: rotate(360deg); }
+}
+
 .hero-img {
   width: 100%;
   height: 100%;
