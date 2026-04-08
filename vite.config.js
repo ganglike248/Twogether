@@ -8,13 +8,13 @@ export default defineConfig({
     react(),
     VitePWA({
       registerType: 'autoUpdate',
-      includeAssets: ['favicon.svg', 'pwa-192.svg', 'pwa-512.svg'],
+      includeAssets: ['app-icon.png'],
       manifest: {
         name: '우리두리',
         short_name: '우리두리',
         description: '커플을 위한 우리만의 공간 - 일정, 추억, 여행을 함께',
-        theme_color: '#863bff',
-        background_color: '#ffffff',
+        theme_color: '#fce4ec',
+        background_color: '#fce4ec',
         display: 'standalone',
         orientation: 'portrait',
         scope: '/',
@@ -22,25 +22,26 @@ export default defineConfig({
         lang: 'ko',
         icons: [
           {
-            src: '/pwa-192.svg',
+            src: '/app-icon.png',
             sizes: '192x192',
-            type: 'image/svg+xml',
+            type: 'image/png',
           },
           {
-            src: '/pwa-512.svg',
+            src: '/app-icon.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
           },
           {
-            src: '/pwa-maskable-512.svg',
+            src: '/app-icon.png',
             sizes: '512x512',
-            type: 'image/svg+xml',
+            type: 'image/png',
             purpose: 'maskable',
           },
         ],
       },
       workbox: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
         runtimeCaching: [
           {
             urlPattern: /^https:\/\/firestore\.googleapis\.com\/.*/i,
