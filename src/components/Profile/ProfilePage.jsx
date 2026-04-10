@@ -3,11 +3,15 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
+import { toast } from 'react-toastify';
 import { HiArrowLeft, HiUser, HiHeart, HiEnvelope, HiCamera } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
 import './ProfilePage.css';
+
+const MAX_IMAGE_SIZE_MB = 10;
+const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -82,6 +86,21 @@ const ProfilePage = () => {
   const handleHeroFileChange = (e) => {
     const file = e.target.files[0];
     if (!file) return;
+
+    // 파일 크기 검증
+    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
+      toast.error(`파일 크기는 ${MAX_IMAGE_SIZE_MB}MB 이하여야 합니다.`);
+      e.target.value = '';
+      return;
+    }
+
+    // 파일 타입 검증 (type이 비어있을 경우 통과 — storageService에서 재검증)
+    if (file.type && !ALLOWED_IMAGE_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
+      toast.error('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, WEBP, GIF)');
+      e.target.value = '';
+      return;
+    }
+
     if (heroPreviewUrl) URL.revokeObjectURL(heroPreviewUrl);
     setPendingHeroFile(file);
     setPendingHeroDelete(false);
@@ -130,8 +149,9 @@ const ProfilePage = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       return true;
-    } catch {
-      alert('저장 중 오류가 발생했습니다.');
+    } catch (err) {
+      console.error('[ProfilePage] 저장 실패:', err);
+      toast.error(`저장 중 오류가 발생했습니다.\n${err?.message || err}`);
       return false;
     } finally {
       setLoading(false);
@@ -207,7 +227,7 @@ const ProfilePage = () => {
             <input
               ref={heroInputRef}
               type="file"
-              accept="image/jpeg,image/png,image/webp,image/gif"
+              accept="image/*"
               style={{ display: 'none' }}
               onChange={handleHeroFileChange}
             />

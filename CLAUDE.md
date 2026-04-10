@@ -130,3 +130,9 @@ VITE_OLD_FIREBASE_API_KEY / PROJECT_ID / MESSAGING_SENDER_ID / APP_ID  (krhj-111
 1. events: coupleId ASC + start DESC
 2. trips: coupleId ASC + startDate DESC
 3. edit_logs: eventId ASC + timestamp DESC
+
+## 작업 시 주의사항
+1. 많은 부분을 수정해야 한다면 하나의 기능을 만들고, 커밋을 허락 받고 다음 작업 수행(여러 개의 요청이라도 한 번에 진행하지 말고, 하나의 기능이 나오면 허락 후 커밋하여 작업 단위를 작게)
+2. 작업 후 어떤 작업을 했는지, 이 작업을 통해 어떤 기능이 새로 추가되었고, 어떤 파일을 수정해서 어떤 영향이 있는지, 어떤 부작용이 있을 수 있는지 등 설명하고, 커밋은 진행하지 않을 것(커밋을 원한다면 내가 요청함)
+3. 항상 보안, 유지보수를 생각하며 하나의 파일에 많은 것을 구현하지 말고, 최대한 기능별로 모듈화 하기
+4. 요청이 명확하지 않을 때, 추론 및 실행하지 말고 우선 나에게 선택지를 주고 이해한 것이 맞는지 확인 후 실행
