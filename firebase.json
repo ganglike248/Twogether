@@ -4,6 +4,7 @@
     "indexes": "firestore.indexes.json"
   },
   "storage": {
+    "bucket": "twogether-206fb.firebasestorage.app",
     "rules": "storage.rules"
   },
   "hosting": {
