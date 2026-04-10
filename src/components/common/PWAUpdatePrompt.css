@@ -1,0 +1,91 @@
+/* src/components/common/PWAUpdatePrompt.css */
+
+.pwa-update-banner {
+  position: fixed;
+  bottom: calc(60px + env(safe-area-inset-bottom) + 12px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: calc(100% - 32px);
+  max-width: 400px;
+  background: #fff;
+  border-radius: 16px;
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.15);
+  padding: 14px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 9999;
+  animation: pwa-slide-up 0.3s ease;
+}
+
+@keyframes pwa-slide-up {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) translateY(20px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(-50%) translateY(0);
+  }
+}
+
+.pwa-update-content {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex: 1;
+  min-width: 0;
+}
+
+.pwa-update-icon {
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.pwa-update-text {
+  margin: 0;
+  font-size: 0.9rem;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.pwa-update-actions {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pwa-update-dismiss {
+  background: none;
+  border: none;
+  font-size: 0.82rem;
+  color: #999;
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 8px;
+  white-space: nowrap;
+}
+
+.pwa-update-dismiss:active {
+  background: #f5f5f5;
+}
+
+.pwa-update-confirm {
+  background: #f48fb1;
+  border: none;
+  color: #fff;
+  font-size: 0.82rem;
+  font-weight: 600;
+  padding: 6px 14px;
+  border-radius: 8px;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.pwa-update-confirm:active {
+  background: #ec407a;
+}

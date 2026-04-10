@@ -12,6 +12,7 @@ import MigrationPage from './components/Migration/MigrationPage';
 
 import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
+import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
 import Home from './components/Home/Home';
 import Calendar from './components/Calendar/Calendar';
 import MemoryList from './components/Memory/MemoryList';
@@ -26,6 +27,7 @@ const RootLayout = () => (
   <AuthProvider>
     <ScrollToTop />
     <ToastContainer position="bottom-right" />
+    <PWAUpdatePrompt />
     <Outlet />
   </AuthProvider>
 );
