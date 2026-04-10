@@ -2,19 +2,20 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.2.9 (배포됨: https://twogether-206fb.web.app)
+- **현재 버전**: v0.3.2 (배포됨: https://twogether-206fb.web.app)
 - **GitHub**: https://github.com/ganglike248/Twogether.git (브랜치: master)
 - **로컬 경로**: e:/programing/Pro/project/Twogether
 
 ## 기술 스택
-- React 18 + **Vite 5.4.21** (Vite 8은 Node.js 20.15.1과 호환 안 됨 → v5 고정)
+- React 19 + **Vite 5.4.21** (Vite 8은 Node.js 20.15.1과 호환 안 됨 → v5 고정)
 - Firebase 12.x: Auth, Firestore, Storage (프로젝트 ID: twogether-206fb)
 - react-router-dom v7, @fullcalendar/* v6, date-fns v4
 - korean-lunar-calendar, react-toastify, react-icons
+- **vite-plugin-pwa v1.2.0** (PWA, 서비스 워커, Workbox)
 
 ## 버전 관리 규칙 (필수)
 - 커밋마다 `package.json` version 필드 + `version.txt` 동시 업데이트
-- 현재: v0.2.9 → 다음: v0.3.0
+- 현재: v0.3.2 → 다음: v0.3.3
 
 ## 핵심 아키텍처
 
@@ -24,6 +25,20 @@
 esbuild: { loader: 'jsx', include: /src\/.*\.[jt]sx?$/ }
 optimizeDeps: { esbuildOptions: { loader: { '.js': 'jsx' } } }
 ```
+PWA 설정도 여기에 포함 (VitePWA 플러그인, Workbox 캐싱 전략)
+
+### PWA 설정 (vite.config.js)
+- 아이콘: `public/app-icon.png` (192×192, 512×512, maskable 모두 동일 파일)
+- theme_color: `#fce4ec`, background_color: `#fce4ec`
+- Workbox: Firestore → NetworkFirst, Storage → CacheFirst
+- `maximumFileSizeToCacheInBytes: 5MB` (app-icon.png가 2.58MB라 상향)
+- `devOptions.enabled: false` (개발 중 SW 비활성)
+
+### Safe Area (iOS 노치 대응)
+- `index.html`: `viewport-fit=cover`
+- `AppHeader.css`: `height: calc(52px + env(safe-area-inset-top))`, `padding-top: env(safe-area-inset-top)`
+- `Layout.css`: `padding-top/bottom`에 `env(safe-area-inset-top/bottom)` 반영
+- `Navigation.css`: `height: calc(60px + env(safe-area-inset-bottom))`, `padding-bottom: env(safe-area-inset-bottom)`
 
 ### AuthContext (contexts/AuthContext.jsx)
 전역 제공: `user, userDoc, coupleDoc, coupleId, partnerDoc, getMemberName, loading`
@@ -51,9 +66,11 @@ couples/{coupleId}/hero          → 홈 화면 대표 사진
 events/{coupleId}/{eventId}/{filename} → 이벤트 이미지 (미구현)
 ```
 
-### Firebase 배포 현황 (v0.2.9)
+### Firebase 배포 현황 (v0.3.2)
 - Firestore rules/indexes: 배포 완료
-- Storage rules: 배포 완료 (couples/{coupleId}/hero + events 경로)
+- Storage rules: 배포 완료
+  - **주의**: `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` 명시 필수
+  - 미명시 시 rules가 기본 `*.appspot.com` 버킷에 배포되어 앱에서 403 에러 발생
 - Hosting: 배포 완료
 
 ## 주요 파일 구조
@@ -63,17 +80,23 @@ src/
 ├── contexts/AuthContext.jsx
 ├── services/authService.js, eventService.js, tripService.js, storageService.js
 ├── hooks/useCalendar.js, useMemory.js, useTrip.js
+├── utils/koreanHolidays.js, numberFormat.js, dataUtils.js
 └── components/
     ├── Auth/LoginPage, CoupleSetupPage, ProtectedRoute
     ├── Migration/MigrationPage
     ├── common/AppHeader, Layout, Navigation, ScrollToTop
     ├── Home/Home
     ├── Calendar/Calendar, DayModal.js, EventModal.js
-    ├── Memory/MemoryList.js, MemoryCard.js, MemoryDetail.js
+    ├── Memory/MemoryList.js, MemoryCard.js, MemoryDetail.js, MemoryForm.js
     ├── BucketList/BucketListPage
-    ├── Travel/TravelPlanPage.js
+    ├── Travel/TravelPlanPage.js, TripCard.js, TripDetail.js, TripModal.js, ScheduleItem.js, ScheduleModal.js, TravelTimeInput.js
     ├── Profile/ProfilePage
     └── EditLog/EditLogModal.js
+
+public/
+├── favicon.svg    → 브라우저 탭 아이콘 (기존 벡터)
+├── app-icon.png   → PWA 아이콘 (커플 캐릭터 이미지, 2.58MB)
+└── icons.svg
 ```
 
 ## 라우팅
@@ -94,6 +117,7 @@ src/
 - Storage rules: 인증 여부만 확인, 커플 멤버십 검증은 미구현 (추후 강화 가능)
 - edit_logs 조회: coupleId 필터 없이 eventId 기반으로만 조회 (보안 강화 시 coupleId 추가 필요)
 - migrationService.js: krhj-1111 → twogether-206fb 데이터 복사, ESM 환경에서 `getApps()` 사용
+- BucketListPage: `getDocs` 사용 (실시간 아님) → 파트너 변경사항 즉시 반영 안 됨
 
 ## Firebase 환경변수 (.env, 커밋 안 됨)
 ```
