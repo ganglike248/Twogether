@@ -124,14 +124,12 @@ const ProfilePage = () => {
     if (!displayName.trim()) return false;
     setLoading(true);
     try {
-      // 텍스트 저장
       await updateProfile(auth.currentUser, { displayName: displayName.trim() });
       await updateDoc(doc(db, 'users', user.uid), { displayName: displayName.trim() });
       if (coupleId && anniversaryDate) {
         await updateDoc(doc(db, 'couples', coupleId), { anniversaryDate });
       }
 
-      // 사진 저장
       if (pendingHeroFile) {
         const url = await uploadHeroImage(coupleId, pendingHeroFile);
         await updateDoc(doc(db, 'couples', coupleId), { heroImageUrl: url });
@@ -151,7 +149,7 @@ const ProfilePage = () => {
       return true;
     } catch (err) {
       console.error('[ProfilePage] 저장 실패:', err);
-      toast.error(`저장 중 오류가 발생했습니다.\n${err?.message || err}`);
+      toast.error(`저장 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
       return false;
     } finally {
       setLoading(false);
@@ -217,7 +215,11 @@ const ProfilePage = () => {
         <div className="profile-hero-row">
           <div className="profile-hero-wrap" onClick={handleHeroClick}>
             {displayHeroUrl
-              ? <img src={displayHeroUrl} alt="홈 이미지" className="profile-hero-img" />
+              ? <img
+                  src={displayHeroUrl}
+                  alt="홈 이미지"
+                  className="profile-hero-img"
+                />
               : <div className="profile-hero-placeholder" />
             }
             <div className={`profile-hero-overlay${loading ? ' uploading' : ''}`}>
@@ -381,6 +383,7 @@ const ProfilePage = () => {
         >
           {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장'}
         </button>
+
       </form>
 
       {/* 저장 확인 모달 */}
