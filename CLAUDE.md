@@ -2,137 +2,56 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.2 (배포됨: https://twogether-206fb.web.app)
-- **GitHub**: https://github.com/ganglike248/Twogether.git (브랜치: master)
-- **로컬 경로**: e:/programing/Pro/project/Twogether
-
-## 기술 스택
-- React 19 + **Vite 5.4.21** (Vite 8은 Node.js 20.15.1과 호환 안 됨 → v5 고정)
-- Firebase 12.x: Auth, Firestore, Storage (프로젝트 ID: twogether-206fb)
-- react-router-dom v7, @fullcalendar/* v6, date-fns v4
-- korean-lunar-calendar, react-toastify, react-icons
-- **vite-plugin-pwa v1.2.0** (PWA, 서비스 워커, Workbox)
+- **현재 버전**: v0.3.4 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
-- 커밋마다 `package.json` version 필드 + `version.txt` 동시 업데이트
-- 현재: v0.3.2 → 다음: v0.3.3
+커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
 
-## 핵심 아키텍처
+## 핵심 트랩 & 주의사항
 
-### vite.config.js (중요)
-`.js` 파일에 JSX 포함된 컴포넌트들 처리 (Navigation.js, DayModal.js, EventModal.js, TravelPlanPage.js, MemoryList.js 등)
-```js
-esbuild: { loader: 'jsx', include: /src\/.*\.[jt]sx?$/ }
-optimizeDeps: { esbuildOptions: { loader: { '.js': 'jsx' } } }
-```
-PWA 설정도 여기에 포함 (VitePWA 플러그인, Workbox 캐싱 전략)
+### Vite 버전 고정
+**Vite 5.4.21 고정** — Node.js 20.15.1이 Vite 8과 호환 안 됨. 절대 업그레이드 금지.
 
-### PWA 설정 (vite.config.js)
-- 아이콘: `public/app-icon.png` (192×192, 512×512, maskable 모두 동일 파일)
-- theme_color: `#fce4ec`, background_color: `#fce4ec`
-- Workbox: Firestore → NetworkFirst, Storage → CacheFirst
-- `maximumFileSizeToCacheInBytes: 5MB` (app-icon.png가 2.58MB라 상향)
-- `devOptions.enabled: false` (개발 중 SW 비활성)
+### .js 파일에 JSX 포함
+`Navigation.js`, `DayModal.js`, `EventModal.js`, `TravelPlanPage.js`, `MemoryList.js` 등이 `.js` 확장자지만 JSX를 사용함. `vite.config.js`의 esbuild 설정으로 처리 중 — 새 `.js` JSX 파일 추가 시 별도 설정 불필요하나, 이 설정을 지우면 전체 빌드 깨짐.
 
-### Safe Area (iOS 노치 대응)
-- `index.html`: `viewport-fit=cover`
-- `AppHeader.css`: `height: calc(52px + env(safe-area-inset-top))`, `padding-top: env(safe-area-inset-top)`
-- `Layout.css`: `padding-top/bottom`에 `env(safe-area-inset-top/bottom)` 반영
-- `Navigation.css`: `height: calc(60px + env(safe-area-inset-bottom))`, `padding-bottom: env(safe-area-inset-bottom)`
+### Firebase Storage rules 배포
+`firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` **명시 필수**.  
+미명시 시 rules가 기본 `*.appspot.com` 버킷에 배포되어 앱에서 403 에러 발생.
 
-### AuthContext (contexts/AuthContext.jsx)
-전역 제공: `user, userDoc, coupleDoc, coupleId, partnerDoc, getMemberName, loading`
+### Firebase Storage + Workbox
+`firebasestorage.googleapis.com`을 Workbox runtimeCaching에 넣으면 서비스 워커가 CORS 없이 fetch → opaque 응답 → 이미지 로딩 실패 (특히 iOS). **현재 의도적으로 캐싱에서 제외**되어 있음.
+
+### EventForm.js
+비어 있음 — 폼 로직이 `EventModal.js`에 통합되어 있음.
+
+### BucketListPage
+`getDocs` 사용 (실시간 구독 아님) → 파트너가 변경해도 새로고침 전까지 반영 안 됨.
+
+## AuthContext API
+`user, userDoc, coupleDoc, coupleId, partnerDoc, getMemberName, loading` 전역 제공.
 - `members[0]` = boyfriend (커플 생성자), `members[1]` = girlfriend (합류자)
 - `getMemberName('boyfriend'|'girlfriend'|'couple')` → 실제 displayName 반환
 
-### ProtectedRoute 순서
-1. loading → 스피너
-2. user 없음 → /login
-3. userDoc.coupleId 없음 → /couple-setup
-4. coupleDoc.migrationDone === false → /migration
-5. 통과 → children
+## ProtectedRoute 순서
+loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → migrationDone false(`/migration`) → 통과
 
-### Firestore 컬렉션
+## Firestore 데이터 스키마
 ```
-users/{uid}       → uid, email, displayName, coupleId
+users/{uid}        → uid, email, displayName, coupleId
 couples/{coupleId} → members:[uid1,uid2], inviteCode, anniversaryDate, migrationDone, heroImageUrl
-events            → coupleId 필드 포함
-trips/bucketlists/edit_logs → coupleId 필드 포함
-```
-
-### Storage 경로
-```
-couples/{coupleId}/hero          → 홈 화면 대표 사진
-events/{coupleId}/{eventId}/{filename} → 이벤트 이미지 (미구현)
-```
-
-### Firebase 배포 현황 (v0.3.2)
-- Firestore rules/indexes: 배포 완료
-- Storage rules: 배포 완료
-  - **주의**: `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` 명시 필수
-  - 미명시 시 rules가 기본 `*.appspot.com` 버킷에 배포되어 앱에서 403 에러 발생
-- Hosting: 배포 완료
-
-## 주요 파일 구조
-```
-src/
-├── App.jsx, firebase.js, main.jsx
-├── contexts/AuthContext.jsx
-├── services/authService.js, eventService.js, tripService.js, storageService.js
-├── hooks/useCalendar.js, useMemory.js, useTrip.js
-├── utils/koreanHolidays.js, numberFormat.js, dataUtils.js
-└── components/
-    ├── Auth/LoginPage, CoupleSetupPage, ProtectedRoute
-    ├── Migration/MigrationPage
-    ├── common/AppHeader, Layout, Navigation, ScrollToTop
-    ├── Home/Home
-    ├── Calendar/Calendar, DayModal.js, EventModal.js
-    ├── Memory/MemoryList.js, MemoryCard.js, MemoryDetail.js, MemoryForm.js
-    ├── BucketList/BucketListPage
-    ├── Travel/TravelPlanPage.js, TripCard.js, TripDetail.js, TripModal.js, ScheduleItem.js, ScheduleModal.js, TravelTimeInput.js
-    ├── Profile/ProfilePage
-    └── EditLog/EditLogModal.js
-
-public/
-├── favicon.svg    → 브라우저 탭 아이콘 (기존 벡터)
-├── app-icon.png   → PWA 아이콘 (커플 캐릭터 이미지, 2.58MB)
-└── icons.svg
-```
-
-## 라우팅
-```
-/login → LoginPage  /couple-setup → CoupleSetupPage  /migration → MigrationPage
-/ → Home  /calendar → Calendar  /memories → MemoryList
-/bucket → BucketListPage  /travel/:tripId? → TravelPlanPage  /profile → ProfilePage
+events             → coupleId, title, start, end, ...
+trips              → coupleId, startDate, ...
+bucketlists        → coupleId, ...
+edit_logs          → eventId 기반 조회 (coupleId 필터 없음 — 보안 강화 필요 시 추가)
 ```
 
 ## 남은 작업
-- 이벤트 이미지 업로드: EventModal.js에 파일선택 UI 추가 → storageService.uploadEventImage() → imageUrls 저장, MemoryCard/Detail에서 표시
+- 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` → imageUrls 저장 → MemoryCard/Detail 표시
 - 소셜 로그인 (Google/Kakao, 장기)
 
-## 주의사항 및 참고
-- `EventForm.js` 비어있음 (EventModal.js에 폼 통합됨)
-- `.js` 확장자 JSX 파일 수정 시 vite.config.js esbuild 설정 필요
-- Firestore users 교차 읽기: 커플 멤버십 체인 get()으로 허용 (firestore.rules 배포 완료)
-- Storage rules: 인증 여부만 확인, 커플 멤버십 검증은 미구현 (추후 강화 가능)
-- edit_logs 조회: coupleId 필터 없이 eventId 기반으로만 조회 (보안 강화 시 coupleId 추가 필요)
-- migrationService.js: krhj-1111 → twogether-206fb 데이터 복사, ESM 환경에서 `getApps()` 사용
-- BucketListPage: `getDocs` 사용 (실시간 아님) → 파트너 변경사항 즉시 반영 안 됨
-
-## Firebase 환경변수 (.env, 커밋 안 됨)
-```
-VITE_FIREBASE_API_KEY / AUTH_DOMAIN / PROJECT_ID / STORAGE_BUCKET / MESSAGING_SENDER_ID / APP_ID / MEASUREMENT_ID
-# 구 프로젝트 (마이그레이션용 읽기 전용)
-VITE_OLD_FIREBASE_API_KEY / PROJECT_ID / MESSAGING_SENDER_ID / APP_ID  (krhj-1111)
-```
-
-## Firestore 복합 인덱스 (firestore.indexes.json)
-1. events: coupleId ASC + start DESC
-2. trips: coupleId ASC + startDate DESC
-3. edit_logs: eventId ASC + timestamp DESC
-
-## 작업 시 주의사항
-1. 많은 부분을 수정해야 한다면 하나의 기능을 만들고, 커밋을 허락 받고 다음 작업 수행(여러 개의 요청이라도 한 번에 진행하지 말고, 하나의 기능이 나오면 허락 후 커밋하여 작업 단위를 작게)
-2. 작업 후 어떤 작업을 했는지, 이 작업을 통해 어떤 기능이 새로 추가되었고, 어떤 파일을 수정해서 어떤 영향이 있는지, 어떤 부작용이 있을 수 있는지 등 설명하고, 커밋은 진행하지 않을 것(커밋을 원한다면 내가 요청함)
-3. 항상 보안, 유지보수를 생각하며 하나의 파일에 많은 것을 구현하지 말고, 최대한 기능별로 모듈화 하기
-4. 요청이 명확하지 않을 때, 추론 및 실행하지 말고 우선 나에게 선택지를 주고 이해한 것이 맞는지 확인 후 실행
+## 작업 규칙
+1. 기능 하나 완성 후 커밋 허락 받고 다음 작업 — 여러 요청이어도 한 번에 몰아서 하지 말 것
+2. 작업 완료 후 변경 파일·추가 기능·부작용 설명. 커밋은 내가 요청할 때만
+3. 하나의 파일에 모든 것 구현 금지 — 기능별 모듈화
+4. 요청이 불명확할 때 추론해서 실행하지 말고 선택지 제시 후 확인
