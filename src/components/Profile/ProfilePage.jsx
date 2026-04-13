@@ -4,7 +4,7 @@ import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiUser, HiHeart, HiEnvelope, HiCamera } from 'react-icons/hi2';
+import { HiArrowLeft, HiUser, HiHeart, HiEnvelope, HiCamera, HiInformationCircle } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
@@ -382,6 +382,15 @@ const ProfilePage = () => {
           disabled={loading}
         >
           {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장'}
+        </button>
+
+        <button
+          type="button"
+          className="profile-onboarding-btn"
+          onClick={() => navigate('/', { state: { showTutorial: true } })}
+        >
+          <HiInformationCircle className="profile-onboarding-icon" />
+          앱 소개 다시 보기
         </button>
 
       </form>

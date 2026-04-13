@@ -29,7 +29,7 @@ const CoupleSetupPage = () => {
   // 연결 완료 후 2초 뒤 홈으로 이동
   useEffect(() => {
     if (!connected) return;
-    const timer = setTimeout(() => navigate('/', { replace: true }), 2000);
+    const timer = setTimeout(() => navigate('/', { replace: true, state: { showTutorial: true } }), 2000);
     return () => clearTimeout(timer);
   }, [connected, navigate]);
 

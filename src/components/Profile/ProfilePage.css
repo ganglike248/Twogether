@@ -452,3 +452,32 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* 앱 소개 다시 보기 버튼 */
+.profile-onboarding-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  margin-top: 0.75rem;
+  padding: 0.6rem;
+  background: none;
+  border: 1px solid #f0ccd4;
+  border-radius: 10px;
+  color: #b5838d;
+  font-size: 0.85rem;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+.profile-onboarding-btn:hover {
+  background: #fff0f5;
+  color: #c9184a;
+}
+
+.profile-onboarding-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
+}

@@ -3,7 +3,8 @@ import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
 import { signUpWithEmail, signInWithEmail } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { HiHeart } from 'react-icons/hi2';
+import { HiHeart, HiInformationCircle } from 'react-icons/hi2';
+import OnboardingSlides from '../Onboarding/OnboardingSlides';
 import './LoginPage.css';
 
 const LoginPage = () => {
@@ -15,6 +16,7 @@ const LoginPage = () => {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
+  const [showIntro, setShowIntro] = useState(true);
 
   const resetForm = () => {
     setEmail('');
@@ -85,6 +87,7 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
+      {showIntro && <OnboardingSlides onClose={() => setShowIntro(false)} />}
       <div className="login-container">
         <div className="login-logo">
           <HiHeart className="login-heart" />
@@ -188,6 +191,14 @@ const LoginPage = () => {
             </button>
           </form>
         )}
+        <button
+          type="button"
+          className="login-intro-btn"
+          onClick={() => setShowIntro(true)}
+        >
+          <HiInformationCircle className="login-intro-icon" />
+          앱 소개 보기
+        </button>
       </div>
     </div>
   );

@@ -1,6 +1,6 @@
 // src/components/Home/Home.jsx
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import {
   differenceInCalendarDays, differenceInMonths, addMonths,
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
@@ -14,18 +14,30 @@ import { useTrips, useTripSchedules } from '../../hooks/useTrip';
 import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
+import TutorialSlides from '../Onboarding/TutorialSlides';
 import './Home.css';
 
 const Home = () => {
   const { coupleId, coupleDoc } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
+  const location = useLocation();
 
   const [dday, setDday] = useState(0);
   const [isSpecialDay, setIsSpecialDay] = useState(false);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
+  const [showTutorial, setShowTutorial] = useState(
+    () => !!location.state?.showTutorial
+  );
   const { events } = useCalendar(coupleId);
   const { trips } = useTrips(coupleId);
   const navigate = useNavigate();
+
+  // 프로필 또는 커플 연결 후 튜토리얼 표시
+  useEffect(() => {
+    if (location.state?.showTutorial) {
+      setShowTutorial(true);
+    }
+  }, [location.state?.showTutorial]);
 
   const heroImageUrl = coupleDoc?.heroImageUrl || null;
 
@@ -149,6 +161,9 @@ const Home = () => {
 
   return (
     <div className="home-container">
+      {showTutorial && (
+        <TutorialSlides onClose={() => setShowTutorial(false)} />
+      )}
 
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
