@@ -97,6 +97,13 @@ const CoupleSetupPage = () => {
           </div>
         ) : (
           <>
+            <div className="couple-setup-guide">
+              <p className="couple-setup-guide-text">
+                둘 중 한 명이 <strong>새 커플 시작</strong>으로 초대 코드를 생성하고,<br />
+                나머지 한 명이 <strong>초대 코드 입력</strong>으로 연결하면 돼요.
+              </p>
+            </div>
+
             <div className="couple-setup-tabs">
               <button
                 className={`couple-tab${tab === 'create' ? ' active' : ''}`}

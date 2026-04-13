@@ -114,6 +114,9 @@ const TutorialSlides = ({ onClose }) => {
                   <li key={j} className="tutorial-point">{point}</li>
                 ))}
               </ul>
+              {i === SLIDES.length - 1 && (
+                <p className="tutorial-revisit-hint">💡 프로필 화면에서 언제든 다시 볼 수 있어요</p>
+              )}
             </div>
           ))}
         </div>

@@ -121,6 +121,13 @@
   font-weight: 700;
 }
 
+.tutorial-revisit-hint {
+  margin: 0.85rem 0 0;
+  font-size: 0.72rem;
+  color: #adb5bd;
+  text-align: center;
+}
+
 /* ── 점 인디케이터 ── */
 .tutorial-dots {
   display: flex;
