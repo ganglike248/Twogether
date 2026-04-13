@@ -59,9 +59,7 @@ export const AuthProvider = ({ children }) => {
     const coupleRef = doc(db, 'couples', coupleId);
     const unsubscribeCouple = onSnapshot(coupleRef, (snap) => {
       if (snap.exists()) {
-        const data = snap.data();
-        console.log('[AuthContext] coupleDoc 업데이트:', { migrationDone: data.migrationDone });
-        setCoupleDoc({ id: snap.id, ...data });
+        setCoupleDoc({ id: snap.id, ...snap.data() });
       } else {
         setCoupleDoc(null);
       }

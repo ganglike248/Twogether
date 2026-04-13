@@ -78,7 +78,6 @@ export const createCouple = async (uid, anniversaryDate) => {
     members: [uid],
     inviteCode,
     anniversaryDate, // 'YYYY-MM-DD' 형식
-    migrationDone: false,
     createdAt: serverTimestamp(),
     createdBy: uid,
   });

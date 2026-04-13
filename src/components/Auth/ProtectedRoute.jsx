@@ -4,7 +4,7 @@ import { Navigate } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 
 const ProtectedRoute = ({ children }) => {
-  const { user, userDoc, coupleDoc, loading } = useAuthContext();
+  const { user, userDoc, loading } = useAuthContext();
 
   if (loading) {
     return (
@@ -28,11 +28,6 @@ const ProtectedRoute = ({ children }) => {
   if (!user) return <Navigate to="/login" replace />;
 
   if (!userDoc?.coupleId) return <Navigate to="/couple-setup" replace />;
-
-  if (coupleDoc && !coupleDoc.migrationDone) {
-    console.log('[ProtectedRoute] migrationDone=false → /migration 유지');
-    return <Navigate to="/migration" replace />;
-  }
 
   return children;
 };

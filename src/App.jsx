@@ -8,8 +8,6 @@ import { AuthProvider } from './contexts/AuthContext';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import LoginPage from './components/Auth/LoginPage';
 import CoupleSetupPage from './components/Auth/CoupleSetupPage';
-import MigrationPage from './components/Migration/MigrationPage';
-
 import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
 import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
@@ -38,7 +36,6 @@ const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage /> },
       { path: '/couple-setup', element: <CoupleSetupPage /> },
-      { path: '/migration', element: <MigrationPage /> },
       {
         path: '/',
         element: <ProtectedRoute><Layout><Home /></Layout></ProtectedRoute>,

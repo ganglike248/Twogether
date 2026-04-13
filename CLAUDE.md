@@ -34,12 +34,12 @@
 - `getMemberName('boyfriend'|'girlfriend'|'couple')` → 실제 displayName 반환
 
 ## ProtectedRoute 순서
-loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → migrationDone false(`/migration`) → 통과
+loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통과
 
 ## Firestore 데이터 스키마
 ```
 users/{uid}        → uid, email, displayName, coupleId
-couples/{coupleId} → members:[uid1,uid2], inviteCode, anniversaryDate, migrationDone, heroImageUrl
+couples/{coupleId} → members:[uid1,uid2], inviteCode, anniversaryDate, heroImageUrl
 events             → coupleId, title, start, end, ...
 trips              → coupleId, startDate, ...
 bucketlists        → coupleId, ...
