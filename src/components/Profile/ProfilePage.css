@@ -453,6 +453,45 @@
   cursor: default;
 }
 
+/* 생리주기 사용하기 버튼 */
+.profile-cycle-btn {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: 100%;
+  padding: 0.75rem 1rem;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  cursor: pointer;
+  transition: background 0.15s;
+  font-family: inherit;
+}
+
+.profile-cycle-btn:hover {
+  background: #fff8fa;
+}
+
+.profile-cycle-btn-icon {
+  font-size: 1.1rem;
+  flex-shrink: 0;
+}
+
+.profile-cycle-btn-text {
+  flex: 1;
+  text-align: left;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-700);
+}
+
+.profile-cycle-btn-arrow {
+  font-size: 1.1rem;
+  color: var(--color-gray-500);
+  flex-shrink: 0;
+}
+
 /* 앱 소개 다시 보기 버튼 */
 .profile-onboarding-btn {
   display: flex;

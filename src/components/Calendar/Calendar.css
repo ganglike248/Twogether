@@ -359,3 +359,36 @@
 .calendar-controls {
   display: none;
 }
+
+/* ─── 생리 기록 이벤트 ─── */
+
+/* 실제 생리 기간 */
+.fc-event.period-event {
+  border-radius: 0.3rem !important;
+  font-size: 7px !important;
+  font-weight: 700 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  opacity: 0.92;
+}
+
+/* 다음 예정일 (같은 색이지만 흐리게 + 점선) */
+.fc-event.period-predicted-event {
+  border-radius: 0.3rem !important;
+  font-size: 7px !important;
+  font-weight: 600 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  opacity: 0.45;
+  border-style: dashed !important;
+}
+
+/* 가임기 / 배란일 */
+.fc-event.cycle-meta-event {
+  border-radius: 0.3rem !important;
+  font-size: 7px !important;
+  font-weight: 600 !important;
+  pointer-events: none !important;
+  cursor: default !important;
+  opacity: 0.85;
+}

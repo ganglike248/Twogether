@@ -89,5 +89,12 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
     }
+
+    match /cycles/{docId} {
+      allow read, write: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId);
+    }
   }
 }

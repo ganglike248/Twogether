@@ -10,6 +10,7 @@ import EditLogModal from '../EditLog/EditLogModal';
 import { db } from '../../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { createEvent, updateEvent, deleteEvent } from '../../services/eventService';
+import { createCycle, deleteCycle } from '../../services/cycleService';
 import { getSpecialDaysMap } from '../../utils/koreanHolidays';
 import { useAuthContext } from '../../contexts/AuthContext';
 import './Calendar.css';
@@ -20,9 +21,17 @@ const formatMonthTitle = (date) =>
 const getMonthKey = (date) =>
   `${date.getFullYear()}-${date.getMonth()}`;
 
+// 날짜 문자열에 N일을 더해 새 날짜 문자열 반환 (FullCalendar exclusive end용)
+const addDaysToStr = (dateStr, days) => {
+  const d = new Date(dateStr);
+  d.setDate(d.getDate() + days);
+  return d.toISOString().split('T')[0];
+};
+
 const Calendar = () => {
-  const { user, coupleId } = useAuthContext();
+  const { user, coupleId, coupleDoc } = useAuthContext();
   const [events, setEvents] = useState([]);
+  const [cycles, setCycles] = useState([]);
   const [selectedEvent, setSelectedEvent] = useState(null);
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [isDayModalOpen, setIsDayModalOpen] = useState(false);
@@ -43,6 +52,7 @@ const Calendar = () => {
   const touchStartXRef = useRef(null);
   const sliderViewRef = useRef(null);
 
+  // 일정 구독
   useEffect(() => {
     if (!coupleId) return;
     const eventsRef = query(
@@ -75,6 +85,20 @@ const Calendar = () => {
       setEvents(eventsData);
       setIsLoading(false);
     }, () => setIsLoading(false));
+    return () => unsubscribe();
+  }, [coupleId]);
+
+  // 생리 기록 구독
+  useEffect(() => {
+    if (!coupleId) return;
+    const cyclesRef = query(
+      collection(db, 'cycles'),
+      where('coupleId', '==', coupleId)
+    );
+    const unsubscribe = onSnapshot(cyclesRef, (snapshot) => {
+      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setCycles(data);
+    });
     return () => unsubscribe();
   }, [coupleId]);
 
@@ -121,9 +145,98 @@ const Calendar = () => {
     return result;
   }, [specialDaysMap]);
 
+  // 생리 기록 → 이벤트 변환
+  const periodEvents = useMemo(() => {
+    const settings = coupleDoc?.cycleSettings;
+    if (!settings?.enabled) return [];
+
+    const cl = settings.cycleLength || 28;
+    const pl = settings.periodLength || 5;
+    const icon = settings.icon || '🩸';
+    const label = settings.label || '생리';
+    const color = settings.color || '#ffd6e0';
+    const showFertile = settings.showFertile || false;
+    const showOvulation = settings.showOvulation || false;
+
+    const result = [];
+
+    // 실제 생리 기록 → 이벤트 바
+    cycles.forEach(cycle => {
+      result.push({
+        id: `period-actual-${cycle.id}`,
+        title: `${icon} ${label}`,
+        start: cycle.startDate,
+        end: addDaysToStr(cycle.startDate, cycle.periodLength || pl),
+        allDay: true,
+        backgroundColor: color,
+        borderColor: color,
+        textColor: '#555',
+        classNames: ['period-event'],
+        extendedProps: { isPeriod: true, periodId: cycle.id },
+      });
+    });
+
+    // 가장 최근 기록 기준으로 예정일·가임기·배란일 계산
+    if (cycles.length > 0) {
+      const sorted = [...cycles].sort((a, b) =>
+        (b.startDate || '').localeCompare(a.startDate || '')
+      );
+      const mostRecent = sorted[0];
+      const base = mostRecent.startDate;
+
+      // 다음 예정일
+      const nextStart = addDaysToStr(base, cl);
+      result.push({
+        id: 'period-predicted',
+        title: `${label} 예정`,
+        start: nextStart,
+        end: addDaysToStr(nextStart, pl),
+        allDay: true,
+        backgroundColor: color,
+        borderColor: color,
+        textColor: '#555',
+        classNames: ['period-predicted-event'],
+        extendedProps: { isPeriodPredicted: true },
+      });
+
+      // 가임기 (현재 사이클 기준)
+      if (showFertile && cl - 19 >= 0) {
+        result.push({
+          id: 'cycle-fertile',
+          title: '가임기',
+          start: addDaysToStr(base, cl - 19),
+          end: addDaysToStr(base, cl - 12),
+          allDay: true,
+          backgroundColor: 'rgba(180, 153, 255, 0.25)',
+          borderColor: '#9B59B6',
+          textColor: '#7b3fb0',
+          classNames: ['cycle-meta-event'],
+          extendedProps: { isCycleMeta: true },
+        });
+      }
+
+      // 배란일
+      if (showOvulation) {
+        result.push({
+          id: 'cycle-ovulation',
+          title: '배란일',
+          start: addDaysToStr(base, cl - 14),
+          allDay: true,
+          backgroundColor: 'rgba(155, 89, 182, 0.2)',
+          borderColor: '#9B59B6',
+          textColor: '#7b3fb0',
+          classNames: ['cycle-meta-event'],
+          extendedProps: { isCycleMeta: true },
+        });
+      }
+    }
+
+    return result;
+  }, [cycles, coupleDoc]);
+
   const allEvents = useMemo(
-    () => [...specialDayEvents, ...events],
-    [events, specialDayEvents]
+    () => [...specialDayEvents, ...periodEvents, ...events],
+    [events, specialDayEvents, periodEvents]
   );
 
   const getViewWidth = () =>
@@ -240,20 +353,40 @@ const Calendar = () => {
     }
   };
 
+  const handleAddPeriod = async (startDate, periodLength) => {
+    try {
+      await createCycle({ startDate, periodLength }, user?.uid, coupleId);
+    } catch {
+      alert('생리 기록 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDeletePeriod = async (cycleId) => {
+    try {
+      await deleteCycle(cycleId);
+    } catch {
+      alert('생리 기록 삭제 중 오류가 발생했습니다.');
+    }
+  };
+
   const eventClassNames = (arg) => {
-    if (arg.event.extendedProps.isSpecial)
-      return ['special-day-event', arg.event.extendedProps.specialType];
-    switch (arg.event.extendedProps.eventType) {
-      case 'boyfriend': return 'boyfriend-event';
-      case 'girlfriend': return 'girlfriend-event';
-      default: return 'couple-event';
+    const ep = arg.event.extendedProps;
+    if (ep.isPeriod) return ['period-event'];
+    if (ep.isPeriodPredicted) return ['period-predicted-event'];
+    if (ep.isCycleMeta) return ['cycle-meta-event'];
+    if (ep.isSpecial) return ['special-day-event', ep.specialType];
+    switch (ep.eventType) {
+      case 'boyfriend': return ['boyfriend-event'];
+      case 'girlfriend': return ['girlfriend-event'];
+      default: return ['couple-event'];
     }
   };
 
   const eventDidMount = (info) => {
-    if (info.event.extendedProps.isSpecial) return;
-    if (info.event.extendedProps.eventType === 'girlfriend')
-      info.el.style.fontWeight = 'bold';
+    const ep = info.event.extendedProps;
+    if (ep.isPeriod || ep.isPeriodPredicted || ep.isCycleMeta) return;
+    if (ep.isSpecial) return;
+    if (ep.eventType === 'girlfriend') info.el.style.fontWeight = 'bold';
     info.el.style.pointerEvents = 'none';
   };
 
@@ -271,6 +404,15 @@ const Calendar = () => {
       const eventStart = event.start.split('T')[0];
       const eventEnd = event.end ? event.end.split('T')[0] : eventStart;
       return selectedDate >= eventStart && selectedDate <= eventEnd;
+    });
+  };
+
+  const getDayPeriods = () => {
+    if (!selectedDate) return [];
+    return cycles.filter(cycle => {
+      const pl = cycle.periodLength || coupleDoc?.cycleSettings?.periodLength || 5;
+      const endDateStr = addDaysToStr(cycle.startDate, pl - 1);
+      return selectedDate >= cycle.startDate && selectedDate <= endDateStr;
     });
   };
 
@@ -374,6 +516,10 @@ const Calendar = () => {
         specialDays={getDaySpecials()}
         onAddEvent={handleAddEventFromDay}
         onEditEvent={handleEditEventFromDay}
+        dayPeriods={getDayPeriods()}
+        cycleSettings={coupleDoc?.cycleSettings}
+        onAddPeriod={handleAddPeriod}
+        onDeletePeriod={handleDeletePeriod}
       />
       <EditLogModal
         isOpen={showEditLog}

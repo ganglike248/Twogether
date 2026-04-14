@@ -5,7 +5,7 @@
 - **현재 버전**: v0.3.4 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
-커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
+커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트 + 커밋 메시지는 버전으로 작성(이전 커밋 제목 참고)
 
 ## 핵심 트랩 & 주의사항
 

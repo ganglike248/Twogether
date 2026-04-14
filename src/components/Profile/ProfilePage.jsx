@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
 import { HiArrowLeft, HiUser, HiHeart, HiEnvelope, HiCamera, HiInformationCircle } from 'react-icons/hi2';
+import CycleSettingsModal from './CycleSettingsModal';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
@@ -22,6 +23,8 @@ const ProfilePage = () => {
   const [anniversaryDate, setAnniversaryDate] = useState('');
   const [origName, setOrigName] = useState('');
   const [origDate, setOrigDate] = useState('');
+
+  const [showCycleModal, setShowCycleModal] = useState(false);
 
   // 사진 (임시 상태 — 저장 버튼 누를 때만 실제 반영)
   const [pendingHeroFile, setPendingHeroFile] = useState(null);   // 새 파일
@@ -377,6 +380,20 @@ const ProfilePage = () => {
         </div>
 
         <button
+          type="button"
+          className="profile-cycle-btn"
+          onClick={() => setShowCycleModal(true)}
+        >
+          <span className="profile-cycle-btn-icon">
+            {coupleDoc?.cycleSettings?.enabled ? (coupleDoc.cycleSettings.icon || '🩸') : '🩸'}
+          </span>
+          <span className="profile-cycle-btn-text">
+            {coupleDoc?.cycleSettings?.enabled ? '생리주기 설정 중 ✓' : '생리주기 사용하기'}
+          </span>
+          <span className="profile-cycle-btn-arrow">›</span>
+        </button>
+
+        <button
           type="submit"
           className={`profile-save-btn${saved ? ' saved' : ''}`}
           disabled={loading}
@@ -394,6 +411,11 @@ const ProfilePage = () => {
         </button>
 
       </form>
+
+      <CycleSettingsModal
+        isOpen={showCycleModal}
+        onClose={() => setShowCycleModal(false)}
+      />
 
       {/* 저장 확인 모달 */}
       {showUnsavedModal && (

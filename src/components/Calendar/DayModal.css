@@ -293,6 +293,199 @@
   font-weight: bold;
 }
 
+/* ─── 생리 기록 ─── */
+
+.period-records-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 0.75rem;
+}
+
+.period-record-card {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  padding: 0.6rem 0.75rem;
+  background: #fff5f7;
+  border: 1px solid rgba(255, 182, 193, 0.4);
+  border-radius: 0.75rem;
+}
+
+.period-record-icon {
+  font-size: 1.2rem;
+  flex-shrink: 0;
+}
+
+.period-record-info {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.05rem;
+}
+
+.period-record-title {
+  font-size: 0.85rem;
+  font-weight: 700;
+  color: #c0395e;
+}
+
+.period-record-detail {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.period-delete-btn {
+  background: none;
+  border: 1px solid #ffb6c1;
+  border-radius: 0.5rem;
+  color: #e0607a;
+  font-size: 0.72rem;
+  font-weight: 600;
+  font-family: inherit;
+  padding: 0.25rem 0.55rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.period-delete-btn:hover {
+  background: #fff0f4;
+}
+
+/* 생리 기록 버튼 */
+.add-period-btn {
+  width: 100%;
+  padding: 0.6rem;
+  margin-bottom: 0.45rem;
+  background: #fff5f7;
+  border: 1.5px solid rgba(255, 182, 193, 0.6);
+  border-radius: var(--border-radius);
+  color: #c0395e;
+  font-size: 0.85rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.add-period-btn:hover {
+  background: #ffe8ef;
+  border-color: #ffb6c1;
+}
+
+.add-period-icon {
+  font-size: 1rem;
+}
+
+/* 생리 기록 인라인 폼 */
+.period-inline-form {
+  background: #fff5f7;
+  border: 1.5px solid rgba(255, 182, 193, 0.5);
+  border-radius: var(--border-radius);
+  padding: 0.75rem;
+  margin-bottom: 0.45rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.period-form-header {
+  font-size: 0.82rem;
+  font-weight: 700;
+  color: #c0395e;
+}
+
+.period-form-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.period-form-label {
+  font-size: 0.8rem;
+  color: #888;
+  flex-shrink: 0;
+}
+
+.period-form-input-wrap {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  border: 1.5px solid rgba(255, 182, 193, 0.5);
+  border-radius: 0.5rem;
+  padding: 0.3rem 0.55rem;
+  background: white;
+}
+
+.period-form-input {
+  width: 48px;
+  border: none;
+  outline: none;
+  font-size: 0.9rem;
+  font-weight: 700;
+  color: #444;
+  font-family: inherit;
+  background: transparent;
+}
+
+.period-form-unit {
+  font-size: 0.75rem;
+  color: #aaa;
+}
+
+.period-form-actions {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.period-form-cancel {
+  flex: 1;
+  padding: 0.5rem;
+  border: 1px solid #ececec;
+  border-radius: 0.6rem;
+  background: white;
+  color: #888;
+  font-size: 0.82rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.period-form-cancel:hover:not(:disabled) {
+  background: #f5f5f5;
+}
+
+.period-form-submit {
+  flex: 2;
+  padding: 0.5rem;
+  border: none;
+  border-radius: 0.6rem;
+  background: linear-gradient(135deg, #ff6b8a, #ffb6c1);
+  color: white;
+  font-size: 0.82rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.period-form-submit:hover:not(:disabled) {
+  opacity: 0.9;
+}
+
+.period-form-submit:disabled,
+.period-form-cancel:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
 @media (max-width: 480px) {
   .day-modal-overlay {
     align-items: flex-end;

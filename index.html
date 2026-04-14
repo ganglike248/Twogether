@@ -11,9 +11,46 @@
     <link rel="apple-touch-icon" href="/app-icon.png" />
     <meta name="description" content="커플을 위한 우리만의 공간 - 일정, 추억, 여행을 함께" />
     <title>우리두리</title>
+    <style>
+      #app-preloader {
+        position: fixed;
+        inset: 0;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        background: linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%);
+        gap: 1rem;
+        pointer-events: none;
+      }
+      #app-preloader-spinner {
+        width: 40px;
+        height: 40px;
+        border: 3px solid #ffb6c1;
+        border-top-color: #ff6b6b;
+        border-radius: 50%;
+        animation: preloader-spin 0.8s linear infinite;
+      }
+      #app-preloader-text {
+        margin: 0;
+        font-size: 1rem;
+        font-weight: 700;
+        color: #b5838d;
+        font-family: 'Noto Sans KR', sans-serif;
+        letter-spacing: 0.05em;
+      }
+      @keyframes preloader-spin {
+        to { transform: rotate(360deg); }
+      }
+    </style>
   </head>
   <body>
-    <div id="root"></div>
+    <div id="root">
+      <div id="app-preloader">
+        <div id="app-preloader-spinner"></div>
+        <p id="app-preloader-text">우리두리</p>
+      </div>
+    </div>
     <script type="module" src="/src/main.jsx"></script>
   </body>
 </html>
