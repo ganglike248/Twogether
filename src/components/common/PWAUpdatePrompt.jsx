@@ -1,5 +1,5 @@
 // src/components/common/PWAUpdatePrompt.jsx
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 import './PWAUpdatePrompt.css';
 
@@ -10,12 +10,36 @@ const PWAUpdatePrompt = () => {
     updateServiceWorker,
   } = useRegisterSW({
     onRegisteredSW(_swUrl, registration) {
-      // iOS PWA는 자동으로 SW 업데이트를 확인하지 않으므로 1시간마다 수동 체크
-      if (registration) {
-        setInterval(() => registration.update(), 60 * 60 * 1000);
-      }
+      if (!registration) return;
+
+      // 1시간마다 수동으로 업데이트 확인
+      const updateCheckInterval = setInterval(() => registration.update(), 60 * 60 * 1000);
+
+      // 앱이 활성화될 때(visible) 업데이트 확인 - iOS 대응
+      const handleVisibilityChange = () => {
+        if (document.visibilityState === 'visible') {
+          registration.update();
+        }
+      };
+      document.addEventListener('visibilitychange', handleVisibilityChange);
+
+      return () => {
+        clearInterval(updateCheckInterval);
+        document.removeEventListener('visibilitychange', handleVisibilityChange);
+      };
     },
   });
+
+  useEffect(() => {
+    if (!isUpdating) return;
+
+    // 업데이트 완료 후 1초 뒤 페이지 새로고침 (안드로이드 대응)
+    const refreshTimer = setTimeout(() => {
+      window.location.reload();
+    }, 1000);
+
+    return () => clearTimeout(refreshTimer);
+  }, [isUpdating]);
 
   if (!needRefresh) return null;
 
