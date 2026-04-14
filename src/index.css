@@ -67,7 +67,9 @@ body {
   width: 420px;
   max-width: 100%;
   margin: 0 auto;
-  min-height: 100svh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
 }
 
 /* 공통 버튼 스타일 */
