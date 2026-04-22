@@ -32,7 +32,7 @@ const AppHeader = () => {
   };
 
   return (
-    <header className="app-header" onClick={() => navigate('/')}>
+    <header className="app-header" onClick={() => navigate('/', { replace: true })}>
       <button className="app-header-logout" onClick={handleLogout}>
         <HiArrowRightOnRectangle />
       </button>

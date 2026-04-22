@@ -1,3 +1,10 @@
+v0.3.11 (2026.04.22)
+- fix: 하단 탭 네비게이션 스택 정리
+  - 탭 클릭 시 history 스택 안 쌓도록 replace 적용 (Instagram·KakaoTalk 패턴)
+  - AppHeader 홈 로고 클릭도 replace로 변경
+  - 프로필 저장 후 이탈 시 스택 초기화 (홈으로 navigate)
+  - 프로필 "앱 소개 다시 보기" 버튼도 스택 초기화
+
 v0.3.10 (2026.04.14)
 - fix: PWA 업데이트 감지 개선 (iOS: visibilitychange 이벤트, 안드로이드: 자동 새로고침)
 

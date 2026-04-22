@@ -26,6 +26,7 @@ const Navigation = () => {
         <Link
           key={path}
           to={path}
+          replace
           className={`bottom-nav-item ${isActive(path) ? 'active' : ''}`}
         >
           <Icon className="nav-icon" />

@@ -195,7 +195,7 @@ const ProfilePage = () => {
       if (blocker.state === 'blocked') {
         blocker.proceed();
       } else {
-        navigate(-1);
+        navigate('/', { replace: true });
       }
     }
   };
@@ -404,7 +404,7 @@ const ProfilePage = () => {
         <button
           type="button"
           className="profile-onboarding-btn"
-          onClick={() => navigate('/', { state: { showTutorial: true } })}
+          onClick={() => navigate('/', { replace: true, state: { showTutorial: true } })}
         >
           <HiInformationCircle className="profile-onboarding-icon" />
           앱 소개 다시 보기
