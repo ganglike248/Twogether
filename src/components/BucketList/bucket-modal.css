@@ -1,0 +1,394 @@
+/* ================ 모달 오버레이 ================ */
+.bucket-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  backdrop-filter: blur(4px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  overflow-y: auto;
+  padding: 1rem;
+  animation: bucketFadeIn 0.2s ease;
+}
+
+@keyframes bucketFadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+/* ================ 모달 박스 ================ */
+.bucket-modal-box {
+  background: #fff;
+  border-radius: 1.2rem;
+  box-shadow: 0 10px 40px rgba(255, 107, 107, 0.15);
+  width: 90%;
+  max-width: 380px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  animation: bucketScaleIn 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+}
+
+@keyframes bucketScaleIn {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+/* ================ 모달 헤더 ================ */
+.bucket-modal-header {
+  background: linear-gradient(135deg, var(--main-bg) 0%, #ffe5ec 100%);
+  padding: 1.25rem 1.25rem;
+  border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  position: relative;
+}
+
+.bucket-modal-icon {
+  font-size: 1.25rem;
+  width: 1.25rem;
+  height: 1.25rem;
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bucket-modal-title {
+  font-size: 1.15rem;
+  font-weight: 700;
+  color: var(--text-main);
+  margin: 0;
+  flex: 1;
+}
+
+.bucket-modal-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  color: var(--text-sub);
+  cursor: pointer;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.15s ease;
+  flex-shrink: 0;
+}
+
+.bucket-modal-close:hover {
+  background: rgba(255, 107, 107, 0.1);
+  color: var(--main-pink);
+  transform: rotate(90deg);
+}
+
+/* ================ 모달 본문 ================ */
+.bucket-modal-body {
+  padding: 1.5rem 1.25rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  max-height: 60vh;
+  overflow-y: auto;
+}
+
+/* ================ 입력 필드 ================ */
+.bucket-modal-input,
+.bucket-modal-textarea {
+  width: 100%;
+  padding: 0.75rem 1rem;
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: 0.9rem;
+  font-size: 0.9rem;
+  font-family: 'Noto Sans KR', sans-serif;
+  background: #fff;
+  color: var(--text-main);
+  outline: none;
+  transition: all 0.2s ease;
+}
+
+.bucket-modal-input::placeholder,
+.bucket-modal-textarea::placeholder {
+  color: var(--text-sub);
+}
+
+.bucket-modal-input:focus,
+.bucket-modal-textarea:focus {
+  border-color: var(--main-pink);
+  background: rgba(255, 214, 224, 0.3);
+  box-shadow: 0 0 0 3px rgba(255, 214, 224, 0.2);
+  transform: translateY(-2px);
+}
+
+.bucket-modal-textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+
+/* ================ 카테고리 선택기 ================ */
+.bucket-category-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bucket-selector-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bucket-category-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.6rem;
+}
+
+.bucket-category-option {
+  position: relative;
+}
+
+.bucket-category-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.bucket-category-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 0.6rem;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 0.9rem;
+  background: #f9f9fb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.bucket-cat-emoji {
+  font-size: 1.5rem;
+  width: 1.5rem;
+  height: 1.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.bucket-cat-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-sub);
+}
+
+/* 음식 카테고리 */
+.bucket-category-label.bucket-cat-food {
+  color: #a3d8ca;
+}
+
+.bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-food {
+  background: rgba(163, 216, 202, 0.15);
+  border-color: #a3d8ca;
+  box-shadow: 0 0 0 2px rgba(163, 216, 202, 0.2);
+  transform: scale(1.05);
+}
+
+/* 여행 카테고리 */
+.bucket-category-label.bucket-cat-place {
+  color: #b4aee8;
+}
+
+.bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-place {
+  background: rgba(180, 174, 232, 0.15);
+  border-color: #b4aee8;
+  box-shadow: 0 0 0 2px rgba(180, 174, 232, 0.2);
+  transform: scale(1.05);
+}
+
+/* 데이트 카테고리 */
+.bucket-category-label.bucket-cat-date {
+  color: #ff9fb4;
+}
+
+.bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-date {
+  background: rgba(255, 159, 180, 0.15);
+  border-color: #ff9fb4;
+  box-shadow: 0 0 0 2px rgba(255, 159, 180, 0.2);
+  transform: scale(1.05);
+}
+
+/* ================ 모달 액션 버튼 ================ */
+.bucket-modal-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--color-gray-200);
+}
+
+.bucket-modal-actions-primary {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.bucket-modal-actions-secondary {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.bucket-modal-btn {
+  flex: 1;
+  padding: 0.75rem 1rem;
+  border: none;
+  border-radius: 0.85rem;
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  font-family: 'Noto Sans KR', sans-serif;
+}
+
+/* 기본 버튼 */
+.bucket-modal-btn-primary {
+  background: linear-gradient(135deg, var(--main-mint) 0%, #8ec9bc 100%);
+  color: white;
+}
+
+.bucket-modal-btn-primary:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(163, 216, 202, 0.3);
+}
+
+.bucket-modal-btn-primary:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* 저장 버튼 */
+.bucket-modal-btn-save {
+  background: linear-gradient(135deg, var(--main-lavender) 0%, #a39ece 100%);
+  color: white;
+}
+
+.bucket-modal-btn-save:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(180, 174, 232, 0.3);
+}
+
+/* 완료 버튼 */
+.bucket-modal-btn-complete {
+  background: linear-gradient(135deg, var(--main-mint) 0%, #8ec9bc 100%);
+  color: white;
+}
+
+.bucket-modal-btn-complete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(163, 216, 202, 0.3);
+}
+
+/* 미완료 버튼 */
+.bucket-modal-btn-incomplete {
+  background: linear-gradient(135deg, #ff9fb4 0%, #ff7fa5 100%);
+  color: white;
+}
+
+.bucket-modal-btn-incomplete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 159, 180, 0.3);
+}
+
+/* 삭제 버튼 */
+.bucket-modal-btn-delete {
+  background: linear-gradient(135deg, #ff9b9b 0%, #ff6b6b 100%);
+  color: white;
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.bucket-modal-btn-delete:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
+}
+
+/* 취소 버튼 */
+.bucket-modal-btn-cancel {
+  background: #f5f5f7;
+  color: var(--main-lavender);
+  flex: 1;
+  font-size: 0.85rem;
+}
+
+.bucket-modal-btn-cancel:hover {
+  background: var(--main-lavender);
+  color: white;
+}
+
+/* ================ 완료 상태 표시 ================ */
+.bucket-modal-completed-badge {
+  background: rgba(163, 216, 202, 0.1);
+  border: 1px solid rgba(163, 216, 202, 0.3);
+  border-left: 4px solid var(--main-mint);
+  padding: 0.75rem 0.9rem;
+  border-radius: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  font-size: 0.85rem;
+  color: var(--text-sub);
+}
+
+.bucket-modal-completed-badge-icon {
+  font-size: 1.2rem;
+  color: var(--main-mint);
+}
+
+.bucket-modal-completed-badge-text {
+  font-weight: 500;
+}
+
+/* ================ 모바일 반응형 ================ */
+@media (max-width: 480px) {
+  .bucket-modal-overlay {
+    padding: 0;
+    align-items: flex-end;
+  }
+
+  .bucket-modal-box {
+    width: 100%;
+    max-width: 100%;
+    border-radius: 1.2rem 1.2rem 0 0;
+  }
+
+  .bucket-modal-header {
+    padding: 1.25rem;
+  }
+
+  .bucket-modal-title {
+    font-size: 1.1rem;
+  }
+
+  .bucket-modal-body {
+    padding: 1.25rem;
+  }
+}

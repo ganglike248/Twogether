@@ -4,7 +4,11 @@ import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where } 
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
+import { MdCheckCircle, MdRadioButtonUnchecked, MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd } from 'react-icons/md';
 import '../BucketList/BucketListPage.css';
+import './bucket-modal.css';
+import BaseModal from './BaseModal';
+import CategorySelector from './CategorySelector';
 
 const CATEGORY_OPTIONS = [
   { value: 'all', label: '전체' },
@@ -16,15 +20,16 @@ const CATEGORY_OPTIONS = [
 function BucketListPage() {
   const { coupleId } = useAuthContext();
   const [bucketList, setBucketList] = useState([]);
-  const [showAddModal, setShowAddModal] = useState(false);
-  const [showDateModal, setShowDateModal] = useState(false);
-  const [selectedId, setSelectedId] = useState(null);
   const [filterCategory, setFilterCategory] = useState('all');
-  const [showCompleted, setShowCompleted] = useState(false);
-  const [form, setForm] = useState({ title: '', content: '', category: 'food' });
-  const [tempDate, setTempDate] = useState('');
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [editForm, setEditForm] = useState({ id: '', title: '', content: '', category: 'food' });
+
+  // 모달 상태 통합 관리
+  const [modalState, setModalState] = useState({ type: null, data: null });
+
+  // 모달 타입별 폼 데이터
+  const [addForm, setAddForm] = useState({ title: '', content: '', category: 'food' });
+  const [editForm, setEditForm] = useState({ id: '', title: '', content: '', category: 'food', completed: false, completedAt: null });
+  const [completionDate, setCompletionDate] = useState('');
+  const [selectedItemId, setSelectedItemId] = useState(null);
 
   useEffect(() => {
     if (!coupleId) return;
@@ -42,14 +47,18 @@ function BucketListPage() {
       setBucketList(data);
     };
     fetchData();
-  }, [coupleId, filterCategory, showCompleted]);
+  }, [coupleId, filterCategory]);
+
+  const handleOpenAddModal = () => {
+    setModalState({ type: 'add', data: null });
+  };
 
   const handleAdd = async () => {
-    if (!form.title.trim()) return;
+    if (!addForm.title.trim()) return;
     const newItem = {
-      title: form.title,
-      content: form.content,
-      category: form.category,
+      title: addForm.title,
+      content: addForm.content,
+      category: addForm.category,
       coupleId,
       completed: false,
       completedAt: null,
@@ -57,27 +66,29 @@ function BucketListPage() {
     };
     const docRef = await addDoc(collection(db, 'bucketlists'), newItem);
     setBucketList(list => [...list, { ...newItem, id: docRef.id }]);
-    setForm({ title: '', content: '', category: 'food' });
-    setShowAddModal(false);
+    setAddForm({ title: '', content: '', category: 'food' });
+    closeModal();
   };
 
-  const handleCheck = (id) => {
-    setSelectedId(id);
-    setShowDateModal(true);
+  const handleOpenDateModal = (id) => {
+    setSelectedItemId(id);
+    setModalState({ type: 'date', data: null });
   };
 
-  const handleComplete = async () => {
-    const item = bucketList.find(i => i.id === selectedId);
-    if (!item) return;
-    await updateDoc(doc(db, 'bucketlists', selectedId), { completed: true, completedAt: tempDate });
+  const handleCompleteWithDate = async () => {
+    if (!selectedItemId || !completionDate) return;
+    await updateDoc(doc(db, 'bucketlists', selectedItemId), {
+      completed: true,
+      completedAt: completionDate
+    });
     setBucketList(list =>
       list.map(item =>
-        item.id === selectedId ? { ...item, completed: true, completedAt: tempDate } : item
+        item.id === selectedItemId
+          ? { ...item, completed: true, completedAt: completionDate }
+          : item
       )
     );
-    setShowDateModal(false);
-    setTempDate('');
-    setSelectedId(null);
+    closeModal();
   };
 
   const handleUncheck = async (id) => {
@@ -89,14 +100,26 @@ function BucketListPage() {
   };
 
   const handleDelete = async (id) => {
-    if (!window.confirm('정말 삭제할까요?')) return;
     await deleteDoc(doc(db, 'bucketlists', id));
     setBucketList(list => list.filter(item => item.id !== id));
   };
 
-  const handleEditOpen = (item) => {
-    setEditForm({ id: item.id, title: item.title, content: item.content, category: item.category });
-    setShowEditModal(true);
+  const closeModal = () => {
+    setModalState({ type: null, data: null });
+    setCompletionDate('');
+    setSelectedItemId(null);
+  };
+
+  const handleOpenEditModal = (item) => {
+    setEditForm({
+      id: item.id,
+      title: item.title,
+      content: item.content,
+      category: item.category,
+      completed: item.completed,
+      completedAt: item.completedAt
+    });
+    setModalState({ type: 'edit', data: item });
   };
 
   const handleEditSave = async () => {
@@ -114,7 +137,29 @@ function BucketListPage() {
           : item
       )
     );
-    setShowEditModal(false);
+    closeModal();
+  };
+
+  const handleEditComplete = () => {
+    setSelectedItemId(editForm.id);
+    setModalState({ type: 'date', data: 'from-edit' });
+  };
+
+  const handleEditUncheck = async (id = editForm.id) => {
+    if (!window.confirm('완료를 취소하시겠습니까?')) return;
+    await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
+    setBucketList(list =>
+      list.map(item => item.id === id ? { ...item, completed: false, completedAt: null } : item)
+    );
+    if (modalState.type === 'edit') {
+      closeModal();
+    }
+  };
+
+  const handleEditDelete = () => {
+    if (!window.confirm('정말 삭제할까요?')) return;
+    handleDelete(editForm.id);
+    closeModal();
   };
 
   const formatBucketDate = (dateStr) => {
@@ -122,123 +167,252 @@ function BucketListPage() {
     return format(new Date(dateStr), 'yy.MM.dd');
   };
 
-  const filteredList = bucketList.filter(item => showCompleted ? item.completed : !item.completed);
+  const completedCount = bucketList.filter(item => item.completed).length;
+  const totalCount = bucketList.length;
+  const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
 
   return (
     <div className="bucket-container">
-      <div className="bucket-header">
-        <h1 className="bucket-title">버킷리스트</h1>
-        <button className="add-btn" onClick={() => setShowAddModal(true)}>
-          <span className="add-icon">＋</span> 추가
+      <div className="bucket-achievement">
+        <div className="achievement-left">
+          <p className="achievement-label">달성률</p>
+          <p className="achievement-percentage">{completionPercentage}%</p>
+          <div className="achievement-bar">
+            <div className="achievement-bar-fill" style={{ width: `${completionPercentage}%` }}></div>
+          </div>
+        </div>
+        <div className="achievement-right">
+          <p className="achievement-count">{completedCount} / {totalCount}</p>
+          <p className="achievement-subtitle">달성 완료</p>
+        </div>
+      </div>
+
+      <div className="bucket-add-wrapper">
+        <button className="bucket-add-top" onClick={handleOpenAddModal}>
+          <MdAdd className="add-icon" /> 새로운 버킷 추가
         </button>
       </div>
-      <div className="bucket-toolbar">
-        <div className="category-tabs">
-          {CATEGORY_OPTIONS.map(opt => (
-            <button
-              key={opt.value}
-              className={`cat-tab${filterCategory === opt.value ? ' active' : ''}`}
-              onClick={() => setFilterCategory(opt.value)}
-            >
-              {opt.label}
-            </button>
-          ))}
-        </div>
-      </div>
-      <div className="bucket-toggle">
-        <button className={`toggle-btn${!showCompleted ? ' active' : ''}`} onClick={() => setShowCompleted(false)}>미완료</button>
-        <button className={`toggle-btn${showCompleted ? ' active' : ''}`} onClick={() => setShowCompleted(true)}>완료</button>
-      </div>
+
       <ul className="bucket-list">
-        {filteredList.length === 0 && <li className="bucket-empty">리스트가 없습니다.</li>}
-        {filteredList.map(item => (
-          <li className={`bucket-item ${item.category}`} key={item.id}>
-            <label className="bucket-checkbox">
-              <input
-                type="checkbox"
-                checked={item.completed}
-                onChange={() => item.completed ? handleUncheck(item.id) : handleCheck(item.id)}
-              />
-              <span className="checkbox-custom"></span>
-            </label>
-            <span className="bucket-category-dot"></span>
-            <span className="bucket-title-text">{item.title}</span>
-            <span className="bucket-date">
-              {item.completed && item.completedAt ? `(${formatBucketDate(item.completedAt)})` : ''}
-            </span>
-            <button className="bucket-edit-btn" onClick={() => handleEditOpen(item)}>✏️</button>
-            <button className="bucket-delete-btn" onClick={() => handleDelete(item.id)}>🗑️</button>
-          </li>
-        ))}
+        <div className="bucket-toolbar">
+          <div className="category-tabs">
+            {CATEGORY_OPTIONS.map(opt => (
+              <button
+                key={opt.value}
+                className={`cat-tab cat-tab-${opt.value}${filterCategory === opt.value ? ' active' : ''}`}
+                onClick={() => setFilterCategory(opt.value)}
+              >
+                {opt.label}
+              </button>
+            ))}
+          </div>
+        </div>
+        {bucketList.length === 0 ? (
+          <li className="bucket-empty">리스트가 없습니다.</li>
+        ) : (
+          <>
+            {(() => {
+              const pending = bucketList.filter(item => !item.completed).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+              const completed = bucketList.filter(item => item.completed).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+              return (
+                <>
+                  {pending.length > 0 && (
+                    <>
+                      <li className="bucket-section-title">예정</li>
+                      {pending.map(item => (
+                        <li className={`bucket-item ${item.category}`} key={item.id} onClick={() => handleOpenEditModal(item)}>
+                          <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={item.completed}
+                              onChange={() => handleOpenDateModal(item.id)}
+                            />
+                            <MdRadioButtonUnchecked className="checkbox-icon" />
+                          </label>
+                          <span className="bucket-title-text">{item.title}</span>
+                          <span className="bucket-category-tag">{item.category === 'food' ? '음식' : item.category === 'place' ? '여행' : '데이트'}</span>
+                        </li>
+                      ))}
+                    </>
+                  )}
+                  {completed.length > 0 && (
+                    <>
+                      <li className="bucket-section-title">완료</li>
+                      {completed.map(item => (
+                        <li className={`bucket-item ${item.category} completed`} key={item.id} onClick={() => handleOpenEditModal(item)}>
+                          <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
+                            <input
+                              type="checkbox"
+                              checked={item.completed}
+                              onChange={() => handleEditUncheck(item.id)}
+                            />
+                            <MdCheckCircle className="checkbox-icon" />
+                          </label>
+                          <span className="bucket-title-text">{item.title}</span>
+                          <span className="bucket-category-tag">{item.category === 'food' ? '음식' : item.category === 'place' ? '여행' : '데이트'}</span>
+                          {item.completedAt && (
+                            <span className="bucket-completed-date">{formatBucketDate(item.completedAt)} 완료</span>
+                          )}
+                        </li>
+                      ))}
+                    </>
+                  )}
+                </>
+              );
+            })()}
+          </>
+        )}
       </ul>
 
-      {showAddModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>새 버킷리스트 추가</h2>
-            <input className="modal-input" placeholder="제목" value={form.title}
-              onChange={e => setForm(f => ({ ...f, title: e.target.value }))} />
-            <textarea className="modal-textarea" placeholder="내용" value={form.content}
-              onChange={e => setForm(f => ({ ...f, content: e.target.value }))} />
-            <div className="radio-group bucket-category-radio-group">
-              {['food', 'place', 'date'].map((cat, i) => (
-                <div className="radio-option" key={cat}>
-                  <input type="radio" id={cat} name="bucket-category" value={cat}
-                    checked={form.category === cat} onChange={() => setForm(f => ({ ...f, category: cat }))} />
-                  <label htmlFor={cat} className={`radio-label bucket-${cat}`}>
-                    {['음식', '여행', '데이트'][i]}
-                  </label>
-                </div>
-              ))}
-            </div>
-            <div className="modal-actions">
-              <button className="modal-btn" onClick={handleAdd}>추가</button>
-              <button className="modal-btn cancel" onClick={() => setShowAddModal(false)}>취소</button>
-            </div>
+      {/* 추가 모달 */}
+      <BaseModal
+        isOpen={modalState.type === 'add'}
+        onClose={closeModal}
+        title="새로운 버킷 추가"
+        icon={MdAutoAwesome}
+      >
+        <input
+          className="bucket-modal-input"
+          placeholder="제목"
+          value={addForm.title}
+          onChange={e => setAddForm(f => ({ ...f, title: e.target.value }))}
+        />
+        <textarea
+          className="bucket-modal-textarea"
+          placeholder="내용 (선택사항)"
+          value={addForm.content}
+          onChange={e => setAddForm(f => ({ ...f, content: e.target.value }))}
+        />
+        <CategorySelector
+          value={addForm.category}
+          onChange={(cat) => setAddForm(f => ({ ...f, category: cat }))}
+          name="add-category"
+        />
+        <div className="bucket-modal-actions">
+          <div className="bucket-modal-actions-primary">
+            <button
+              className="bucket-modal-btn bucket-modal-btn-primary"
+              onClick={handleAdd}
+            >
+              추가하기
+            </button>
+            <button
+              className="bucket-modal-btn bucket-modal-btn-cancel"
+              onClick={closeModal}
+            >
+              취소
+            </button>
           </div>
         </div>
-      )}
+      </BaseModal>
 
-      {showDateModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>완료 날짜 선택</h2>
-            <input className="modal-input" type="date" value={tempDate}
-              onChange={e => setTempDate(e.target.value)} />
-            <div className="modal-actions">
-              <button className="modal-btn" disabled={!tempDate} onClick={handleComplete}>확인</button>
-              <button className="modal-btn cancel" onClick={() => setShowDateModal(false)}>취소</button>
-            </div>
+      {/* 날짜 선택 모달 */}
+      <BaseModal
+        isOpen={modalState.type === 'date'}
+        onClose={closeModal}
+        title="완료 날짜"
+        icon={MdCalendarToday}
+      >
+        <input
+          className="bucket-modal-input"
+          type="date"
+          value={completionDate}
+          onChange={e => setCompletionDate(e.target.value)}
+        />
+        <div className="bucket-modal-actions">
+          <div className="bucket-modal-actions-primary">
+            <button
+              className="bucket-modal-btn bucket-modal-btn-complete"
+              disabled={!completionDate}
+              onClick={handleCompleteWithDate}
+            >
+              완료
+            </button>
+            <button
+              className="bucket-modal-btn bucket-modal-btn-cancel"
+              onClick={closeModal}
+            >
+              취소
+            </button>
           </div>
         </div>
-      )}
+      </BaseModal>
 
-      {showEditModal && (
-        <div className="modal-overlay">
-          <div className="modal-box">
-            <h2>버킷리스트 수정</h2>
-            <input className="modal-input" placeholder="제목" value={editForm.title}
-              onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))} />
-            <textarea className="modal-textarea" placeholder="내용" value={editForm.content}
-              onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))} />
-            <div className="radio-group bucket-category-radio-group">
-              {['food', 'place', 'date'].map((cat, i) => (
-                <div className="radio-option" key={cat}>
-                  <input type="radio" id={`edit-${cat}`} name="edit-bucket-category" value={cat}
-                    checked={editForm.category === cat} onChange={() => setEditForm(f => ({ ...f, category: cat }))} />
-                  <label htmlFor={`edit-${cat}`} className={`radio-label bucket-${cat}`}>
-                    {['음식', '여행', '데이트'][i]}
-                  </label>
-                </div>
-              ))}
-            </div>
-            <div className="modal-actions">
-              <button className="modal-btn" onClick={handleEditSave}>저장</button>
-              <button className="modal-btn cancel" onClick={() => setShowEditModal(false)}>취소</button>
-            </div>
+      {/* 편집 모달 */}
+      <BaseModal
+        isOpen={modalState.type === 'edit'}
+        onClose={closeModal}
+        title="버킷 상세"
+        icon={MdEdit}
+      >
+        <label className="bucket-selector-label">제목</label>
+        <input
+          className="bucket-modal-input"
+          placeholder="제목"
+          value={editForm.title}
+          onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
+        />
+        <label className="bucket-selector-label">내용</label>
+        <textarea
+          className="bucket-modal-textarea"
+          placeholder="내용"
+          value={editForm.content}
+          onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))}
+        />
+        <CategorySelector
+          value={editForm.category}
+          onChange={(cat) => setEditForm(f => ({ ...f, category: cat }))}
+          name="edit-category"
+        />
+        {editForm.completedAt && (
+          <div className="bucket-modal-completed-badge">
+            <span className="bucket-modal-completed-badge-icon">✓</span>
+            <span className="bucket-modal-completed-badge-text">
+              {formatBucketDate(editForm.completedAt)} 완료
+            </span>
+          </div>
+        )}
+        <div className="bucket-modal-actions">
+          <div className="bucket-modal-actions-primary">
+            {!editForm.completed && (
+              <button
+                className="bucket-modal-btn bucket-modal-btn-complete"
+                onClick={handleEditComplete}
+              >
+                완료
+              </button>
+            )}
+            {editForm.completed && (
+              <button
+                className="bucket-modal-btn bucket-modal-btn-incomplete"
+                onClick={() => handleEditUncheck(editForm.id)}
+              >
+                미완료
+              </button>
+            )}
+            <button
+              className="bucket-modal-btn bucket-modal-btn-delete"
+              onClick={handleEditDelete}
+            >
+              삭제
+            </button>
+          </div>
+          <div className="bucket-modal-actions-secondary">
+            <button
+              className="bucket-modal-btn bucket-modal-btn-save"
+              onClick={handleEditSave}
+            >
+              저장
+            </button>
+            <button
+              className="bucket-modal-btn bucket-modal-btn-cancel"
+              onClick={closeModal}
+            >
+              닫기
+            </button>
           </div>
         </div>
-      )}
+      </BaseModal>
     </div>
   );
 }

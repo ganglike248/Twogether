@@ -1,3 +1,13 @@
+v0.3.12 (2026.04.23)
+- feat: 버킷리스트 모달 시스템 완전 리팩토링 및 재디자인
+  - BaseModal 컴포넌트 추출 (공통 모달 구조 통일)
+  - CategorySelector 컴포넌트 분리 (음식/여행/데이트 선택 재사용)
+  - 모달 상태 통합 관리 (modalState 단일 객체로 개선)
+  - 모든 이모지를 react-icons로 대체 (MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd, MdClose 등)
+  - 새로운 모달 디자인: backdrop-filter 블러, scale 애니메이션, 입력필드 포커스 인터랙션 강화
+  - bucket-modal.css 분리 (모달 스타일링 최적화, 약 400줄)
+  - CSS 변수 활용한 일관된 테마 적용
+
 v0.3.11 (2026.04.22)
 - fix: 하단 탭 네비게이션 스택 정리
   - 탭 클릭 시 history 스택 안 쌓도록 replace 적용 (Instagram·KakaoTalk 패턴)
