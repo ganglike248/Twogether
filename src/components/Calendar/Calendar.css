@@ -124,7 +124,7 @@
 
 /* ─── FullCalendar 기본 ─── */
 .fc {
-  font-family: 'Noto Sans KR', 'Apple SD Gothic Neo', 'Pretendard', sans-serif;
+  font-family: 'Gowun Dodum', 'Apple SD Gothic Neo', 'Pretendard', sans-serif;
   background: transparent;
   width: 100% !important;
   height: 100%;
@@ -267,24 +267,25 @@
 }
 
 .fc-event.couple-event {
-  background: linear-gradient(90deg, #ffd6e0 80%, #fff8fa 100%);
+  background: #ffd6e0;
   color: #d16ba5;
 }
 
 .fc-event.girlfriend-event {
-  background: linear-gradient(90deg, #b5ead7 80%, #f5fff9 100%);
+  background: #b5ead7;
   color: #59b7a3;
 }
 
 .fc-event.boyfriend-event {
-  background: linear-gradient(90deg, #c7ceea 80%, #f6f7fb 100%);
+  background: #c7ceea;
   color: #6c6ea0;
 }
 
 .fc-h-event .fc-event-main {
   padding: 1px 2px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 7px;
+  text-align: center;
 }
 
 .fc-event-time,
@@ -327,7 +328,7 @@
 
 /* "+N 더보기" 링크 스타일 */
 .fc .fc-daygrid-more-link {
-  font-size: 0.65rem;
+  font-size: 0.6rem;
   font-weight: 600;
   color: #aaa;
   padding: 0 2px;
