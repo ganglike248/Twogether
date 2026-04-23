@@ -105,28 +105,47 @@ export const getEditLogs = async (coupleId = null, eventId = null, limitCount = 
     };
   }
 
-  // eventId 없으면: 모든 edit_logs를 가져온 후 클라이언트에서 필터링
-  const q = query(
-    collection(db, 'edit_logs'),
-    orderBy('timestamp', 'desc'),
-    limit(limitCount * 3)
-  );
-
-  const querySnapshot = await getDocs(q);
-  let logs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-
-  // coupleId로 클라이언트에서 필터링
+  // eventId 없으면: coupleId로 필터링해서 가져오기
+  let q;
   if (coupleId) {
-    logs = logs.filter(log => log.coupleId === coupleId || log.coupleId == null);
+    q = query(
+      collection(db, 'edit_logs'),
+      where('coupleId', '==', coupleId),
+      orderBy('timestamp', 'desc'),
+      limit(limitCount)
+    );
+    if (lastDoc) {
+      q = query(
+        collection(db, 'edit_logs'),
+        where('coupleId', '==', coupleId),
+        orderBy('timestamp', 'desc'),
+        startAfter(lastDoc),
+        limit(limitCount)
+      );
+    }
+  } else {
+    q = query(
+      collection(db, 'edit_logs'),
+      orderBy('timestamp', 'desc'),
+      limit(limitCount)
+    );
+    if (lastDoc) {
+      q = query(
+        collection(db, 'edit_logs'),
+        orderBy('timestamp', 'desc'),
+        startAfter(lastDoc),
+        limit(limitCount)
+      );
+    }
   }
 
-  // limitCount까지만 반환
-  logs = logs.slice(0, limitCount);
+  const querySnapshot = await getDocs(q);
+  const logs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
 
   return {
     logs,
-    lastDoc: querySnapshot.docs[Math.min(limitCount - 1, querySnapshot.docs.length - 1)] || null,
-    hasMore: querySnapshot.docs.length === limitCount * 3,
+    lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
+    hasMore: logs.length === limitCount,
   };
 };
 
