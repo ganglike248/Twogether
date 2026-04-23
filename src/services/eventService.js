@@ -77,7 +77,10 @@ export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null
   return eventId;
 };
 
-export const getEditLogs = async (coupleId = null, eventId = null, limitCount = 10, lastDoc = null) => {
+export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, lastDoc = null) => {
+  if (!coupleId) {
+    return { logs: [], lastDoc: null, hasMore: false };
+  }
   // eventId가 있으면 eventId로만 필터링 (인덱스 있음)
   if (eventId) {
     let q = query(
