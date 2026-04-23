@@ -320,7 +320,7 @@ function BucketListPage() {
                               {categoryDisplay}
                             </span>
                             {item.createdAt && (
-                              <span className="bucket-created-date">{formatBucketDate(item.createdAt)}</span>
+                              <span className="bucket-created-date">{formatBucketDate(item.createdAt)} 생성</span>
                             )}
                           </li>
                         );
