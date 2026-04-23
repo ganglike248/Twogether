@@ -33,12 +33,29 @@ const PWAUpdatePrompt = () => {
   useEffect(() => {
     if (!isUpdating) return;
 
-    // 업데이트 완료 후 1초 뒤 페이지 새로고침 (안드로이드 대응)
-    const refreshTimer = setTimeout(() => {
-      window.location.reload();
-    }, 1000);
+    // 새 서비스 워커가 실제로 활성화될 때까지 기다린 후 새로고침
+    let timeoutId;
+    const handleControllerChange = () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      clearTimeout(timeoutId);
+      // 새 서비스 워커가 활성화된 후 페이지 새로고침
+      setTimeout(() => {
+        window.location.reload();
+      }, 500);
+    };
 
-    return () => clearTimeout(refreshTimer);
+    // 타임아웃 설정: 최대 30초까지 기다림
+    timeoutId = setTimeout(() => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      window.location.reload();
+    }, 30000);
+
+    navigator.serviceWorker.addEventListener('controllerchange', handleControllerChange);
+
+    return () => {
+      navigator.serviceWorker.removeEventListener('controllerchange', handleControllerChange);
+      clearTimeout(timeoutId);
+    };
   }, [isUpdating]);
 
   if (!needRefresh) return null;
