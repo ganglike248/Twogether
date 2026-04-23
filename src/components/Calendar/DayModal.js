@@ -13,6 +13,7 @@ const DayModal = ({
   const [showPeriodForm, setShowPeriodForm] = useState(false);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
+  const [showMoreMenu, setShowMoreMenu] = useState(false);
 
   if (!isOpen || !selectedDate) return null;
 
@@ -194,61 +195,84 @@ const DayModal = ({
         </div>
 
         <div className="day-modal-footer">
-          {/* 생리 기록 버튼 / 폼 */}
-          {cycleEnabled && dayPeriods.length === 0 && (
-            showPeriodForm ? (
-              <div className="period-inline-form">
-                <div className="period-form-header">
-                  {cycleSettings?.icon || '🩸'} 생리 시작 기록
-                </div>
-                <div className="period-form-row">
-                  <span className="period-form-label">기간</span>
-                  <div className="period-form-input-wrap">
-                    <input
-                      type="number"
-                      className="period-form-input"
-                      value={periodFormLength}
-                      onChange={e => setPeriodFormLength(e.target.value)}
-                      min={1}
-                      max={14}
-                      autoFocus
-                    />
-                    <span className="period-form-unit">일</span>
-                  </div>
-                </div>
-                <div className="period-form-actions">
-                  <button
-                    className="period-form-cancel"
-                    onClick={handlePeriodFormCancel}
-                    disabled={periodSubmitting}
-                  >
-                    취소
-                  </button>
-                  <button
-                    className="period-form-submit"
-                    onClick={handlePeriodSubmit}
-                    disabled={periodSubmitting}
-                  >
-                    {periodSubmitting ? '기록 중...' : '기록'}
-                  </button>
+          {/* 생리 기록 폼 */}
+          {cycleEnabled && dayPeriods.length === 0 && showPeriodForm && (
+            <div className="period-inline-form">
+              <div className="period-form-header">
+                {cycleSettings?.icon || '🩸'} 생리 시작 기록
+              </div>
+              <div className="period-form-row">
+                <span className="period-form-label">기간</span>
+                <div className="period-form-input-wrap">
+                  <input
+                    type="number"
+                    className="period-form-input"
+                    value={periodFormLength}
+                    onChange={e => setPeriodFormLength(e.target.value)}
+                    min={1}
+                    max={14}
+                    autoFocus
+                  />
+                  <span className="period-form-unit">일</span>
                 </div>
               </div>
-            ) : (
-              <button className="add-period-btn" onClick={handleOpenPeriodForm}>
-                <span className="add-period-icon">{cycleSettings?.icon || '🩸'}</span>
-                생리 시작 기록
-              </button>
-            )
+              <div className="period-form-actions">
+                <button
+                  className="period-form-cancel"
+                  onClick={handlePeriodFormCancel}
+                  disabled={periodSubmitting}
+                >
+                  취소
+                </button>
+                <button
+                  className="period-form-submit"
+                  onClick={handlePeriodSubmit}
+                  disabled={periodSubmitting}
+                >
+                  {periodSubmitting ? '기록 중...' : '기록'}
+                </button>
+              </div>
+            </div>
           )}
 
-          {/* 일정 추가 버튼 */}
-          <button
-            className="add-event-btn"
-            onClick={() => onAddEvent(selectedDate)}
-          >
-            <span className="add-icon">+</span>
-            {formatDate(selectedDate)}에 일정 추가
-          </button>
+          {/* 일정 추가 + 더보기 메뉴 */}
+          <div className="day-modal-footer-buttons">
+            <button
+              className="add-event-btn"
+              onClick={() => onAddEvent(selectedDate)}
+            >
+              <span className="add-icon">+</span>
+              {formatDate(selectedDate)}에 일정 추가
+            </button>
+
+            {cycleEnabled && (
+              <div className="more-menu-wrapper">
+                <button
+                  className="more-menu-btn"
+                  onClick={() => setShowMoreMenu(!showMoreMenu)}
+                >
+                  ⋯
+                </button>
+                {showMoreMenu && (
+                  <div className="more-menu-popup">
+                    <button
+                      className="more-menu-item"
+                      onClick={() => {
+                        if (dayPeriods.length === 0) {
+                          handleOpenPeriodForm();
+                          setShowMoreMenu(false);
+                        }
+                      }}
+                      disabled={dayPeriods.length > 0}
+                    >
+                      <span className="menu-item-icon">{cycleSettings?.icon || '🩸'}</span>
+                      생리 시작 기록
+                    </button>
+                  </div>
+                )}
+              </div>
+            )}
+          </div>
         </div>
       </div>
     </div>

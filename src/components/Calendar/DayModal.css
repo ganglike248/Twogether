@@ -264,10 +264,19 @@
   padding: 0.75rem 1rem;
   border-top: 1px solid var(--color-gray-200);
   background-color: var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.day-modal-footer-buttons {
+  display: flex;
+  gap: 0.5rem;
+  align-items: flex-start;
 }
 
 .add-event-btn {
-  width: 100%;
+  flex: 1;
   padding: 0.65rem;
   background: linear-gradient(135deg, var(--color-primary) 0%, var(--color-primary-dark) 100%);
   color: white;
@@ -281,6 +290,7 @@
   align-items: center;
   justify-content: center;
   gap: 0.5rem;
+  min-width: 0;
 }
 
 .add-event-btn:hover {
@@ -484,6 +494,92 @@
 .period-form-cancel:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+/* ─── 더보기 메뉴 ─── */
+
+.more-menu-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.more-menu-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  background: white;
+  border: 1.5px solid var(--color-gray-300);
+  border-radius: var(--border-radius);
+  color: var(--color-gray-600);
+  font-size: 1.25rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.15s ease;
+}
+
+.more-menu-btn:hover {
+  background: var(--color-gray-50);
+  border-color: var(--color-gray-400);
+  color: var(--color-gray-700);
+}
+
+.more-menu-popup {
+  position: absolute;
+  bottom: 100%;
+  right: 0;
+  background: white;
+  border: 1px solid var(--color-gray-300);
+  border-radius: var(--border-radius);
+  box-shadow: 0 -4px 12px rgba(0, 0, 0, 0.1);
+  min-width: 180px;
+  margin-bottom: 0.5rem;
+  overflow: hidden;
+  animation: slideUp 0.15s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.more-menu-item {
+  width: 100%;
+  padding: 0.75rem;
+  background: none;
+  border: none;
+  color: #444;
+  font-size: 0.875rem;
+  font-weight: 500;
+  font-family: inherit;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  text-align: left;
+  transition: background 0.15s ease;
+}
+
+.more-menu-item:hover:not(:disabled) {
+  background: var(--color-gray-100);
+}
+
+.more-menu-item:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.menu-item-icon {
+  font-size: 1rem;
+  flex-shrink: 0;
 }
 
 @media (max-width: 480px) {
