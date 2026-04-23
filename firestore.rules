@@ -52,10 +52,17 @@ service cloud.firestore {
     }
 
     match /edit_logs/{docId} {
-      allow read: if isAuthenticated() &&
-        isCoupleMe(resource.data.coupleId);
+      allow read: if isAuthenticated() && (
+        resource.data.coupleId == null ||
+        isCoupleMe(resource.data.coupleId)
+      );
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
+      allow update: if isAuthenticated() && (
+        resource.data.coupleId == null ||
+        isCoupleMe(resource.data.coupleId)
+      );
+      allow delete: if false;
     }
 
     match /trips/{docId} {

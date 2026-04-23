@@ -1,3 +1,11 @@
+v0.3.20 (2026.04.24)
+- feat: 수정기록(Edit Log) 기능 완전 복구 및 보안 강화
+  - EditLogModal에서 AuthContext로 coupleId 가져오기
+  - getEditLogs 함수 최적화: eventId 있으면 필터링, 없으면 클라이언트에서 필터링
+  - Firestore rules 개선: coupleId 기반 접근 제어 (자신의 커플 데이터만 조회 가능)
+  - Firestore 인덱스 추가: coupleId + timestamp 복합 인덱스 (조회 성능 최적화)
+  - 이전 데이터(coupleId 없음)와 새 데이터 모두 호환
+
 v0.3.19 (2026.04.24)
 - feat: 전역 폰트 변경 및 스타일 개선
   - 폰트 변경: Noto Sans KR → Gowun Dodum (귀엽고 시인성 좋은 폰트)

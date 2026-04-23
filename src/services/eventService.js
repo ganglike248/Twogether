@@ -77,30 +77,56 @@ export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null
   return eventId;
 };
 
-export const getEditLogs = async (eventId = null, limitCount = 10, lastDoc = null) => {
-  let q;
+export const getEditLogs = async (coupleId = null, eventId = null, limitCount = 10, lastDoc = null) => {
+  // eventId가 있으면 eventId로만 필터링 (인덱스 있음)
   if (eventId) {
-    q = query(
+    let q = query(
       collection(db, 'edit_logs'),
       where('eventId', '==', eventId),
       orderBy('timestamp', 'desc'),
       limit(limitCount)
     );
-  } else {
-    q = query(
-      collection(db, 'edit_logs'),
-      orderBy('timestamp', 'desc'),
-      limit(limitCount)
-    );
+    if (lastDoc) {
+      q = query(
+        collection(db, 'edit_logs'),
+        where('eventId', '==', eventId),
+        orderBy('timestamp', 'desc'),
+        startAfter(lastDoc),
+        limit(limitCount)
+      );
+    }
+
+    const querySnapshot = await getDocs(q);
+    const logs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+    return {
+      logs,
+      lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
+      hasMore: logs.length === limitCount,
+    };
   }
-  if (lastDoc) q = query(q, startAfter(lastDoc));
+
+  // eventId 없으면: 모든 edit_logs를 가져온 후 클라이언트에서 필터링
+  const q = query(
+    collection(db, 'edit_logs'),
+    orderBy('timestamp', 'desc'),
+    limit(limitCount * 3)
+  );
 
   const querySnapshot = await getDocs(q);
-  const logs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+  let logs = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+
+  // coupleId로 클라이언트에서 필터링
+  if (coupleId) {
+    logs = logs.filter(log => log.coupleId === coupleId || log.coupleId == null);
+  }
+
+  // limitCount까지만 반환
+  logs = logs.slice(0, limitCount);
+
   return {
     logs,
-    lastDoc: querySnapshot.docs[querySnapshot.docs.length - 1] || null,
-    hasMore: logs.length === limitCount,
+    lastDoc: querySnapshot.docs[Math.min(limitCount - 1, querySnapshot.docs.length - 1)] || null,
+    hasMore: querySnapshot.docs.length === limitCount * 3,
   };
 };
 

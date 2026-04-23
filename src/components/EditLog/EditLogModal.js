@@ -1,9 +1,11 @@
 // src/components/EditLog/EditLogModal.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getEditLogs, getEventById } from '../../services/eventService';
+import { useAuthContext } from '../../contexts/AuthContext';
 import './EditLogModal.css';
 
 const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
+  const { coupleId } = useAuthContext();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -38,7 +40,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     }
 
     try {
-      const result = await getEditLogs(eventId, 10, isInitial ? null : lastDoc);
+      const result = await getEditLogs(coupleId, eventId, 10, isInitial ? null : lastDoc);
       const filteredLogs = filter === 'all' 
         ? result.logs 
         : result.logs.filter(log => log.action === filter);
@@ -78,7 +80,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
         setLoadingMore(false);
       }
     }
-  }, [eventId, filter, lastDoc, eventsData]);
+  }, [coupleId, eventId, filter, lastDoc, eventsData]);
 
   const handleScroll = useCallback(() => {
     if (!modalBodyRef.current || !hasMore || loadingMore) return;
