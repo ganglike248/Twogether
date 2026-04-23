@@ -122,26 +122,7 @@
     white-space: nowrap;
     flex-shrink: 0;
     min-width: max-content;
-}
-
-.cat-tab-all {
-    background: var(--main-yellow);
-    color: #ffffff;
-}
-
-.cat-tab-food {
-    background: #f5a26f;
-    color: #ffffff;
-}
-
-.cat-tab-place {
-    background: var(--main-mint);
-    color: #ffffff;
-}
-
-.cat-tab-date {
-    background: var(--main-lavender);
-    color: #ffffff;
+    background: var(--color-gray-300);
 }
 
 .cat-tab.active {
@@ -151,6 +132,26 @@
 
 .cat-tab:not(.active) {
     opacity: 0.7;
+}
+
+.cat-tab-manage {
+    border: none;
+    border-radius: 1rem;
+    font-weight: 600;
+    font-size: 0.78rem;
+    padding: 0.5rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    white-space: nowrap;
+    flex-shrink: 0;
+    min-width: max-content;
+    background: #999;
+    width: 2.5rem;
+    height: 2.5rem;
 }
 
 .cat-tab:hover {
@@ -225,12 +226,9 @@
     background: #fff;
     position: relative;
     border: none;
+    border-left: 4px solid;
     box-shadow: var(--shadow-sm);
 }
-
-.bucket-item.food  { border-left: 4px solid #f5a26f; }
-.bucket-item.place { border-left: 4px solid #a3d8ca; }
-.bucket-item.date  { border-left: 4px solid #b4aee8; }
 
 .bucket-item.completed {
     opacity: 0.6;
@@ -271,29 +269,7 @@
     transition: color 0.15s, background 0.15s;
 }
 
-.bucket-item.food .bucket-checkbox input[type="checkbox"]:not(:checked) + .checkbox-icon {
-    color: #f5a26f;
-}
-
-.bucket-item.place .bucket-checkbox input[type="checkbox"]:not(:checked) + .checkbox-icon {
-    color: #a3d8ca;
-}
-
-.bucket-item.date .bucket-checkbox input[type="checkbox"]:not(:checked) + .checkbox-icon {
-    color: #b4aee8;
-}
-
-.bucket-item.food .bucket-checkbox input[type="checkbox"]:checked + .checkbox-icon {
-    color: #f5a26f;
-}
-
-.bucket-item.place .bucket-checkbox input[type="checkbox"]:checked + .checkbox-icon {
-    color: #a3d8ca;
-}
-
-.bucket-item.date .bucket-checkbox input[type="checkbox"]:checked + .checkbox-icon {
-    color: #b4aee8;
-}
+/* 동적 색상은 인라인 스타일로 처리 */
 
 .bucket-title-text {
     flex: 1;
@@ -325,18 +301,14 @@
     border-radius: 0.5rem;
     flex-shrink: 0;
     white-space: nowrap;
+    /* 동적 배경색은 인라인 스타일로 처리 */
 }
 
-.bucket-item.food .bucket-category-tag {
-    background: #f5a26f;
-}
-
-.bucket-item.place .bucket-category-tag {
-    background: #a3d8ca;
-}
-
-.bucket-item.date .bucket-category-tag {
-    background: #b4aee8;
+.bucket-created-date {
+    font-size: 0.65rem;
+    color: var(--text-sub);
+    padding-left: 2rem;
+    font-weight: 400;
 }
 
 .bucket-completed-date {

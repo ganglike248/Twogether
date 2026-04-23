@@ -1,0 +1,75 @@
+/* ================ 카테고리 선택기 (동적) ================ */
+.bucket-category-selector {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.bucket-selector-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--text-main);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.bucket-category-options {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  gap: 0.6rem;
+}
+
+.bucket-category-option {
+  position: relative;
+}
+
+.bucket-category-option input[type="radio"] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.bucket-category-label {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.4rem;
+  padding: 0.8rem 0.6rem;
+  border: 2px solid var(--color-gray-300);
+  border-radius: 0.9rem;
+  background: #f9f9fb;
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.bucket-cat-color-dot {
+  width: 1.5rem;
+  height: 1.5rem;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.bucket-cat-text {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-sub);
+  max-width: 100%;
+  word-break: break-word;
+}
+
+/* 라디오 버튼 선택 시 스타일 */
+.bucket-category-option input[type="radio"]:checked + .bucket-category-label {
+  border-color: var(--category-color, #4D96FF);
+  background: rgba(77, 150, 255, 0.1);
+  box-shadow: 0 0 0 2px rgba(77, 150, 255, 0.2);
+  transform: scale(1.05);
+}
+
+/* ================ 모바일 반응형 ================ */
+@media (max-width: 480px) {
+  .bucket-category-options {
+    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  }
+}
