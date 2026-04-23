@@ -335,12 +335,6 @@
   gap: 0.05rem;
 }
 
-.period-record-title {
-  font-size: 0.85rem;
-  font-weight: 700;
-  color: #c0395e;
-}
-
 .period-record-detail {
   font-size: 0.72rem;
   color: #aaa;

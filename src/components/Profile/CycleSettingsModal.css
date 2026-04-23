@@ -183,35 +183,6 @@
   border-color: #ffb6c1;
 }
 
-/* 아이콘 선택 */
-.csm-icon-options {
-  display: flex;
-  gap: 0.5rem;
-}
-
-.csm-icon-btn {
-  background: #f8f0f3;
-  border: 2px solid transparent;
-  border-radius: 0.6rem;
-  font-size: 1.4rem;
-  width: 48px;
-  height: 48px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  cursor: pointer;
-  transition: border-color 0.15s, background 0.15s;
-}
-
-.csm-icon-btn:hover {
-  background: #fce8ee;
-}
-
-.csm-icon-btn.selected {
-  border-color: #ffb6c1;
-  background: #fff0f5;
-}
-
 /* 색상 팔레트 */
 .csm-color-palette {
   display: flex;

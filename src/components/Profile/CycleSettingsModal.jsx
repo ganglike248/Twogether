@@ -20,7 +20,7 @@ const DEFAULT_SETTINGS = {
   enabled: false,
   cycleLength: 28,
   periodLength: 5,
-  icon: '🩸',
+  icon: '🌸',
   label: '생리',
   color: '#ffd6e0',
   showFertile: false,
@@ -136,29 +136,13 @@ const CycleSettingsModal = ({ isOpen, onClose }) => {
 
                 <div className="csm-field">
                   <label className="csm-label">아이콘</label>
-                  <div className="csm-icon-options">
-                    {CYCLE_ICON_OPTIONS.map(icon => (
-                      <button
-                        key={icon}
-                        type="button"
-                        className={`csm-icon-btn${settings.icon === icon ? ' selected' : ''}`}
-                        onClick={() => update('icon', icon)}
-                      >
-                        {icon}
-                      </button>
-                    ))}
-                  </div>
-                </div>
-
-                <div className="csm-field">
-                  <label className="csm-label">텍스트</label>
                   <input
                     type="text"
                     className="csm-text-input"
-                    value={settings.label}
-                    onChange={e => update('label', e.target.value.slice(0, 6))}
-                    placeholder="생리"
-                    maxLength={6}
+                    value={settings.icon}
+                    onChange={e => update('icon', e.target.value)}
+                    placeholder="🌸"
+                    maxLength={2}
                   />
                 </div>
 

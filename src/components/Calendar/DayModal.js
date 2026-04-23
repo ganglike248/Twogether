@@ -123,9 +123,8 @@ const DayModal = ({
             <div className="period-records-list">
               {dayPeriods.map(period => (
                 <div key={period.id} className="period-record-card">
-                  <span className="period-record-icon">{cycleSettings.icon || '🩸'}</span>
+                  <span className="period-record-icon">{cycleSettings.icon || '🌸'}</span>
                   <div className="period-record-info">
-                    <span className="period-record-title">{cycleSettings.label || '생리'}</span>
                     <span className="period-record-detail">
                       {period.startDate} · {period.periodLength || defaultPeriodLength}일
                     </span>
@@ -199,7 +198,7 @@ const DayModal = ({
           {cycleEnabled && dayPeriods.length === 0 && showPeriodForm && (
             <div className="period-inline-form">
               <div className="period-form-header">
-                {cycleSettings?.icon || '🩸'} 생리 시작 기록
+                {cycleSettings?.icon || '🌸'} 생리 시작 기록
               </div>
               <div className="period-form-row">
                 <span className="period-form-label">기간</span>
@@ -265,7 +264,7 @@ const DayModal = ({
                       }}
                       disabled={dayPeriods.length > 0}
                     >
-                      <span className="menu-item-icon">{cycleSettings?.icon || '🩸'}</span>
+                      <span className="menu-item-icon">{cycleSettings?.icon || '🌸'}</span>
                       생리 시작 기록
                     </button>
                   </div>

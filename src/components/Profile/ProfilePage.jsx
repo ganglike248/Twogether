@@ -385,7 +385,7 @@ const ProfilePage = () => {
           onClick={() => setShowCycleModal(true)}
         >
           <span className="profile-cycle-btn-icon">
-            {coupleDoc?.cycleSettings?.enabled ? (coupleDoc.cycleSettings.icon || '🩸') : '🩸'}
+            {coupleDoc?.cycleSettings?.enabled ? (coupleDoc.cycleSettings.icon || '🌸') : '🌸'}
           </span>
           <span className="profile-cycle-btn-text">
             {coupleDoc?.cycleSettings?.enabled ? '생리주기 설정 중 ✓' : '생리주기 사용하기'}

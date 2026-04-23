@@ -152,7 +152,7 @@ const Calendar = () => {
 
     const cl = settings.cycleLength || 28;
     const pl = settings.periodLength || 5;
-    const icon = settings.icon || '🩸';
+    const icon = settings.icon || '🌸';
     const label = settings.label || '생리';
     const color = settings.color || '#ffd6e0';
     const showFertile = settings.showFertile || false;
@@ -164,7 +164,7 @@ const Calendar = () => {
     cycles.forEach(cycle => {
       result.push({
         id: `period-actual-${cycle.id}`,
-        title: `${icon} ${label}`,
+        title: icon,
         start: cycle.startDate,
         end: addDaysToStr(cycle.startDate, cycle.periodLength || pl),
         allDay: true,
@@ -188,7 +188,7 @@ const Calendar = () => {
       const nextStart = addDaysToStr(base, cl);
       result.push({
         id: 'period-predicted',
-        title: `${label} 예정`,
+        title: '예정',
         start: nextStart,
         end: addDaysToStr(nextStart, pl),
         allDay: true,
