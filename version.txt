@@ -1,3 +1,14 @@
+v0.3.26 (2026.04.27)
+- refactor: Calendar.jsx 컴포넌트 분해 및 모듈화
+  - Calendar.jsx: 533줄 → 157줄 (71% 축소)
+  - useCalendarData.js: Firestore 이벤트/생리주기 구독 로직 분리
+  - useCalendarEvents.js: 이벤트 데이터 변환 로직 (specialDayEvents, periodEvents) 분리
+  - useCalendarNavigation.js: 월 네비게이션 + 터치 제스처 처리 분리
+  - CalendarHeader.jsx: 헤더 UI 컴포넌트 분리
+  - CalendarGrid.jsx: FullCalendar 렌더링 로직 분리
+  - 각 모듈이 단일 책임을 가지므로 테스트·유지보수 용이
+  - 커스텀 hooks는 다른 컴포넌트에서도 재사용 가능
+
 v0.3.25 (2026.04.27)
 - chore: 미사용 빈 파일 제거
   - EventForm.js 삭제 (폼 로직이 EventModal.js에 통합됨)
