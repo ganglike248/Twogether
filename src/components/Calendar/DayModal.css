@@ -172,6 +172,11 @@
   border-color: rgba(148, 255, 134, 0.1);
 }
 
+.day-event-item.trip {
+  background-color: rgba(165, 94, 234, 0.08);
+  border-color: rgba(165, 94, 234, 0.1);
+}
+
 .day-event-item:hover {
   transform: translateY(-2px);
   box-shadow: var(--shadow-md);
@@ -190,6 +195,11 @@
 .day-event-item.girlfriend:hover {
   border-color: var(--color-girlfriend);
   box-shadow: 0 4px 12px rgba(148, 255, 134, 0.2);
+}
+
+.day-event-item.trip:hover {
+  border-color: #a55eea;
+  box-shadow: 0 4px 12px rgba(165, 94, 234, 0.2);
 }
 
 .event-icon {
@@ -241,6 +251,11 @@
 .event-type.girlfriend {
   background-color: rgba(148, 255, 134, 0.2);
   color: #3da05a;
+}
+
+.event-type.trip {
+  background-color: rgba(165, 94, 234, 0.2);
+  color: #7d3fa3;
 }
 
 .event-description {

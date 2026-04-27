@@ -1,6 +1,6 @@
 // src/components/Calendar/Calendar.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
-import { useSearchParams } from 'react-router-dom';
+import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EventModal from './EventModal';
 import DayModal from './DayModal';
@@ -22,6 +22,7 @@ const addDaysToStr = (dateStr, days) => {
 };
 
 const Calendar = () => {
+  const navigatePage = useNavigate();
   const { user, coupleId, coupleDoc } = useAuthContext();
 
   // Data fetching
@@ -96,6 +97,12 @@ const Calendar = () => {
 
   const handleEditEventFromDay = (event) => {
     try {
+      if (event.extendedProps?.isTrip) {
+        navigatePage(`/travel/${event.id}`);
+        setIsDayModalOpen(false);
+        return;
+      }
+
       const startDate = event.start.split('T')[0];
       const endDate = event.end ? event.end.split('T')[0] : startDate;
       setSelectedEvent({

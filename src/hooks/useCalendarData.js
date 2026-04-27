@@ -33,13 +33,56 @@ export const useCalendarData = (coupleId) => {
           extendedProps: {
             description: data.description,
             eventType: data.eventType,
-            imageUrls: data.imageUrls || []
+            imageUrls: data.imageUrls || [],
+            isTrip: false
           }
         };
       });
       setEvents(eventsData);
       setIsLoading(false);
     }, () => setIsLoading(false));
+    return () => unsubscribe();
+  }, [coupleId]);
+
+  // 여행 구독
+  useEffect(() => {
+    if (!coupleId) return;
+    const tripsRef = query(
+      collection(db, 'trips'),
+      where('coupleId', '==', coupleId)
+    );
+    const unsubscribe = onSnapshot(tripsRef, (snapshot) => {
+      const tripsData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        const startDate = data.startDate?.toDate
+          ? data.startDate.toDate().toISOString().split('T')[0]
+          : data.startDate;
+        const endDate = data.endDate?.toDate
+          ? data.endDate.toDate().toISOString().split('T')[0]
+          : data.endDate;
+
+        // FullCalendar allDay 이벤트: end를 다음날 00:00으로 설정하여 그 전날까지 표시
+        const endDateObj = new Date(endDate);
+        endDateObj.setDate(endDateObj.getDate() + 1);
+        const adjustedEndDate = endDateObj.toISOString().split('T')[0];
+
+        return {
+          id: doc.id,
+          title: `✈️ ${data.title}`,
+          start: `${startDate}T00:00:00`,
+          end: `${adjustedEndDate}T00:00:00`,
+          allDay: true,
+          color: 'var(--color-trip)',
+          textColor: '#757575',
+          extendedProps: {
+            description: data.destination || '',
+            isTrip: true,
+            tripId: doc.id
+          }
+        };
+      });
+      setEvents(prev => [...prev.filter(e => !e.extendedProps.isTrip), ...tripsData]);
+    });
     return () => unsubscribe();
   }, [coupleId]);
 

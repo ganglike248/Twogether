@@ -1,3 +1,18 @@
+v0.3.35 (2026.04.27)
+- feat: 캘린더와 여행 일정 실시간 연동
+  - useCalendarData.js: trips 데이터 구독 추가, 여행 이벤트로 변환
+    startDate/endDate를 캘린더 형식으로 변환 (end는 다음날로 설정)
+    여행 일정이 여러 날에 걸쳐 표시됨
+  - Calendar.jsx: useNavigate 추가, 여행 이벤트 클릭 시 /travel/:id 라우팅
+    변수명 충돌 수정 (useNavigate → navigatePage)
+  - DayModal.js: 여행 이벤트 UI 표시
+    getEventTypeIcon/getEventTypeName에 isTrip 파라미터 추가
+    여행 아이콘(✈️), "여행" 레이블 표시
+  - CalendarGrid.jsx: eventClassNames에서 isTrip 체크 → 'trip-event' 클래스
+  - Calendar.css: --color-trip 색상 변수(#e8d7f1) + .fc-event.trip-event 스타일
+  - DayModal.css: .day-event-item.trip, .day-event-item.trip:hover 스타일
+  - useCalendarData.js: 여행 타이틀에 ✈️ 이모지 추가 (맨 앞에)
+
 v0.3.34 (2026.04.27)
 - feat: 버킷리스트 실시간 반영 (getDocs → onSnapshot)
   - BucketListPage.jsx: getDocs 일회성 쿼리 → onSnapshot 실시간 구독으로 변경

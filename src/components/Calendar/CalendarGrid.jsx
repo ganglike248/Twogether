@@ -24,6 +24,7 @@ const CalendarGrid = ({
     if (ep.isPeriodPredicted) return ['period-predicted-event'];
     if (ep.isCycleMeta) return ['cycle-meta-event'];
     if (ep.isSpecial) return ['special-day-event', ep.specialType];
+    if (ep.isTrip) return ['trip-event'];
     switch (ep.eventType) {
       case 'boyfriend': return ['boyfriend-event'];
       case 'girlfriend': return ['girlfriend-event'];

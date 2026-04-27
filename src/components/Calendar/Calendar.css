@@ -7,6 +7,7 @@
   --color-couple: #ffd6e0;
   --color-girlfriend: #b5ead7;
   --color-boyfriend: #c7ceea;
+  --color-trip: #e8d7f1;
   --color-gray-100: #f8f9fa;
   --color-gray-200: #ececec;
   --color-gray-300: #e0e0e0;
@@ -279,6 +280,11 @@
 .fc-event.boyfriend-event {
   background: #c7ceea;
   color: #6c6ea0;
+}
+
+.fc-event.trip-event {
+  background: #e8d7f1;
+  color: #8b5fa0;
 }
 
 .fc-h-event .fc-event-main {

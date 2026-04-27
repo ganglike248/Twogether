@@ -44,7 +44,8 @@ const DayModal = ({
     }
   };
 
-  const getEventTypeIcon = (eventType) => {
+  const getEventTypeIcon = (eventType, isTrip) => {
+    if (isTrip) return '✈️';
     switch (eventType) {
       case 'boyfriend': return '🐶';
       case 'girlfriend': return '🐹';
@@ -53,7 +54,8 @@ const DayModal = ({
     }
   };
 
-  const getEventTypeName = (eventType) => {
+  const getEventTypeName = (eventType, isTrip) => {
+    if (isTrip) return '여행';
     if (eventType === 'couple') return '데이트';
     if (eventType === 'boyfriend' || eventType === 'girlfriend') return getMemberName(eventType);
     return '일정';
@@ -160,20 +162,22 @@ const DayModal = ({
                 .map(event => {
                   const eventStart = event.start.split('T')[0];
                   const eventEnd = event.end ? event.end.split('T')[0] : eventStart;
+                  const isTrip = event.extendedProps?.isTrip;
+                  const eventTypeClass = isTrip ? 'trip' : event.extendedProps.eventType;
                   return (
                     <div
                       key={event.id}
-                      className={`day-event-item ${event.extendedProps.eventType}`}
+                      className={`day-event-item ${eventTypeClass}`}
                       onClick={() => onEditEvent(event)}
                     >
                       <div className="event-icon">
-                        {getEventTypeIcon(event.extendedProps.eventType)}
+                        {getEventTypeIcon(event.extendedProps.eventType, isTrip)}
                       </div>
                       <div className="event-details">
                         <div className="event-title">{event.title}</div>
                         <div className="event-meta">
-                          <span className={`event-type ${event.extendedProps.eventType}`}>
-                            {getEventTypeName(event.extendedProps.eventType)}
+                          <span className={`event-type ${eventTypeClass}`}>
+                            {getEventTypeName(event.extendedProps.eventType, isTrip)}
                           </span>
                           <span className="event-date-range">
                             {formatDateRange(eventStart, eventEnd)}
