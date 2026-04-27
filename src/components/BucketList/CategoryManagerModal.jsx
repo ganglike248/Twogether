@@ -11,6 +11,8 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
   const [newCategoryColor, setNewCategoryColor] = useState(CATEGORY_COLORS[0].hex);
   const [editingCategory, setEditingCategory] = useState(null);
   const [editColor, setEditColor] = useState('');
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [categoryToDelete, setCategoryToDelete] = useState(null);
 
   const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
   const isDefaultCategory = (key) => key in DEFAULT_CATEGORIES;
@@ -50,14 +52,18 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
     setEditColor('');
   };
 
-  const handleDeleteCategory = async (categoryKey) => {
-    const displayName = getCategoryDisplayName(categoryKey, customCategories);
-    if (!window.confirm(`'${displayName}'을(를) 삭제하시겠습니까?`)) return;
+  const handleDeleteCategory = (categoryKey) => {
+    setCategoryToDelete(categoryKey);
+    setShowDeleteModal(true);
+  };
 
+  const confirmDeleteCategory = async () => {
+    if (!categoryToDelete) return;
     const updatedCategories = { ...customCategories };
-    delete updatedCategories[categoryKey];
-
+    delete updatedCategories[categoryToDelete];
     await onSave(updatedCategories);
+    setShowDeleteModal(false);
+    setCategoryToDelete(null);
   };
 
   const handleCloseModal = () => {
@@ -191,6 +197,32 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
         >
           <MdAdd /> 새 카테고리 추가
         </button>
+      )}
+
+      {/* 카테고리 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="category-delete-modal-overlay" onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}>
+          <div className="category-delete-modal" onClick={e => e.stopPropagation()}>
+            <p className="category-delete-modal-title">카테고리 삭제</p>
+            <p className="category-delete-modal-msg">
+              '{getCategoryDisplayName(categoryToDelete, customCategories)}'을(를) 삭제하시겠습니까?
+            </p>
+            <div className="category-delete-modal-actions">
+              <button
+                className="category-delete-modal-btn cancel"
+                onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}
+              >
+                취소
+              </button>
+              <button
+                className="category-delete-modal-btn delete"
+                onClick={confirmDeleteCategory}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
       )}
     </BaseModal>
   );

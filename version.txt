@@ -1,3 +1,10 @@
+v0.3.41 (2026.04.28)
+- fix: window.confirm() → 모달로 통일 (DayModal, ScheduleItem, CategoryManagerModal)
+  - **DayModal**: 생리 기록 삭제 시 확인 모달
+  - **ScheduleItem**: 여행 일정 삭제 시 확인 모달
+  - **CategoryManagerModal**: 카테고리 삭제 시 확인 모달
+  - 일관된 UI/UX (취소 버튼: 회색, 삭제 버튼: 빨간색)
+
 v0.3.40 (2026.04.28)
 - fix: 기능성/보안/성능 11가지 개선사항 통합
   - **기능성 버그 수정**

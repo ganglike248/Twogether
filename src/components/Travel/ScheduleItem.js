@@ -1,8 +1,9 @@
 // src/components/Travel/ScheduleItem.js
-import React from 'react';
+import React, { useState } from 'react';
 import './ScheduleItem.css';
 
 const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
     const formatTime = (time) => {
         if (!time) return '';
         try {
@@ -24,9 +25,12 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
 
     const handleDelete = (e) => {
         e.stopPropagation();
-        if (window.confirm('이 일정을 삭제하시겠습니까?')) {
-            onDelete(schedule.id);
-        }
+        setShowDeleteModal(true);
+    };
+
+    const confirmDelete = () => {
+        onDelete(schedule.id);
+        setShowDeleteModal(false);
     };
 
     return (
@@ -81,7 +85,29 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
                     )}
                 </div>
 
-            
+            {/* 삭제 확인 모달 */}
+            {showDeleteModal && (
+                <div className="schedule-delete-modal-overlay" onClick={() => setShowDeleteModal(false)}>
+                    <div className="schedule-delete-modal" onClick={e => e.stopPropagation()}>
+                        <p className="schedule-delete-modal-title">일정 삭제</p>
+                        <p className="schedule-delete-modal-msg">이 일정을 삭제하시겠습니까?</p>
+                        <div className="schedule-delete-modal-actions">
+                            <button
+                                className="schedule-delete-modal-btn cancel"
+                                onClick={() => setShowDeleteModal(false)}
+                            >
+                                취소
+                            </button>
+                            <button
+                                className="schedule-delete-modal-btn delete"
+                                onClick={confirmDelete}
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
         </div>
     );
 };

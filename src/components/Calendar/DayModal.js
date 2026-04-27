@@ -14,6 +14,8 @@ const DayModal = ({
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
+  const [showDeletePeriodModal, setShowDeletePeriodModal] = useState(false);
+  const [periodToDelete, setPeriodToDelete] = useState(null);
 
   if (!isOpen || !selectedDate) return null;
 
@@ -87,9 +89,16 @@ const DayModal = ({
     }
   };
 
-  const handleDeletePeriod = async (cycleId) => {
-    if (!window.confirm('이 생리 기록을 삭제할까요?')) return;
-    await onDeletePeriod(cycleId);
+  const handleDeletePeriod = (cycleId) => {
+    setPeriodToDelete(cycleId);
+    setShowDeletePeriodModal(true);
+  };
+
+  const confirmDeletePeriod = async () => {
+    if (!periodToDelete) return;
+    await onDeletePeriod(periodToDelete);
+    setShowDeletePeriodModal(false);
+    setPeriodToDelete(null);
   };
 
   return (
@@ -278,6 +287,31 @@ const DayModal = ({
           </div>
         </div>
       </div>
+
+      {/* 생리 기록 삭제 확인 모달 */}
+      {showDeletePeriodModal && (
+        <div className="day-modal-overlay" onClick={() => { setShowDeletePeriodModal(false); setPeriodToDelete(null); }}>
+          <div className="day-modal-container" style={{ maxWidth: '300px' }} onClick={e => e.stopPropagation()}>
+            <p className="day-modal-title" style={{ marginBottom: '8px' }}>생리 기록 삭제</p>
+            <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>이 생리 기록을 삭제하시겠습니까?</p>
+            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+              <button
+                className="period-form-cancel"
+                onClick={() => { setShowDeletePeriodModal(false); setPeriodToDelete(null); }}
+              >
+                취소
+              </button>
+              <button
+                className="period-form-submit"
+                onClick={confirmDeletePeriod}
+                style={{ backgroundColor: '#ef4444', color: 'white' }}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
