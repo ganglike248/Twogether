@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
+import { toast } from 'react-toastify';
 import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -73,7 +74,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       onClose();
     } catch (error) {
       console.error('Error saving event:', error);
-      alert('일정 저장 중 오류가 발생했습니다.');
+      toast.error(`일정 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
     } finally {
       setLoading(false);
     }

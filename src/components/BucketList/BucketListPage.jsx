@@ -1,6 +1,7 @@
 // src/components/BucketList/BucketListPage.jsx
 import React, { useEffect, useState } from 'react';
 import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, getDoc } from 'firebase/firestore';
+import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
@@ -104,7 +105,7 @@ function BucketListPage() {
       setCategoryOptions(options);
     } catch (error) {
       console.error('카테고리 저장 실패:', error);
-      alert('카테고리 저장에 실패했습니다.');
+      toast.error(`카테고리 저장에 실패했습니다.\n${error?.message || String(error)}`);
     }
   };
 

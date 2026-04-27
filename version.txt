@@ -1,3 +1,12 @@
+v0.3.29 (2026.04.27)
+- fix: 에러 핸들링 통일 (alert → toast.error)
+  - TripModal.js: 여행 저장 오류 alert → toast.error로 변경
+  - EventModal.js: 일정 저장 오류 alert → toast.error로 변경
+  - TravelPlanPage.js: 여행 저장/삭제 오류 alert → toast.error로 변경 (2개)
+  - BucketListPage.jsx: 카테고리 저장 오류 alert → toast.error로 변경
+  - 모든 파일에 react-toastify import 추가
+  - 사용자 경험 개선: 동기적 alert 차단 → 비동기 toast 알림
+
 v0.3.28 (2026.04.27)
 - fix: Storage 보안 강화 (coupleId 접근 제어)
   - storageService.js: validateCoupleIdAccess 함수 추가

@@ -1,6 +1,7 @@
 // src/components/Travel/TripModal.js
 import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
+import { toast } from 'react-toastify';
 import './TripModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
 
@@ -102,7 +103,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
             await onSave(tripData);
         } catch (error) {
             console.error('Error saving trip:', error);
-            alert('여행 저장 중 오류가 발생했습니다.');
+            toast.error(`여행 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
         } finally {
             setLoading(false);
         }

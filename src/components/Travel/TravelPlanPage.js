@@ -1,6 +1,7 @@
 // src/components/Travel/TravelPlanPage.js
 import React, { useState, useEffect } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
 import { createTrip, updateTrip, deleteTrip } from '../../services/tripService';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -73,7 +74,7 @@ const TravelPlanPage = () => {
             setShowTripModal(false);
         } catch (error) {
             console.error('Error saving trip:', error);
-            alert('여행 저장 중 오류가 발생했습니다.');
+            toast.error(`여행 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
         }
     };
 
@@ -87,7 +88,7 @@ const TravelPlanPage = () => {
                 }
             } catch (error) {
                 console.error('Error deleting trip:', error);
-                alert('여행 삭제 중 오류가 발생했습니다.');
+                toast.error(`여행 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
             }
         }
     };
