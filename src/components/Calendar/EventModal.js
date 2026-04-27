@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { format, subDays } from 'date-fns';
+import { addDays, subDays } from 'date-fns';
 import { toast } from 'react-toastify';
 import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
@@ -15,23 +15,24 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [loading, setLoading] = useState(false);
   const [showEventLog, setShowEventLog] = useState(false);
 
+  const extractDate = (isoString) => isoString?.split('T')[0] || '';
+
   useEffect(() => {
     if (event) {
       setTitle(event.title || '');
       setDescription(event.description || '');
-      setStartDate(event.start ? event.start.split('T')[0] : '');
+      setStartDate(extractDate(event.start));
 
-      // 종료일이 있으면 1일 빼서 표시
-      let displayEndDate = event.end ? event.end.split('T')[0] : (event.start ? event.start.split('T')[0] : '');
-      if (event.end && event.start) {
-        const start = new Date(event.start.split('T')[0]);
-        const end = new Date(event.end.split('T')[0]);
-        // 종료일이 시작일보다 크면 1일 빼기
-        if (end > start) {
-          displayEndDate = format(subDays(end, 1), 'yyyy-MM-dd');
-        }
+      const startStr = extractDate(event.start);
+      const endStr = extractDate(event.end);
+
+      if (startStr && endStr) {
+        const start = new Date(startStr);
+        const end = new Date(endStr);
+        setEndDate(end > start ? extractDate(subDays(end, 1)) : startStr);
+      } else {
+        setEndDate(startStr);
       }
-      setEndDate(displayEndDate);
 
       setEventType(event.eventType || 'couple');
     }
@@ -42,24 +43,13 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     setLoading(true);
 
     try {
-      let adjustedStartDate = startDate;
-      let adjustedEndDate = endDate || startDate;
+      const finalEndDate = endDate || startDate;
+      const isMultiDay = startDate !== finalEndDate;
 
-      // 시작일은 00:00으로 설정
-      if (!adjustedStartDate.includes('T')) {
-        adjustedStartDate = `${adjustedStartDate}T00:00:00`;
-      }
-
-      // 종료일 처리: 여러 날 일정이면 +1일 00:00:00, 하루 일정이면 23:59:59
-      if (adjustedEndDate !== startDate) {
-        const end = new Date(adjustedEndDate);
-        end.setDate(end.getDate() + 1);
-        adjustedEndDate = end.toISOString().split('T')[0] + 'T00:00:00';
-      } else {
-        if (!adjustedEndDate.includes('T')) {
-          adjustedEndDate = `${adjustedEndDate}T23:59:59`;
-        }
-      }
+      const adjustedStartDate = `${startDate}T00:00:00`;
+      const adjustedEndDate = isMultiDay
+        ? addDays(new Date(finalEndDate), 1).toISOString().split('T')[0] + 'T00:00:00'
+        : `${finalEndDate}T23:59:59`;
 
       const eventData = {
         id: event?.id,

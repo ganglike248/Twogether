@@ -37,6 +37,15 @@ export const getCategoryColor = (categoryName, customCategories) => {
   return DEFAULT_CATEGORIES[categoryName]?.color || getDefaultColor();
 };
 
-export const getCategoryDisplayName = (categoryKey) => {
-  return CATEGORY_DISPLAY_MAP[categoryKey] || categoryKey;
+export const getCategoryDisplayName = (categoryKey, customCategories) => {
+  // 기본 카테고리 매핑에서 찾기
+  if (CATEGORY_DISPLAY_MAP[categoryKey]) {
+    return CATEGORY_DISPLAY_MAP[categoryKey];
+  }
+  // 커스텀 카테고리의 label 찾기
+  if (customCategories && customCategories[categoryKey]?.label) {
+    return customCategories[categoryKey].label;
+  }
+  // 기본값: 키 그대로 반환
+  return categoryKey;
 };

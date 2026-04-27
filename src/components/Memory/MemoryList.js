@@ -1,6 +1,6 @@
 // src/components/Memory/MemoryList.js
 import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { collection, query, orderBy, where, getDocs, startAfter, limit } from 'firebase/firestore';
+import { collection, query, orderBy, where, getDocs, startAfter, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import MemoryCard from './MemoryCard';
@@ -21,95 +21,91 @@ const MemoryList = () => {
 
   const containerRef = useRef(null);
 
-  // 모든 메모리 데이터 가져오기 (페이지네이션)
-  const fetchMemories = useCallback(async (isInitial = false) => {
-    if (!coupleId) return;
-    if (isInitial) {
-      setIsLoading(true);
-    } else {
-      setLoadingMore(true);
+  // 메모리 데이터 정규화
+  const normalizeMemory = (data) => {
+    if (data.eventType === undefined) {
+      data.eventType = data.isCouple ? 'couple' : 'boyfriend';
     }
+    return data;
+  };
+
+  // 초기 실시간 구독 (첫 페이지)
+  useEffect(() => {
+    if (!coupleId) return;
+
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const todayStr = today.toISOString().split('T')[0];
+
+    const q = query(
+      collection(db, "events"),
+      where("coupleId", "==", coupleId),
+      where("start", "<=", todayStr),
+      orderBy("start", "desc"),
+      limit(PAGE_SIZE)
+    );
+
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+      const memoriesData = [];
+      querySnapshot.forEach((doc) => {
+        memoriesData.push({
+          id: doc.id,
+          ...normalizeMemory(doc.data()),
+        });
+      });
+
+      setMemories(memoriesData);
+      setFilteredMemories(memoriesData);
+      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      setHasMore(memoriesData.length === PAGE_SIZE);
+      setIsLoading(false);
+    }, (error) => {
+      console.error("Error subscribing to memories:", error);
+      setIsLoading(false);
+    });
+
+    return () => unsubscribe();
+  }, [coupleId]);
+
+  // 추가 메모리 로드 (페이지네이션용 - getDocs 유지)
+  const fetchMoreMemories = useCallback(async () => {
+    if (!coupleId || !lastDoc || !hasMore) return;
+    setLoadingMore(true);
 
     try {
-      // 오늘 날짜 생성
       const today = new Date();
       today.setHours(0, 0, 0, 0);
       const todayStr = today.toISOString().split('T')[0];
 
-      // 기본 쿼리 구성
-      let q = query(
+      const q = query(
         collection(db, "events"),
         where("coupleId", "==", coupleId),
         where("start", "<=", todayStr),
         orderBy("start", "desc"),
+        startAfter(lastDoc),
         limit(PAGE_SIZE)
       );
 
-      // 페이지네이션을 위한 startAfter 추가
-      if (!isInitial && lastDoc) {
-        q = query(
-          collection(db, "events"),
-          where("coupleId", "==", coupleId),
-          where("start", "<=", todayStr),
-          orderBy("start", "desc"),
-          startAfter(lastDoc),
-          limit(PAGE_SIZE)
-        );
-      }
-
       const querySnapshot = await getDocs(q);
       const memoriesData = [];
-      
-      querySnapshot.forEach((doc) => {
-        const data = doc.data();
-        
-        // 날짜 확인 (이중 확인)
-        const eventDate = new Date(data.start);
-        if (eventDate < today) {
-          // eventType 처리
-          if (data.eventType === undefined) {
-            data.eventType = data.isCouple ? 'couple' : 'boyfriend';
-          }
 
-          memoriesData.push({
-            id: doc.id,
-            ...data,
-          });
-        }
+      querySnapshot.forEach((doc) => {
+        memoriesData.push({
+          id: doc.id,
+          ...normalizeMemory(doc.data()),
+        });
       });
 
-      if (isInitial) {
-        setMemories(memoriesData);
-        setFilteredMemories(memoriesData);
-      } else {
-        setMemories(prev => [...prev, ...memoriesData]);
-        setFilteredMemories(prev => [...prev, ...memoriesData]);
-      }
-
-      // 마지막 문서 설정
+      setMemories(prev => [...prev, ...memoriesData]);
+      setFilteredMemories(prev => [...prev, ...memoriesData]);
       setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
       setHasMore(memoriesData.length === PAGE_SIZE);
-
     } catch (error) {
-      console.error("Error fetching memories:", error);
+      console.error("Error fetching more memories:", error);
     } finally {
-      if (isInitial) {
-        setIsLoading(false);
-      } else {
-        setLoadingMore(false);
-      }
+      setLoadingMore(false);
     }
-  }, [coupleId, lastDoc]);
-
-  // coupleId 변경 시 상태 초기화 후 초기 로드
-  useEffect(() => {
-    setMemories([]);
-    setFilteredMemories([]);
-    setLastDoc(null);
-    setHasMore(true);
-    fetchMemories(true);
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [coupleId]);
+  }, [coupleId, lastDoc, hasMore]);
 
   // 필터 변경 시 메모리 필터링
   useEffect(() => {
@@ -124,12 +120,12 @@ const MemoryList = () => {
   // 스크롤 핸들러
   const handleScroll = useCallback(() => {
     if (!containerRef.current || !hasMore || loadingMore) return;
-    
+
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     if (scrollHeight - scrollTop - clientHeight < 100) {
-      fetchMemories(false);
+      fetchMoreMemories();
     }
-  }, [hasMore, loadingMore, fetchMemories]);
+  }, [hasMore, loadingMore, fetchMoreMemories]);
 
   useEffect(() => {
     const container = containerRef.current;

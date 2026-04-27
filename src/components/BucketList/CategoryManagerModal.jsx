@@ -51,7 +51,7 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
   };
 
   const handleDeleteCategory = async (categoryKey) => {
-    const displayName = getCategoryDisplayName(categoryKey);
+    const displayName = getCategoryDisplayName(categoryKey, customCategories);
     if (!window.confirm(`'${displayName}'을(를) 삭제하시겠습니까?`)) return;
 
     const updatedCategories = { ...customCategories };
@@ -79,7 +79,7 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
     >
       <div className="category-manager-list">
         {Object.entries(allCategories).map(([categoryKey, categoryData]) => {
-          const displayName = getCategoryDisplayName(categoryKey);
+          const displayName = getCategoryDisplayName(categoryKey, customCategories);
           return (
             <div key={categoryKey} className="category-manager-item">
               {editingCategory === categoryKey ? (

@@ -1,5 +1,5 @@
 // src/components/BucketList/BucketListPage.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useState, useMemo } from 'react';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
@@ -59,14 +59,13 @@ function BucketListPage() {
   // bucketList 실시간 구독
   useEffect(() => {
     if (!coupleId) return;
-    let q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
+
+    const constraints = [where('coupleId', '==', coupleId)];
     if (filterCategory !== 'all') {
-      q = query(
-        collection(db, 'bucketlists'),
-        where('coupleId', '==', coupleId),
-        where('category', '==', filterCategory)
-      );
+      constraints.push(where('category', '==', filterCategory));
     }
+
+    const q = query(collection(db, 'bucketlists'), ...constraints);
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(data);
@@ -225,9 +224,15 @@ function BucketListPage() {
     return format(new Date(dateStr), 'yy.MM.dd');
   };
 
-  const completedCount = bucketList.filter(item => item.completed).length;
-  const totalCount = bucketList.length;
-  const completionPercentage = totalCount > 0 ? Math.round((completedCount / totalCount) * 100) : 0;
+  const { completedCount, totalCount, completionPercentage } = useMemo(() => {
+    const completed = bucketList.filter(item => item.completed).length;
+    const total = bucketList.length;
+    return {
+      completedCount: completed,
+      totalCount: total,
+      completionPercentage: total > 0 ? Math.round((completed / total) * 100) : 0
+    };
+  }, [bucketList]);
 
   return (
     <div className="bucket-container">
@@ -256,7 +261,7 @@ function BucketListPage() {
           <div className="category-tabs">
             {categoryOptions.map(opt => {
               const categoryColor = opt.value === 'all'
-                ? '#FFD700' // 전체는 노란색
+                ? '#FFD700'
                 : getCategoryColor(opt.value, customCategories);
               return (
                 <button
@@ -292,7 +297,7 @@ function BucketListPage() {
                       <li className="bucket-section-title">예정</li>
                       {pending.map(item => {
                         const categoryColor = getCategoryColor(item.category, customCategories);
-                        const categoryDisplay = getCategoryDisplayName(item.category);
+                        const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
                         return (
                           <li
                             className="bucket-item"
@@ -331,7 +336,7 @@ function BucketListPage() {
                       <li className="bucket-section-title">완료</li>
                       {completed.map(item => {
                         const categoryColor = getCategoryColor(item.category, customCategories);
-                        const categoryDisplay = getCategoryDisplayName(item.category);
+                        const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
                         return (
                           <li
                             className="bucket-item completed"

@@ -12,7 +12,7 @@ function CategorySelector({ value, onChange, name = 'category', customCategories
       <div className="bucket-category-options">
         {categoryNames.map((categoryKey) => {
           const color = getCategoryColor(categoryKey, customCategories);
-          const displayName = getCategoryDisplayName(categoryKey);
+          const displayName = getCategoryDisplayName(categoryKey, customCategories);
           return (
             <div className="bucket-category-option" key={categoryKey}>
               <input
