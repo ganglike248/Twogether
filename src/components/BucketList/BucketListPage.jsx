@@ -184,7 +184,6 @@ function BucketListPage() {
 
   const handleEditSave = async () => {
     if (!editForm.title.trim()) return;
-    if (!window.confirm('수정 내용을 저장할까요?')) return;
     await updateDoc(doc(db, 'bucketlists', editForm.id), {
       title: editForm.title,
       content: editForm.content,

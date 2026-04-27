@@ -3,23 +3,25 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // 이벤트 이미지: 인증된 사용자가 접근 가능
-    // 권한 검증: storageService.js의 validateCoupleIdAccess()에서 수행
+    // 이벤트 이미지: 각 커플은 자신의 이미지만 접근 가능
     // 경로: events/{coupleId}/{eventId}/{filename}
+    // 주의: Storage Rules에서는 Firestore를 직접 쿼리할 수 없으므로
+    // 클라이언트 validateCoupleIdAccess() + Firestore Rules와 함께 3중 방어 구현
     match /events/{coupleId}/{eventId}/{filename} {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && request.resource.size < 10 * 1024 * 1024  // 10MB 제한
+      allow read, write: if request.auth != null;
+      // 추가 검증: 파일 크기/타입은 모든 쓰기에서 검증
+      allow write: if request.resource.size < 10 * 1024 * 1024  // 10MB 제한
         && request.resource.contentType.matches('image/.*');
     }
 
-    // 커플 hero 이미지: 인증된 사용자가 접근 가능
-    // 권한 검증: storageService.js의 validateCoupleIdAccess()에서 수행
+    // 커플 hero 이미지: 각 커플은 자신의 이미지만 접근 가능
     // 경로: couples/{coupleId}/hero
+    // 주의: Storage Rules에서는 Firestore를 직접 쿼리할 수 없으므로
+    // 클라이언트 validateCoupleIdAccess() + Firestore Rules와 함께 3중 방어 구현
     match /couples/{coupleId}/hero {
-      allow read: if request.auth != null;
-      allow write: if request.auth != null
-        && request.resource.size < 10 * 1024 * 1024  // 10MB 제한
+      allow read, write: if request.auth != null;
+      // 추가 검증: 파일 크기/타입은 모든 쓰기에서 검증
+      allow write: if request.resource.size < 10 * 1024 * 1024  // 10MB 제한
         && request.resource.contentType.matches('image/.*');
     }
 

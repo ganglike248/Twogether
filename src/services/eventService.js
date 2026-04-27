@@ -108,38 +108,22 @@ export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, las
     };
   }
 
-  // eventId 없으면: coupleId로 필터링해서 가져오기
-  let q;
-  if (coupleId) {
+  // eventId 없으면: coupleId로 필터링해서 가져오기 (coupleId는 이미 필수 검증됨)
+  let q = query(
+    collection(db, 'edit_logs'),
+    where('coupleId', '==', coupleId),
+    orderBy('timestamp', 'desc'),
+    limit(limitCount)
+  );
+
+  if (lastDoc) {
     q = query(
       collection(db, 'edit_logs'),
       where('coupleId', '==', coupleId),
       orderBy('timestamp', 'desc'),
+      startAfter(lastDoc),
       limit(limitCount)
     );
-    if (lastDoc) {
-      q = query(
-        collection(db, 'edit_logs'),
-        where('coupleId', '==', coupleId),
-        orderBy('timestamp', 'desc'),
-        startAfter(lastDoc),
-        limit(limitCount)
-      );
-    }
-  } else {
-    q = query(
-      collection(db, 'edit_logs'),
-      orderBy('timestamp', 'desc'),
-      limit(limitCount)
-    );
-    if (lastDoc) {
-      q = query(
-        collection(db, 'edit_logs'),
-        orderBy('timestamp', 'desc'),
-        startAfter(lastDoc),
-        limit(limitCount)
-      );
-    }
   }
 
   const querySnapshot = await getDocs(q);
