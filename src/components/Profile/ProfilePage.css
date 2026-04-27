@@ -43,7 +43,7 @@
   color: var(--color-gray-600);
   text-transform: uppercase;
   letter-spacing: 0.06em;
-  margin: 0 0.25rem;
+  margin: 0 0.5rem;
 }
 
 /* 홈 화면 이미지 행 (사진 + 설명) */

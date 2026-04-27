@@ -121,17 +121,17 @@ const CoupleInfoPage = () => {
 
   return (
     <div className="couple-info-page">
-      <p className="profile-section-label" style={{ marginTop: '0.875rem', marginBottom: '1rem' }}>커플 정보</p>
+      <p className="couple-info-section-label" style={{ marginTop: '0.875rem', marginBottom: '1rem' }}>커플 정보</p>
 
       {/* 내 정보 + 파트너 (2열) */}
-      <div className="profile-members-row">
+      <div className="couple-info-members-row">
         {/* 나 */}
-        <div className="profile-member-col">
-          <div className="profile-section">
-            <div className="profile-member-heading">나</div>
-            <div className="profile-field-compact">
-              <label className="profile-label">
-                <HiUser className="profile-label-icon" />
+        <div className="couple-info-member-col">
+          <div className="couple-info-section">
+            <div className="couple-info-member-heading">나</div>
+            <div className="couple-info-field-compact">
+              <label className="couple-info-label">
+                <HiUser className="couple-info-label-icon" />
                 이름
               </label>
               <input
@@ -142,63 +142,63 @@ const CoupleInfoPage = () => {
                 placeholder="이름"
               />
             </div>
-            <div className="profile-field-compact">
-              <label className="profile-label">
-                <HiEnvelope className="profile-label-icon" />
+            <div className="couple-info-field-compact">
+              <label className="couple-info-label">
+                <HiEnvelope className="couple-info-label-icon" />
                 이메일
               </label>
               <input
                 type="text"
                 value={user?.email || ''}
                 disabled
-                className="profile-disabled"
+                className="couple-info-disabled"
               />
             </div>
           </div>
         </div>
 
         {/* 하트 구분자 */}
-        <div className="profile-members-heart">
-          <HiHeart className="profile-heart-icon" />
+        <div className="couple-info-members-heart">
+          <HiHeart className="couple-info-heart-icon" />
         </div>
 
         {/* 파트너 */}
-        <div className="profile-member-col">
-          <div className="profile-section">
-            <div className="profile-member-heading">상대방</div>
+        <div className="couple-info-member-col">
+          <div className="couple-info-section">
+            <div className="couple-info-member-heading">상대방</div>
             {isConnected && partnerDoc ? (
               <>
-                <div className="profile-field-compact">
-                  <label className="profile-label">
-                    <HiUser className="profile-label-icon" />
+                <div className="couple-info-field-compact">
+                  <label className="couple-info-label">
+                    <HiUser className="couple-info-label-icon" />
                     이름
                   </label>
                   <input
                     type="text"
                     value={partnerDoc.displayName || ''}
                     disabled
-                    className="profile-disabled"
+                    className="couple-info-disabled"
                   />
                 </div>
-                <div className="profile-field-compact">
-                  <label className="profile-label">
-                    <HiEnvelope className="profile-label-icon" />
+                <div className="couple-info-field-compact">
+                  <label className="couple-info-label">
+                    <HiEnvelope className="couple-info-label-icon" />
                     이메일
                   </label>
                   <input
                     type="text"
                     value={partnerDoc.email || ''}
                     disabled
-                    className="profile-disabled"
+                    className="couple-info-disabled"
                   />
                 </div>
               </>
             ) : (
-              <div className="profile-waiting">
-                <span className="profile-waiting-emoji">⏳</span>
-                <span className="profile-waiting-text">연결 대기 중</span>
+              <div className="couple-info-waiting">
+                <span className="couple-info-waiting-emoji">⏳</span>
+                <span className="couple-info-waiting-text">연결 대기 중</span>
                 {coupleDoc?.inviteCode && (
-                  <span className="profile-invite-code">{coupleDoc.inviteCode}</span>
+                  <span className="couple-info-invite-code">{coupleDoc.inviteCode}</span>
                 )}
               </div>
             )}
@@ -207,11 +207,11 @@ const CoupleInfoPage = () => {
       </div>
 
       {/* 기념일 정보 */}
-      <p className="profile-section-label">기념일</p>
-      <div className="profile-section">
-        <div className="profile-field">
-          <label className="profile-label">
-            <HiHeart className="profile-label-icon" />
+      <p className="couple-info-section-label">기념일</p>
+      <div className="couple-info-section">
+        <div className="couple-info-field">
+          <label className="couple-info-label">
+            <HiHeart className="couple-info-label-icon" />
             연애 시작일
           </label>
           <input
@@ -220,19 +220,19 @@ const CoupleInfoPage = () => {
             onChange={(e) => setAnniversaryDate(e.target.value)}
             max={new Date().toISOString().split('T')[0]}
           />
-          <span className="profile-hint">변경하면 D+day가 다시 계산됩니다</span>
+          <span className="couple-info-hint">변경하면 D+day가 다시 계산됩니다</span>
         </div>
         {coupleDoc?.inviteCode && isConnected && (
-          <div className="profile-field">
-            <label className="profile-label">
-              <HiHeart className="profile-label-icon" />
+          <div className="couple-info-field">
+            <label className="couple-info-label">
+              <HiHeart className="couple-info-label-icon" />
               초대 코드
             </label>
             <input
               type="text"
               value={coupleDoc.inviteCode}
               disabled
-              className="profile-disabled profile-code"
+              className="couple-info-disabled couple-info-code"
             />
           </div>
         )}
@@ -242,32 +242,32 @@ const CoupleInfoPage = () => {
       <button
         onClick={handleSave}
         disabled={loading || !isDirty}
-        className="profile-save-btn"
+        className="couple-info-save-btn"
       >
         {loading ? '저장 중...' : '저장'}
       </button>
 
       {/* 변경사항 미저장 모달 */}
       {showUnsavedModal && (
-        <div className="profile-modal-overlay">
-          <div className="profile-modal-box">
-            <p className="profile-modal-title">변경사항이 있어요</p>
-            <p className="profile-modal-msg">저장하지 않고 나가시겠습니까?</p>
-            <div className="profile-modal-actions">
+        <div className="couple-info-modal-overlay">
+          <div className="couple-info-modal-box">
+            <p className="couple-info-modal-title">변경사항이 있어요</p>
+            <p className="couple-info-modal-msg">저장하지 않고 나가시겠습니까?</p>
+            <div className="couple-info-modal-actions">
               <button
-                className="profile-modal-btn"
+                className="couple-info-modal-btn"
                 onClick={handleCancelModal}
               >
                 취소
               </button>
               <button
-                className="profile-modal-btn discard"
+                className="couple-info-modal-btn discard"
                 onClick={handleDiscardAndLeave}
               >
                 저장 안 함
               </button>
               <button
-                className="profile-modal-btn save"
+                className="couple-info-modal-btn save"
                 onClick={handleSaveAndLeave}
                 disabled={loading}
               >

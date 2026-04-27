@@ -208,10 +208,6 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
-      <button className="profile-back" onClick={handleBack}>
-        <HiArrowLeft />
-      </button>
-      <h1 className="profile-title">프로필 설정</h1>
 
       <form className="profile-form" onSubmit={handleSave}>
 

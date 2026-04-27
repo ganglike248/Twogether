@@ -1,8 +1,294 @@
-/* ProfilePage 스타일 재사용 */
-@import '../Profile/ProfilePage.css';
-
 .couple-info-page {
   padding: 0.875rem;
   min-height: 100%;
   background-color: var(--main-bg);
+}
+
+/* 섹션 레이블 */
+.couple-info-section-label {
+  font-size: 0.68rem;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  margin: 0.875rem 0.5rem 1rem;
+}
+
+.couple-info-section-label:first-of-type {
+  margin-top: 0.875rem;
+}
+
+/* 2열 멤버 레이아웃 */
+.couple-info-members-row {
+  display: flex;
+  align-items: stretch;
+  gap: 0;
+}
+
+.couple-info-member-col {
+  flex: 1;
+  min-width: 0;
+}
+
+/* heading이 카드(.couple-info-section) 내부 상단에 위치 */
+.couple-info-member-heading {
+  padding: 0.55rem 0.75rem 0.4rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  border-bottom: 1px solid var(--color-gray-100);
+}
+
+/* 하트 구분자: 카드와 정확히 수직 중앙 정렬 */
+.couple-info-members-heart {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 0.3rem;
+  flex-shrink: 0;
+  align-self: center;
+}
+
+.couple-info-heart-icon {
+  color: var(--color-primary);
+  font-size: 1.1rem;
+  animation: couple-info-heartbeat 2s ease-in-out infinite;
+}
+
+@keyframes couple-info-heartbeat {
+  0%, 100% { transform: scale(1); }
+  14% { transform: scale(1.2); }
+  28% { transform: scale(1); }
+  42% { transform: scale(1.12); }
+  56% { transform: scale(1); }
+}
+
+/* 섹션 카드 */
+.couple-info-section {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  border: 1px solid var(--card-border);
+  box-shadow: var(--shadow-sm);
+  overflow: hidden;
+}
+
+/* 일반 필드 */
+.couple-info-field {
+  padding: 0.875rem 1rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  gap: 0.4rem;
+}
+
+.couple-info-field:last-child {
+  border-bottom: none;
+}
+
+/* 컴팩트 필드 (2열용) */
+.couple-info-field-compact {
+  padding: 0.65rem 0.75rem;
+  border-bottom: 1px solid var(--color-gray-100);
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.couple-info-field-compact:last-child {
+  border-bottom: none;
+}
+
+.couple-info-field-compact input {
+  font-size: 0.82rem;
+}
+
+/* 레이블 */
+.couple-info-label {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  font-size: 0.65rem;
+  font-weight: 700;
+  color: var(--color-primary);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.couple-info-label-icon {
+  font-size: 0.75rem;
+}
+
+/* 입력 필드 */
+.couple-info-field input,
+.couple-info-field-compact input {
+  width: 100%;
+  border: none;
+  outline: none;
+  font-size: 0.88rem;
+  color: var(--color-gray-800);
+  background: transparent;
+  padding: 0;
+  box-sizing: border-box;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.couple-info-field input[type="date"] {
+  color: var(--color-gray-700);
+}
+
+.couple-info-disabled {
+  color: var(--color-gray-500) !important;
+  cursor: default;
+}
+
+.couple-info-code {
+  font-size: 1.05rem !important;
+  letter-spacing: 0.2em;
+  font-weight: 600;
+}
+
+.couple-info-hint {
+  font-size: 0.68rem;
+  color: var(--color-gray-600);
+}
+
+/* 대기 중 (상대방 미연결) */
+.couple-info-waiting {
+  padding: 0.75rem;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.25rem;
+  text-align: center;
+}
+
+.couple-info-waiting-emoji {
+  font-size: 1.2rem;
+}
+
+.couple-info-waiting-text {
+  font-size: 0.75rem;
+  color: var(--color-gray-600);
+}
+
+.couple-info-invite-code {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: var(--color-primary);
+}
+
+/* 저장 버튼 */
+.couple-info-save-btn {
+  margin-top: 1.2rem;
+  width: 100%;
+  padding: 0.875rem;
+  border: none;
+  border-radius: var(--border-radius-lg);
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  color: white;
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: opacity 0.15s, transform 0.15s;
+}
+
+.couple-info-save-btn:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-1px);
+}
+
+.couple-info-save-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.couple-info-save-btn.saved {
+  background: linear-gradient(135deg, #6ec49a, #4caf7d);
+}
+
+/* 저장 확인 모달 */
+.couple-info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 200;
+  padding: 1.5rem;
+}
+
+.couple-info-modal-box {
+  background: white;
+  border-radius: var(--border-radius-lg);
+  padding: 1.5rem;
+  width: 100%;
+  max-width: 300px;
+  box-shadow: var(--shadow-lg);
+  text-align: center;
+}
+
+.couple-info-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0 0 0.4rem;
+}
+
+.couple-info-modal-msg {
+  font-size: 0.82rem;
+  color: var(--color-gray-600);
+  margin: 0 0 1.25rem;
+}
+
+.couple-info-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: center;
+}
+
+.couple-info-modal-btn {
+  flex: 1;
+  padding: 0.6rem 0;
+  border: none;
+  border-radius: var(--border-radius);
+  font-size: 0.82rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  transition: background 0.15s;
+}
+
+.couple-info-modal-btn:hover {
+  background: var(--color-gray-200);
+}
+
+.couple-info-modal-btn.discard {
+  background: #fff0f0;
+  color: #e05252;
+}
+
+.couple-info-modal-btn.discard:hover {
+  background: #ffe0e0;
+}
+
+.couple-info-modal-btn.save {
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  color: white;
+}
+
+.couple-info-modal-btn.save:hover {
+  opacity: 0.9;
+}
+
+.couple-info-modal-btn.save:disabled {
+  opacity: 0.6;
+  cursor: default;
 }
