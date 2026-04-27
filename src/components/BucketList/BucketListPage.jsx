@@ -6,6 +6,7 @@ import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { MdCheckCircle, MdRadioButtonUnchecked, MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd, MdSettings } from 'react-icons/md';
+import { Virtuoso } from 'react-virtuoso';
 import '../BucketList/BucketListPage.css';
 import './bucket-modal.css';
 import BaseModal from './BaseModal';
@@ -13,12 +14,59 @@ import CategorySelector from './CategorySelector';
 import CategoryManagerModal from './CategoryManagerModal';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 
+const BucketItem = React.memo(({
+  item,
+  isCompleted,
+  customCategories,
+  onOpenEditModal,
+  onOpenDateModal,
+  onEditUncheck,
+  formatBucketDate
+}) => {
+  const categoryColor = getCategoryColor(item.category, customCategories);
+  const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
+
+  return (
+    <div
+      className={`bucket-item ${isCompleted ? 'completed' : ''}`}
+      onClick={() => onOpenEditModal(item)}
+      style={{ borderLeftColor: categoryColor }}
+    >
+      <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
+        <input
+          type="checkbox"
+          checked={isCompleted}
+          onChange={() => isCompleted ? onEditUncheck(item.id) : onOpenDateModal(item.id)}
+        />
+        {isCompleted ? (
+          <MdCheckCircle className="checkbox-icon" style={{ color: categoryColor }} />
+        ) : (
+          <MdRadioButtonUnchecked className="checkbox-icon" style={{ color: categoryColor }} />
+        )}
+      </label>
+      <span className="bucket-title-text">{item.title}</span>
+      <span className="bucket-category-tag" style={{ backgroundColor: categoryColor }}>
+        {categoryDisplay}
+      </span>
+      {isCompleted && item.completedAt && (
+        <span className="bucket-completed-date">{formatBucketDate(item.completedAt)} 완료</span>
+      )}
+      {!isCompleted && item.createdAt && (
+        <span className="bucket-created-date">{formatBucketDate(item.createdAt)} 생성</span>
+      )}
+    </div>
+  );
+});
+
+BucketItem.displayName = 'BucketItem';
+
 function BucketListPage() {
   const { coupleId } = useAuthContext();
   const [bucketList, setBucketList] = useState([]);
   const [customCategories, setCustomCategories] = useState({});
   const [filterCategory, setFilterCategory] = useState('all');
   const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
+  const [activeTab, setActiveTab] = useState('pending');
 
   // 모달 상태 통합 관리
   const [modalState, setModalState] = useState({ type: null, data: null });
@@ -74,7 +122,6 @@ function BucketListPage() {
   }, [coupleId, filterCategory]);
 
   const handleOpenAddModal = () => {
-    // 첫 카테고리를 기본값으로 설정 (기본값: food 또는 첫 번째 카테고리)
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     const firstCategory = Object.keys(allCategories).sort()[0] || 'food';
     setAddForm(f => ({ ...f, category: firstCategory }));
@@ -91,7 +138,6 @@ function BucketListPage() {
       await updateDoc(coupleDocRef, { customCategories: updatedCategories });
       setCustomCategories(updatedCategories);
 
-      // categoryOptions 업데이트
       const allCategories = { ...DEFAULT_CATEGORIES, ...updatedCategories };
       const options = [
         { value: 'all', label: '전체' },
@@ -137,21 +183,14 @@ function BucketListPage() {
     closeModal();
   };
 
-  const handleUncheck = async (id) => {
-    if (!window.confirm('완료를 취소하시겠습니까?')) return;
-    await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
-  };
-
   const handleDelete = async (id) => {
     await deleteDoc(doc(db, 'bucketlists', id));
-    setBucketList(list => list.filter(item => item.id !== id));
   };
 
   const closeModal = () => {
     setModalState({ type: null, data: null });
     setCompletionDate('');
     setSelectedItemId(null);
-    // 카테고리 추가 후 폼 초기화
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     const firstCategory = Object.keys(allCategories).sort()[0] || 'food';
     setAddForm(f => ({ ...f, category: firstCategory }));
@@ -203,6 +242,20 @@ function BucketListPage() {
     return format(new Date(dateStr), 'yy.MM.dd');
   };
 
+  const pendingList = useMemo(() => {
+    return bucketList
+      .filter(item => !item.completed)
+      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
+  }, [bucketList]);
+
+  const completedList = useMemo(() => {
+    return bucketList
+      .filter(item => item.completed)
+      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
+  }, [bucketList]);
+
+  const activeList = activeTab === 'pending' ? pendingList : completedList;
+
   const { completedCount, totalCount, completionPercentage } = useMemo(() => {
     const completed = bucketList.filter(item => item.completed).length;
     const total = bucketList.length;
@@ -235,7 +288,22 @@ function BucketListPage() {
         </button>
       </div>
 
-      <ul className="bucket-list">
+      <div className="bucket-tab-bar">
+        <button
+          className={`bucket-tab ${activeTab === 'pending' ? 'active' : ''}`}
+          onClick={() => setActiveTab('pending')}
+        >
+          예정 <span className="bucket-tab-count">{pendingList.length}</span>
+        </button>
+        <button
+          className={`bucket-tab ${activeTab === 'completed' ? 'active' : ''}`}
+          onClick={() => setActiveTab('completed')}
+        >
+          완료 <span className="bucket-tab-count">{completedList.length}</span>
+        </button>
+      </div>
+
+      <div className="bucket-list">
         <div className="bucket-toolbar">
           <div className="category-tabs">
             {categoryOptions.map(opt => {
@@ -262,99 +330,26 @@ function BucketListPage() {
             </button>
           </div>
         </div>
-        {bucketList.length === 0 ? (
-          <li className="bucket-empty">리스트가 없습니다.</li>
+        {activeList.length === 0 ? (
+          <div className="bucket-empty">리스트가 없습니다.</div>
         ) : (
-          <>
-            {(() => {
-              const pending = bucketList.filter(item => !item.completed).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-              const completed = bucketList.filter(item => item.completed).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
-              return (
-                <>
-                  {pending.length > 0 && (
-                    <>
-                      <li className="bucket-section-title">예정</li>
-                      {pending.map(item => {
-                        const categoryColor = getCategoryColor(item.category, customCategories);
-                        const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
-                        return (
-                          <li
-                            className="bucket-item"
-                            key={item.id}
-                            onClick={() => handleOpenEditModal(item)}
-                            style={{ borderLeftColor: categoryColor }}
-                          >
-                            <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
-                              <input
-                                type="checkbox"
-                                checked={item.completed}
-                                onChange={() => handleOpenDateModal(item.id)}
-                              />
-                              <MdRadioButtonUnchecked
-                                className="checkbox-icon"
-                                style={{ color: categoryColor }}
-                              />
-                            </label>
-                            <span className="bucket-title-text">{item.title}</span>
-                            <span
-                              className="bucket-category-tag"
-                              style={{ backgroundColor: categoryColor }}
-                            >
-                              {categoryDisplay}
-                            </span>
-                            {item.createdAt && (
-                              <span className="bucket-created-date">{formatBucketDate(item.createdAt)} 생성</span>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </>
-                  )}
-                  {completed.length > 0 && (
-                    <>
-                      <li className="bucket-section-title">완료</li>
-                      {completed.map(item => {
-                        const categoryColor = getCategoryColor(item.category, customCategories);
-                        const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
-                        return (
-                          <li
-                            className="bucket-item completed"
-                            key={item.id}
-                            onClick={() => handleOpenEditModal(item)}
-                            style={{ borderLeftColor: categoryColor }}
-                          >
-                            <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
-                              <input
-                                type="checkbox"
-                                checked={item.completed}
-                                onChange={() => handleEditUncheck(item.id)}
-                              />
-                              <MdCheckCircle
-                                className="checkbox-icon"
-                                style={{ color: categoryColor }}
-                              />
-                            </label>
-                            <span className="bucket-title-text">{item.title}</span>
-                            <span
-                              className="bucket-category-tag"
-                              style={{ backgroundColor: categoryColor }}
-                            >
-                              {categoryDisplay}
-                            </span>
-                            {item.completedAt && (
-                              <span className="bucket-completed-date">{formatBucketDate(item.completedAt)} 완료</span>
-                            )}
-                          </li>
-                        );
-                      })}
-                    </>
-                  )}
-                </>
-              );
-            })()}
-          </>
+          <Virtuoso
+            style={{ flex: 1 }}
+            data={activeList}
+            itemContent={(_, item) => (
+              <BucketItem
+                item={item}
+                isCompleted={activeTab === 'completed'}
+                customCategories={customCategories}
+                onOpenEditModal={handleOpenEditModal}
+                onOpenDateModal={handleOpenDateModal}
+                onEditUncheck={handleEditUncheck}
+                formatBucketDate={formatBucketDate}
+              />
+            )}
+          />
         )}
-      </ul>
+      </div>
 
       {/* 추가 모달 */}
       <BaseModal
