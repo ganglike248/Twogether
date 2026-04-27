@@ -1,3 +1,12 @@
+v0.3.27 (2026.04.27)
+- refactor: 데이터 모델 정규화 (eventType 기반으로 통일)
+  - useMemory.js 삭제 (dead code, 어디서도 import 안 됨)
+  - useCalendar.js: isCouple 기반 → eventType 기반으로 업그레이드
+  - Home.jsx: eventTypeColor에서 isCouple 폴백 제거
+  - eventService.js: createTravelEvent에서 중복 필드 isCouple 제거
+  - Firestore 기존 데이터는 유지, MemoryList.js의 호환성 폴백만 남김 (보호 목적)
+  - 구버전 var(--color-personal) 변수명 제거, var(--color-boyfriend) 등으로 통일
+
 v0.3.26 (2026.04.27)
 - refactor: Calendar.jsx 컴포넌트 분해 및 모듈화
   - Calendar.jsx: 533줄 → 157줄 (71% 축소)

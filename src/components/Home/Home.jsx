@@ -153,7 +153,7 @@ const Home = () => {
 
   const eventTypeColor = (event) => {
     const type = event?.extendedProps?.eventType;
-    if (type === 'couple' || event?.extendedProps?.isCouple) return '#ff6b6b';
+    if (type === 'couple') return '#ff6b6b';
     if (type === 'boyfriend') return '#81bbf5';
     if (type === 'girlfriend') return '#6ec49a';
     return '#adb5bd';

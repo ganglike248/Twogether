@@ -164,7 +164,6 @@ export const createTravelEvent = async (tripData, userId = 'anonymous', coupleId
     start: tripData.startDate,
     end: tripData.endDate,
     eventType: 'travel',
-    isCouple: true,
     tripId: tripData.id || tripData.tripId,
     coupleId,
     createdAt: serverTimestamp(),
