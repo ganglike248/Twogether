@@ -267,7 +267,7 @@ function BucketListPage() {
         ) : (
           <>
             {(() => {
-              const pending = bucketList.filter(item => !item.completed).sort((a, b) => new Date(a.createdAt) - new Date(b.createdAt));
+              const pending = bucketList.filter(item => !item.completed).sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
               const completed = bucketList.filter(item => item.completed).sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
               return (
                 <>
