@@ -330,13 +330,19 @@ function BucketListPage() {
       <div className="bucket-tab-bar">
         <button
           className={`bucket-tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
+          onClick={() => {
+            setActiveTab('pending');
+            setFilterCategory('all');
+          }}
         >
           예정 <span className="bucket-tab-count">{pendingList.length}</span>
         </button>
         <button
           className={`bucket-tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
+          onClick={() => {
+            setActiveTab('completed');
+            setFilterCategory('all');
+          }}
         >
           완료 <span className="bucket-tab-count">{completedList.length}</span>
         </button>
