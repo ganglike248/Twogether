@@ -347,6 +347,13 @@
   text-overflow: ellipsis;
 }
 
+/* 버킷리스트 섹션 (진행률 + 돌림판) */
+.home-bucket-section {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.75rem;
+}
+
 /* 버킷리스트 진행률 */
 .home-bucket-preview {
   cursor: pointer;
@@ -384,6 +391,42 @@
   font-weight: 700;
   color: var(--color-primary);
   flex-shrink: 0;
+}
+
+/* 돌림판 버튼 */
+.home-wheel-button {
+  cursor: pointer;
+  transition: box-shadow 0.15s, transform 0.15s;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+  gap: 0.5rem;
+}
+
+.home-wheel-button:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-1px);
+}
+
+.home-wheel-button .card-label {
+  width: 100%;
+  justify-content: center;
+  gap: 0.5rem;
+}
+
+.wheel-icon {
+  font-size: 1.5rem;
+}
+
+.wheel-button-hint {
+  font-size: 0.7rem;
+  color: var(--color-gray-500);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  width: 100%;
 }
 
 /* 1년 전 오늘 */

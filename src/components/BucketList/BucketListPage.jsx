@@ -11,6 +11,7 @@ import './bucket-modal.css';
 import BaseModal from './BaseModal';
 import CategorySelector from './CategorySelector';
 import CategoryManagerModal from './CategoryManagerModal';
+import WheelModal from '../Wheel/WheelModal';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 
 const BucketItem = React.memo(({
@@ -66,6 +67,7 @@ function BucketListPage() {
   const [filterCategory, setFilterCategory] = useState('all');
   const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
   const [activeTab, setActiveTab] = useState('pending');
+  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
 
   // 모달 상태 통합 관리
   const [modalState, setModalState] = useState({ type: null, data: null });
@@ -331,6 +333,9 @@ function BucketListPage() {
         <button className="bucket-add-top" onClick={handleOpenAddModal}>
           <MdAdd className="add-icon" /> 새로운 버킷 추가
         </button>
+        <button className="bucket-wheel-btn" onClick={() => setIsWheelModalOpen(true)} title="돌림판으로 선택">
+          🎡
+        </button>
       </div>
 
       <div className="bucket-tab-bar">
@@ -593,6 +598,14 @@ function BucketListPage() {
           </div>
         </div>
       </BaseModal>
+
+      {/* 돌림판 모달 */}
+      <WheelModal
+        isOpen={isWheelModalOpen}
+        onClose={() => setIsWheelModalOpen(false)}
+        bucketList={bucketList}
+        customCategories={customCategories}
+      />
     </div>
   );
 }

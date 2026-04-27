@@ -12,11 +12,12 @@ import {
 } from 'react-icons/hi2';
 import useCalendar from '../../hooks/useCalendar';
 import { useTrips, useTripSchedules } from '../../hooks/useTrip';
-import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { convertToDate } from '../../utils/dataUtils';
 import TutorialSlides from '../Onboarding/TutorialSlides';
+import WheelModal from '../Wheel/WheelModal';
 import './Home.css';
 
 const Home = () => {
@@ -26,9 +27,12 @@ const Home = () => {
 
   const [dday, setDday] = useState(0);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
+  const [bucketList, setBucketList] = useState([]);
+  const [customCategories, setCustomCategories] = useState({});
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
   );
+  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
   const { events } = useCalendar(coupleId);
   const { trips } = useTrips(coupleId);
   const navigate = useNavigate();
@@ -50,12 +54,29 @@ const Home = () => {
     setDday(dayDifference);
   }, [anniversaryDate]);
 
+  // 버킷리스트 구독
   useEffect(() => {
     if (!coupleId) return;
     const q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
     const unsubscribe = onSnapshot(q, (snap) => {
-      const all = snap.docs.map(d => d.data());
+      const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
+      setBucketList(all);
       setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
+    });
+    return () => unsubscribe();
+  }, [coupleId]);
+
+  // 커스텀 카테고리 구독
+  useEffect(() => {
+    if (!coupleId) return;
+    const coupleDocRef = doc(db, 'couples', coupleId);
+    const unsubscribe = onSnapshot(coupleDocRef, (coupleDocSnap) => {
+      try {
+        const loadedCustomCategories = coupleDocSnap.data()?.customCategories || {};
+        setCustomCategories(loadedCustomCategories);
+      } catch (error) {
+        console.error('카테고리 로드 실패:', error);
+      }
     });
     return () => unsubscribe();
   }, [coupleId]);
@@ -299,23 +320,34 @@ const Home = () => {
         </div>
       )}
 
-      {/* 버킷리스트 진행률 */}
+      {/* 버킷리스트 진행률 + 돌림판 */}
       {bucketStats.total > 0 && (
-        <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
-          <div className="card-label">
-            <HiCheckCircle className="card-label-icon" />
-            버킷리스트 진행률
-          </div>
-          <div className="bucket-preview-row">
-            <div className="bucket-preview-bar-wrap">
-              <div
-                className="bucket-preview-bar-fill"
-                style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
-              />
+        <div className="home-bucket-section">
+          <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
+            <div className="card-label">
+              <HiCheckCircle className="card-label-icon" />
+              버킷리스트 진행률
             </div>
-            <span className="bucket-preview-stat">
-              {bucketStats.completed}/{bucketStats.total} 완료
-            </span>
+            <div className="bucket-preview-row">
+              <div className="bucket-preview-bar-wrap">
+                <div
+                  className="bucket-preview-bar-fill"
+                  style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
+                />
+              </div>
+              <span className="bucket-preview-stat">
+                {bucketStats.completed}/{bucketStats.total} 완료
+              </span>
+            </div>
+          </div>
+          <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
+            <div className="card-label">
+              <span className="wheel-icon">🎡</span>
+              돌림판
+            </div>
+            <div className="wheel-button-hint">
+              항목을 선택해보세요
+            </div>
           </div>
         </div>
       )}
@@ -349,6 +381,14 @@ const Home = () => {
           <div className="milestone-badge">D+{dday}</div>
         </motion.div>
       )}
+
+      {/* 돌림판 모달 */}
+      <WheelModal
+        isOpen={isWheelModalOpen}
+        onClose={() => setIsWheelModalOpen(false)}
+        bucketList={bucketList}
+        customCategories={customCategories}
+      />
     </div>
   );
 };
