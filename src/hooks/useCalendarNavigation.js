@@ -35,14 +35,8 @@ export const useCalendarNavigation = (currentDate, setCurrentDate) => {
   const goToday = useCallback(() => {
     const today = new Date();
     const todayFirst = new Date(today.getFullYear(), today.getMonth(), 1);
-    if (todayFirst.getTime() !== currentDate.getTime()) {
-      const dir = todayFirst > currentDate ? 'next' : 'prev';
-      if (!isNavigating) {
-        setIsNavigating(true);
-        doNavigate(dir, false);
-      }
-    }
-  }, [currentDate, isNavigating, doNavigate]);
+    setCurrentDate(todayFirst);
+  }, [setCurrentDate]);
 
   const handleTouchStart = useCallback((e) => {
     if (isNavigating) return;
