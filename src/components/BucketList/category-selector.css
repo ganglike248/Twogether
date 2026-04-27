@@ -15,7 +15,7 @@
 
 .bucket-category-options {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(90px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
   gap: 0.6rem;
 }
 
@@ -67,9 +67,3 @@
   transform: scale(1.05);
 }
 
-/* ================ 모바일 반응형 ================ */
-@media (max-width: 480px) {
-  .bucket-category-options {
-    grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  }
-}

@@ -1,3 +1,12 @@
+v0.3.49 (2026.04.28)
+- fix: 모바일 기준 CSS 반응형 제거 (420px 고정)
+  - 모든 CSS를 모바일(420px) 기준으로 통일
+  - 반응형 미디어 쿼리(@media max-width) 제거
+  - BucketListPage: 2열 레이아웃 유지, 768px/480px 쿼리 제거
+  - DayModal: 모달을 하단에서 올라오는 스타일로 통일 (480px 쿼리 제거)
+  - bucket-modal.css: 3열 → 2열 카테고리, 하단 정렬 (480px 쿼리 제거)
+  - category-selector.css: 80px minmax로 통일 (480px 쿼리 제거)
+
 v0.3.48 (2026.04.28)
 - fix: 커플 정보 페이지 UI 개선
   - 이름 설정 제거 (프로필에서 관리 → 읽기 전용으로 표시)
