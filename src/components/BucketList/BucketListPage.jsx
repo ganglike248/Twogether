@@ -1,6 +1,6 @@
 // src/components/BucketList/BucketListPage.jsx
 import React, { useEffect, useState } from 'react';
-import { collection, addDoc, getDocs, updateDoc, deleteDoc, doc, query, where, getDoc } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -56,23 +56,22 @@ function BucketListPage() {
     loadCategories();
   }, [coupleId]);
 
-  // bucketList 로드
+  // bucketList 실시간 구독
   useEffect(() => {
     if (!coupleId) return;
-    const fetchData = async () => {
-      let q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
-      if (filterCategory !== 'all') {
-        q = query(
-          collection(db, 'bucketlists'),
-          where('coupleId', '==', coupleId),
-          where('category', '==', filterCategory)
-        );
-      }
-      const querySnapshot = await getDocs(q);
+    let q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
+    if (filterCategory !== 'all') {
+      q = query(
+        collection(db, 'bucketlists'),
+        where('coupleId', '==', coupleId),
+        where('category', '==', filterCategory)
+      );
+    }
+    const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(data);
-    };
-    fetchData();
+    });
+    return () => unsubscribe();
   }, [coupleId, filterCategory]);
 
   const handleOpenAddModal = () => {
