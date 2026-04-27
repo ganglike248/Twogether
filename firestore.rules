@@ -43,12 +43,27 @@ service cloud.firestore {
       );
     }
 
-    // coupleId 기반 컬렉션: 해당 커플 멤버만 접근 가능
+    // events: 이벤트 데이터 (필수 필드 검증)
     match /events/{docId} {
-      allow read, write: if isAuthenticated() &&
+      function isValidEvent() {
+        return request.resource.data.title is string &&
+          request.resource.data.title.size() > 0 &&
+          request.resource.data.start is string &&
+          request.resource.data.start.size() > 0 &&
+          request.resource.data.eventType is string &&
+          request.resource.data.eventType in ['couple', 'boyfriend', 'girlfriend', 'travel'];
+      }
+
+      allow read: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow delete: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId);
       allow create: if isAuthenticated() &&
-        isCoupleMe(request.resource.data.coupleId);
+        isCoupleMe(request.resource.data.coupleId) &&
+        isValidEvent();
+      allow update: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId) &&
+        isValidEvent();
     }
 
     match /edit_logs/{docId} {
@@ -65,11 +80,25 @@ service cloud.firestore {
       allow delete: if false;
     }
 
+    // trips: 여행 데이터 (필수 필드 검증)
     match /trips/{docId} {
-      allow read, write: if isAuthenticated() &&
+      function isValidTrip() {
+        return request.resource.data.title is string &&
+          request.resource.data.title.size() > 0 &&
+          request.resource.data.startDate != null &&
+          request.resource.data.endDate != null;
+      }
+
+      allow read: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow delete: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId);
       allow create: if isAuthenticated() &&
-        isCoupleMe(request.resource.data.coupleId);
+        isCoupleMe(request.resource.data.coupleId) &&
+        isValidTrip();
+      allow update: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId) &&
+        isValidTrip();
     }
 
     match /tripSchedules/{docId} {
@@ -90,11 +119,23 @@ service cloud.firestore {
         isCoupleMe(get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.coupleId);
     }
 
+    // bucketlists: 버킷리스트 (필수 필드 검증)
     match /bucketlists/{docId} {
-      allow read, write: if isAuthenticated() &&
+      function isValidBucket() {
+        return request.resource.data.title is string &&
+          request.resource.data.title.size() > 0;
+      }
+
+      allow read: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId);
+      allow delete: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId);
       allow create: if isAuthenticated() &&
-        isCoupleMe(request.resource.data.coupleId);
+        isCoupleMe(request.resource.data.coupleId) &&
+        isValidBucket();
+      allow update: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId) &&
+        isValidBucket();
     }
 
     match /cycles/{docId} {

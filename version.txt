@@ -1,3 +1,12 @@
+v0.3.30 (2026.04.27)
+- fix: Firestore 데이터 검증 강화 (required field)
+  - events: title, start, eventType 필수 필드 검증
+  - trips: title, startDate, endDate 필수 필드 검증
+  - bucketlists: title 필수 필드 검증
+  - eventType 값 검증: couple/boyfriend/girlfriend/travel만 허용
+  - 스키마 검증 함수화: isValidEvent(), isValidTrip(), isValidBucket()
+  - 잘못된 데이터 저장 차단으로 데이터 일관성 보장
+
 v0.3.29 (2026.04.27)
 - fix: 에러 핸들링 통일 (alert → toast.error)
   - TripModal.js: 여행 저장 오류 alert → toast.error로 변경
