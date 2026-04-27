@@ -6,7 +6,6 @@ import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { format } from 'date-fns';
 import { MdCheckCircle, MdRadioButtonUnchecked, MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd, MdSettings } from 'react-icons/md';
-import { Virtuoso } from 'react-virtuoso';
 import '../BucketList/BucketListPage.css';
 import './bucket-modal.css';
 import BaseModal from './BaseModal';
@@ -333,21 +332,18 @@ function BucketListPage() {
         {activeList.length === 0 ? (
           <div className="bucket-empty">리스트가 없습니다.</div>
         ) : (
-          <Virtuoso
-            style={{ flex: 1 }}
-            data={activeList}
-            itemContent={(_, item) => (
-              <BucketItem
-                item={item}
-                isCompleted={activeTab === 'completed'}
-                customCategories={customCategories}
-                onOpenEditModal={handleOpenEditModal}
-                onOpenDateModal={handleOpenDateModal}
-                onEditUncheck={handleEditUncheck}
-                formatBucketDate={formatBucketDate}
-              />
-            )}
-          />
+          activeList.map(item => (
+            <BucketItem
+              key={item.id}
+              item={item}
+              isCompleted={activeTab === 'completed'}
+              customCategories={customCategories}
+              onOpenEditModal={handleOpenEditModal}
+              onOpenDateModal={handleOpenDateModal}
+              onEditUncheck={handleEditUncheck}
+              formatBucketDate={formatBucketDate}
+            />
+          ))
         )}
       </div>
 
