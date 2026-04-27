@@ -125,8 +125,9 @@ function BucketListPage() {
 
   const handleOpenAddModal = () => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
-    const firstCategory = Object.keys(allCategories).sort()[0] || 'food';
-    setAddForm(f => ({ ...f, category: firstCategory }));
+    // 필터된 카테고리가 있으면 그것을 기본값으로, 아니면 첫 번째 카테고리
+    const defaultCategory = filterCategory !== 'all' ? filterCategory : (Object.keys(allCategories).sort()[0] || 'food');
+    setAddForm(f => ({ ...f, category: defaultCategory }));
     setModalState({ type: 'add', data: null });
   };
 
@@ -189,7 +190,12 @@ function BucketListPage() {
         completed: true,
         completedAt: completionDate
       });
-      toast.success('완료했습니다!');
+      // 이미 완료된 항목의 날짜 수정인 경우
+      if (modalState.data === 'from-edit' && editForm.completed) {
+        toast.success('완료 날짜를 수정했습니다!');
+      } else {
+        toast.success('완료했습니다!');
+      }
       closeModal();
     } catch (error) {
       console.error('버킷 완료 실패:', error);
@@ -533,6 +539,17 @@ function BucketListPage() {
             <span className="bucket-modal-completed-badge-text">
               {formatBucketDate(editForm.completedAt)} 완료
             </span>
+            <button
+              className="bucket-modal-btn bucket-modal-btn-edit-date"
+              onClick={() => {
+                setSelectedItemId(editForm.id);
+                setCompletionDate(editForm.completedAt);
+                setModalState({ type: 'date', data: 'from-edit' });
+              }}
+              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', marginLeft: '0.5rem' }}
+            >
+              수정
+            </button>
           </div>
         )}
         <div className="bucket-modal-actions">
