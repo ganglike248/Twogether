@@ -3,30 +3,19 @@ import { useNavigate, useBlocker } from 'react-router-dom';
 import { HiUser, HiHeart, HiEnvelope } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
-import { updateProfile } from 'firebase/auth';
-import { db, auth } from '../../firebase';
+import { db } from '../../firebase';
 import { toast } from 'react-toastify';
 import './CoupleInfoPage.css';
 
 const CoupleInfoPage = () => {
   const navigate = useNavigate();
   const { user, userDoc, partnerDoc, coupleDoc } = useAuthContext();
-  const [displayName, setDisplayName] = useState('');
   const [anniversaryDate, setAnniversaryDate] = useState('');
-  const [origName, setOrigName] = useState('');
   const [origDate, setOrigDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
 
   const isConnected = coupleDoc?.members?.length === 2;
-
-  useEffect(() => {
-    if (userDoc) {
-      const name = userDoc.displayName || '';
-      setDisplayName(name);
-      setOrigName(name);
-    }
-  }, [userDoc]);
 
   useEffect(() => {
     if (coupleDoc) {
@@ -36,7 +25,7 @@ const CoupleInfoPage = () => {
     }
   }, [coupleDoc]);
 
-  const isDirty = displayName !== origName || anniversaryDate !== origDate;
+  const isDirty = anniversaryDate !== origDate;
 
   const blocker = useBlocker(isDirty);
 
@@ -47,10 +36,6 @@ const CoupleInfoPage = () => {
   }, [blocker.state]);
 
   const handleSave = async () => {
-    if (!displayName.trim()) {
-      toast.error('이름을 입력해주세요.');
-      return;
-    }
     if (!anniversaryDate) {
       toast.error('연애 시작일을 선택해주세요.');
       return;
@@ -58,19 +43,23 @@ const CoupleInfoPage = () => {
 
     setLoading(true);
     try {
-      await updateProfile(auth.currentUser, { displayName: displayName.trim() });
-      await updateDoc(doc(db, 'users', user.uid), { displayName: displayName.trim() });
       if (coupleDoc?.id) {
         await updateDoc(doc(db, 'couples', coupleDoc.id), { anniversaryDate });
       }
-      setOrigName(displayName.trim());
       setOrigDate(anniversaryDate);
-      toast.success('커플 정보가 저장되었습니다.');
+      toast.success('기념일이 저장되었습니다.');
     } catch (error) {
       console.error('Failed to save:', error);
       toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleCopyInviteCode = () => {
+    if (coupleDoc?.inviteCode) {
+      navigator.clipboard.writeText(coupleDoc.inviteCode);
+      toast.success('초대 코드가 복사되었습니다.');
     }
   };
 
@@ -89,10 +78,6 @@ const CoupleInfoPage = () => {
   };
 
   const handleSaveAndLeave = async () => {
-    if (!displayName.trim()) {
-      toast.error('이름을 입력해주세요.');
-      return;
-    }
     if (!anniversaryDate) {
       toast.error('연애 시작일을 선택해주세요.');
       return;
@@ -100,8 +85,6 @@ const CoupleInfoPage = () => {
 
     setLoading(true);
     try {
-      await updateProfile(auth.currentUser, { displayName: displayName.trim() });
-      await updateDoc(doc(db, 'users', user.uid), { displayName: displayName.trim() });
       if (coupleDoc?.id) {
         await updateDoc(doc(db, 'couples', coupleDoc.id), { anniversaryDate });
       }
@@ -136,10 +119,9 @@ const CoupleInfoPage = () => {
               </label>
               <input
                 type="text"
-                value={displayName}
-                onChange={(e) => setDisplayName(e.target.value)}
-                maxLength={20}
-                placeholder="이름"
+                value={userDoc?.displayName || ''}
+                disabled
+                className="couple-info-disabled"
               />
             </div>
             <div className="couple-info-field-compact">
@@ -222,21 +204,29 @@ const CoupleInfoPage = () => {
           />
           <span className="couple-info-hint">변경하면 D+day가 다시 계산됩니다</span>
         </div>
-        {coupleDoc?.inviteCode && isConnected && (
-          <div className="couple-info-field">
-            <label className="couple-info-label">
-              <HiHeart className="couple-info-label-icon" />
-              초대 코드
-            </label>
-            <input
-              type="text"
-              value={coupleDoc.inviteCode}
-              disabled
-              className="couple-info-disabled couple-info-code"
-            />
-          </div>
-        )}
       </div>
+
+      {/* 초대 코드 */}
+      {coupleDoc?.inviteCode && isConnected && (
+        <>
+          <p className="couple-info-section-label">초대 코드</p>
+          <div className="couple-info-section">
+            <div className="couple-info-field">
+              <label className="couple-info-label">
+                <HiEnvelope className="couple-info-label-icon" />
+                코드
+              </label>
+              <input
+                type="text"
+                value={coupleDoc.inviteCode}
+                disabled
+                className="couple-info-disabled couple-info-code couple-info-code-clickable"
+                onClick={handleCopyInviteCode}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {/* 저장 버튼 */}
       <button

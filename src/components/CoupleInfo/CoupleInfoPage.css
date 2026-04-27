@@ -151,6 +151,16 @@
   font-weight: 600;
 }
 
+.couple-info-code-clickable {
+  cursor: pointer;
+  user-select: all;
+  transition: color 0.2s;
+}
+
+.couple-info-code-clickable:hover {
+  color: var(--color-primary) !important;
+}
+
 .couple-info-hint {
   font-size: 0.68rem;
   color: var(--color-gray-600);
