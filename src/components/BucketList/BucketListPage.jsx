@@ -157,18 +157,24 @@ function BucketListPage() {
 
   const handleAdd = async () => {
     if (!addForm.title.trim()) return;
-    const newItem = {
-      title: addForm.title,
-      content: addForm.content,
-      category: addForm.category,
-      coupleId,
-      completed: false,
-      completedAt: null,
-      createdAt: new Date().toISOString(),
-    };
-    await addDoc(collection(db, 'bucketlists'), newItem);
-    setAddForm({ title: '', content: '', category: 'food' });
-    closeModal();
+    try {
+      const newItem = {
+        title: addForm.title,
+        content: addForm.content,
+        category: addForm.category,
+        coupleId,
+        completed: false,
+        completedAt: null,
+        createdAt: new Date().toISOString(),
+      };
+      await addDoc(collection(db, 'bucketlists'), newItem);
+      toast.success('버킷을 추가했습니다!');
+      setAddForm({ title: '', content: '', category: 'food' });
+      closeModal();
+    } catch (error) {
+      console.error('버킷 추가 실패:', error);
+      toast.error('버킷 추가 중 오류가 발생했습니다.');
+    }
   };
 
   const handleOpenDateModal = (id) => {
@@ -178,11 +184,17 @@ function BucketListPage() {
 
   const handleCompleteWithDate = async () => {
     if (!selectedItemId || !completionDate) return;
-    await updateDoc(doc(db, 'bucketlists', selectedItemId), {
-      completed: true,
-      completedAt: completionDate
-    });
-    closeModal();
+    try {
+      await updateDoc(doc(db, 'bucketlists', selectedItemId), {
+        completed: true,
+        completedAt: completionDate
+      });
+      toast.success('완료했습니다!');
+      closeModal();
+    } catch (error) {
+      console.error('버킷 완료 실패:', error);
+      toast.error('버킷 완료 중 오류가 발생했습니다.');
+    }
   };
 
   const handleDelete = async (id) => {
@@ -228,12 +240,18 @@ function BucketListPage() {
 
   const handleEditSave = async () => {
     if (!editForm.title.trim()) return;
-    await updateDoc(doc(db, 'bucketlists', editForm.id), {
-      title: editForm.title,
-      content: editForm.content,
-      category: editForm.category,
-    });
-    closeModal();
+    try {
+      await updateDoc(doc(db, 'bucketlists', editForm.id), {
+        title: editForm.title,
+        content: editForm.content,
+        category: editForm.category,
+      });
+      toast.success('수정했습니다!');
+      closeModal();
+    } catch (error) {
+      console.error('버킷 수정 실패:', error);
+      toast.error('버킷 수정 중 오류가 발생했습니다.');
+    }
   };
 
   const handleEditComplete = () => {

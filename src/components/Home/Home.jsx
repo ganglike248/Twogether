@@ -1,6 +1,7 @@
 // src/components/Home/Home.jsx
 import React, { useEffect, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import {
   differenceInCalendarDays, differenceInMonths, addMonths,
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
@@ -24,7 +25,6 @@ const Home = () => {
   const location = useLocation();
 
   const [dday, setDday] = useState(0);
-  const [isSpecialDay, setIsSpecialDay] = useState(false);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
@@ -48,7 +48,6 @@ const Home = () => {
     const today = new Date();
     const dayDifference = differenceInCalendarDays(today, startDate) + 1;
     setDday(dayDifference);
-    setIsSpecialDay(dayDifference % 100 === 0 && dayDifference > 0);
   }, [anniversaryDate]);
 
   useEffect(() => {
@@ -61,11 +60,8 @@ const Home = () => {
     return () => unsubscribe();
   }, [coupleId]);
 
-  const getSpecialMessage = () => {
-    return `${Math.floor(dday / 100)}번째 백일을 맞이하며\n시간이 흘러도 변하지 않는\n우리의 특별한 사랑을\n오늘도 기억해`;
-  };
-
   const today = new Date();
+  const isSpecialDay = dday % 100 === 0 && dday > 0;
 
   // 연애 기간 계산
   const loveStartDate = anniversaryDate ? new Date(anniversaryDate) : null;
@@ -336,19 +332,22 @@ const Home = () => {
         </div>
       </Link>
 
-      {/* 100일 기념 메시지 */}
+      {/* 100일 기념 마일스톤 */}
       {isSpecialDay && (
-        <div className="home-celebration">
-          <div className="celebration-title">🎉 D+{dday} 기념일 🎉</div>
-          <div className="celebration-poem">
-            {getSpecialMessage().split('\n').map((line, i) => (
-              <p key={i} className="poem-line">{line}</p>
-            ))}
-          </div>
-          <div className="celebration-hearts">
-            <span>💕</span><span>💖</span><span>💕</span>
-          </div>
-        </div>
+        <motion.div
+          className="home-milestone"
+          initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
+          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
+          transition={{
+            duration: 0.8,
+            ease: 'easeOut',
+            type: 'spring',
+            stiffness: 120,
+            damping: 15,
+          }}
+        >
+          <div className="milestone-badge">D+{dday}</div>
+        </motion.div>
       )}
     </div>
   );

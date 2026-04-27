@@ -1,3 +1,18 @@
+v0.3.43 (2026.04.28)
+- fix: BucketListPage 모달 플로우 개선 및 CRUD 피드백 추가
+  - handleAdd(), handleEditSave(), handleCompleteWithDate() 함수에 성공 메시지(toast) 추가
+  - 에러 처리 강화 (try-catch 추가)
+  - 버킷 추가/수정/완료 후 명확한 피드백 제공
+  - 완료 후 모달 모두 닫기 (modal.type = 'date' → null)
+
+v0.3.42 (2026.04.28)
+- fix: Home 페이지 100일 기념 메시지 제거 및 애니메이션 개선
+  - celebration 섹션의 긴 "백일 축하 메시지" 시 제거
+  - "D+{dday}" (예: D+100, D+200) 애니메이션으로 간결하게 표시
+  - framer-motion 라이브러리 추가 (blur in 전환, spring 애니메이션)
+  - .home-milestone, .milestone-badge 스타일 추가 (gradient 배경)
+  - 100일 마일스톤을 더 세련되게 표시 (기존 촌스러운 애니메이션 제거)
+
 v0.3.41 (2026.04.28)
 - fix: window.confirm() → 모달로 통일 (DayModal, ScheduleItem, CategoryManagerModal)
   - **DayModal**: 생리 기록 삭제 시 확인 모달
