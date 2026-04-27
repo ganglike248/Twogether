@@ -6,13 +6,6 @@
   background-color: var(--main-bg);
 }
 
-.profile-header {
-  display: flex;
-  align-items: center;
-  gap: 0.75rem;
-  margin-bottom: 1.5rem;
-}
-
 .profile-back {
   background: none;
   border: none;

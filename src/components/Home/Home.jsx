@@ -190,7 +190,7 @@ const Home = () => {
           {loveStartDate && (
             <div
               className="hero-stat-card clickable"
-              onClick={() => navigate(`/calendar?date=${milestoneDateStr}`)}
+              onClick={() => navigate(`/calendar?date=${milestoneDateStr}`, { replace: true })}
             >
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
@@ -211,7 +211,7 @@ const Home = () => {
       </div>
 
       {/* 여행 섹션 */}
-      <div className="home-card home-trip-section" onClick={() => navigate('/travel')}>
+      <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
         <div className="card-label">
           {ongoingTrip
             ? <HiMapPin className="card-label-icon" />
@@ -301,7 +301,7 @@ const Home = () => {
 
       {/* 버킷리스트 진행률 */}
       {bucketStats.total > 0 && (
-        <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket')}>
+        <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
           <div className="card-label">
             <HiCheckCircle className="card-label-icon" />
             버킷리스트 진행률

@@ -17,6 +17,9 @@ import MemoryList from './components/Memory/MemoryList';
 import BucketListPage from './components/BucketList/BucketListPage';
 import TravelPlanPage from './components/Travel/TravelPlanPage';
 import ProfilePage from './components/Profile/ProfilePage';
+import CoupleInfoPage from './components/CoupleInfo/CoupleInfoPage';
+import SettingsPage from './components/Settings/SettingsPage';
+import HomeImageSettingsPage from './components/HomeImageSettings/HomeImageSettingsPage';
 
 import './App.css';
 
@@ -63,6 +66,18 @@ const router = createBrowserRouter([
       {
         path: '/profile',
         element: <ProtectedRoute><Layout><ProfilePage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/couple-info',
+        element: <ProtectedRoute><Layout><CoupleInfoPage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/settings',
+        element: <ProtectedRoute><Layout><SettingsPage /></Layout></ProtectedRoute>,
+      },
+      {
+        path: '/home-image-settings',
+        element: <ProtectedRoute><Layout><HomeImageSettingsPage /></Layout></ProtectedRoute>,
       },
       { path: '*', element: <Navigate to="/" replace /> },
     ],

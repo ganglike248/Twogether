@@ -1,0 +1,8 @@
+/* ProfilePage 스타일 재사용 */
+@import '../Profile/ProfilePage.css';
+
+.couple-info-page {
+  padding: 0.875rem;
+  min-height: 100%;
+  background-color: var(--main-bg);
+}

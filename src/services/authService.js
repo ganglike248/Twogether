@@ -134,3 +134,14 @@ export const getCoupleDoc = async (coupleId) => {
   if (!snap.exists()) return null;
   return { id: snap.id, ...snap.data() };
 };
+
+// 사용자 이름 업데이트
+export const updateUserName = async (newDisplayName) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('로그인이 필요합니다.');
+
+  await updateProfile(user, { displayName: newDisplayName });
+  await updateDoc(doc(db, 'users', user.uid), {
+    displayName: newDisplayName,
+  });
+};

@@ -48,6 +48,14 @@
   display: flex;
   align-items: center;
   gap: 0.3rem;
+  cursor: pointer;
+  padding: 0.25rem;
+  border-radius: 4px;
+  transition: opacity 0.15s;
+}
+
+.app-header-right:hover {
+  opacity: 0.8;
 }
 
 .app-header-heart {
@@ -63,54 +71,17 @@
   letter-spacing: -0.01em;
 }
 
-.app-header-profile {
+.app-header-menu {
   background: none;
   border: none;
   cursor: pointer;
   color: #ffb6c1;
-  font-size: 1.2rem;
-  display: flex;
-  align-items: center;
-  gap: 0.25rem;
-  padding: 0.25rem 0.5rem;
-  border-radius: 50%;
-  transition: color 0.15s, background 0.15s;
-}
-
-.app-header-profile:hover {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.08);
-}
-
-.app-header-profile-label {
-  font-size: 0.75rem;
-  font-weight: 600;
-  display: none;
-}
-
-@media (max-width: 380px) {
-  .app-header-profile-label {
-    display: inline;
-  }
-}
-
-.app-header-logout {
-  background: none;
-  border: none;
-  cursor: pointer;
-  color: #ffb6c1;
-  font-size: 1.2rem;
+  font-size: 1.5rem;
   display: flex;
   align-items: center;
   padding: 0.25rem;
-  margin-left: 0.15rem;
   border-radius: 50%;
   transition: color 0.15s, background 0.15s;
-}
-
-.app-header-logout:hover {
-  color: #ff6b6b;
-  background: rgba(255, 107, 107, 0.08);
 }
 
 @keyframes heartbeat {

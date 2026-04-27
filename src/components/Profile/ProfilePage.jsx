@@ -4,8 +4,7 @@ import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiUser, HiHeart, HiEnvelope, HiCamera, HiInformationCircle } from 'react-icons/hi2';
-import CycleSettingsModal from './CycleSettingsModal';
+import { HiArrowLeft, HiUser, HiCamera } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
@@ -175,7 +174,7 @@ const ProfilePage = () => {
     if (isDirty) {
       setShowUnsavedModal(true);
     } else {
-      navigate(-1);
+      navigate(-1, { replace: true });
     }
   };
 
@@ -189,7 +188,7 @@ const ProfilePage = () => {
     if (blocker.state === 'blocked') {
       blocker.proceed();
     } else {
-      navigate(-1);
+      navigate(-1, { replace: true });
     }
   };
 
@@ -209,12 +208,10 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
-      <div className="profile-header">
-        <button className="profile-back" onClick={handleBack}>
-          <HiArrowLeft />
-        </button>
-        <h1 className="profile-title">프로필 설정</h1>
-      </div>
+      <button className="profile-back" onClick={handleBack}>
+        <HiArrowLeft />
+      </button>
+      <h1 className="profile-title">프로필 설정</h1>
 
       <form className="profile-form" onSubmit={handleSave}>
 
@@ -268,135 +265,24 @@ const ProfilePage = () => {
           </div>
         </div>
 
-        {/* 내 정보 + 상대방 (2열) */}
-        <div className="profile-members-row">
-          {/* 나 */}
-          <div className="profile-member-col">
-            <div className="profile-section">
-              <div className="profile-member-heading">나</div>
-              <div className="profile-field-compact">
-                <label className="profile-label">
-                  <HiUser className="profile-label-icon" />
-                  닉네임
-                </label>
-                <input
-                  type="text"
-                  value={displayName}
-                  onChange={e => setDisplayName(e.target.value)}
-                  maxLength={20}
-                  placeholder="닉네임"
-                  required
-                />
-              </div>
-              <div className="profile-field-compact">
-                <label className="profile-label">
-                  <HiEnvelope className="profile-label-icon" />
-                  이메일
-                </label>
-                <input
-                  type="text"
-                  value={userDoc?.email || ''}
-                  disabled
-                  className="profile-disabled"
-                />
-              </div>
-            </div>
-          </div>
-
-          {/* 하트 구분자 */}
-          <div className="profile-members-heart">
-            <HiHeart className="profile-heart-icon" />
-          </div>
-
-          {/* 상대방 */}
-          <div className="profile-member-col">
-            <div className="profile-section">
-              <div className="profile-member-heading">상대방</div>
-              {isConnected && partnerDoc ? (
-                <>
-                  <div className="profile-field-compact">
-                    <label className="profile-label">
-                      <HiUser className="profile-label-icon" />
-                      닉네임
-                    </label>
-                    <input
-                      type="text"
-                      value={partnerDoc.displayName || ''}
-                      disabled
-                      className="profile-disabled"
-                    />
-                  </div>
-                  <div className="profile-field-compact">
-                    <label className="profile-label">
-                      <HiEnvelope className="profile-label-icon" />
-                      이메일
-                    </label>
-                    <input
-                      type="text"
-                      value={partnerDoc.email || ''}
-                      disabled
-                      className="profile-disabled"
-                    />
-                  </div>
-                </>
-              ) : (
-                <div className="profile-waiting">
-                  <span className="profile-waiting-emoji">⏳</span>
-                  <span className="profile-waiting-text">연결 대기 중</span>
-                  {coupleDoc?.inviteCode && (
-                    <span className="profile-invite-code">{coupleDoc.inviteCode}</span>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
-        </div>
-
-        {/* 커플 정보 */}
-        <p className="profile-section-label">커플 정보</p>
+        {/* 내 닉네임만 수정 */}
+        <p className="profile-section-label">내 정보</p>
         <div className="profile-section">
           <div className="profile-field">
             <label className="profile-label">
-              <HiHeart className="profile-label-icon" />
-              연애 시작일
+              <HiUser className="profile-label-icon" />
+              닉네임
             </label>
             <input
-              type="date"
-              value={anniversaryDate}
-              onChange={e => setAnniversaryDate(e.target.value)}
-              max={new Date().toISOString().split('T')[0]}
+              type="text"
+              value={displayName}
+              onChange={e => setDisplayName(e.target.value)}
+              maxLength={20}
+              placeholder="닉네임"
+              required
             />
-            <span className="profile-hint">변경하면 D+day와 기념일이 다시 계산됩니다</span>
           </div>
-          {coupleDoc?.inviteCode && isConnected && (
-            <div className="profile-field">
-              <label className="profile-label">
-                <HiHeart className="profile-label-icon" />
-                초대 코드
-              </label>
-              <input
-                type="text"
-                value={coupleDoc.inviteCode}
-                disabled
-                className="profile-disabled profile-code"
-              />
-            </div>
-          )}
         </div>
-
-        <button
-          type="button"
-          className="profile-cycle-btn"
-          onClick={() => setShowCycleModal(true)}
-        >
-          <span className="profile-cycle-btn-icon">
-            {coupleDoc?.cycleSettings?.enabled ? (coupleDoc.cycleSettings.icon || '🌸') : '🌸'}
-          </span>
-          <span className="profile-cycle-btn-text">
-            {coupleDoc?.cycleSettings?.enabled ? '생리주기 설정 중 ✓' : '생리주기 사용하기'}
-          </span>
-          <span className="profile-cycle-btn-arrow">›</span>
-        </button>
 
         <button
           type="submit"
@@ -406,21 +292,8 @@ const ProfilePage = () => {
           {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장'}
         </button>
 
-        <button
-          type="button"
-          className="profile-onboarding-btn"
-          onClick={() => navigate('/', { replace: true, state: { showTutorial: true } })}
-        >
-          <HiInformationCircle className="profile-onboarding-icon" />
-          앱 소개 다시 보기
-        </button>
-
       </form>
 
-      <CycleSettingsModal
-        isOpen={showCycleModal}
-        onClose={() => setShowCycleModal(false)}
-      />
 
       {/* 저장 확인 모달 */}
       {showUnsavedModal && (

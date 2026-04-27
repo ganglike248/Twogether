@@ -92,7 +92,7 @@ const TravelPlanPage = () => {
         try {
             await deleteTrip(tripToDelete, user?.uid, coupleId);
             if (selectedTrip?.id === tripToDelete) {
-                navigate('/travel');
+                navigate('/travel', { replace: true });
             }
             setShowDeleteModal(false);
             setTripToDelete(null);
@@ -104,7 +104,7 @@ const TravelPlanPage = () => {
 
     // 여행 상세 보기
     const handleViewTrip = (trip) => {
-        navigate(`/travel/${trip.id}`);
+        navigate(`/travel/${trip.id}`, { replace: true });
     };
 
     // 여행 편집
@@ -120,7 +120,7 @@ const TravelPlanPage = () => {
         return (
             <TripDetail
                 trip={selectedTrip}
-                onBack={() => navigate('/travel')}
+                onBack={() => navigate('/travel', { replace: true })}
                 onEdit={() => handleEditTrip(selectedTrip)}
                 onDelete={() => handleDeleteTrip(selectedTrip.id)}
             />

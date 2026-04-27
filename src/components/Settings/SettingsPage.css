@@ -1,0 +1,34 @@
+/* ProfilePage 스타일 재사용 */
+@import '../Profile/ProfilePage.css';
+
+.settings-page {
+  padding: 0.875rem;
+  min-height: 100%;
+  background-color: var(--main-bg);
+}
+
+.settings-coming-soon {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 1.5rem 0;
+  text-align: center;
+}
+
+.settings-coming-soon p {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.settings-coming-soon span {
+  font-size: 0.85rem;
+  color: var(--color-gray-600);
+}
+
+.settings-info-value {
+  margin: 0.3rem 0 0;
+  font-size: 0.95rem;
+  color: var(--color-gray-700);
+  font-weight: 500;
+}

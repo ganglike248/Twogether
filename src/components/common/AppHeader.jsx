@@ -1,14 +1,15 @@
 // src/components/common/AppHeader.jsx
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { HiHeart, HiArrowRightOnRectangle, HiUser } from 'react-icons/hi2';
+import { HiHeart, HiBars3 } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { signOut } from '../../services/authService';
+import Sidebar from './Sidebar';
 import './AppHeader.css';
 
 const AppHeader = () => {
   const navigate = useNavigate();
   const { coupleDoc } = useAuthContext();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const dday = useMemo(() => {
     if (!coupleDoc?.anniversaryDate) return null;
@@ -19,34 +20,22 @@ const AppHeader = () => {
     return Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
   }, [coupleDoc?.anniversaryDate]);
 
-  const handleLogout = (e) => {
-    e.stopPropagation();
-    if (!window.confirm('정말 로그아웃하시겠습니까?')) return;
-    signOut();
-  };
-
-  const handleProfile = (e) => {
-    e.stopPropagation();
-    navigate('/profile');
-  };
-
   return (
-    <header className="app-header">
-      <button className="app-header-logout" onClick={handleLogout}>
-        <HiArrowRightOnRectangle />
-      </button>
-      <span className="app-header-title" onClick={() => navigate('/', { replace: true })}>
-        우리두리
-      </span>
-      <div className="app-header-right">
-        <HiHeart className="app-header-heart" />
-        {dday !== null && <span className="app-header-dday">+ {dday}</span>}
-        <button className="app-header-profile" onClick={handleProfile} title="프로필">
-          <HiUser />
-          <span className="app-header-profile-label">프로필</span>
+    <>
+      <header className="app-header">
+        <button className="app-header-menu" onClick={() => setSidebarOpen(true)}>
+          <HiBars3 />
         </button>
-      </div>
-    </header>
+        <span className="app-header-title" onClick={() => navigate('/', { replace: true })}>
+          우리두리
+        </span>
+        <div className="app-header-right" onClick={() => navigate('/', { replace: true })}>
+          <HiHeart className="app-header-heart" />
+          {dday !== null && <span className="app-header-dday">+ {dday}</span>}
+        </div>
+      </header>
+      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    </>
   );
 };
 
