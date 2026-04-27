@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from 'react-toastify';
 import { MdSettings, MdDelete, MdAdd } from 'react-icons/md';
 import BaseModal from './BaseModal';
 import { CATEGORY_COLORS, DEFAULT_CATEGORIES, getCategoryDisplayName } from '../../services/categoryColorService';
@@ -16,12 +17,12 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
 
   const handleAddCategory = async () => {
     if (!newCategoryName.trim()) {
-      alert('카테고리명을 입력해주세요.');
+      toast.error('카테고리명을 입력해주세요.');
       return;
     }
 
     if (newCategoryName in allCategories) {
-      alert('이미 존재하는 카테고리명입니다.');
+      toast.error('이미 존재하는 카테고리명입니다.');
       return;
     }
 

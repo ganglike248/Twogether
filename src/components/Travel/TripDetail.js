@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { useTripSchedules } from '../../hooks/useTrip';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, getTravelTimes } from '../../services/tripService';
@@ -91,7 +92,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             setSelectedSchedule(null);
         } catch (error) {
             console.error('Error saving schedule:', error);
-            alert('일정 저장 중 오류가 발생했습니다.');
+            toast.error('일정 저장 중 오류가 발생했습니다.');
         }
     };
 
@@ -101,7 +102,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             await saveTripSchedule(trip.id, activeDay, updated);
         } catch (error) {
             console.error('Error deleting schedule:', error);
-            alert('일정 삭제 중 오류가 발생했습니다.');
+            toast.error('일정 삭제 중 오류가 발생했습니다.');
         }
     };
 
@@ -120,7 +121,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             }));
         } catch (error) {
             console.error('Error saving travel time:', error);
-            alert('이동 시간 저장 중 오류가 발생했습니다.');
+            toast.error('이동 시간 저장 중 오류가 발생했습니다.');
         }
     };
 

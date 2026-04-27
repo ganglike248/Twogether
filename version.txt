@@ -1,3 +1,14 @@
+v0.3.32 (2026.04.27)
+- fix: 에러 핸들링 통일 (alert → toast.error)
+  - Calendar.jsx: 5개 alert 제거 (일정 수정/저장/삭제, 생리 기록/삭제)
+  - CategoryManagerModal.jsx: 2개 alert 제거 (입력값 검증, 중복 체크)
+  - CycleSettingsModal.jsx: 저장 오류 alert 제거
+  - ScheduleModal.js: 일정 저장 오류 alert 제거
+  - TripDetail.js: 3개 alert 제거 (일정 저장/삭제/이동시간)
+  - 모든 파일에 react-toastify 추가
+  - 사용자 경험 통일: 동기적 alert 차단 → 비동기 toast 알림
+  - 중복된 에러 알림 확인 및 일관성 강화
+
 v0.3.31 (2026.04.27)
 - fix: 보안 강화 - Edit Log 조회 로직 개선 및 UX 최적화
   - eventService.js: getEditLogs coupleId 없을 때 전체 로그 조회 경로 제거

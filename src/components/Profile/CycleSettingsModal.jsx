@@ -1,5 +1,6 @@
 // src/components/Profile/CycleSettingsModal.jsx
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -58,7 +59,7 @@ const CycleSettingsModal = ({ isOpen, onClose }) => {
       onClose();
     } catch (err) {
       console.error('[CycleSettingsModal] 저장 실패:', err);
-      alert('저장 중 오류가 발생했습니다.');
+      toast.error('저장 중 오류가 발생했습니다.');
     } finally {
       setSaving(false);
     }

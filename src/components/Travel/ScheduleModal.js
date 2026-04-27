@@ -1,5 +1,6 @@
 // src/components/Travel/ScheduleModal.js
 import React, { useState, useEffect } from 'react';
+import { toast } from 'react-toastify';
 import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
 
@@ -77,7 +78,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
             await onSave(scheduleData);
         } catch (error) {
             console.error('Error saving schedule:', error);
-            alert('일정 저장 중 오류가 발생했습니다.');
+            toast.error('일정 저장 중 오류가 발생했습니다.');
         } finally {
             setLoading(false);
         }

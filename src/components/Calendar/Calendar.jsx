@@ -1,6 +1,7 @@
 // src/components/Calendar/Calendar.jsx
 import React, { useState, useEffect, useRef, useMemo } from 'react';
 import { useSearchParams } from 'react-router-dom';
+import { toast } from 'react-toastify';
 import EventModal from './EventModal';
 import DayModal from './DayModal';
 import EditLogModal from '../EditLog/EditLogModal';
@@ -107,7 +108,7 @@ const Calendar = () => {
       setIsDayModalOpen(false);
       setIsModalOpen(true);
     } catch {
-      alert('일정 수정 중 오류가 발생했습니다.');
+      toast.error('일정 수정 중 오류가 발생했습니다.');
     }
   };
 
@@ -120,7 +121,7 @@ const Calendar = () => {
       else await createEvent(eventData, uid, coupleId);
       setIsModalOpen(false);
     } catch {
-      alert('일정 저장 중 오류가 발생했습니다.');
+      toast.error('일정 저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -129,7 +130,7 @@ const Calendar = () => {
       await deleteEvent(eventId, user?.uid, coupleId);
       setIsModalOpen(false);
     } catch {
-      alert('일정 삭제 중 오류가 발생했습니다.');
+      toast.error('일정 삭제 중 오류가 발생했습니다.');
     }
   };
 
@@ -137,7 +138,7 @@ const Calendar = () => {
     try {
       await createCycle({ startDate, periodLength }, user?.uid, coupleId);
     } catch {
-      alert('생리 기록 중 오류가 발생했습니다.');
+      toast.error('생리 기록 중 오류가 발생했습니다.');
     }
   };
 
@@ -145,7 +146,7 @@ const Calendar = () => {
     try {
       await deleteCycle(cycleId);
     } catch {
-      alert('생리 기록 삭제 중 오류가 발생했습니다.');
+      toast.error('생리 기록 삭제 중 오류가 발생했습니다.');
     }
   };
 
