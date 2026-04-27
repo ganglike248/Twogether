@@ -1,7 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { MdClose, MdAdd } from 'react-icons/md';
+import { getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 import './WheelModal.css';
 
 const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
@@ -9,10 +10,11 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   const [directItems, setDirectItems] = useState([]);
   const [directInput, setDirectInput] = useState('');
   const [selectedCategory, setSelectedCategory] = useState('all');
+  const [selectedBucketItems, setSelectedBucketItems] = useState([]); // 선택된 버킷리스트 아이템
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
-  const [rotation, setRotation] = useState(0);
-  const wheelRef = useRef(null);
+  const [slotOffset, setSlotOffset] = useState(0);
+  const slotRef = useRef(null);
 
   // 카테고리별 필터링된 버킷 아이템
   const filteredBucketItems = selectedCategory === 'all'
@@ -20,21 +22,22 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     : bucketList.filter(item => item.category === selectedCategory);
 
   // 현재 탭의 아이템들
-  const currentItems = activeTab === 'direct' ? directItems : filteredBucketItems;
+  const currentItems = activeTab === 'direct' ? directItems : selectedBucketItems;
 
-  const getCategoryColor = (category) => {
-    const colors = {
-      food: '#FF6B9D',
-      travel: '#FFA502',
-      culture: '#613D9E',
-      hobby: '#FF006E',
-      sport: '#00B4D8',
-      learning: '#90E0EF',
-      shopping: '#FFB703',
-      other: '#999999'
-    };
-    return colors[category] || '#999999';
-  };
+  // 탭 전환 시 슬롯 초기화
+  useEffect(() => {
+    setSlotOffset(0);
+    setSpinResult(null);
+  }, [activeTab]);
+
+  // currentItems 변경 시 슬롯 초기화
+  useEffect(() => {
+    if (!isSpinning) {
+      setSlotOffset(0);
+      setSpinResult(null);
+    }
+  }, [currentItems.length, isSpinning]);
+
 
   const handleAddDirectItem = () => {
     if (!directInput.trim()) {
@@ -55,6 +58,19 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     setDirectItems(directItems.filter(item => item.id !== id));
   };
 
+  const handleToggleBucketItem = (item) => {
+    const isSelected = selectedBucketItems.some(selectedItem => selectedItem.id === item.id);
+    if (isSelected) {
+      setSelectedBucketItems(selectedBucketItems.filter(selectedItem => selectedItem.id !== item.id));
+    } else {
+      setSelectedBucketItems([...selectedBucketItems, item]);
+    }
+  };
+
+  const handleRemoveBucketItem = (id) => {
+    setSelectedBucketItems(selectedBucketItems.filter(item => item.id !== id));
+  };
+
   const handleSpin = () => {
     if (currentItems.length === 0) {
       toast.warning('선택할 항목이 없습니다');
@@ -66,18 +82,18 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     setIsSpinning(true);
     setSpinResult(null);
 
-    // 최소 5 바퀴 + 무작위 회전
-    const minRotation = 5 * 360;
-    const randomRotation = Math.random() * 360;
-    const totalRotation = minRotation + randomRotation;
-    const newRotation = rotation + totalRotation;
-
-    // 결과 항목 결정
-    const itemsPerSlot = 360 / currentItems.length;
-    const resultIndex = Math.floor((360 - (totalRotation % 360)) / itemsPerSlot) % currentItems.length;
+    // 무작위 결과 항목 선택
+    const resultIndex = Math.floor(Math.random() * currentItems.length);
     const selectedItem = currentItems[resultIndex];
 
-    setRotation(newRotation);
+    // 최소 3바퀴 + 결과 위치까지 스크롤
+    const itemHeight = 60; // CSS와 동일하게 설정
+    const rotations = 3;
+    // 초기 오프셋(한 세트) + 회전(3바퀴) + 결과 위치
+    const totalItemCount = currentItems.length + (rotations * currentItems.length) + resultIndex;
+    const finalOffset = totalItemCount * itemHeight;
+
+    setSlotOffset(finalOffset);
 
     // 애니메이션 완료 후 결과 표시
     setTimeout(() => {
@@ -120,6 +136,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
             className={`wheel-tab ${activeTab === 'bucket' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('bucket');
+              setSelectedBucketItems(bucketList); // 모든 버킷리스트 아이템 선택
               setSpinResult(null);
             }}
           >
@@ -170,35 +187,68 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
               <div className="wheel-category-filter">
                 <select
                   value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
+                  onChange={(e) => {
+                    const newCategory = e.target.value;
+                    setSelectedCategory(newCategory);
+                    // 선택한 카테고리의 모든 아이템을 기본으로 선택
+                    if (newCategory === 'all') {
+                      setSelectedBucketItems(bucketList);
+                    } else {
+                      setSelectedBucketItems(bucketList.filter(item => item.category === newCategory));
+                    }
+                  }}
                   className="wheel-category-select"
                 >
                   <option value="all">전체 카테고리</option>
                   {Array.from(new Set(bucketList.map(item => item.category))).sort().map(cat => (
                     <option key={cat} value={cat}>
-                      {cat}
+                      {getCategoryDisplayName(cat, customCategories)}
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* 버킷리스트 항목 (선택 가능) */}
               {filteredBucketItems.length > 0 && (
                 <div className="wheel-items-list">
-                  {filteredBucketItems.map((item) => (
-                    <div
-                      key={item.id}
-                      className="wheel-item"
-                      style={{
-                        borderLeftColor: getCategoryColor(item.category),
-                        borderLeftWidth: '4px'
-                      }}
-                    >
-                      <span>{item.title}</span>
-                      <span className="wheel-item-category">
-                        {item.category}
-                      </span>
-                    </div>
-                  ))}
+                  {filteredBucketItems.map((item) => {
+                    const isSelected = selectedBucketItems.some(selected => selected.id === item.id);
+                    return (
+                      <div
+                        key={item.id}
+                        className={`wheel-item wheel-bucket-item ${isSelected ? 'selected' : ''}`}
+                        onClick={() => handleToggleBucketItem(item)}
+                        style={{
+                          backgroundColor: isSelected ? getCategoryColor(item.category, customCategories) : '#f5f5f5',
+                          color: isSelected ? '#fff' : '#333',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <span className="wheel-item-title">{item.title}</span>
+                        {isSelected && (
+                          <button
+                            className="wheel-item-remove"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              handleRemoveBucketItem(item.id);
+                            }}
+                            style={{ color: isSelected ? '#fff' : '#999' }}
+                          >
+                            ✕
+                          </button>
+                        )}
+                        <span
+                          className="wheel-item-category"
+                          style={{
+                            backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.1)',
+                            color: isSelected ? '#fff' : '#666'
+                          }}
+                        >
+                          {getCategoryDisplayName(item.category, customCategories)}
+                        </span>
+                      </div>
+                    );
+                  })}
                 </div>
               )}
 
@@ -211,51 +261,55 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
           )}
         </div>
 
-        {/* 돌림판 섹션 */}
-        <div className="wheel-spinner-section">
-          <div className="wheel-container">
-            <motion.div
-              ref={wheelRef}
-              className="wheel"
-              animate={{ rotate: rotation }}
-              transition={{
-                duration: 2.5,
-                ease: 'easeOut'
-              }}
-            >
-              {currentItems.length > 0 ? (
-                currentItems.map((item, index) => {
-                  const angle = (360 / currentItems.length) * index;
-                  const isHighlighted = spinResult?.id === item.id;
-                  return (
+        {/* 슬롯머신 섹션 */}
+        <div className="slot-machine-section">
+          <div className="slot-machine-container">
+            {currentItems.length > 0 ? (
+              <motion.div
+                ref={slotRef}
+                className="slot-tape"
+                initial={{ y: -currentItems.length * 60 }}
+                animate={{ y: -slotOffset }}
+                transition={{
+                  duration: slotOffset === 0 ? 0 : 2.5,
+                  ease: 'easeOut'
+                }}
+              >
+                {/* 5번 반복해서 무한 루프 효과 */}
+                {[...Array(5)].map((_, cycle) =>
+                  currentItems.map((item, idx) => (
                     <div
-                      key={item.id}
-                      className={`wheel-segment ${isHighlighted ? 'highlighted' : ''}`}
+                      key={`${cycle}-${item.id}`}
+                      className="slot-item"
                       style={{
-                        transform: `rotate(${angle}deg)`,
-                        backgroundColor: activeTab === 'bucket' ? getCategoryColor(item.category) : '#FF6B9D'
+                        backgroundColor: activeTab === 'bucket' ? getCategoryColor(item.category, customCategories) : '#FF6B9D',
+                        color: '#fff'
                       }}
                     >
-                      <div className="wheel-segment-text">
-                        {item.title}
-                      </div>
+                      <span className="slot-item-text">{item.title}</span>
+                      {activeTab === 'bucket' && (
+                        <span className="slot-item-category">
+                          {getCategoryDisplayName(item.category, customCategories)}
+                        </span>
+                      )}
                     </div>
-                  );
-                })
-              ) : (
-                <div className="wheel-empty">
-                  <span>항목 없음</span>
+                  ))
+                )}
+              </motion.div>
+            ) : (
+              <div className="slot-tape">
+                <div className="slot-item" style={{ backgroundColor: '#f5f5f5', color: '#999' }}>
+                  항목이 없습니다
                 </div>
-              )}
-            </motion.div>
-
-            {/* 가운데 포인터 */}
-            <div className="wheel-pointer" />
+              </div>
+            )}
+            {/* 선택 표시 포인터 */}
+            <div className="slot-pointer" />
           </div>
 
           {/* 스핀 버튼 */}
           <button
-            className={`wheel-spin-btn ${isSpinning ? 'spinning' : ''} ${currentItems.length === 0 ? 'disabled' : ''}`}
+            className={`slot-spin-btn ${isSpinning ? 'spinning' : ''} ${currentItems.length === 0 ? 'disabled' : ''}`}
             onClick={handleSpin}
             disabled={isSpinning || currentItems.length === 0}
           >
@@ -265,16 +319,16 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
           {/* 결과 표시 */}
           {spinResult && (
             <motion.div
-              className="wheel-result"
+              className="slot-result"
               initial={{ opacity: 0, scale: 0.8 }}
               animate={{ opacity: 1, scale: 1 }}
               transition={{ duration: 0.4 }}
             >
-              <div className="result-label">선택된 항목</div>
+              <div className="result-label">🎉 선택된 항목</div>
               <div
                 className="result-item"
                 style={{
-                  backgroundColor: activeTab === 'bucket' ? getCategoryColor(spinResult.category) : '#FF6B9D',
+                  backgroundColor: activeTab === 'bucket' ? getCategoryColor(spinResult.category, customCategories) : '#FF6B9D',
                   color: '#fff'
                 }}
               >

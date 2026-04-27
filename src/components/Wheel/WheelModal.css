@@ -185,15 +185,36 @@
   overflow-y: auto;
 }
 
+.wheel-bucket-item {
+  transition: all 0.2s ease;
+  cursor: pointer;
+}
+
+.wheel-bucket-item:hover {
+  opacity: 0.9;
+  transform: translateX(2px);
+}
+
+.wheel-bucket-item.selected {
+  border-left: 3px solid rgba(255, 255, 255, 0.5);
+}
+
 .wheel-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
-  background: #f9f9f9;
   border-radius: 6px;
   font-size: 14px;
-  color: #333;
+  gap: 8px;
+}
+
+.wheel-item-title {
+  flex: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .wheel-item-remove {
@@ -211,11 +232,12 @@
 }
 
 .wheel-item-category {
-  background: #e8e8e8;
   padding: 2px 8px;
   border-radius: 4px;
   font-size: 12px;
   margin-left: 8px;
+  font-weight: 500;
+  flex-shrink: 0;
 }
 
 .wheel-empty-state {
@@ -225,8 +247,8 @@
   font-size: 14px;
 }
 
-/* 돌림판 섹션 */
-.wheel-spinner-section {
+/* 슬롯머신 섹션 */
+.slot-machine-section {
   padding: 20px;
   border-top: 1px solid #f0f0f0;
   display: flex;
@@ -235,85 +257,100 @@
   gap: 16px;
 }
 
-.wheel-container {
+.slot-machine-container {
   position: relative;
-  width: 220px;
-  height: 220px;
-  margin: 0 auto;
+  width: 100%;
+  max-width: 280px;
+  height: 180px;
 }
 
-.wheel {
+.slot-tape {
   position: relative;
   width: 100%;
   height: 100%;
-  border-radius: 50%;
-  overflow: hidden;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.wheel-segment {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  width: 100px;
-  height: 100px;
-  margin: -50px 0 0 -50px;
+.slot-item {
   display: flex;
   align-items: center;
-  justify-content: center;
-  origin: 50px 50px;
-  clip-path: polygon(50% 0%, 100% 0%, 50% 100%);
-  text-align: center;
-  transition: opacity 0.3s ease;
-}
-
-.wheel-segment.highlighted {
-  opacity: 1;
-  filter: brightness(1.1);
-  box-shadow: inset 0 0 10px rgba(0, 0, 0, 0.2);
-}
-
-.wheel-segment-text {
-  position: absolute;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%) rotate(-90deg);
-  width: 60px;
-  white-space: normal;
-  word-break: break-word;
-  font-size: 11px;
+  justify-content: space-between;
+  gap: 8px;
+  height: 60px;
+  padding: 0 12px;
   font-weight: 600;
-  color: white;
-  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
-  line-height: 1.2;
+  font-size: 14px;
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+  transition: all 0.2s ease;
 }
 
-.wheel-empty {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  width: 100%;
-  height: 100%;
-  background: #f5f5f5;
-  color: #999;
-  border-radius: 50%;
+.slot-item-text {
+  flex: 1;
+  min-width: 0;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  font-weight: 700;
 }
 
-.wheel-pointer {
+.slot-item-category {
+  font-size: 11px;
+  padding: 2px 6px;
+  border-radius: 3px;
+  background: rgba(255, 255, 255, 0.25);
+  flex-shrink: 0;
+  white-space: nowrap;
+}
+
+.slot-pointer {
   position: absolute;
-  top: -10px;
-  left: 50%;
-  width: 0;
-  height: 0;
-  border-left: 8px solid transparent;
-  border-right: 8px solid transparent;
-  border-top: 12px solid #FF6B9D;
-  z-index: 10;
-  transform: translateX(-50%);
+  top: 50%;
+  left: 0;
+  right: 0;
+  height: 60px;
+  border-top: 3px solid #FF6B9D;
+  border-bottom: 3px solid #FF6B9D;
+  background: rgba(255, 107, 157, 0.1);
+  pointer-events: none;
+  z-index: 5;
+  transform: translateY(-50%);
+  box-shadow: 0 0 0 1px #FF6B9D;
+}
+
+.slot-machine-container::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(180deg, rgba(255, 255, 255, 0.9) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.slot-machine-container::after {
+  content: '';
+  position: absolute;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  height: 30px;
+  background: linear-gradient(0deg, rgba(255, 255, 255, 0.9) 0%, transparent 100%);
+  pointer-events: none;
+  z-index: 6;
+}
+
+.slot-machine-container {
+  overflow: hidden;
+  border: 2px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
 }
 
 /* 스핀 버튼 */
-.wheel-spin-btn {
+.slot-spin-btn {
   background: linear-gradient(135deg, #FF6B9D 0%, #FF5285 100%);
   color: white;
   border: none;
@@ -326,29 +363,29 @@
   box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
 }
 
-.wheel-spin-btn:hover:not(:disabled) {
+.slot-spin-btn:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
 }
 
-.wheel-spin-btn:active:not(:disabled) {
+.slot-spin-btn:active:not(:disabled) {
   transform: translateY(0);
 }
 
-.wheel-spin-btn.spinning {
+.slot-spin-btn.spinning {
   background: #ccc;
   cursor: not-allowed;
   box-shadow: none;
 }
 
-.wheel-spin-btn.disabled {
+.slot-spin-btn.disabled {
   background: #e0e0e0;
   cursor: not-allowed;
   color: #999;
 }
 
 /* 결과 표시 */
-.wheel-result {
+.slot-result {
   width: 100%;
   padding: 12px;
   background: #f9f9f9;
@@ -378,20 +415,17 @@
     max-height: 95vh;
   }
 
-  .wheel-container {
-    width: 180px;
-    height: 180px;
+  .slot-machine-container {
+    max-width: 100%;
+    height: 150px;
   }
 
-  .wheel-segment {
-    width: 80px;
-    height: 80px;
-    margin: -40px 0 0 -40px;
-    origin: 40px 40px;
+  .slot-item {
+    height: 50px;
+    font-size: 13px;
   }
 
-  .wheel-segment-text {
-    font-size: 10px;
-    width: 50px;
+  .slot-pointer {
+    height: 50px;
   }
 }
