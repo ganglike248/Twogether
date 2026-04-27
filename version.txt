@@ -1,3 +1,8 @@
+v0.3.25 (2026.04.27)
+- chore: 미사용 빈 파일 제거
+  - EventForm.js 삭제 (폼 로직이 EventModal.js에 통합됨)
+  - MemoryForm.js 삭제 (사용되지 않음)
+
 v0.3.24 (2026.04.24)
 - fix: 버킷리스트 페이지 UI/UX 축소 및 스타일 개선
   - 달성률 퍼센티지 폰트 사이즈 2rem → 1.4rem
