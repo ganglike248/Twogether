@@ -32,16 +32,19 @@ const AppHeader = () => {
   };
 
   return (
-    <header className="app-header" onClick={() => navigate('/', { replace: true })}>
+    <header className="app-header">
       <button className="app-header-logout" onClick={handleLogout}>
         <HiArrowRightOnRectangle />
       </button>
-      <span className="app-header-title">우리두리</span>
+      <span className="app-header-title" onClick={() => navigate('/', { replace: true })}>
+        우리두리
+      </span>
       <div className="app-header-right">
         <HiHeart className="app-header-heart" />
         {dday !== null && <span className="app-header-dday">+ {dday}</span>}
-        <button className="app-header-profile" onClick={handleProfile}>
+        <button className="app-header-profile" onClick={handleProfile} title="프로필">
           <HiUser />
+          <span className="app-header-profile-label">프로필</span>
         </button>
       </div>
     </header>

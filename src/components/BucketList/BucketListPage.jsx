@@ -118,8 +118,7 @@ function BucketListPage() {
       completedAt: null,
       createdAt: new Date().toISOString(),
     };
-    const docRef = await addDoc(collection(db, 'bucketlists'), newItem);
-    setBucketList(list => [...list, { ...newItem, id: docRef.id }]);
+    await addDoc(collection(db, 'bucketlists'), newItem);
     setAddForm({ title: '', content: '', category: 'food' });
     closeModal();
   };
@@ -135,22 +134,12 @@ function BucketListPage() {
       completed: true,
       completedAt: completionDate
     });
-    setBucketList(list =>
-      list.map(item =>
-        item.id === selectedItemId
-          ? { ...item, completed: true, completedAt: completionDate }
-          : item
-      )
-    );
     closeModal();
   };
 
   const handleUncheck = async (id) => {
     if (!window.confirm('완료를 취소하시겠습니까?')) return;
     await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
-    setBucketList(list =>
-      list.map(item => item.id === id ? { ...item, completed: false, completedAt: null } : item)
-    );
   };
 
   const handleDelete = async (id) => {
@@ -187,13 +176,6 @@ function BucketListPage() {
       content: editForm.content,
       category: editForm.category,
     });
-    setBucketList(list =>
-      list.map(item =>
-        item.id === editForm.id
-          ? { ...item, title: editForm.title, content: editForm.content, category: editForm.category }
-          : item
-      )
-    );
     closeModal();
   };
 
@@ -205,9 +187,6 @@ function BucketListPage() {
   const handleEditUncheck = async (id = editForm.id) => {
     if (!window.confirm('완료를 취소하시겠습니까?')) return;
     await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
-    setBucketList(list =>
-      list.map(item => item.id === id ? { ...item, completed: false, completedAt: null } : item)
-    );
     if (modalState.type === 'edit') {
       closeModal();
     }

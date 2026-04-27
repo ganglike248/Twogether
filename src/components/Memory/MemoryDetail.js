@@ -24,12 +24,12 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
         <div className="memory-modal-content">
           <div className="memory-details">
             <div className={`memory-badge ${
-              memory.eventType === 'boyfriend' ? 'boyfriend' : 
+              memory.eventType === 'boyfriend' ? 'boyfriend' :
               memory.eventType === 'girlfriend' ? 'girlfriend' : 'couple'
             }`}>
               {getMemberName(memory.eventType)}
             </div>
-            
+
             <div className="memory-section">
               <h3 className="memory-section-title">날짜</h3>
               <p className="memory-date">{formatDate(memory.start)}</p>
@@ -37,7 +37,7 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
                 <p className="memory-date">~ {formatDate(memory.end)}</p>
               )}
             </div>
-            
+
             {memory.description && (
               <div className="memory-section">
                 <h3 className="memory-section-title">내용</h3>

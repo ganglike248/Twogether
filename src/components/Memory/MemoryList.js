@@ -117,6 +117,12 @@ const MemoryList = () => {
     }
   }, [filter, memories]);
 
+  // 필터 변경 시 페이지네이션 초기화 (새로운 필터로 데이터 재로드)
+  const resetPagination = useCallback(() => {
+    setLastDoc(null);
+    setHasMore(true);
+  }, []);
+
   // 스크롤 핸들러
   const handleScroll = useCallback(() => {
     if (!containerRef.current || !hasMore || loadingMore) return;
@@ -147,25 +153,37 @@ const MemoryList = () => {
 
       <div className="filter-container">
         <button
-          onClick={() => setFilter('all')}
+          onClick={() => {
+            setFilter('all');
+            resetPagination();
+          }}
           className={`filter-button ${filter === 'all' ? 'active' : ''}`}
         >
           전체
         </button>
         <button
-          onClick={() => setFilter('couple')}
+          onClick={() => {
+            setFilter('couple');
+            resetPagination();
+          }}
           className={`filter-button ${filter === 'couple' ? 'active' : ''}`}
         >
           데이트
         </button>
         <button
-          onClick={() => setFilter('boyfriend')}
+          onClick={() => {
+            setFilter('boyfriend');
+            resetPagination();
+          }}
           className={`filter-button ${filter === 'boyfriend' ? 'active' : ''}`}
         >
           {getMemberName('boyfriend')}
         </button>
         <button
-          onClick={() => setFilter('girlfriend')}
+          onClick={() => {
+            setFilter('girlfriend');
+            resetPagination();
+          }}
           className={`filter-button ${filter === 'girlfriend' ? 'active' : ''}`}
         >
           {getMemberName('girlfriend')}

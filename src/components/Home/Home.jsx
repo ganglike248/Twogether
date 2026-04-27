@@ -11,7 +11,7 @@ import {
 } from 'react-icons/hi2';
 import useCalendar from '../../hooks/useCalendar';
 import { useTrips, useTripSchedules } from '../../hooks/useTrip';
-import { collection, getDocs, query, where } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import TutorialSlides from '../Onboarding/TutorialSlides';
@@ -52,12 +52,12 @@ const Home = () => {
 
   useEffect(() => {
     if (!coupleId) return;
-    getDocs(query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId)))
-      .then(snap => {
-        const all = snap.docs.map(d => d.data());
-        setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
-      })
-      .catch(() => {});
+    const q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
+    const unsubscribe = onSnapshot(q, (snap) => {
+      const all = snap.docs.map(d => d.data());
+      setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
+    });
+    return () => unsubscribe();
   }, [coupleId]);
 
   const getSpecialMessage = () => {

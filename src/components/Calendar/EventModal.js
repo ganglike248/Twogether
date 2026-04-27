@@ -40,6 +40,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!title.trim()) {
+      toast.error('일정 제목을 입력해주세요.');
+      return;
+    }
+
+    if (!startDate) {
+      toast.error('시작일을 입력해주세요.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -214,7 +225,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading}
+                disabled={loading || !title.trim() || !startDate}
               >
                 {loading ? (
                   <>
