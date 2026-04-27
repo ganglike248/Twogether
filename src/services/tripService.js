@@ -13,6 +13,7 @@ import {
   onSnapshot,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { createTravelEvent, updateTravelEvent, deleteTravelEvent } from './eventService';
 
 export const createTrip = async (tripData, userId = 'anonymous', coupleId = null) => {
   const newTrip = {
@@ -24,7 +25,16 @@ export const createTrip = async (tripData, userId = 'anonymous', coupleId = null
     createdBy: userId,
   };
   const docRef = await addDoc(collection(db, 'trips'), newTrip);
-  return { id: docRef.id, ...newTrip };
+  const tripWithId = { id: docRef.id, ...newTrip };
+
+  // 여행 이벤트 자동 생성
+  try {
+    await createTravelEvent(tripData, userId, coupleId);
+  } catch (error) {
+    console.error('여행 이벤트 생성 실패:', error);
+  }
+
+  return tripWithId;
 };
 
 export const subscribeToTrips = (coupleId, callback) => {
@@ -44,14 +54,21 @@ export const subscribeToTrips = (coupleId, callback) => {
   });
 };
 
-export const updateTrip = async (tripId, tripData) => {
+export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
   await updateDoc(doc(db, 'trips', tripId), {
     ...tripData,
     updatedAt: serverTimestamp(),
   });
+
+  // 여행 이벤트 자동 업데이트
+  try {
+    await updateTravelEvent(tripId, tripData, userId, coupleId);
+  } catch (error) {
+    console.error('여행 이벤트 업데이트 실패:', error);
+  }
 };
 
-export const deleteTrip = async (tripId) => {
+export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) => {
   const schedulesSnap = await getDocs(
     query(collection(db, 'tripSchedules'), where('tripId', '==', tripId))
   );
@@ -63,6 +80,13 @@ export const deleteTrip = async (tripId) => {
     ...travelTimesSnap.docs.map(d => deleteDoc(d.ref)),
     deleteDoc(doc(db, 'trips', tripId)),
   ]);
+
+  // 여행 이벤트 자동 삭제
+  try {
+    await deleteTravelEvent(tripId, userId, coupleId);
+  } catch (error) {
+    console.error('여행 이벤트 삭제 실패:', error);
+  }
 };
 
 export const saveTripSchedule = async (tripId, day, schedules) => {

@@ -67,7 +67,7 @@ const TravelPlanPage = () => {
     const handleSaveTrip = async (tripData) => {
         try {
             if (tripData.id) {
-                await updateTrip(tripData.id, tripData);
+                await updateTrip(tripData.id, tripData, user?.uid, coupleId);
             } else {
                 await createTrip(tripData, user?.uid, coupleId);
             }
@@ -82,7 +82,7 @@ const TravelPlanPage = () => {
     const handleDeleteTrip = async (tripId) => {
         if (window.confirm('이 여행 계획을 삭제하시겠습니까?')) {
             try {
-                await deleteTrip(tripId);
+                await deleteTrip(tripId, user?.uid, coupleId);
                 if (selectedTrip?.id === tripId) {
                     navigate('/travel');
                 }

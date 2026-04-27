@@ -1,3 +1,13 @@
+v0.3.33 (2026.04.27)
+- feat: Travel Events 기능 연결 (여행 ↔ 캘린더 자동 동기화)
+  - tripService.js: createTrip, updateTrip, deleteTrip에 Travel Events 호출 추가
+    여행 생성 시 자동으로 캘린더 이벤트 생성 (eventType: 'travel')
+    여행 수정 시 자동으로 캘린더 이벤트 수정
+    여행 삭제 시 자동으로 캘린더 이벤트 삭제
+  - TravelPlanPage.js: updateTrip, deleteTrip 호출 시 userId, coupleId 전달
+  - 에러 발생 시에도 여행 작업은 정상 진행 (Travel Events 생성 실패는 로그만)
+  - 사용자는 여행만 관리 → 캘린더는 자동 반영 (원래 의도대로 구현)
+
 v0.3.32 (2026.04.27)
 - fix: 에러 핸들링 통일 (alert → toast.error)
   - Calendar.jsx: 5개 alert 제거 (일정 수정/저장/삭제, 생리 기록/삭제)
