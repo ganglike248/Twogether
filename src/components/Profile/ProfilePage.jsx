@@ -35,6 +35,7 @@ const ProfilePage = () => {
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [showHeroDeleteModal, setShowHeroDeleteModal] = useState(false);
 
   // Firestore의 현재 저장된 이미지 URL
   const heroImageUrl = coupleDoc?.heroImageUrl || null;
@@ -112,13 +113,17 @@ const ProfilePage = () => {
   };
 
   const handleHeroDelete = () => {
-    if (!window.confirm('홈 화면 사진을 제거하시겠습니까?')) return;
+    setShowHeroDeleteModal(true);
+  };
+
+  const confirmHeroDelete = () => {
     if (heroPreviewUrl) {
       URL.revokeObjectURL(heroPreviewUrl);
       setHeroPreviewUrl(null);
     }
     setPendingHeroFile(null);
     setPendingHeroDelete(true);
+    setShowHeroDeleteModal(false);
   };
 
   // ─── 저장 ─────────────────────────────────────────────────
@@ -150,9 +155,9 @@ const ProfilePage = () => {
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       return true;
-    } catch (err) {
-      console.error('[ProfilePage] 저장 실패:', err);
-      toast.error(`저장 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
+    } catch (error) {
+      console.error('[ProfilePage] 저장 실패:', error);
+      toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
       return false;
     } finally {
       setLoading(false);
@@ -442,6 +447,30 @@ const ProfilePage = () => {
                 disabled={loading}
               >
                 저장
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* 사진 삭제 확인 모달 */}
+      {showHeroDeleteModal && (
+        <div className="profile-modal-overlay">
+          <div className="profile-modal-box">
+            <p className="profile-modal-title">사진 제거</p>
+            <p className="profile-modal-msg">홈 화면 사진을 제거하시겠습니까?</p>
+            <div className="profile-modal-actions">
+              <button
+                className="profile-modal-btn"
+                onClick={() => setShowHeroDeleteModal(false)}
+              >
+                취소
+              </button>
+              <button
+                className="profile-modal-btn discard"
+                onClick={confirmHeroDelete}
+              >
+                제거
               </button>
             </div>
           </div>

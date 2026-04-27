@@ -6,7 +6,7 @@ import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { useTripSchedules } from '../../hooks/useTrip';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, getTravelTimes } from '../../services/tripService';
-import { formatDate } from '../../utils/dataUtils';
+import { formatDate, convertToDate } from '../../utils/dataUtils';
 import ScheduleItem from './ScheduleItem';
 import ScheduleModal from './ScheduleModal';
 import TravelTimeInput from './TravelTimeInput';
@@ -25,8 +25,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
 
     const getTripDays = () => {
         try {
-            const startDate = trip.startDate?.toDate ? trip.startDate.toDate() : new Date(trip.startDate);
-            const endDate = trip.endDate?.toDate ? trip.endDate.toDate() : new Date(trip.endDate);
+            const startDate = convertToDate(trip.startDate);
+            const endDate = convertToDate(trip.endDate);
+            if (!startDate || !endDate) return 1;
             return differenceInDays(endDate, startDate) + 1;
         } catch {
             return 1;
@@ -70,7 +71,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
 
     const getDayDate = (day) => {
         try {
-            const startDate = trip.startDate?.toDate ? trip.startDate.toDate() : new Date(trip.startDate);
+            const startDate = convertToDate(trip.startDate);
+            if (!startDate) return `${day}일차`;
             return format(addDays(startDate, day - 1), 'MM.dd (EEE)', { locale: ko });
         } catch { return `${day}일차`; }
     };

@@ -75,14 +75,15 @@ function BucketListPage() {
   const [editForm, setEditForm] = useState({ id: '', title: '', content: '', category: 'food', completed: false, completedAt: null });
   const [completionDate, setCompletionDate] = useState('');
   const [selectedItemId, setSelectedItemId] = useState(null);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
-  // customCategories 로드 및 categoryOptions 업데이트
+  // customCategories 실시간 구독
   useEffect(() => {
     if (!coupleId) return;
-    const loadCategories = async () => {
+    const coupleDocRef = doc(db, 'couples', coupleId);
+    const unsubscribe = onSnapshot(coupleDocRef, (coupleDocSnap) => {
       try {
-        const coupleDocRef = doc(db, 'couples', coupleId);
-        const coupleDocSnap = await getDoc(coupleDocRef);
         const loadedCustomCategories = coupleDocSnap.data()?.customCategories || {};
         setCustomCategories(loadedCustomCategories);
 
@@ -99,8 +100,10 @@ function BucketListPage() {
       } catch (error) {
         console.error('카테고리 로드 실패:', error);
       }
-    };
-    loadCategories();
+    }, (error) => {
+      console.error('카테고리 구독 실패:', error);
+    });
+    return () => unsubscribe();
   }, [coupleId]);
 
   // bucketList 실시간 구독
@@ -183,7 +186,23 @@ function BucketListPage() {
   };
 
   const handleDelete = async (id) => {
-    await deleteDoc(doc(db, 'bucketlists', id));
+    setItemToDelete(id);
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = async () => {
+    if (!itemToDelete) return;
+    try {
+      await deleteDoc(doc(db, 'bucketlists', itemToDelete));
+      setShowDeleteModal(false);
+      setItemToDelete(null);
+      if (modalState.type === 'edit') {
+        closeModal();
+      }
+    } catch (error) {
+      console.error('삭제 실패:', error);
+      toast.error('삭제 중 오류가 발생했습니다.');
+    }
   };
 
   const closeModal = () => {
@@ -223,17 +242,20 @@ function BucketListPage() {
   };
 
   const handleEditUncheck = async (id = editForm.id) => {
-    if (!window.confirm('완료를 취소하시겠습니까?')) return;
-    await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
-    if (modalState.type === 'edit') {
-      closeModal();
+    try {
+      await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
+      if (modalState.type === 'edit') {
+        closeModal();
+      }
+    } catch (error) {
+      console.error('미완료 변경 실패:', error);
+      toast.error('미완료 처리 중 오류가 발생했습니다.');
     }
   };
 
   const handleEditDelete = () => {
-    if (!window.confirm('정말 삭제할까요?')) return;
-    handleDelete(editForm.id);
-    closeModal();
+    setItemToDelete(editForm.id);
+    setShowDeleteModal(true);
   };
 
   const formatBucketDate = (dateStr) => {
@@ -429,6 +451,30 @@ function BucketListPage() {
         customCategories={customCategories}
         onSave={handleSaveCategories}
       />
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="bucket-modal-overlay">
+          <div className="bucket-modal-box">
+            <p className="bucket-modal-title">항목 삭제</p>
+            <p className="bucket-modal-msg">정말 삭제하시겠습니까?</p>
+            <div className="bucket-modal-actions">
+              <button
+                className="bucket-modal-btn bucket-modal-btn-cancel"
+                onClick={() => setShowDeleteModal(false)}
+              >
+                취소
+              </button>
+              <button
+                className="bucket-modal-btn bucket-modal-btn-delete"
+                onClick={confirmDelete}
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
 
       {/* 편집 모달 */}
       <BaseModal

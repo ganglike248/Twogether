@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
 import './TripCard.css';
 import { useTripSchedules } from '../../hooks/useTrip';
-import { formatDate } from '../../utils/dataUtils';
+import { formatDate, convertToDate } from '../../utils/dataUtils';
 
 const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);
@@ -11,8 +11,9 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
 
     const getDuration = () => {
         try {
-            const startDate = trip.startDate?.toDate ? trip.startDate.toDate() : new Date(trip.startDate);
-            const endDate = trip.endDate?.toDate ? trip.endDate.toDate() : new Date(trip.endDate);
+            const startDate = convertToDate(trip.startDate);
+            const endDate = convertToDate(trip.endDate);
+            if (!startDate || !endDate) return '1일';
             const days = differenceInDays(endDate, startDate) + 1;
             return `${days}일`;
         } catch (error) {

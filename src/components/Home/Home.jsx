@@ -14,6 +14,7 @@ import { useTrips, useTripSchedules } from '../../hooks/useTrip';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { convertToDate } from '../../utils/dataUtils';
 import TutorialSlides from '../Onboarding/TutorialSlides';
 import './Home.css';
 
@@ -74,15 +75,11 @@ const Home = () => {
   const afterMonths = loveStartDate ? addMonths(loveStartDate, loveMonthsTotal) : today;
   const loveDays = differenceInCalendarDays(today, afterMonths);
 
-  const getDateFromField = (field) => {
-    if (!field) return null;
-    return field?.toDate ? field.toDate() : new Date(field);
-  };
 
   // 진행 중인 여행
   const ongoingTrip = trips.find(t => {
-    const start = getDateFromField(t.startDate);
-    const end = getDateFromField(t.endDate);
+    const start = convertToDate(t.startDate);
+    const end = convertToDate(t.endDate);
     if (!start || !end) return false;
     const todayStr = format(today, 'yyyy-MM-dd');
     return format(start, 'yyyy-MM-dd') <= todayStr && todayStr <= format(end, 'yyyy-MM-dd');
@@ -91,22 +88,22 @@ const Home = () => {
   // 다음 예정 여행
   const nextTrip = !ongoingTrip ? trips
     .filter(t => {
-      const start = getDateFromField(t.startDate);
+      const start = convertToDate(t.startDate);
       return start && format(start, 'yyyy-MM-dd') > format(today, 'yyyy-MM-dd');
     })
-    .sort((a, b) => getDateFromField(a.startDate) - getDateFromField(b.startDate))[0] || null
+    .sort((a, b) => convertToDate(a.startDate) - convertToDate(b.startDate))[0] || null
     : null;
 
   const relevantTrip = ongoingTrip || nextTrip;
   const ongoingDay = ongoingTrip
-    ? differenceInCalendarDays(today, getDateFromField(ongoingTrip.startDate)) + 1
+    ? differenceInCalendarDays(today, convertToDate(ongoingTrip.startDate)) + 1
     : null;
   const { schedules: tripSchedules } = useTripSchedules(ongoingTrip?.id || null);
   const todayScheduleData = tripSchedules.find(s => s.day === ongoingDay);
   const todayItems = todayScheduleData?.schedules?.slice(0, 3) || [];
 
   const nextTripDays = nextTrip
-    ? differenceInCalendarDays(getDateFromField(nextTrip.startDate), today)
+    ? differenceInCalendarDays(convertToDate(nextTrip.startDate), today)
     : null;
 
   // 이번 달 일정 수
@@ -147,7 +144,7 @@ const Home = () => {
   };
 
   const formatTripDate = (field) => {
-    try { return format(getDateFromField(field), 'M월 d일', { locale: ko }); }
+    try { return format(convertToDate(field), 'M월 d일', { locale: ko }); }
     catch { return ''; }
   };
 

@@ -29,7 +29,7 @@ const MemoryList = () => {
     return data;
   };
 
-  // 초기 실시간 구독 (첫 페이지)
+  // 필터 기반 실시간 구독
   useEffect(() => {
     if (!coupleId) return;
 
@@ -37,13 +37,18 @@ const MemoryList = () => {
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
 
-    const q = query(
-      collection(db, "events"),
+    const constraints = [
       where("coupleId", "==", coupleId),
       where("start", "<=", todayStr),
       orderBy("start", "desc"),
       limit(PAGE_SIZE)
-    );
+    ];
+
+    if (filter !== 'all') {
+      constraints.splice(2, 0, where("eventType", "==", filter));
+    }
+
+    const q = query(collection(db, "events"), ...constraints);
 
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const memoriesData = [];
@@ -65,9 +70,9 @@ const MemoryList = () => {
     });
 
     return () => unsubscribe();
-  }, [coupleId]);
+  }, [coupleId, filter]);
 
-  // 추가 메모리 로드 (페이지네이션용 - getDocs 유지)
+  // 추가 메모리 로드 (필터 포함 페이지네이션)
   const fetchMoreMemories = useCallback(async () => {
     if (!coupleId || !lastDoc || !hasMore) return;
     setLoadingMore(true);
@@ -77,15 +82,19 @@ const MemoryList = () => {
       today.setHours(0, 0, 0, 0);
       const todayStr = today.toISOString().split('T')[0];
 
-      const q = query(
-        collection(db, "events"),
+      const constraints = [
         where("coupleId", "==", coupleId),
         where("start", "<=", todayStr),
         orderBy("start", "desc"),
         startAfter(lastDoc),
         limit(PAGE_SIZE)
-      );
+      ];
 
+      if (filter !== 'all') {
+        constraints.splice(2, 0, where("eventType", "==", filter));
+      }
+
+      const q = query(collection(db, "events"), ...constraints);
       const querySnapshot = await getDocs(q);
       const memoriesData = [];
 
@@ -105,19 +114,9 @@ const MemoryList = () => {
     } finally {
       setLoadingMore(false);
     }
-  }, [coupleId, lastDoc, hasMore]);
+  }, [coupleId, lastDoc, hasMore, filter]);
 
-  // 필터 변경 시 메모리 필터링
-  useEffect(() => {
-    if (filter === 'all') {
-      setFilteredMemories(memories);
-    } else {
-      const filtered = memories.filter(memory => memory.eventType === filter);
-      setFilteredMemories(filtered);
-    }
-  }, [filter, memories]);
-
-  // 필터 변경 시 페이지네이션 초기화 (새로운 필터로 데이터 재로드)
+  // 필터 변경 시 페이지네이션 초기화 (onSnapshot이 자동으로 새 데이터 로드)
   const resetPagination = useCallback(() => {
     setLastDoc(null);
     setHasMore(true);

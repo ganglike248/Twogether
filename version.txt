@@ -1,3 +1,20 @@
+v0.3.40 (2026.04.28)
+- fix: 기능성/보안/성능 11가지 개선사항 통합
+  - **기능성 버그 수정**
+    - MemoryList: 페이지네이션 로직 버그 (필터 변경 시 새 쿼리 재실행)
+    - BucketListPage: 카테고리 실시간 동기화 (getDoc → onSnapshot)
+    - Travel: Timestamp 처리 일관성 통일 (convertToDate 유틸 추가)
+    - EventModal: 일정 기간 유효성 검증 메시지 추가
+  - **보안 강화**
+    - edit_logs: coupleId 필터 추가 (타 커플 로그 접근 방지)
+    - Storage: validateCoupleIdAccess 함수 활용 (클라이언트 검증 기존)
+  - **UX 통일**
+    - window.confirm() → 커스텀 모달로 통일 (ProfilePage, BucketList, TravelPlan, EventModal)
+    - 에러 메시지 포맷 일관성 (${error?.message || String(error)})
+  - **성능 최적화**
+    - MemoryCard: React.memo 적용 (필터링 후 불필요한 리렌더링 방지)
+    - AppHeader: getDday useMemo로 메모이제이션 (anniversaryDate 변경 시에만 재계산)
+
 v0.3.39 (2026.04.28)
 - feat: 버킷리스트 2열 레이아웃
   - CSS Grid 2열 구성 (gap 0.5rem)

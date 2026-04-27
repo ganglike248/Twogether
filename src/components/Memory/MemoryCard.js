@@ -5,10 +5,10 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dataUtils';
 import './MemoryCard.css';
 
-const MemoryCard = ({ memory }) => {
+const MemoryCard = React.memo(({ memory }) => {
   const [showDetail, setShowDetail] = useState(false);
   const { getMemberName } = useAuthContext();
-  
+
   return (
     <>
       <div className="memory-card" onClick={() => setShowDetail(true)}>
@@ -40,13 +40,15 @@ const MemoryCard = ({ memory }) => {
         </div>
       </div>
       
-      <MemoryDetail 
+      <MemoryDetail
         isOpen={showDetail}
         onClose={() => setShowDetail(false)}
         memory={memory}
       />
     </>
   );
-};
+});
+
+MemoryCard.displayName = 'MemoryCard';
 
 export default MemoryCard;

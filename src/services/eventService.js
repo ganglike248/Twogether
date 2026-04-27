@@ -81,11 +81,12 @@ export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, las
   if (!coupleId) {
     return { logs: [], lastDoc: null, hasMore: false };
   }
-  // eventId가 있으면 eventId로만 필터링 (인덱스 있음)
+  // eventId가 있으면 eventId + coupleId로 필터링 (보안: coupleId 검증)
   if (eventId) {
     let q = query(
       collection(db, 'edit_logs'),
       where('eventId', '==', eventId),
+      where('coupleId', '==', coupleId),
       orderBy('timestamp', 'desc'),
       limit(limitCount)
     );
@@ -93,6 +94,7 @@ export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, las
       q = query(
         collection(db, 'edit_logs'),
         where('eventId', '==', eventId),
+        where('coupleId', '==', coupleId),
         orderBy('timestamp', 'desc'),
         startAfter(lastDoc),
         limit(limitCount)

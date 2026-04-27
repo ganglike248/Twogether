@@ -4,6 +4,7 @@ import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import './TripModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
+import { convertToDate } from '../../utils/dataUtils';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     const [formData, setFormData] = useState({
@@ -20,13 +21,11 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
 
     useEffect(() => {
         if (trip) {
-            const formatDateForInput = (date) => {
-                if (!date) return '';
+            const formatDateForInput = (dateField) => {
+                if (!dateField) return '';
                 try {
-                    if (date.toDate) {
-                        return format(date.toDate(), 'yyyy-MM-dd');
-                    }
-                    return format(new Date(date), 'yyyy-MM-dd');
+                    const date = convertToDate(dateField);
+                    return date ? format(date, 'yyyy-MM-dd') : '';
                 } catch (error) {
                     return '';
                 }

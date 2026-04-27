@@ -2,6 +2,17 @@
 import { format, isSameDay, isToday, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
+// Firestore Timestamp 또는 문자열을 Date 객체로 변환
+export const convertToDate = (dateField) => {
+  if (!dateField) return null;
+  try {
+    return dateField?.toDate ? dateField.toDate() : new Date(dateField);
+  } catch (error) {
+    console.error("Error converting date field:", error);
+    return null;
+  }
+};
+
 // 날짜 형식화 (ISO 문자열 또는 Firestore Timestamp 모두 처리)
 export const formatDate = (dateString, formatPattern = 'yyyy년 MM월 dd일') => {
   try {

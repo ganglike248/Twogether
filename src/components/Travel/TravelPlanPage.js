@@ -17,6 +17,8 @@ const TravelPlanPage = () => {
     const [editingTrip, setEditingTrip] = useState(null); // 모달에 전달할 편집 대상
     const [filter, setFilter] = useState('all'); // 'all', 'planning', 'completed'
     const [searchQuery, setSearchQuery] = useState('');
+    const [showDeleteModal, setShowDeleteModal] = useState(false);
+    const [tripToDelete, setTripToDelete] = useState(null);
 
     const navigate = useNavigate();
     const { tripId } = useParams();
@@ -78,18 +80,25 @@ const TravelPlanPage = () => {
         }
     };
 
-    // 여행 삭제
+    // 여행 삭제 요청
     const handleDeleteTrip = async (tripId) => {
-        if (window.confirm('이 여행 계획을 삭제하시겠습니까?')) {
-            try {
-                await deleteTrip(tripId, user?.uid, coupleId);
-                if (selectedTrip?.id === tripId) {
-                    navigate('/travel');
-                }
-            } catch (error) {
-                console.error('Error deleting trip:', error);
-                toast.error(`여행 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+        setTripToDelete(tripId);
+        setShowDeleteModal(true);
+    };
+
+    // 여행 삭제 확인
+    const confirmDeleteTrip = async () => {
+        if (!tripToDelete) return;
+        try {
+            await deleteTrip(tripToDelete, user?.uid, coupleId);
+            if (selectedTrip?.id === tripToDelete) {
+                navigate('/travel');
             }
+            setShowDeleteModal(false);
+            setTripToDelete(null);
+        } catch (error) {
+            console.error('Error deleting trip:', error);
+            toast.error(`여행 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
         }
     };
 
@@ -222,6 +231,30 @@ const TravelPlanPage = () => {
                     trip={editingTrip}
                     onSave={handleSaveTrip}
                 />
+            )}
+
+            {/* 여행 삭제 확인 모달 */}
+            {showDeleteModal && (
+                <div className="travel-plan-modal-overlay">
+                    <div className="travel-plan-modal-box">
+                        <p className="travel-plan-modal-title">여행 삭제</p>
+                        <p className="travel-plan-modal-msg">이 여행 계획을 삭제하시겠습니까?</p>
+                        <div className="travel-plan-modal-actions">
+                            <button
+                                className="travel-plan-modal-btn"
+                                onClick={() => setShowDeleteModal(false)}
+                            >
+                                취소
+                            </button>
+                            <button
+                                className="travel-plan-modal-btn delete"
+                                onClick={confirmDeleteTrip}
+                            >
+                                삭제
+                            </button>
+                        </div>
+                    </div>
+                </div>
             )}
         </div>
     );

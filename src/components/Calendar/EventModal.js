@@ -14,6 +14,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [eventType, setEventType] = useState('couple');
   const [loading, setLoading] = useState(false);
   const [showEventLog, setShowEventLog] = useState(false);
+  const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const extractDate = (isoString) => isoString?.split('T')[0] || '';
 
@@ -51,6 +52,12 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       return;
     }
 
+    const finalEndDate = endDate || startDate;
+    if (new Date(startDate) > new Date(finalEndDate)) {
+      toast.error('종료일은 시작일보다 늦거나 같아야 합니다.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -82,9 +89,12 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   };
 
   const handleDelete = () => {
-    if (window.confirm('이 일정을 삭제하시겠습니까?')) {
-      onDelete(event.id);
-    }
+    setShowDeleteModal(true);
+  };
+
+  const confirmDelete = () => {
+    onDelete(event.id);
+    setShowDeleteModal(false);
   };
 
   if (!isOpen) return null;
@@ -225,7 +235,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading || !title.trim() || !startDate}
+                disabled={loading || !title.trim() || !startDate || (startDate && endDate && new Date(startDate) > new Date(endDate))}
               >
                 {loading ? (
                   <>
@@ -238,6 +248,38 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
           </div>
         </form>
       </div>
+
+      {/* 삭제 확인 모달 */}
+      {showDeleteModal && (
+        <div className="modal-overlay">
+          <div className="modal-container">
+            <div className="modal-header">
+              <h2 className="modal-title">일정 삭제</h2>
+            </div>
+            <div className="modal-body">
+              <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
+                이 일정을 삭제하시겠습니까?
+              </p>
+            </div>
+            <div className="modal-footer">
+              <button
+                type="button"
+                onClick={() => setShowDeleteModal(false)}
+                className="btn btn-secondary"
+              >
+                취소
+              </button>
+              <button
+                type="button"
+                onClick={confirmDelete}
+                className="btn btn-danger"
+              >
+                삭제
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 };
