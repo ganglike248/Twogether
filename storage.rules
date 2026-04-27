@@ -3,7 +3,8 @@ rules_version = '2';
 service firebase.storage {
   match /b/{bucket}/o {
 
-    // 이벤트 이미지: 해당 커플 멤버만 읽기/쓰기
+    // 이벤트 이미지: 인증된 사용자가 접근 가능
+    // 권한 검증: storageService.js의 validateCoupleIdAccess()에서 수행
     // 경로: events/{coupleId}/{eventId}/{filename}
     match /events/{coupleId}/{eventId}/{filename} {
       allow read: if request.auth != null;
@@ -12,11 +13,14 @@ service firebase.storage {
         && request.resource.contentType.matches('image/.*');
     }
 
-    // 커플 hero 이미지: 인증된 사용자 읽기/쓰기 (파일 타입/크기는 앱에서 검증)
+    // 커플 hero 이미지: 인증된 사용자가 접근 가능
+    // 권한 검증: storageService.js의 validateCoupleIdAccess()에서 수행
     // 경로: couples/{coupleId}/hero
     match /couples/{coupleId}/hero {
       allow read: if request.auth != null;
-      allow write: if request.auth != null;
+      allow write: if request.auth != null
+        && request.resource.size < 10 * 1024 * 1024  // 10MB 제한
+        && request.resource.contentType.matches('image/.*');
     }
 
     // 기본: 차단

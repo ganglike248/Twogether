@@ -1,3 +1,11 @@
+v0.3.28 (2026.04.27)
+- fix: Storage 보안 강화 (coupleId 접근 제어)
+  - storageService.js: validateCoupleIdAccess 함수 추가
+  - 모든 업로드/삭제 전 현재 사용자의 coupleId와 비교 검증
+  - 타 사용자의 이미지 접근/수정 불가능하도록 방어
+  - uploadHeroImage/removeHeroImage에 권한 검증 로직 추가
+  - storage.rules: 파일 크기/타입 검증 + 클라이언트 권한 검증 명시
+
 v0.3.27 (2026.04.27)
 - refactor: 데이터 모델 정규화 (eventType 기반으로 통일)
   - useMemory.js 삭제 (dead code, 어디서도 import 안 됨)
