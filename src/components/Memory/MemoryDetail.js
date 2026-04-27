@@ -1,21 +1,12 @@
 // src/components/Memory/MemoryDetail.js
 import React from 'react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { formatDate } from '../../utils/dataUtils';
 import './MemoryDetail.css';
 
 const MemoryDetail = ({ isOpen, onClose, memory }) => {
   const { getMemberName } = useAuthContext();
   if (!isOpen || !memory) return null;
-  
-  const formatDate = (dateString) => {
-    try {
-      return format(new Date(dateString), 'yyyy년 MM월 dd일', { locale: ko });
-    } catch (error) {
-      return dateString;
-    }
-  };
   
   return (
     <div className="memory-modal-overlay">

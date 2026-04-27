@@ -1,24 +1,13 @@
 // src/components/Travel/TripCard.js
 import React, { useState, useEffect } from 'react';
-import { format, differenceInDays } from 'date-fns';
-import { ko } from 'date-fns/locale';
+import { differenceInDays } from 'date-fns';
 import './TripCard.css';
 import { useTripSchedules } from '../../hooks/useTrip';
+import { formatDate } from '../../utils/dataUtils';
 
 const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);
     const { schedules } = useTripSchedules(trip.id);
-
-    const formatDate = (dateString) => {
-        try {
-            if (dateString?.toDate) {
-                return format(dateString.toDate(), 'yyyy.MM.dd', { locale: ko });
-            }
-            return format(new Date(dateString), 'yyyy.MM.dd', { locale: ko });
-        } catch (error) {
-            return dateString;
-        }
-    };
 
     const getDuration = () => {
         try {
@@ -99,7 +88,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
 
                 <div className="trip-card-dates">
                     <span className="trip-card-date-range">
-                        {formatDate(trip.startDate)} ~ {formatDate(trip.endDate)}
+                        {formatDate(trip.startDate, 'yyyy.MM.dd')} ~ {formatDate(trip.endDate, 'yyyy.MM.dd')}
                     </span>
                     <span className="trip-card-duration">({getDuration()})</span>
                 </div>

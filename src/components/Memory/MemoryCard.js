@@ -1,23 +1,13 @@
 // src/components/Memory/MemoryCard.js
 import React, { useState } from 'react';
-import { format } from 'date-fns';
-import { ko } from 'date-fns/locale';
 import MemoryDetail from './MemoryDetail';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { formatDate } from '../../utils/dataUtils';
 import './MemoryCard.css';
 
 const MemoryCard = ({ memory }) => {
   const [showDetail, setShowDetail] = useState(false);
   const { getMemberName } = useAuthContext();
-  
-  // 날짜 형식 지정
-  const formatDate = (dateString) => {
-    try {
-      return format(new Date(dateString), 'yyyy년 MM월 dd일', { locale: ko });
-    } catch (error) {
-      return dateString;
-    }
-  };
   
   return (
     <>

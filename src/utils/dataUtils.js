@@ -2,10 +2,16 @@
 import { format, isSameDay, isToday, parseISO } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
-// 날짜 형식화
+// 날짜 형식화 (ISO 문자열 또는 Firestore Timestamp 모두 처리)
 export const formatDate = (dateString, formatPattern = 'yyyy년 MM월 dd일') => {
   try {
-    const date = parseISO(dateString);
+    let date;
+    // Firestore Timestamp 처리
+    if (dateString?.toDate) {
+      date = dateString.toDate();
+    } else {
+      date = parseISO(dateString);
+    }
     return format(date, formatPattern, { locale: ko });
   } catch (error) {
     console.error("Error formatting date:", error);

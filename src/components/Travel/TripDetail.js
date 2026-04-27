@@ -5,6 +5,7 @@ import { ko } from 'date-fns/locale';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { useTripSchedules } from '../../hooks/useTrip';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, getTravelTimes } from '../../services/tripService';
+import { formatDate } from '../../utils/dataUtils';
 import ScheduleItem from './ScheduleItem';
 import ScheduleModal from './ScheduleModal';
 import TravelTimeInput from './TravelTimeInput';
@@ -65,13 +66,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     }, [trip.id, activeDay, daySchedules]);
 
     useEffect(() => { setTotalBudget(trip.budget || 0); }, [trip.budget]);
-
-    const formatDate = (dateString) => {
-        try {
-            const d = dateString?.toDate ? dateString.toDate() : new Date(dateString);
-            return format(d, 'yyyy.MM.dd', { locale: ko });
-        } catch { return dateString; }
-    };
 
     const getDayDate = (day) => {
         try {
