@@ -14,21 +14,35 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
   const [slotOffset, setSlotOffset] = useState(0);
+  const [showCompleted, setShowCompleted] = useState(false); // 완료 항목 표시 여부
   const slotRef = useRef(null);
+
+  // 완료 상태별 필터링된 버킷 아이템
+  const statusFilteredBucketList = showCompleted
+    ? bucketList.filter(item => item.completed)
+    : bucketList.filter(item => !item.completed);
 
   // 카테고리별 필터링된 버킷 아이템
   const filteredBucketItems = selectedCategory === 'all'
-    ? bucketList
-    : bucketList.filter(item => item.category === selectedCategory);
+    ? statusFilteredBucketList
+    : statusFilteredBucketList.filter(item => item.category === selectedCategory);
 
   // 현재 탭의 아이템들
   const currentItems = activeTab === 'direct' ? directItems : selectedBucketItems;
 
-  // 탭 전환 시 슬롯 초기화
+  // 탭 전환 시 슬롯 & 필터 초기화
   useEffect(() => {
     setSlotOffset(0);
     setSpinResult(null);
+    setSelectedCategory('all');
+    setShowCompleted(false);
   }, [activeTab]);
+
+  // 카테고리 필터 변경 시 선택 항목 동기화 (필터 범위 밖의 항목 제거)
+  useEffect(() => {
+    const validIds = new Set(filteredBucketItems.map(item => item.id));
+    setSelectedBucketItems(prev => prev.filter(item => validIds.has(item.id)));
+  }, [filteredBucketItems]);
 
   // currentItems 변경 시 슬롯 초기화 (결과가 없을 때만)
   useEffect(() => {
@@ -175,13 +189,18 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                   onChange={(e) => setDirectInput(e.target.value)}
                   onKeyDown={handleKeyDown}
                   className="wheel-input"
+                  disabled={isSpinning}
                 />
-                <button className="wheel-add-btn" onClick={handleAddDirectItem}>
+                <button
+                  className="wheel-add-btn"
+                  onClick={handleAddDirectItem}
+                  disabled={isSpinning}
+                >
                   <MdAdd />
                 </button>
               </div>
 
-              {directItems.length > 0 && (
+              {directItems.length > 0 ? (
                 <div className="wheel-items-list">
                   {directItems.map((item) => (
                     <div key={item.id} className="wheel-item">
@@ -189,11 +208,16 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                       <button
                         className="wheel-item-remove"
                         onClick={() => handleRemoveDirectItem(item.id)}
+                        disabled={isSpinning}
                       >
                         ✕
                       </button>
                     </div>
                   ))}
+                </div>
+              ) : (
+                <div className="wheel-empty-state">
+                  <p>추가된 항목이 없습니다</p>
                 </div>
               )}
             </div>
@@ -202,14 +226,33 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
           {/* 버킷리스트 선택 탭 */}
           {activeTab === 'bucket' && (
             <div className="wheel-tab-content">
+              {/* 완료/미완료 필터 */}
+              <div className="wheel-status-filter">
+                <button
+                  className={`wheel-status-btn ${!showCompleted ? 'active' : ''}`}
+                  onClick={() => setShowCompleted(false)}
+                  disabled={isSpinning}
+                >
+                  미완료
+                </button>
+                <button
+                  className={`wheel-status-btn ${showCompleted ? 'active' : ''}`}
+                  onClick={() => setShowCompleted(true)}
+                  disabled={isSpinning}
+                >
+                  완료
+                </button>
+              </div>
+
               <div className="wheel-category-filter">
                 <select
                   value={selectedCategory}
                   onChange={(e) => setSelectedCategory(e.target.value)}
                   className="wheel-category-select"
+                  disabled={isSpinning}
                 >
                   <option value="all">전체 카테고리</option>
-                  {Array.from(new Set(bucketList.map(item => item.category))).sort().map(cat => (
+                  {Array.from(new Set(statusFilteredBucketList.map(item => item.category))).sort().map(cat => (
                     <option key={cat} value={cat}>
                       {getCategoryDisplayName(cat, customCategories)}
                     </option>
@@ -219,11 +262,19 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
               {/* 선택 버튼 */}
               <div className="wheel-selection-controls">
-                <button className="wheel-select-all-btn" onClick={handleSelectAllBucketItems}>
+                <button
+                  className="wheel-select-all-btn"
+                  onClick={handleSelectAllBucketItems}
+                  disabled={isSpinning || filteredBucketItems.length === 0}
+                >
                   전체 선택 ({filteredBucketItems.length})
                 </button>
                 {selectedBucketItems.length > 0 && (
-                  <button className="wheel-clear-selection-btn" onClick={handleClearBucketItems}>
+                  <button
+                    className="wheel-clear-selection-btn"
+                    onClick={handleClearBucketItems}
+                    disabled={isSpinning}
+                  >
                     선택 취소 ({selectedBucketItems.length}개 선택)
                   </button>
                 )}
@@ -237,12 +288,13 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                     return (
                       <div
                         key={item.id}
-                        className={`wheel-item wheel-bucket-item ${isSelected ? 'selected' : ''}`}
-                        onClick={() => handleToggleBucketItem(item)}
+                        className={`wheel-item wheel-bucket-item ${isSelected ? 'selected' : ''} ${isSpinning ? 'disabled' : ''}`}
+                        onClick={() => !isSpinning && handleToggleBucketItem(item)}
                         style={{
                           backgroundColor: isSelected ? getCategoryColor(item.category, customCategories) : '#f5f5f5',
                           color: isSelected ? '#fff' : '#333',
-                          cursor: 'pointer'
+                          cursor: isSpinning ? 'not-allowed' : 'pointer',
+                          opacity: isSpinning ? 0.6 : 1
                         }}
                       >
                         <span className="wheel-item-title">{item.title}</span>

@@ -1,5 +1,5 @@
 // src/components/BucketList/BucketListPage.jsx
-import React, { useEffect, useState, useMemo } from 'react';
+import React, { useEffect, useState, useMemo, useRef } from 'react';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
@@ -81,6 +81,7 @@ function BucketListPage() {
   const [selectedItemId, setSelectedItemId] = useState(null);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
+  const scrollPositions = useRef({ pending: 0, completed: 0 });
 
   // customCategories 실시간 구독
   useEffect(() => {
@@ -97,15 +98,17 @@ function BucketListPage() {
           { value: 'all', label: '전체' },
           ...Object.keys(allCategories).sort().map(key => ({
             value: key,
-            label: getCategoryDisplayName(key)
+            label: getCategoryDisplayName(key, loadedCustomCategories)
           }))
         ];
         setCategoryOptions(options);
       } catch (error) {
         console.error('카테고리 로드 실패:', error);
+        toast.error('카테고리를 로드하는 중 오류가 발생했습니다.');
       }
     }, (error) => {
       console.error('카테고리 구독 실패:', error);
+      toast.error('카테고리 데이터를 불러올 수 없습니다.');
     });
     return () => unsubscribe();
   }, [coupleId]);
@@ -137,6 +140,11 @@ function BucketListPage() {
   const getFirstCategory = () => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     return Object.keys(allCategories).sort()[0] || 'food';
+  };
+
+  const isValidCategory = (category) => {
+    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
+    return Object.keys(allCategories).includes(category);
   };
 
   const handleOpenAddModal = () => {
@@ -198,11 +206,24 @@ function BucketListPage() {
 
   const handleOpenDateModal = (id) => {
     setSelectedItemId(id);
+    setCompletionDate(format(new Date(), 'yyyy-MM-dd')); // 오늘 날짜 기본값
     setModalState({ type: 'date', data: null });
   };
 
   const handleCompleteWithDate = async () => {
     if (!selectedItemId || !completionDate) return;
+
+    // 날짜 검증: 미래 날짜 방지
+    const selectedDateObj = new Date(completionDate);
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    selectedDateObj.setHours(0, 0, 0, 0);
+
+    if (selectedDateObj > today) {
+      toast.warning('미래 날짜는 선택할 수 없습니다');
+      return;
+    }
+
     try {
       await updateDoc(doc(db, 'bucketlists', selectedItemId), {
         completed: true,
@@ -249,11 +270,13 @@ function BucketListPage() {
   };
 
   const handleOpenEditModal = (item) => {
+    // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
+    const validCategory = isValidCategory(item.category) ? item.category : getFirstCategory();
     setEditForm({
       id: item.id,
       title: item.title,
       content: item.content,
-      category: item.category,
+      category: validCategory,
       completed: item.completed,
       completedAt: item.completedAt
     });
@@ -316,6 +339,40 @@ function BucketListPage() {
   }, [bucketList]);
 
   const activeList = activeTab === 'pending' ? pendingList : completedList;
+  const bucketListRef = useRef(null);
+
+  // 탭 전환 시 스크롤 위치 저장 및 복원
+  useEffect(() => {
+    const currentElement = bucketListRef.current;
+    if (!currentElement) return;
+
+    // 현재 탭 스크롤 위치 저장
+    const saveScroll = () => {
+      scrollPositions.current[activeTab] = currentElement.scrollTop;
+    };
+
+    const handleScroll = () => {
+      scrollPositions.current[activeTab] = currentElement.scrollTop;
+    };
+
+    currentElement.addEventListener('scroll', handleScroll);
+
+    // 탭 복귀 시 스크롤 위치 복원
+    const restoreScroll = () => {
+      setTimeout(() => {
+        if (currentElement) {
+          currentElement.scrollTop = scrollPositions.current[activeTab] || 0;
+        }
+      }, 0);
+    };
+
+    restoreScroll();
+
+    return () => {
+      currentElement?.removeEventListener('scroll', handleScroll);
+      saveScroll();
+    };
+  }, [activeTab]);
 
   const { completedCount, totalCount, completionPercentage } = useMemo(() => {
     const currentFilter = tabFilters[activeTab];
@@ -372,7 +429,7 @@ function BucketListPage() {
         </button>
       </div>
 
-      <div className="bucket-list">
+      <div className="bucket-list" ref={bucketListRef}>
         <div className="bucket-toolbar">
           <div className="category-tabs">
             {categoryOptions.map(opt => {
@@ -477,6 +534,7 @@ function BucketListPage() {
           type="date"
           value={completionDate}
           onChange={e => setCompletionDate(e.target.value)}
+          max={format(new Date(), 'yyyy-MM-dd')}
         />
         <div className="bucket-modal-actions">
           <div className="bucket-modal-actions-primary">
