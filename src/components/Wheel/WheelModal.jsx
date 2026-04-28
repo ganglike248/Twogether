@@ -70,6 +70,16 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     setSelectedBucketItems(selectedBucketItems.filter(item => item.id !== id));
   };
 
+  const handleSelectAllBucketItems = () => {
+    setSelectedBucketItems(filteredBucketItems);
+    toast.success(`${filteredBucketItems.length}개 항목을 선택했습니다`);
+  };
+
+  const handleClearBucketItems = () => {
+    setSelectedBucketItems([]);
+    toast.info('선택이 취소되었습니다');
+  };
+
   const handleSpin = () => {
     if (currentItems.length === 0) {
       toast.warning('선택할 항목이 없습니다');
@@ -145,7 +155,6 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
             className={`wheel-tab ${activeTab === 'bucket' ? 'active' : ''}`}
             onClick={() => {
               setActiveTab('bucket');
-              setSelectedBucketItems(bucketList); // 모든 버킷리스트 아이템 선택
               setSpinResult(null);
             }}
           >
@@ -196,16 +205,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
               <div className="wheel-category-filter">
                 <select
                   value={selectedCategory}
-                  onChange={(e) => {
-                    const newCategory = e.target.value;
-                    setSelectedCategory(newCategory);
-                    // 선택한 카테고리의 모든 아이템을 기본으로 선택
-                    if (newCategory === 'all') {
-                      setSelectedBucketItems(bucketList);
-                    } else {
-                      setSelectedBucketItems(bucketList.filter(item => item.category === newCategory));
-                    }
-                  }}
+                  onChange={(e) => setSelectedCategory(e.target.value)}
                   className="wheel-category-select"
                 >
                   <option value="all">전체 카테고리</option>
@@ -215,6 +215,18 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                     </option>
                   ))}
                 </select>
+              </div>
+
+              {/* 선택 버튼 */}
+              <div className="wheel-selection-controls">
+                <button className="wheel-select-all-btn" onClick={handleSelectAllBucketItems}>
+                  전체 선택 ({filteredBucketItems.length})
+                </button>
+                {selectedBucketItems.length > 0 && (
+                  <button className="wheel-clear-selection-btn" onClick={handleClearBucketItems}>
+                    선택 취소 ({selectedBucketItems.length}개 선택)
+                  </button>
+                )}
               </div>
 
               {/* 버킷리스트 항목 (선택 가능) */}
@@ -268,6 +280,13 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
               )}
             </div>
           )}
+        </div>
+
+        {/* 선택 정보 */}
+        <div className="slot-selection-info">
+          <span className="slot-info-label">
+            {activeTab === 'direct' ? `추가된 항목: ${directItems.length}개` : `선택된 항목: ${selectedBucketItems.length}개`}
+          </span>
         </div>
 
         {/* 슬롯머신 섹션 */}

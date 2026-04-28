@@ -337,6 +337,25 @@
     grid-column: 1 / -1;
 }
 
+.bucket-loading {
+    text-align: center;
+    color: var(--text-sub);
+    font-size: 0.85rem;
+    padding: 2rem 0;
+    list-style: none;
+    grid-column: 1 / -1;
+    animation: pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes pulse {
+    0%, 100% {
+        opacity: 0.6;
+    }
+    50% {
+        opacity: 1;
+    }
+}
+
 /* 추가 버튼 */
 /* 탭 바 */
 .bucket-tab-bar {

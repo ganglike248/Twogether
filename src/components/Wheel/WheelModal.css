@@ -176,6 +176,42 @@
   border-color: #FF6B9D;
 }
 
+/* 선택 컨트롤 */
+.wheel-selection-controls {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.wheel-select-all-btn,
+.wheel-clear-selection-btn {
+  padding: 10px 12px;
+  border: 1px solid #FF6B9D;
+  border-radius: 8px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  background: white;
+  color: #FF6B9D;
+  transition: all 0.2s ease;
+}
+
+.wheel-select-all-btn:hover {
+  background: #FF6B9D;
+  color: white;
+}
+
+.wheel-clear-selection-btn {
+  border-color: #999;
+  color: #999;
+  background: #f9f9f9;
+}
+
+.wheel-clear-selection-btn:hover {
+  background: #f0f0f0;
+  color: #666;
+}
+
 /* 아이템 리스트 */
 .wheel-items-list {
   display: flex;
@@ -245,6 +281,20 @@
   padding: 20px;
   color: #999;
   font-size: 14px;
+}
+
+/* 선택 정보 */
+.slot-selection-info {
+  padding: 12px 20px;
+  background: #f9f9f9;
+  border-top: 1px solid #f0f0f0;
+  text-align: center;
+}
+
+.slot-info-label {
+  font-size: 13px;
+  color: #FF6B9D;
+  font-weight: 600;
 }
 
 /* 슬롯머신 섹션 */

@@ -68,6 +68,8 @@ function BucketListPage() {
   const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
   const [activeTab, setActiveTab] = useState('pending');
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [tabFilters, setTabFilters] = useState({ pending: 'all', completed: 'all' });
+  const [isLoading, setIsLoading] = useState(true);
 
   // 모달 상태 통합 관리
   const [modalState, setModalState] = useState({ type: null, data: null });
@@ -112,23 +114,36 @@ function BucketListPage() {
   useEffect(() => {
     if (!coupleId) return;
 
+    setIsLoading(true);
+    const currentFilter = tabFilters[activeTab];
     const constraints = [where('coupleId', '==', coupleId)];
-    if (filterCategory !== 'all') {
-      constraints.push(where('category', '==', filterCategory));
+    if (currentFilter !== 'all') {
+      constraints.push(where('category', '==', currentFilter));
     }
 
     const q = query(collection(db, 'bucketlists'), ...constraints);
     const unsubscribe = onSnapshot(q, (querySnapshot) => {
       const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(data);
+      setIsLoading(false);
+    }, (error) => {
+      console.error('버킷리스트 로드 실패:', error);
+      toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
+      setIsLoading(false);
     });
     return () => unsubscribe();
-  }, [coupleId, filterCategory]);
+  }, [coupleId, activeTab, tabFilters]);
+
+  const getFirstCategory = () => {
+    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
+    return Object.keys(allCategories).sort()[0] || 'food';
+  };
 
   const handleOpenAddModal = () => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
+    const currentFilter = tabFilters[activeTab];
     // 필터된 카테고리가 있으면 그것을 기본값으로, 아니면 첫 번째 카테고리
-    const defaultCategory = filterCategory !== 'all' ? filterCategory : (Object.keys(allCategories).sort()[0] || 'food');
+    const defaultCategory = currentFilter !== 'all' ? currentFilter : getFirstCategory();
     setAddForm(f => ({ ...f, category: defaultCategory }));
     setModalState({ type: 'add', data: null });
   };
@@ -148,13 +163,14 @@ function BucketListPage() {
         { value: 'all', label: '전체' },
         ...Object.keys(allCategories).sort().map(key => ({
           value: key,
-          label: getCategoryDisplayName(key)
+          label: getCategoryDisplayName(key, updatedCategories)
         }))
       ];
       setCategoryOptions(options);
+      toast.success('카테고리가 저장되었습니다.');
     } catch (error) {
       console.error('카테고리 저장 실패:', error);
-      toast.error(`카테고리 저장에 실패했습니다.\n${error?.message || String(error)}`);
+      toast.error('카테고리 저장에 실패했습니다.');
     }
   };
 
@@ -172,7 +188,7 @@ function BucketListPage() {
       };
       await addDoc(collection(db, 'bucketlists'), newItem);
       toast.success('버킷을 추가했습니다!');
-      setAddForm({ title: '', content: '', category: 'food' });
+      setAddForm({ title: '', content: '', category: getFirstCategory() });
       closeModal();
     } catch (error) {
       console.error('버킷 추가 실패:', error);
@@ -229,9 +245,7 @@ function BucketListPage() {
     setModalState({ type: null, data: null });
     setCompletionDate('');
     setSelectedItemId(null);
-    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
-    const firstCategory = Object.keys(allCategories).sort()[0] || 'food';
-    setAddForm(f => ({ ...f, category: firstCategory }));
+    setAddForm(f => ({ ...f, category: getFirstCategory() }));
   };
 
   const handleOpenEditModal = (item) => {
@@ -304,14 +318,19 @@ function BucketListPage() {
   const activeList = activeTab === 'pending' ? pendingList : completedList;
 
   const { completedCount, totalCount, completionPercentage } = useMemo(() => {
-    const completed = bucketList.filter(item => item.completed).length;
-    const total = bucketList.length;
+    const currentFilter = tabFilters[activeTab];
+    const filteredBucketList = currentFilter === 'all'
+      ? bucketList
+      : bucketList.filter(item => item.category === currentFilter);
+
+    const completed = filteredBucketList.filter(item => item.completed).length;
+    const total = filteredBucketList.length;
     return {
       completedCount: completed,
       totalCount: total,
       completionPercentage: total > 0 ? Math.round((completed / total) * 100) : 0
     };
-  }, [bucketList]);
+  }, [bucketList, activeTab, tabFilters]);
 
   return (
     <div className="bucket-container">
@@ -341,19 +360,13 @@ function BucketListPage() {
       <div className="bucket-tab-bar">
         <button
           className={`bucket-tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('pending');
-            setFilterCategory('all');
-          }}
+          onClick={() => setActiveTab('pending')}
         >
           예정 <span className="bucket-tab-count">{pendingList.length}</span>
         </button>
         <button
           className={`bucket-tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => {
-            setActiveTab('completed');
-            setFilterCategory('all');
-          }}
+          onClick={() => setActiveTab('completed')}
         >
           완료 <span className="bucket-tab-count">{completedList.length}</span>
         </button>
@@ -366,11 +379,12 @@ function BucketListPage() {
               const categoryColor = opt.value === 'all'
                 ? '#FFD700'
                 : getCategoryColor(opt.value, customCategories);
+              const currentFilter = tabFilters[activeTab];
               return (
                 <button
                   key={opt.value}
-                  className={`cat-tab ${filterCategory === opt.value ? 'active' : ''}`}
-                  onClick={() => setFilterCategory(opt.value)}
+                  className={`cat-tab ${currentFilter === opt.value ? 'active' : ''}`}
+                  onClick={() => setTabFilters(prev => ({ ...prev, [activeTab]: opt.value }))}
                   style={{ backgroundColor: categoryColor }}
                 >
                   {opt.label}
@@ -386,8 +400,12 @@ function BucketListPage() {
             </button>
           </div>
         </div>
-        {activeList.length === 0 ? (
-          <div className="bucket-empty">리스트가 없습니다.</div>
+        {isLoading ? (
+          <div className="bucket-loading">로딩 중...</div>
+        ) : activeList.length === 0 ? (
+          <div className="bucket-empty">
+            {bucketList.length === 0 ? '리스트가 없습니다.' : '조건에 맞는 항목이 없습니다.'}
+          </div>
         ) : (
           activeList.map(item => (
             <BucketItem
