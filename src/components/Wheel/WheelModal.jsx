@@ -2,40 +2,51 @@ import React, { useState, useRef, useEffect } from 'react';
 import { motion } from 'framer-motion';
 import { toast } from 'react-toastify';
 import { MdClose, MdAdd } from 'react-icons/md';
-import { getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
+import { getCategoryColor, getCategoryDisplayName, DEFAULT_CATEGORIES } from '../../services/categoryColorService';
 import './WheelModal.css';
 
 const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   const [activeTab, setActiveTab] = useState('direct'); // 'direct' | 'bucket'
   const [directItems, setDirectItems] = useState([]);
   const [directInput, setDirectInput] = useState('');
-  const [selectedCategory, setSelectedCategory] = useState('all');
-  const [selectedBucketItems, setSelectedBucketItems] = useState([]); // 선택된 버킷리스트 아이템
+  const [selectedBucketItems, setSelectedBucketItems] = useState([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
   const [slotOffset, setSlotOffset] = useState(0);
-  const [showCompleted, setShowCompleted] = useState(false); // 완료 항목 표시 여부
-  const slotRef = useRef(null);
+  // 탭별로 필터 상태 독립 관리
+  const [tabFilters, setTabFilters] = useState({
+    direct: { category: 'all', completed: false },
+    bucket: { category: 'all', completed: false }
+  });
+
+  // 현재 탭의 필터 상태
+  const currentFilter = tabFilters[activeTab];
 
   // 완료 상태별 필터링된 버킷 아이템
-  const statusFilteredBucketList = showCompleted
+  const statusFilteredBucketList = currentFilter.completed
     ? bucketList.filter(item => item.completed)
     : bucketList.filter(item => !item.completed);
 
-  // 카테고리별 필터링된 버킷 아이템
-  const filteredBucketItems = selectedCategory === 'all'
+  // 유효한 카테고리만 필터링 (삭제된 카테고리 제외)
+  const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
+  const isValidCategory = (category) => {
+    if (category === 'all') return true;
+    return Object.keys(allCategories).includes(category);
+  };
+
+  const filteredBucketItems = currentFilter.category === 'all'
     ? statusFilteredBucketList
-    : statusFilteredBucketList.filter(item => item.category === selectedCategory);
+    : statusFilteredBucketList.filter(
+        item => isValidCategory(item.category) && item.category === currentFilter.category
+      );
 
   // 현재 탭의 아이템들
   const currentItems = activeTab === 'direct' ? directItems : selectedBucketItems;
 
-  // 탭 전환 시 슬롯 & 필터 초기화
+  // 탭 전환 시 슬롯 초기화 (필터는 유지)
   useEffect(() => {
     setSlotOffset(0);
     setSpinResult(null);
-    setSelectedCategory('all');
-    setShowCompleted(false);
   }, [activeTab]);
 
   // 카테고리 필터 변경 시 선택 항목 동기화 (필터 범위 밖의 항목 제거)
@@ -43,6 +54,17 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     const validIds = new Set(filteredBucketItems.map(item => item.id));
     setSelectedBucketItems(prev => prev.filter(item => validIds.has(item.id)));
   }, [filteredBucketItems]);
+
+  // 결과 표시 후 3초 자동 초기화
+  useEffect(() => {
+    if (spinResult && !isSpinning) {
+      const timer = setTimeout(() => {
+        setSpinResult(null);
+        setSlotOffset(0);
+      }, 3000);
+      return () => clearTimeout(timer);
+    }
+  }, [spinResult, isSpinning]);
 
   // currentItems 변경 시 슬롯 초기화 (결과가 없을 때만)
   useEffect(() => {
@@ -95,44 +117,58 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   };
 
   const handleSpin = () => {
-    if (currentItems.length === 0) {
+    if (!currentItems || currentItems.length === 0) {
       toast.warning('선택할 항목이 없습니다');
       return;
     }
 
     if (isSpinning) return;
 
-    // 슬롯 초기화
-    setSlotOffset(0);
-    setIsSpinning(true);
-    setSpinResult(null);
+    try {
+      // 슬롯 초기화
+      setSlotOffset(0);
+      setIsSpinning(true);
+      setSpinResult(null);
 
-    // 무작위 결과 항목 선택
-    const resultIndex = Math.floor(Math.random() * currentItems.length);
-    const selectedItem = currentItems[resultIndex];
+      // 무작위 결과 항목 선택 (안전한 범위 체크)
+      const safeLength = Math.max(1, currentItems.length);
+      const resultIndex = Math.floor(Math.random() * safeLength);
+      const selectedItem = currentItems[resultIndex];
 
-    // 슬롯머신 정확한 계산
-    const itemHeight = 60;
-    const itemCount = currentItems.length;
-    const containerHeight = 180; // 슬롯 컨테이너 높이
-    const pointerCenter = containerHeight / 2; // 포인터 정중앙 (90px)
-    const itemCenter = itemHeight / 2; // 아이템 중간 (30px)
-    const targetTop = pointerCenter - itemCenter; // 아이템 상단이 60px에 위치
+      if (!selectedItem) {
+        toast.error('항목 선택 중 오류가 발생했습니다');
+        setIsSpinning(false);
+        return;
+      }
 
-    const minSpins = 3; // 최소 3바퀴
-    const extraSpins = Math.floor(Math.random() * 2); // 3-4바퀴 사이의 랜덤성
-    const totalSpins = minSpins + extraSpins;
+      // 슬롯머신 정확한 계산
+      const itemHeight = 60;
+      const itemCount = safeLength;
+      const containerHeight = 180;
+      const pointerCenter = containerHeight / 2;
+      const itemCenter = itemHeight / 2;
+      const targetTop = pointerCenter - itemCenter;
 
-    // 최종 이동 거리 = (총 회전 + 결과 인덱스) * 높이 - 포인터 오프셋
-    const finalOffset = (totalSpins * itemCount + resultIndex) * itemHeight - targetTop;
+      const minSpins = 3;
+      const extraSpins = Math.floor(Math.random() * 2);
+      const totalSpins = minSpins + extraSpins;
 
-    setSlotOffset(finalOffset);
+      const finalOffset = (totalSpins * itemCount + resultIndex) * itemHeight - targetTop;
 
-    // 애니메이션 완료 후 결과 표시
-    setTimeout(() => {
-      setSpinResult(selectedItem);
+      setSlotOffset(finalOffset);
+
+      // 애니메이션 완료 후 결과 표시 (2.5초)
+      const spinTimeout = setTimeout(() => {
+        setSpinResult(selectedItem);
+        setIsSpinning(false);
+      }, 2500);
+
+      return () => clearTimeout(spinTimeout);
+    } catch (error) {
+      console.error('슬롯 회전 중 오류:', error);
+      toast.error('슬롯 회전 중 오류가 발생했습니다');
       setIsSpinning(false);
-    }, 2500);
+    }
   };
 
   const handleKeyDown = (e) => {
@@ -229,35 +265,48 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
               {/* 완료/미완료 필터 */}
               <div className="wheel-status-filter">
                 <button
-                  className={`wheel-status-btn ${!showCompleted ? 'active' : ''}`}
-                  onClick={() => setShowCompleted(false)}
+                  className={`wheel-status-btn ${!currentFilter.completed ? 'active' : ''}`}
+                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, completed: false } }))}
                   disabled={isSpinning}
                 >
                   미완료
                 </button>
                 <button
-                  className={`wheel-status-btn ${showCompleted ? 'active' : ''}`}
-                  onClick={() => setShowCompleted(true)}
+                  className={`wheel-status-btn ${currentFilter.completed ? 'active' : ''}`}
+                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, completed: true } }))}
                   disabled={isSpinning}
                 >
                   완료
                 </button>
               </div>
 
-              <div className="wheel-category-filter">
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  className="wheel-category-select"
+              {/* 카테고리 필터 (탭 형식) */}
+              <div className="wheel-category-tabs">
+                <button
+                  className={`wheel-category-tab ${currentFilter.category === 'all' ? 'active' : ''}`}
+                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, category: 'all' } }))}
                   disabled={isSpinning}
+                  style={{ backgroundColor: currentFilter.category === 'all' ? '#FFD700' : '#f0f0f0' }}
                 >
-                  <option value="all">전체 카테고리</option>
-                  {Array.from(new Set(statusFilteredBucketList.map(item => item.category))).sort().map(cat => (
-                    <option key={cat} value={cat}>
+                  전체
+                </button>
+                {Array.from(new Set(statusFilteredBucketList.map(item => item.category))).filter(isValidCategory).sort().map(cat => {
+                  const color = getCategoryColor(cat, customCategories);
+                  return (
+                    <button
+                      key={cat}
+                      className={`wheel-category-tab ${currentFilter.category === cat ? 'active' : ''}`}
+                      onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, category: cat } }))}
+                      disabled={isSpinning}
+                      style={{
+                        backgroundColor: currentFilter.category === cat ? color : '#f0f0f0',
+                        color: currentFilter.category === cat ? '#fff' : '#333'
+                      }}
+                    >
                       {getCategoryDisplayName(cat, customCategories)}
-                    </option>
-                  ))}
-                </select>
+                    </button>
+                  );
+                })}
               </div>
 
               {/* 선택 버튼 */}
@@ -350,7 +399,6 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
             <div className="slot-machine-container">
             {currentItems.length > 0 ? (
               <motion.div
-                ref={slotRef}
                 className="slot-tape"
                 style={{
                   height: currentItems.length * 5 * 60 + 'px'

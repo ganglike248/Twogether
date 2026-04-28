@@ -118,23 +118,46 @@ function BucketListPage() {
     if (!coupleId) return;
 
     setIsLoading(true);
-    const currentFilter = tabFilters[activeTab];
-    const constraints = [where('coupleId', '==', coupleId)];
-    if (currentFilter !== 'all') {
-      constraints.push(where('category', '==', currentFilter));
-    }
+    let unsubscribeSnapshot = null;
+    let timeoutId = null;
 
-    const q = query(collection(db, 'bucketlists'), ...constraints);
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
-      const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-      setBucketList(data);
-      setIsLoading(false);
-    }, (error) => {
-      console.error('버킷리스트 로드 실패:', error);
-      toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
-      setIsLoading(false);
-    });
-    return () => unsubscribe();
+    const setupSubscription = () => {
+      const currentFilter = tabFilters[activeTab];
+      const constraints = [where('coupleId', '==', coupleId)];
+      if (currentFilter !== 'all') {
+        constraints.push(where('category', '==', currentFilter));
+      }
+
+      const q = query(collection(db, 'bucketlists'), ...constraints);
+
+      unsubscribeSnapshot = onSnapshot(
+        q,
+        (querySnapshot) => {
+          const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+          setBucketList(data);
+          setIsLoading(false);
+        },
+        (error) => {
+          console.error('버킷리스트 로드 실패:', error);
+          if (error.code !== 'cancelled') {
+            toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
+          }
+          setIsLoading(false);
+        }
+      );
+    };
+
+    setupSubscription();
+
+    // 정리: 이전 구독 정리
+    return () => {
+      if (unsubscribeSnapshot) {
+        unsubscribeSnapshot();
+      }
+      if (timeoutId) {
+        clearTimeout(timeoutId);
+      }
+    };
   }, [coupleId, activeTab, tabFilters]);
 
   const getFirstCategory = () => {
@@ -213,13 +236,14 @@ function BucketListPage() {
   const handleCompleteWithDate = async () => {
     if (!selectedItemId || !completionDate) return;
 
-    // 날짜 검증: 미래 날짜 방지
-    const selectedDateObj = new Date(completionDate);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    selectedDateObj.setHours(0, 0, 0, 0);
+    // 날짜 검증: 미래 날짜 방지 (timezone 고려)
+    const [year, month, day] = completionDate.split('-').map(Number);
+    const selectedDateObj = new Date(year, month - 1, day, 0, 0, 0, 0);
 
-    if (selectedDateObj > today) {
+    const today = new Date();
+    const todayObj = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
+
+    if (selectedDateObj > todayObj) {
       toast.warning('미래 날짜는 선택할 수 없습니다');
       return;
     }
@@ -272,6 +296,10 @@ function BucketListPage() {
   const handleOpenEditModal = (item) => {
     // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
     const validCategory = isValidCategory(item.category) ? item.category : getFirstCategory();
+    // 유효하지 않은 카테고리인 경우 경고
+    if (validCategory !== item.category) {
+      toast.info('삭제된 카테고리를 유효한 카테고리로 변경했습니다');
+    }
     setEditForm({
       id: item.id,
       title: item.title,
