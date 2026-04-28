@@ -55,10 +55,11 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     setSelectedBucketItems(prev => prev.filter(item => validIds.has(item.id)));
   }, [filteredBucketItems]);
 
-  // 결과 표시 후 3초 자동 초기화
+  // 결과 표시 후 3초 자동 초기화 (명확한 상태 관리)
   useEffect(() => {
     if (spinResult && !isSpinning) {
       const timer = setTimeout(() => {
+        // 모든 상태를 순차적으로 초기화
         setSpinResult(null);
         setSlotOffset(0);
       }, 3000);
@@ -66,12 +67,12 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     }
   }, [spinResult, isSpinning]);
 
-  // currentItems 변경 시 슬롯 초기화 (결과가 없을 때만)
+  // 탭 전환 시 슬롯 초기화 (activeTab이 변경될 때만)
   useEffect(() => {
-    if (!isSpinning && spinResult === null) {
-      setSlotOffset(0);
-    }
-  }, [currentItems.length, isSpinning, spinResult]);
+    // activeTab 변경되었으므로 슬롯 완전히 초기화
+    setSlotOffset(0);
+    setSpinResult(null);
+  }, [activeTab]);
 
 
   const handleAddDirectItem = () => {
@@ -125,11 +126,6 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     if (isSpinning) return;
 
     try {
-      // 슬롯 초기화
-      setSlotOffset(0);
-      setIsSpinning(true);
-      setSpinResult(null);
-
       // 무작위 결과 항목 선택 (안전한 범위 체크)
       const safeLength = Math.max(1, currentItems.length);
       const resultIndex = Math.floor(Math.random() * safeLength);
@@ -137,7 +133,6 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
       if (!selectedItem) {
         toast.error('항목 선택 중 오류가 발생했습니다');
-        setIsSpinning(false);
         return;
       }
 
@@ -155,7 +150,19 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
       const finalOffset = (totalSpins * itemCount + resultIndex) * itemHeight - targetTop;
 
-      setSlotOffset(finalOffset);
+      // 1️⃣ 이전 상태 완전히 초기화
+      setSpinResult(null);
+      setSlotOffset(0);
+
+      // 2️⃣ 다음 프레임에서 회전 시작 (상태 업데이트 완료 보장)
+      requestAnimationFrame(() => {
+        setIsSpinning(true);
+
+        // 3️⃣ 또 다음 프레임에서 슬롯 오프셋 설정
+        requestAnimationFrame(() => {
+          setSlotOffset(finalOffset);
+        });
+      });
 
       // 애니메이션 완료 후 결과 표시 (2.5초)
       const spinTimeout = setTimeout(() => {
@@ -406,8 +413,8 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                 initial={{ y: 0 }}
                 animate={{ y: -slotOffset }}
                 transition={{
-                  duration: slotOffset === 0 ? 0 : 2.5,
-                  ease: 'easeOut'
+                  duration: isSpinning ? 2.5 : 0,
+                  ease: isSpinning ? 'easeOut' : 'linear'
                 }}
               >
                 {/* 5번 반복해서 무한 루프 효과 */}
