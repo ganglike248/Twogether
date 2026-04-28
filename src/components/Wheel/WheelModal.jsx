@@ -30,13 +30,12 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     setSpinResult(null);
   }, [activeTab]);
 
-  // currentItems 변경 시 슬롯 초기화
+  // currentItems 변경 시 슬롯 초기화 (결과가 없을 때만)
   useEffect(() => {
-    if (!isSpinning) {
+    if (!isSpinning && spinResult === null) {
       setSlotOffset(0);
-      setSpinResult(null);
     }
-  }, [currentItems.length, isSpinning]);
+  }, [currentItems.length, isSpinning, spinResult]);
 
 
   const handleAddDirectItem = () => {
@@ -79,6 +78,8 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
     if (isSpinning) return;
 
+    // 슬롯 초기화
+    setSlotOffset(0);
     setIsSpinning(true);
     setSpinResult(null);
 
@@ -86,12 +87,20 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     const resultIndex = Math.floor(Math.random() * currentItems.length);
     const selectedItem = currentItems[resultIndex];
 
-    // 최소 3바퀴 + 결과 위치까지 스크롤
-    const itemHeight = 60; // CSS와 동일하게 설정
-    const rotations = 3;
-    // 초기 오프셋(한 세트) + 회전(3바퀴) + 결과 위치
-    const totalItemCount = currentItems.length + (rotations * currentItems.length) + resultIndex;
-    const finalOffset = totalItemCount * itemHeight;
+    // 슬롯머신 정확한 계산
+    const itemHeight = 60;
+    const itemCount = currentItems.length;
+    const containerHeight = 180; // 슬롯 컨테이너 높이
+    const pointerCenter = containerHeight / 2; // 포인터 정중앙 (90px)
+    const itemCenter = itemHeight / 2; // 아이템 중간 (30px)
+    const targetTop = pointerCenter - itemCenter; // 아이템 상단이 60px에 위치
+
+    const minSpins = 3; // 최소 3바퀴
+    const extraSpins = Math.floor(Math.random() * 2); // 3-4바퀴 사이의 랜덤성
+    const totalSpins = minSpins + extraSpins;
+
+    // 최종 이동 거리 = (총 회전 + 결과 인덱스) * 높이 - 포인터 오프셋
+    const finalOffset = (totalSpins * itemCount + resultIndex) * itemHeight - targetTop;
 
     setSlotOffset(finalOffset);
 
@@ -263,12 +272,19 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
         {/* 슬롯머신 섹션 */}
         <div className="slot-machine-section">
-          <div className="slot-machine-container">
+          <div className="slot-machine-wrapper">
+            {/* 좌측 화살표 */}
+            <div className="slot-arrow" />
+
+            <div className="slot-machine-container">
             {currentItems.length > 0 ? (
               <motion.div
                 ref={slotRef}
                 className="slot-tape"
-                initial={{ y: -currentItems.length * 60 }}
+                style={{
+                  height: currentItems.length * 5 * 60 + 'px'
+                }}
+                initial={{ y: 0 }}
                 animate={{ y: -slotOffset }}
                 transition={{
                   duration: slotOffset === 0 ? 0 : 2.5,
@@ -305,6 +321,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
             )}
             {/* 선택 표시 포인터 */}
             <div className="slot-pointer" />
+            </div>
           </div>
 
           {/* 스핀 버튼 */}

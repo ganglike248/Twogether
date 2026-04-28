@@ -257,11 +257,30 @@
   gap: 16px;
 }
 
+/* 슬롯 + 화살표 래퍼 */
+.slot-machine-wrapper {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+}
+
 .slot-machine-container {
   position: relative;
   width: 100%;
-  max-width: 280px;
+  max-width: 360px;
   height: 180px;
+}
+
+/* 좌측 화살표 */
+.slot-arrow {
+  width: 0;
+  height: 0;
+  border-left: 14px solid #FF6B9D;
+  border-top: 10px solid transparent;
+  border-bottom: 10px solid transparent;
+  flex-shrink: 0;
 }
 
 .slot-tape {
@@ -316,6 +335,7 @@
   transform: translateY(-50%);
   box-shadow: 0 0 0 1px #FF6B9D;
 }
+
 
 .slot-machine-container::before {
   content: '';
