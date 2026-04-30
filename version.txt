@@ -1,3 +1,10 @@
+v0.3.57 (2026.04.30)
+- fix: 불필요한 미디어 쿼리 제거 (모바일 기준 고정 디자인)
+  ✓ BucketListPage.css: 600px 미디어 쿼리 제거 → 2열 레이아웃 유지
+  ✓ CycleSettingsModal.css: 480px 미디어 쿼리 제거
+  ✓ WheelModal.css: 480px 미디어 쿼리 제거
+  → 모바일 기기(420px) 고정 설계로 통일
+
 v0.3.56 (2026.04.30)
 - fix: 라우팅 및 WheelModal 무한 루프 오류 해결
   **라우팅 오류 수정:**

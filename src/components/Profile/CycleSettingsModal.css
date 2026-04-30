@@ -11,12 +11,6 @@
   padding: 0;
 }
 
-@media (min-width: 480px) {
-  .csm-overlay {
-    align-items: center;
-    padding: 1.5rem;
-  }
-}
 
 .csm-container {
   background: white;
@@ -30,12 +24,6 @@
   box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.14);
 }
 
-@media (min-width: 480px) {
-  .csm-container {
-    border-radius: 1.2rem;
-    max-height: 85vh;
-  }
-}
 
 /* ─── 헤더 ─── */
 .csm-header {
