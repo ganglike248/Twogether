@@ -6,26 +6,15 @@ import { getCategoryColor, getCategoryDisplayName, DEFAULT_CATEGORIES } from '..
 import './WheelModal.css';
 
 const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
-  const [activeTab, setActiveTab] = useState('direct'); // 'direct' | 'bucket'
+  const [step, setStep] = useState('select'); // 'select' | 'spin'
   const [directItems, setDirectItems] = useState([]);
   const [directInput, setDirectInput] = useState('');
   const [selectedBucketItems, setSelectedBucketItems] = useState([]);
   const [isSpinning, setIsSpinning] = useState(false);
   const [spinResult, setSpinResult] = useState(null);
   const [slotOffset, setSlotOffset] = useState(0);
-  // 탭별로 필터 상태 독립 관리
-  const [tabFilters, setTabFilters] = useState({
-    direct: { category: 'all', completed: false },
-    bucket: { category: 'all', completed: false }
-  });
-
-  // 현재 탭의 필터 상태
-  const currentFilter = tabFilters[activeTab];
-
-  // 완료 상태별 필터링된 버킷 아이템
-  const statusFilteredBucketList = currentFilter.completed
-    ? bucketList.filter(item => item.completed)
-    : bucketList.filter(item => !item.completed);
+  const [showBucketFilter, setShowBucketFilter] = useState(false);
+  const [bucketFilter, setBucketFilter] = useState({ category: 'all', completed: false });
 
   // 유효한 카테고리만 필터링 (삭제된 카테고리 제외)
   const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
@@ -34,26 +23,26 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     return Object.keys(allCategories).includes(category);
   };
 
-  const filteredBucketItems = currentFilter.category === 'all'
+  // 완료 상태별 필터링된 버킷 아이템
+  const statusFilteredBucketList = bucketFilter.completed
+    ? bucketList.filter(item => item.completed)
+    : bucketList.filter(item => !item.completed);
+
+  // 카테고리 필터 적용
+  const filteredBucketItems = bucketFilter.category === 'all'
     ? statusFilteredBucketList
     : statusFilteredBucketList.filter(
-        item => isValidCategory(item.category) && item.category === currentFilter.category
+        item => isValidCategory(item.category) && item.category === bucketFilter.category
       );
 
-  // 현재 탭의 아이템들
-  const currentItems = activeTab === 'direct' ? directItems : selectedBucketItems;
+  // Step 1: 선택 화면에서의 현재 아이템들
+  const allSelectedItems = [...directItems, ...selectedBucketItems];
 
-  // 탭 전환 시 슬롯 초기화 (필터는 유지)
-  useEffect(() => {
-    setSlotOffset(0);
-    setSpinResult(null);
-  }, [activeTab]);
-
-  // 카테고리 필터 변경 시 선택 항목 동기화 (필터 범위 밖의 항목 제거)
+  // 카테고리 필터 변경 시 선택 항목 동기화
   useEffect(() => {
     const validIds = new Set(filteredBucketItems.map(item => item.id));
     setSelectedBucketItems(prev => prev.filter(item => validIds.has(item.id)));
-  }, [filteredBucketItems]);
+  }, [bucketFilter, bucketList]);
 
   // 결과 표시 후 3초 자동 초기화 (명확한 상태 관리)
   useEffect(() => {
@@ -67,12 +56,13 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     }
   }, [spinResult, isSpinning]);
 
-  // 탭 전환 시 슬롯 초기화 (activeTab이 변경될 때만)
+  // Step 변경 시 슬롯 초기화
   useEffect(() => {
-    // activeTab 변경되었으므로 슬롯 완전히 초기화
-    setSlotOffset(0);
-    setSpinResult(null);
-  }, [activeTab]);
+    if (step === 'select') {
+      setSlotOffset(0);
+      setSpinResult(null);
+    }
+  }, [step]);
 
 
   const handleAddDirectItem = () => {
@@ -118,7 +108,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   };
 
   const handleSpin = () => {
-    if (!currentItems || currentItems.length === 0) {
+    if (!allSelectedItems || allSelectedItems.length === 0) {
       toast.warning('선택할 항목이 없습니다');
       return;
     }
@@ -127,9 +117,9 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
     try {
       // 무작위 결과 항목 선택 (안전한 범위 체크)
-      const safeLength = Math.max(1, currentItems.length);
+      const safeLength = Math.max(1, allSelectedItems.length);
       const resultIndex = Math.floor(Math.random() * safeLength);
-      const selectedItem = currentItems[resultIndex];
+      const selectedItem = allSelectedItems[resultIndex];
 
       if (!selectedItem) {
         toast.error('항목 선택 중 오류가 발생했습니다');
@@ -138,7 +128,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
       // 슬롯머신 정확한 계산
       const itemHeight = 60;
-      const itemCount = safeLength;
+      const itemCount = allSelectedItems.length;
       const containerHeight = 180;
       const pointerCenter = containerHeight / 2;
       const itemCenter = itemHeight / 2;
@@ -186,6 +176,21 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
   if (!isOpen) return null;
 
+  const handleGoToSpin = () => {
+    if (allSelectedItems.length === 0) {
+      toast.warning('선택할 항목이 없습니다');
+      return;
+    }
+    setStep('spin');
+  };
+
+  const handleBackToSelect = () => {
+    setStep('select');
+    setSpinResult(null);
+    setSlotOffset(0);
+    setIsSpinning(false);
+  };
+
   return (
     <div className="wheel-modal-overlay" onClick={onClose}>
       <div className="wheel-modal-content" onClick={(e) => e.stopPropagation()}>
@@ -197,289 +202,273 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
           </button>
         </div>
 
-        {/* 탭 */}
-        <div className="wheel-modal-tabs">
-          <button
-            className={`wheel-tab ${activeTab === 'direct' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('direct');
-              setSpinResult(null);
-            }}
-          >
-            직접 추가
-          </button>
-          <button
-            className={`wheel-tab ${activeTab === 'bucket' ? 'active' : ''}`}
-            onClick={() => {
-              setActiveTab('bucket');
-              setSpinResult(null);
-            }}
-          >
-            버킷리스트 선택
-          </button>
-        </div>
-
-        {/* 콘텐츠 */}
-        <div className="wheel-modal-body">
-          {/* 직접 추가 탭 */}
-          {activeTab === 'direct' && (
-            <div className="wheel-tab-content">
-              <div className="wheel-input-group">
-                <input
-                  type="text"
-                  placeholder="항목을 입력하세요"
-                  value={directInput}
-                  onChange={(e) => setDirectInput(e.target.value)}
-                  onKeyDown={handleKeyDown}
-                  className="wheel-input"
-                  disabled={isSpinning}
-                />
-                <button
-                  className="wheel-add-btn"
-                  onClick={handleAddDirectItem}
-                  disabled={isSpinning}
-                >
-                  <MdAdd />
-                </button>
-              </div>
-
-              {directItems.length > 0 ? (
-                <div className="wheel-items-list">
-                  {directItems.map((item) => (
-                    <div key={item.id} className="wheel-item">
-                      <span>{item.title}</span>
-                      <button
-                        className="wheel-item-remove"
-                        onClick={() => handleRemoveDirectItem(item.id)}
-                        disabled={isSpinning}
-                      >
-                        ✕
-                      </button>
-                    </div>
-                  ))}
-                </div>
-              ) : (
-                <div className="wheel-empty-state">
-                  <p>추가된 항목이 없습니다</p>
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* 버킷리스트 선택 탭 */}
-          {activeTab === 'bucket' && (
-            <div className="wheel-tab-content">
-              {/* 완료/미완료 필터 */}
-              <div className="wheel-status-filter">
-                <button
-                  className={`wheel-status-btn ${!currentFilter.completed ? 'active' : ''}`}
-                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, completed: false } }))}
-                  disabled={isSpinning}
-                >
-                  미완료
-                </button>
-                <button
-                  className={`wheel-status-btn ${currentFilter.completed ? 'active' : ''}`}
-                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, completed: true } }))}
-                  disabled={isSpinning}
-                >
-                  완료
-                </button>
-              </div>
-
-              {/* 카테고리 필터 (탭 형식) */}
-              <div className="wheel-category-tabs">
-                <button
-                  className={`wheel-category-tab ${currentFilter.category === 'all' ? 'active' : ''}`}
-                  onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, category: 'all' } }))}
-                  disabled={isSpinning}
-                  style={{ backgroundColor: currentFilter.category === 'all' ? '#FFD700' : '#f0f0f0' }}
-                >
-                  전체
-                </button>
-                {Array.from(new Set(statusFilteredBucketList.map(item => item.category))).filter(isValidCategory).sort().map(cat => {
-                  const color = getCategoryColor(cat, customCategories);
-                  return (
-                    <button
-                      key={cat}
-                      className={`wheel-category-tab ${currentFilter.category === cat ? 'active' : ''}`}
-                      onClick={() => setTabFilters(prev => ({ ...prev, bucket: { ...prev.bucket, category: cat } }))}
-                      disabled={isSpinning}
-                      style={{
-                        backgroundColor: currentFilter.category === cat ? color : '#f0f0f0',
-                        color: currentFilter.category === cat ? '#fff' : '#333'
-                      }}
-                    >
-                      {getCategoryDisplayName(cat, customCategories)}
-                    </button>
-                  );
-                })}
-              </div>
-
-              {/* 선택 버튼 */}
-              <div className="wheel-selection-controls">
-                <button
-                  className="wheel-select-all-btn"
-                  onClick={handleSelectAllBucketItems}
-                  disabled={isSpinning || filteredBucketItems.length === 0}
-                >
-                  전체 선택 ({filteredBucketItems.length})
-                </button>
-                {selectedBucketItems.length > 0 && (
-                  <button
-                    className="wheel-clear-selection-btn"
-                    onClick={handleClearBucketItems}
-                    disabled={isSpinning}
-                  >
-                    선택 취소 ({selectedBucketItems.length}개 선택)
-                  </button>
-                )}
-              </div>
-
-              {/* 버킷리스트 항목 (선택 가능) */}
-              {filteredBucketItems.length > 0 && (
-                <div className="wheel-items-list">
-                  {filteredBucketItems.map((item) => {
-                    const isSelected = selectedBucketItems.some(selected => selected.id === item.id);
-                    return (
-                      <div
-                        key={item.id}
-                        className={`wheel-item wheel-bucket-item ${isSelected ? 'selected' : ''} ${isSpinning ? 'disabled' : ''}`}
-                        onClick={() => !isSpinning && handleToggleBucketItem(item)}
-                        style={{
-                          backgroundColor: isSelected ? getCategoryColor(item.category, customCategories) : '#f5f5f5',
-                          color: isSelected ? '#fff' : '#333',
-                          cursor: isSpinning ? 'not-allowed' : 'pointer',
-                          opacity: isSpinning ? 0.6 : 1
-                        }}
-                      >
-                        <span className="wheel-item-title">{item.title}</span>
-                        {isSelected && (
-                          <button
-                            className="wheel-item-remove"
-                            onClick={(e) => {
-                              e.stopPropagation();
-                              handleRemoveBucketItem(item.id);
-                            }}
-                            style={{ color: isSelected ? '#fff' : '#999' }}
-                          >
-                            ✕
-                          </button>
-                        )}
-                        <span
-                          className="wheel-item-category"
-                          style={{
-                            backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.1)',
-                            color: isSelected ? '#fff' : '#666'
-                          }}
-                        >
-                          {getCategoryDisplayName(item.category, customCategories)}
-                        </span>
-                      </div>
-                    );
-                  })}
-                </div>
-              )}
-
-              {filteredBucketItems.length === 0 && (
-                <div className="wheel-empty-state">
-                  <p>선택할 항목이 없습니다</p>
-                </div>
-              )}
-            </div>
-          )}
-        </div>
-
-        {/* 선택 정보 */}
-        <div className="slot-selection-info">
-          <span className="slot-info-label">
-            {activeTab === 'direct' ? `추가된 항목: ${directItems.length}개` : `선택된 항목: ${selectedBucketItems.length}개`}
-          </span>
-        </div>
-
-        {/* 슬롯머신 섹션 */}
-        <div className="slot-machine-section">
-          <div className="slot-machine-wrapper">
-            {/* 좌측 화살표 */}
-            <div className="slot-arrow" />
-
-            <div className="slot-machine-container">
-            {currentItems.length > 0 ? (
-              <motion.div
-                className="slot-tape"
-                style={{
-                  height: currentItems.length * 5 * 60 + 'px'
-                }}
-                initial={{ y: 0 }}
-                animate={{ y: -slotOffset }}
-                transition={{
-                  duration: isSpinning ? 2.5 : 0,
-                  ease: isSpinning ? 'easeOut' : 'linear'
-                }}
-              >
-                {/* 5번 반복해서 무한 루프 효과 */}
-                {[...Array(5)].map((_, cycle) =>
-                  currentItems.map((item, idx) => (
-                    <div
-                      key={`${cycle}-${item.id}`}
-                      className="slot-item"
-                      style={{
-                        backgroundColor: activeTab === 'bucket' ? getCategoryColor(item.category, customCategories) : '#FF6B9D',
-                        color: '#fff'
-                      }}
-                    >
-                      <span className="slot-item-text">{item.title}</span>
-                      {activeTab === 'bucket' && (
-                        <span className="slot-item-category">
-                          {getCategoryDisplayName(item.category, customCategories)}
-                        </span>
-                      )}
-                    </div>
-                  ))
-                )}
-              </motion.div>
-            ) : (
-              <div className="slot-tape">
-                <div className="slot-item" style={{ backgroundColor: '#f5f5f5', color: '#999' }}>
-                  항목이 없습니다
-                </div>
-              </div>
-            )}
-            {/* 선택 표시 포인터 */}
-            <div className="slot-pointer" />
+        {/* STEP 2: 슬롯 회전 화면 */}
+        {step === 'spin' && (
+        <div className="wheel-step-content">
+          {/* 선택된 아이템 미리보기 */}
+          <div className="selected-items-preview">
+            <div className="preview-header">선택된 항목 ({allSelectedItems.length}개)</div>
+            <div className="preview-list">
+              {allSelectedItems.map((item) => (
+                <span key={item.id} className="preview-tag">
+                  {item.title}
+                </span>
+              ))}
             </div>
           </div>
 
-          {/* 스핀 버튼 */}
-          <button
-            className={`slot-spin-btn ${isSpinning ? 'spinning' : ''} ${currentItems.length === 0 ? 'disabled' : ''}`}
-            onClick={handleSpin}
-            disabled={isSpinning || currentItems.length === 0}
-          >
-            {isSpinning ? '돌리는 중...' : '돌리기'}
-          </button>
+          {/* 슬롯머신 섹션 */}
+          <div className="slot-machine-section" style={{ borderBottom: '1px solid #f0f0f0' }}>
+            <div className="slot-machine-wrapper">
+              {/* 좌측 화살표 */}
+              <div className="slot-arrow" />
 
-          {/* 결과 표시 */}
-          {spinResult && (
-            <motion.div
-              className="slot-result"
-              initial={{ opacity: 0, scale: 0.8 }}
-              animate={{ opacity: 1, scale: 1 }}
-              transition={{ duration: 0.4 }}
-            >
-              <div className="result-label">🎉 선택된 항목</div>
-              <div
-                className="result-item"
-                style={{
-                  backgroundColor: activeTab === 'bucket' ? getCategoryColor(spinResult.category, customCategories) : '#FF6B9D',
-                  color: '#fff'
-                }}
-              >
-                {spinResult.title}
+              <div className="slot-machine-container">
+              {allSelectedItems.length > 0 ? (
+                <motion.div
+                  className="slot-tape"
+                  style={{
+                    height: allSelectedItems.length * 5 * 60 + 'px'
+                  }}
+                  initial={{ y: 0 }}
+                  animate={{ y: -slotOffset }}
+                  transition={{
+                    duration: isSpinning ? 2.5 : 0,
+                    ease: isSpinning ? 'easeOut' : 'linear'
+                  }}
+                >
+                  {/* 5번 반복해서 무한 루프 효과 */}
+                  {[...Array(5)].map((_, cycle) =>
+                    allSelectedItems.map((item, idx) => (
+                      <div
+                        key={`${cycle}-${item.id}`}
+                        className="slot-item"
+                        style={{
+                          backgroundColor: item.category ? getCategoryColor(item.category, customCategories) : '#FF6B9D',
+                          color: '#fff'
+                        }}
+                      >
+                        <span className="slot-item-text">{item.title}</span>
+                        {item.category && (
+                          <span className="slot-item-category">
+                            {getCategoryDisplayName(item.category, customCategories)}
+                          </span>
+                        )}
+                      </div>
+                    ))
+                  )}
+                </motion.div>
+              ) : (
+                <div className="slot-tape">
+                  <div className="slot-item" style={{ backgroundColor: '#f5f5f5', color: '#999' }}>
+                    항목이 없습니다
+                  </div>
+                </div>
+              )}
+              {/* 선택 표시 포인터 */}
+              <div className="slot-pointer" />
               </div>
-            </motion.div>
-          )}
+            </div>
+
+            {/* 스핀 버튼 */}
+            <button
+              className={`slot-spin-btn ${isSpinning ? 'spinning' : ''} ${allSelectedItems.length === 0 ? 'disabled' : ''}`}
+              onClick={handleSpin}
+              disabled={isSpinning || allSelectedItems.length === 0}
+            >
+              {isSpinning ? '돌리는 중...' : '돌리기'}
+            </button>
+
+            {/* 결과 표시 */}
+            {spinResult && (
+              <motion.div
+                className="slot-result"
+                initial={{ opacity: 0, scale: 0.8 }}
+                animate={{ opacity: 1, scale: 1 }}
+                transition={{ duration: 0.4 }}
+              >
+                <div className="result-label">🎉 선택된 항목</div>
+                <div
+                  className="result-item"
+                  style={{
+                    backgroundColor: spinResult.category ? getCategoryColor(spinResult.category, customCategories) : '#FF6B9D',
+                    color: '#fff'
+                  }}
+                >
+                  {spinResult.title}
+                </div>
+              </motion.div>
+            )}
+          </div>
+
+          {/* 돌아가기 버튼 */}
+          <div className="step-action">
+            <button
+              className="step-back-btn"
+              onClick={handleBackToSelect}
+              disabled={isSpinning}
+            >
+              돌아가기
+            </button>
+          </div>
         </div>
+        )}
+
+        {/* STEP 1: 아이템 선택 화면 */}
+        {step === 'select' && (
+        <div className="wheel-step-content">
+          {/* 직접 추가 섹션 */}
+          <div className="select-section">
+            <div className="section-title">직접 추가</div>
+            <div className="wheel-input-group">
+              <input
+                type="text"
+                placeholder="항목을 입력하세요"
+                value={directInput}
+                onChange={(e) => setDirectInput(e.target.value)}
+                onKeyDown={handleKeyDown}
+                className="wheel-input"
+              />
+              <button
+                className="wheel-add-btn"
+                onClick={handleAddDirectItem}
+              >
+                <MdAdd />
+              </button>
+            </div>
+            {directItems.length > 0 && (
+              <div className="wheel-items-list">
+                {directItems.map((item) => (
+                  <div
+                    key={item.id}
+                    className="wheel-item wheel-direct-item"
+                    onClick={() => handleRemoveDirectItem(item.id)}
+                    style={{ backgroundColor: '#f5f5f5', color: '#333', cursor: 'pointer' }}
+                  >
+                    <span className="wheel-item-title">{item.title}</span>
+                    <button className="wheel-item-remove">✕</button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* 버킷리스트 섹션 */}
+          <div className="select-section">
+            <div className="section-title">버킷리스트</div>
+
+            {/* 간단한 필터 */}
+            <div className="simple-filters">
+              <button
+                className={`filter-btn ${!bucketFilter.completed ? 'active' : ''}`}
+                onClick={() => setBucketFilter(prev => ({ ...prev, completed: false }))}
+              >
+                미완료
+              </button>
+              <button
+                className={`filter-btn ${bucketFilter.completed ? 'active' : ''}`}
+                onClick={() => setBucketFilter(prev => ({ ...prev, completed: true }))}
+              >
+                완료
+              </button>
+              <button
+                className={`filter-btn ${showBucketFilter ? 'active' : ''}`}
+                onClick={() => setShowBucketFilter(!showBucketFilter)}
+              >
+                카테고리 {showBucketFilter ? '∧' : '∨'}
+              </button>
+            </div>
+
+            {/* 카테고리 필터 (접을 수 있음) */}
+            {showBucketFilter && (
+              <div className="category-filter">
+                <button
+                  className={`category-tab ${bucketFilter.category === 'all' ? 'active' : ''}`}
+                  onClick={() => setBucketFilter(prev => ({ ...prev, category: 'all' }))}
+                  style={{ backgroundColor: bucketFilter.category === 'all' ? '#FFD700' : '#f0f0f0' }}
+                >
+                  전체
+                </button>
+                {Array.from(new Set(statusFilteredBucketList.map(item => item.category)))
+                  .filter(isValidCategory)
+                  .sort()
+                  .map(cat => {
+                    const color = getCategoryColor(cat, customCategories);
+                    return (
+                      <button
+                        key={cat}
+                        className={`category-tab ${bucketFilter.category === cat ? 'active' : ''}`}
+                        onClick={() => setBucketFilter(prev => ({ ...prev, category: cat }))}
+                        style={{
+                          backgroundColor: bucketFilter.category === cat ? color : '#f0f0f0',
+                          color: bucketFilter.category === cat ? '#fff' : '#333'
+                        }}
+                      >
+                        {getCategoryDisplayName(cat, customCategories)}
+                      </button>
+                    );
+                  })}
+              </div>
+            )}
+
+            {/* 버킷리스트 항목 */}
+            {filteredBucketItems.length > 0 && (
+              <div className="wheel-items-list">
+                {filteredBucketItems.map((item) => {
+                  const isSelected = selectedBucketItems.some(selected => selected.id === item.id);
+                  return (
+                    <div
+                      key={item.id}
+                      className={`wheel-item wheel-bucket-item ${isSelected ? 'selected' : ''}`}
+                      onClick={() => handleToggleBucketItem(item)}
+                      style={{
+                        backgroundColor: isSelected ? getCategoryColor(item.category, customCategories) : '#f5f5f5',
+                        color: isSelected ? '#fff' : '#333',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      <input
+                        type="checkbox"
+                        checked={isSelected}
+                        onChange={() => {}}
+                        className="wheel-item-checkbox"
+                        style={{ accentColor: isSelected ? '#fff' : '#FF6B9D' }}
+                      />
+                      <span className="wheel-item-title">{item.title}</span>
+                      <span
+                        className="wheel-item-category"
+                        style={{
+                          backgroundColor: isSelected ? 'rgba(255, 255, 255, 0.3)' : 'rgba(0, 0, 0, 0.1)',
+                          color: isSelected ? '#fff' : '#666'
+                        }}
+                      >
+                        {getCategoryDisplayName(item.category, customCategories)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {filteredBucketItems.length === 0 && (
+              <div className="wheel-empty-state">
+                <p>선택할 항목이 없습니다</p>
+              </div>
+            )}
+          </div>
+
+          {/* 다음 버튼 */}
+          <div className="step-action">
+            <button
+              className="step-next-btn"
+              onClick={handleGoToSpin}
+              disabled={allSelectedItems.length === 0}
+            >
+              다음 ({allSelectedItems.length}개)
+            </button>
+          </div>
+        </div>
+        )}
       </div>
     </div>
   );

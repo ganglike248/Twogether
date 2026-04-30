@@ -1,3 +1,12 @@
+v0.3.56 (2026.04.30)
+- fix: 라우팅 및 WheelModal 무한 루프 오류 해결
+  **라우팅 오류 수정:**
+  ✓ App.jsx: 각 라우트에 고유한 key 추가 (라우트 전환 시 컴포넌트 강제 재생성)
+    URL 변경은 되었으나 화면이 업데이트되지 않는 문제 완벽 해결
+  **WheelModal 무한 루프 수정:**
+  ✓ WheelModal.jsx: useEffect 의존성 배열 수정 (filteredBucketItems → bucketFilter, bucketList)
+    매번 새로 생성되는 배열을 의존성으로 하여 무한 루프 발생 → 실제 변경 요소로 교체
+
 v0.3.55 (2026.04.29)
 - fix: Wheel & BucketList 버그/UX 대폭 개선 (13가지 핵심 이슈 해결)
   **Wheel 슬롯머신 개선:**

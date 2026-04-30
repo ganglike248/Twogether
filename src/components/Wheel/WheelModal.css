@@ -50,6 +50,7 @@
   position: sticky;
   top: 0;
   background: white;
+  z-index: 10;
 }
 
 .wheel-modal-header h2 {
@@ -75,46 +76,98 @@
   color: #333;
 }
 
-/* 탭 */
-.wheel-modal-tabs {
+/* 스텝 컨텐츠 */
+.wheel-step-content {
+  flex: 1;
   display: flex;
-  border-bottom: 1px solid #f0f0f0;
-  padding: 0 12px;
-}
-
-.wheel-tab {
-  flex: 1;
-  padding: 12px 16px;
-  border: none;
-  background: none;
-  font-size: 14px;
-  font-weight: 500;
-  color: #999;
-  cursor: pointer;
-  border-bottom: 2px solid transparent;
-  transition: all 0.2s ease;
-}
-
-.wheel-tab.active {
-  color: #FF6B9D;
-  border-bottom-color: #FF6B9D;
-}
-
-.wheel-tab:hover {
-  color: #333;
-}
-
-/* 본문 */
-.wheel-modal-body {
-  flex: 1;
-  padding: 20px;
+  flex-direction: column;
   overflow-y: auto;
 }
 
-.wheel-tab-content {
+/* Step 1: 선택 섹션 */
+.select-section {
+  padding: 20px;
+  border-bottom: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
-  gap: 16px;
+  gap: 12px;
+}
+
+.select-section:last-of-type {
+  border-bottom: none;
+  flex: 1;
+  overflow-y: auto;
+}
+
+.section-title {
+  font-size: 15px;
+  font-weight: 600;
+  color: #333;
+  margin-bottom: 8px;
+}
+
+/* 간단한 필터 */
+.simple-filters {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  margin-bottom: 8px;
+}
+
+.filter-btn {
+  padding: 8px 12px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.filter-btn:hover {
+  border-color: #FF6B9D;
+  color: #FF6B9D;
+}
+
+.filter-btn.active {
+  background: #FF6B9D;
+  border-color: #FF6B9D;
+  color: white;
+}
+
+/* 카테고리 필터 */
+.category-filter {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+.category-tab {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 6px;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  white-space: nowrap;
+}
+
+.category-tab:hover {
+  opacity: 0.8;
+  transform: translateY(-1px);
+}
+
+.category-tab.active {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
 /* 입력 그룹 */
@@ -299,12 +352,20 @@
 
 .wheel-item {
   display: flex;
-  justify-content: space-between;
   align-items: center;
   padding: 10px 12px;
   border-radius: 6px;
   font-size: 14px;
-  gap: 8px;
+  gap: 10px;
+}
+
+/* 체크박스 스타일 */
+.wheel-item-checkbox {
+  flex-shrink: 0;
+  width: 20px;
+  height: 20px;
+  cursor: pointer;
+  accent-color: #FF6B9D;
 }
 
 .wheel-item-title {
@@ -323,6 +384,8 @@
   font-size: 18px;
   padding: 0;
   transition: color 0.2s ease;
+  flex-shrink: 0;
+  display: none;
 }
 
 .wheel-item-remove:hover:not(:disabled) {
@@ -337,10 +400,26 @@
 .wheel-item-category {
   padding: 2px 8px;
   border-radius: 4px;
-  font-size: 12px;
-  margin-left: 8px;
+  font-size: 11px;
   font-weight: 500;
   flex-shrink: 0;
+  margin-left: auto;
+}
+
+.wheel-direct-item {
+  justify-content: flex-start;
+}
+
+.wheel-direct-item .wheel-item-remove {
+  display: block;
+}
+
+.wheel-bucket-item {
+  justify-content: flex-start;
+}
+
+.wheel-bucket-item .wheel-item-remove {
+  display: none;
 }
 
 .wheel-empty-state {
@@ -350,12 +429,95 @@
   font-size: 14px;
 }
 
+/* 버킷리스트 헤더 - 선택 정보 + 필터 버튼 */
+.wheel-bucket-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  margin-bottom: 12px;
+  padding: 0;
+}
+
+.wheel-selection-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 12px;
+  border-radius: 16px;
+  background: #FF6B9D;
+  color: white;
+  font-size: 13px;
+  font-weight: 600;
+}
+
+.wheel-badge-count {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 20px;
+  height: 20px;
+  background: rgba(255, 255, 255, 0.3);
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 700;
+}
+
+.wheel-filter-btn {
+  padding: 6px 14px;
+  border: 1.5px solid #ddd;
+  border-radius: 8px;
+  background: white;
+  color: #666;
+  font-size: 13px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  flex-shrink: 0;
+}
+
+.wheel-filter-btn:hover:not(:disabled) {
+  border-color: #FF6B9D;
+  color: #FF6B9D;
+}
+
+.wheel-filter-btn.active {
+  background: #FF6B9D;
+  border-color: #FF6B9D;
+  color: white;
+}
+
+.wheel-filter-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+/* 필터 섹션 - 접을 수 있음 */
+.wheel-filters-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 12px;
+  background: #f9f9f9;
+  border-radius: 8px;
+  margin-bottom: 12px;
+  animation: slideDown 0.2s ease-out;
+}
+
+@keyframes slideDown {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 /* 선택 정보 */
 .slot-selection-info {
-  padding: 12px 20px;
-  background: #f9f9f9;
-  border-top: 1px solid #f0f0f0;
-  text-align: center;
+  display: none;
 }
 
 .slot-info-label {
@@ -364,14 +526,48 @@
   font-weight: 600;
 }
 
+/* Step 2: 선택된 아이템 미리보기 */
+.selected-items-preview {
+  padding: 20px;
+  background: #f9f9f9;
+  border-bottom: 1px solid #f0f0f0;
+}
+
+.preview-header {
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  margin-bottom: 12px;
+}
+
+.preview-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.preview-tag {
+  display: inline-block;
+  padding: 6px 12px;
+  background: #FF6B9D;
+  color: white;
+  border-radius: 16px;
+  font-size: 12px;
+  font-weight: 500;
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 /* 슬롯머신 섹션 */
 .slot-machine-section {
   padding: 20px;
-  border-top: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 16px;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 /* 슬롯 + 화살표 래퍼 */
@@ -547,10 +743,71 @@
   text-align: center;
 }
 
+/* 스텝 액션 버튼 */
+.step-action {
+  padding: 16px 20px 20px;
+  display: flex;
+  gap: 8px;
+  justify-content: center;
+}
+
+.step-next-btn,
+.step-back-btn {
+  flex: 1;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 12px;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.step-next-btn {
+  background: linear-gradient(135deg, #FF6B9D 0%, #FF5285 100%);
+  color: white;
+  box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
+}
+
+.step-next-btn:hover:not(:disabled) {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(255, 107, 157, 0.4);
+}
+
+.step-next-btn:disabled {
+  background: #e0e0e0;
+  color: #999;
+  cursor: not-allowed;
+}
+
+.step-back-btn {
+  background: white;
+  border: 1.5px solid #ddd;
+  color: #666;
+}
+
+.step-back-btn:hover:not(:disabled) {
+  border-color: #FF6B9D;
+  color: #FF6B9D;
+}
+
+.step-back-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 /* 반응형 */
 @media (max-width: 480px) {
   .wheel-modal-content {
     max-height: 95vh;
+  }
+
+  .select-section {
+    padding: 16px;
+  }
+
+  .section-title {
+    font-size: 14px;
   }
 
   .slot-machine-container {
@@ -567,13 +824,12 @@
     height: 50px;
   }
 
-  .wheel-category-tabs {
-    display: flex;
-    flex-wrap: wrap;
+  .category-filter {
+    padding: 10px;
     gap: 6px;
   }
 
-  .wheel-category-tab {
+  .category-tab {
     padding: 6px 10px;
     font-size: 12px;
     flex: 1;
@@ -582,5 +838,34 @@
 
   .wheel-items-list {
     max-height: 35vh;
+  }
+
+  .simple-filters {
+    gap: 6px;
+  }
+
+  .filter-btn {
+    flex: 1;
+    font-size: 12px;
+    padding: 6px 10px;
+  }
+
+  .step-action {
+    padding: 12px 16px 16px;
+    gap: 6px;
+  }
+
+  .step-next-btn,
+  .step-back-btn {
+    padding: 10px 16px;
+    font-size: 14px;
+  }
+
+  .selected-items-preview {
+    padding: 16px;
+  }
+
+  .slot-machine-section {
+    padding: 16px;
   }
 }
