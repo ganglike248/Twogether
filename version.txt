@@ -1,3 +1,12 @@
+v0.3.58 (2026.05.02)
+- fix: 캘린더 일정 클릭 시 "D.split is not a function" 에러 해결
+  ✓ useCalendarData.js: Trip 데이터의 startDate/endDate를 안전하게 문자열로 변환
+    - Date 객체, Timestamp 객체, 문자열 등 모든 형식 처리
+  ✓ Calendar.jsx: getDayEvents, handleEditEventFromDay 함수에 방어적 코드 추가
+  ✓ DayModal.js: 날짜 필터링 및 표시 로직에 getDateString 유틸 함수 추가
+  ✓ EventModal.js: extractDate 함수를 더 견고하게 개선
+  → 캘린더에서 일정 클릭 시 타입 에러 완벽 해결
+
 v0.3.57 (2026.04.30)
 - fix: 불필요한 미디어 쿼리 제거 (모바일 기준 고정 디자인)
   ✓ BucketListPage.css: 600px 미디어 쿼리 제거 → 2열 레이아웃 유지

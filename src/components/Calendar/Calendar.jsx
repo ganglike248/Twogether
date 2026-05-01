@@ -103,8 +103,14 @@ const Calendar = () => {
         return;
       }
 
-      const startDate = event.start.split('T')[0];
-      const endDate = event.end ? event.end.split('T')[0] : startDate;
+      const getDateString = (dateValue) => {
+        if (typeof dateValue === 'string') return dateValue.split('T')[0];
+        if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+        return '';
+      };
+
+      const startDate = getDateString(event.start);
+      const endDate = event.end ? getDateString(event.end) : startDate;
       setSelectedEvent({
         id: event.id, title: event.title,
         start: startDate, end: endDate,
@@ -160,9 +166,14 @@ const Calendar = () => {
 
   const getDayEvents = () => {
     if (!selectedDate) return [];
+    const getDateString = (dateValue) => {
+      if (typeof dateValue === 'string') return dateValue.split('T')[0];
+      if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+      return '';
+    };
     return events.filter(event => {
-      const eventStart = event.start.split('T')[0];
-      const eventEnd = event.end ? event.end.split('T')[0] : eventStart;
+      const eventStart = getDateString(event.start);
+      const eventEnd = event.end ? getDateString(event.end) : eventStart;
       return selectedDate >= eventStart && selectedDate <= eventEnd;
     });
   };

@@ -54,12 +54,26 @@ export const useCalendarData = (coupleId) => {
     const unsubscribe = onSnapshot(tripsRef, (snapshot) => {
       const tripsData = snapshot.docs.map(doc => {
         const data = doc.data();
-        const startDate = data.startDate?.toDate
-          ? data.startDate.toDate().toISOString().split('T')[0]
-          : data.startDate;
-        const endDate = data.endDate?.toDate
-          ? data.endDate.toDate().toISOString().split('T')[0]
-          : data.endDate;
+
+        // startDate를 문자열로 변환
+        let startDate;
+        if (data.startDate?.toDate) {
+          startDate = data.startDate.toDate().toISOString().split('T')[0];
+        } else if (data.startDate instanceof Date) {
+          startDate = data.startDate.toISOString().split('T')[0];
+        } else {
+          startDate = String(data.startDate);
+        }
+
+        // endDate를 문자열로 변환
+        let endDate;
+        if (data.endDate?.toDate) {
+          endDate = data.endDate.toDate().toISOString().split('T')[0];
+        } else if (data.endDate instanceof Date) {
+          endDate = data.endDate.toISOString().split('T')[0];
+        } else {
+          endDate = String(data.endDate);
+        }
 
         // FullCalendar allDay 이벤트: end를 다음날 00:00으로 설정하여 그 전날까지 표시
         const endDateObj = new Date(endDate);

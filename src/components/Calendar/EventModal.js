@@ -16,7 +16,12 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [showEventLog, setShowEventLog] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
-  const extractDate = (isoString) => isoString?.split('T')[0] || '';
+  const extractDate = (dateValue) => {
+    if (!dateValue) return '';
+    if (typeof dateValue === 'string') return dateValue.split('T')[0];
+    if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+    return '';
+  };
 
   useEffect(() => {
     if (event) {

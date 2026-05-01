@@ -30,17 +30,25 @@ const DayModal = ({
     }
   };
 
+  const getDateString = (dateValue) => {
+    if (typeof dateValue === 'string') return dateValue.split('T')[0];
+    if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+    return '';
+  };
+
   const formatDateRange = (startDate, endDate) => {
     try {
-      if (!endDate || startDate === endDate) {
-        return format(new Date(startDate), 'M월 d일', { locale: ko });
+      const start = getDateString(startDate);
+      const end = getDateString(endDate);
+      if (!end || start === end) {
+        return format(new Date(start), 'M월 d일', { locale: ko });
       }
-      const start = new Date(startDate);
-      let end = subDays(new Date(endDate), 1);
-      if (start.getTime() === end.getTime()) {
-        return format(start, 'M월 d일', { locale: ko });
+      const startObj = new Date(start);
+      let endObj = subDays(new Date(end), 1);
+      if (startObj.getTime() === endObj.getTime()) {
+        return format(startObj, 'M월 d일', { locale: ko });
       }
-      return `${format(start, 'M월 d일', { locale: ko })} ~ ${format(end, 'M월 d일', { locale: ko })}`;
+      return `${format(startObj, 'M월 d일', { locale: ko })} ~ ${format(endObj, 'M월 d일', { locale: ko })}`;
     } catch {
       return `${startDate} ~ ${endDate}`;
     }
@@ -161,16 +169,16 @@ const DayModal = ({
             <div className="day-events-list">
               {sortedEvents
                 .filter(event => {
-                  const eventStart = event.start.split('T')[0];
-                  let eventEnd = event.end ? event.end.split('T')[0] : eventStart;
+                  const eventStart = getDateString(event.start);
+                  let eventEnd = event.end ? getDateString(event.end) : eventStart;
                   if (eventEnd !== eventStart) {
                     eventEnd = format(subDays(new Date(eventEnd), 1), 'yyyy-MM-dd');
                   }
                   return selectedDate >= eventStart && selectedDate <= eventEnd;
                 })
                 .map(event => {
-                  const eventStart = event.start.split('T')[0];
-                  const eventEnd = event.end ? event.end.split('T')[0] : eventStart;
+                  const eventStart = getDateString(event.start);
+                  const eventEnd = event.end ? getDateString(event.end) : eventStart;
                   const isTrip = event.extendedProps?.isTrip;
                   const eventTypeClass = isTrip ? 'trip' : event.extendedProps.eventType;
                   return (
