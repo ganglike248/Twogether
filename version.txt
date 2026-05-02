@@ -1,3 +1,13 @@
+v0.3.59 (2026.05.03)
+- fix: 캘린더 생리 예정일 하네스 높이 조정 (생리 기록과 동일하게)
+  ✓ useCalendarEvents.js: 생리 예정일 title을 '예정' → icon(🌸)으로 변경
+    - 생리 기록(period-event)과 동일한 시각적 표현
+  ✓ Calendar.css: period-predicted-event 스타일 정리
+    - border-style: dashed 제거
+    - font-weight 700으로 통일
+    - 높이가 다른 이벤트들과 동일하게 렌더링
+  → 생리 예정일이 생리 기록처럼 일관된 높이로 표시됨
+
 v0.3.58 (2026.05.02)
 - fix: 캘린더 일정 클릭 시 "D.split is not a function" 에러 해결
   ✓ useCalendarData.js: Trip 데이터의 startDate/endDate를 안전하게 문자열로 변환

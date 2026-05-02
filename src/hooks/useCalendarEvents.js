@@ -71,7 +71,7 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
       const nextStart = addDaysToStr(base, cl);
       result.push({
         id: 'period-predicted',
-        title: '예정',
+        title: icon,
         start: nextStart,
         end: addDaysToStr(nextStart, pl),
         allDay: true,
