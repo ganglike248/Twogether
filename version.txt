@@ -1,3 +1,15 @@
+v0.3.61-dev.7 (2026.05.11)
+- feat: Phase 1-6. 커스텀 이벤트 로깅 (사용자 행동 추적)
+  ✓ src/hooks/useAnalytics.js 신규 생성
+    - useAnalytics(): logEvent(eventName, eventData) 훅
+    - 모든 이벤트에 자동으로 timestamp 추가
+  ✓ src/components/Calendar/EventModal.js: 이벤트 생성 시 GA 로깅
+    - 'event_created' 이벤트 + eventType, isMultiDay, hasDescription 정보
+  ✓ src/components/BucketList/BucketListPage.jsx: 버킷 추가 시 GA 로깅
+    - 'bucket_created' 이벤트 + category, hasContent 정보
+  ✓ package.json: 버전 업데이트 (0.3.61-dev.6 → 0.3.61-dev.7)
+  → 사용자의 구체적인 행동(이벤트 생성, 버킷 추가 등)이 Google Analytics에 기록됨
+
 v0.3.61-dev.6 (2026.05.11)
 - feat: Phase 1-8. Google Analytics 통합 (페이지뷰 추적)
   ✓ src/firebase.js: getAnalytics() 초기화 추가

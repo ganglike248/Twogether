@@ -5,9 +5,11 @@ import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
 import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
+import useAnalytics from '../../hooks/useAnalytics';
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const { getMemberName } = useAuthContext();
+  const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
@@ -90,6 +92,11 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       };
 
       await onSave(eventData);
+      logEvent('event_created', {
+        eventType,
+        isMultiDay,
+        hasDescription: !!description,
+      });
       onClose();
     } catch (error) {
       console.error('Error saving event:', error);

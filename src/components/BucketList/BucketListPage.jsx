@@ -14,6 +14,7 @@ import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
+import useAnalytics from '../../hooks/useAnalytics';
 import EmptyState from '../common/EmptyState';
 
 const BucketItem = React.memo(({
@@ -64,6 +65,7 @@ BucketItem.displayName = 'BucketItem';
 
 function BucketListPage() {
   const { coupleId } = useAuthContext();
+  const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
   const [bucketList, setBucketList] = useState([]);
   const [customCategories, setCustomCategories] = useState({});
@@ -222,6 +224,10 @@ function BucketListPage() {
         createdAt: new Date().toISOString(),
       };
       await addDoc(collection(db, 'bucketlists'), newItem);
+      logEvent('bucket_created', {
+        category: addForm.category,
+        hasContent: !!addForm.content,
+      });
       toast.success('버킷을 추가했습니다!');
       setAddForm({ title: '', content: '', category: getFirstCategory() });
       closeModal();
