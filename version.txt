@@ -1,3 +1,13 @@
+v0.3.61-dev.1 (2026.05.11)
+- feat: Phase 1-1. 더블 탭 방지 기능 추가 (useDoubleClickPrevention 훅)
+  ✓ src/hooks/useDoubleClickPrevention.js 신규 생성
+    - useRef로 마지막 클릭 시간 기록
+    - 0.5초 내 중복 클릭 무시
+  ✓ EventModal.js에 훅 적용
+    - handleSubmit에 더블 탭 방지 로직 추가
+  ✓ BucketListPage.jsx에 훅 적용
+    - handleAdd에 더블 탭 방지 로직 추가
+
 v0.3.60 (2026.05.11)
 - feat: 추억 페이지 전체 데이터 검색 기능 추가
   ✓ 검색 입력창 추가: 제목/내용 검색 지원

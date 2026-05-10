@@ -13,6 +13,7 @@ import CategorySelector from './CategorySelector';
 import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
+import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 
 const BucketItem = React.memo(({
   item,
@@ -62,6 +63,7 @@ BucketItem.displayName = 'BucketItem';
 
 function BucketListPage() {
   const { coupleId } = useAuthContext();
+  const canClick = useDoubleClickPrevention(500);
   const [bucketList, setBucketList] = useState([]);
   const [customCategories, setCustomCategories] = useState({});
   const [filterCategory, setFilterCategory] = useState('all');
@@ -206,6 +208,7 @@ function BucketListPage() {
   };
 
   const handleAdd = async () => {
+    if (!canClick()) return;
     if (!addForm.title.trim()) return;
     try {
       const newItem = {

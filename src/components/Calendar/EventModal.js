@@ -4,9 +4,11 @@ import { toast } from 'react-toastify';
 import './EventModal.css';
 import EditLogModal from '../EditLog/EditLogModal';
 import { useAuthContext } from '../../contexts/AuthContext';
+import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const { getMemberName } = useAuthContext();
+  const canClick = useDoubleClickPrevention(500);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');
@@ -46,6 +48,10 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+
+    if (!canClick()) {
+      return;
+    }
 
     if (!title.trim()) {
       toast.error('일정 제목을 입력해주세요.');
