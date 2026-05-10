@@ -5,6 +5,7 @@ import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import LoginPage from './components/Auth/LoginPage';
 import CoupleSetupPage from './components/Auth/CoupleSetupPage';
@@ -25,12 +26,14 @@ import './App.css';
 
 // AuthProvider와 공통 컴포넌트를 라우터 내부에 배치해야 useNavigate 등이 동작함
 const RootLayout = () => (
-  <AuthProvider>
-    <ScrollToTop />
-    <ToastContainer position="bottom-right" />
-    <PWAUpdatePrompt />
-    <Outlet />
-  </AuthProvider>
+  <ErrorBoundary>
+    <AuthProvider>
+      <ScrollToTop />
+      <ToastContainer position="bottom-right" />
+      <PWAUpdatePrompt />
+      <Outlet />
+    </AuthProvider>
+  </ErrorBoundary>
 );
 
 const router = createBrowserRouter([
