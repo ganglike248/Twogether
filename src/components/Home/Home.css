@@ -1,12 +1,12 @@
 /* src/components/Home/Home.css */
 
 .home-container {
-  padding: 0.875rem;
+  padding: var(--spacing-md);
   background-color: var(--main-bg);
   min-height: 100%;
   display: flex;
   flex-direction: column;
-  gap: 0.75rem;
+  gap: var(--spacing-lg);
 }
 
 /* 히어로 분할: 왼쪽 사진 + 오른쪽 정보 (1:1 비율) */
@@ -99,23 +99,24 @@
 .hero-stat-card {
   flex: 1;
   background: white;
-  border-radius: var(--border-radius-lg);
+  border-radius: var(--border-radius);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
-  padding: 0.625rem 0.75rem;
+  padding: var(--spacing-md);
   display: flex;
   align-items: center;
-  gap: 0.6rem;
+  gap: var(--spacing-md);
 }
 
 .hero-stat-card.clickable {
   cursor: pointer;
-  transition: box-shadow 0.15s, transform 0.15s;
+  transition: var(--transition-fast);
 }
 
 .hero-stat-card.clickable:hover {
   box-shadow: var(--shadow-md);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
+  background: #fafafa;
 }
 
 .stat-arrow {
@@ -128,15 +129,22 @@
 /* 공통 카드 */
 .home-card {
   background: white;
-  border-radius: var(--border-radius-lg);
-  padding: 0.875rem 1rem;
+  border-radius: var(--border-radius);
+  padding: var(--spacing-lg);
   border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
   display: flex;
   flex-direction: column;
-  gap: 0.5rem;
+  gap: var(--spacing-md);
+  cursor: pointer;
+  transition: var(--transition-fast);
+}
+
+.home-card:hover {
+  box-shadow: var(--shadow-md);
+  transform: translateY(-2px);
 }
 
 .card-label {

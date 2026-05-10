@@ -47,6 +47,38 @@
   --text-main: #6d6875;
   --text-sub: #b5838d;
   --card-border: rgba(255, 182, 193, 0.28);
+
+  /* Spacing System */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 0.875rem;
+  --spacing-lg: 1rem;
+  --spacing-xl: 1.5rem;
+
+  /* Font Size System */
+  --font-xs: 0.68rem;
+  --font-sm: 0.75rem;
+  --font-base: 0.85rem;
+  --font-lg: 0.88rem;
+  --font-xl: 1rem;
+  --font-2xl: 1.1rem;
+
+  /* Font Weight System */
+  --font-weight-light: 300;
+  --font-weight-normal: 500;
+  --font-weight-bold: 700;
+
+  /* Transition */
+  --transition-fast: all 0.15s ease;
+  --transition-color: background 0.15s, color 0.15s, border-color 0.15s;
+
+  /* Color Hover */
+  --color-hover-light: rgba(255, 107, 107, 0.08);
+  --color-hover-medium: rgba(255, 107, 107, 0.15);
+
+  /* Border Radius Unified */
+  --border-radius-sm: 8px;
+  --border-radius: 12px;
 }
 
 * {
@@ -81,21 +113,59 @@ body {
   padding: 0.5rem 1rem;
   border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
   border: none;
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-lg);
+  font-weight: var(--font-weight-bold);
   font-family: inherit;
   gap: 0.25rem;
 }
 
 .btn-primary {
-  background-color: var(--color-primary);
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
   color: white;
+  border: none;
 }
 
-.btn-primary:hover {
-  background-color: var(--color-primary-dark);
+.btn-primary:hover:not(:disabled) {
+  opacity: 0.9;
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+
+.btn-primary:active:not(:disabled) {
+  transform: translateY(0);
+}
+
+.btn-secondary {
+  background: white;
+  color: var(--color-primary);
+  border: 1.5px solid var(--color-primary);
+}
+
+.btn-secondary:hover:not(:disabled) {
+  background: var(--color-hover-light);
+  border-color: var(--color-primary);
+}
+
+.btn-secondary:active:not(:disabled) {
+  background: var(--color-hover-medium);
+}
+
+.btn-danger {
+  background: #fff0f0;
+  color: #e05252;
+  border: 1.5px solid #ffb6c1;
+}
+
+.btn-danger:hover:not(:disabled) {
+  background: #ffe0e0;
+  border-color: #e05252;
+}
+
+.btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
 }
 
 .btn-secondary {

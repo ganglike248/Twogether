@@ -43,8 +43,8 @@
 
 .cal-nav-btn {
   background: white;
-  border: 1.5px solid rgba(255, 182, 193, 0.5);
-  color: var(--color-primary-dark);
+  border: 1.5px solid var(--card-border);
+  color: var(--color-primary);
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -54,12 +54,13 @@
   align-items: center;
   justify-content: center;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: var(--transition-fast);
   padding: 0;
 }
 
 .cal-nav-btn:hover {
-  background: rgba(255, 182, 193, 0.12);
+  background: var(--color-hover-light);
+  border-color: var(--color-primary);
 }
 
 .calendar-title {
@@ -79,25 +80,26 @@
 
 .cal-action-btn {
   background: white;
-  border: 1.5px solid rgba(255, 182, 193, 0.5);
-  color: var(--color-primary-dark);
-  border-radius: 0.6rem;
-  font-weight: 600;
-  font-size: 0.72rem;
-  padding: 0.3rem 0.55rem;
+  border: 1.5px solid var(--card-border);
+  color: var(--color-primary);
+  border-radius: var(--border-radius);
+  font-weight: var(--font-weight-bold);
+  font-size: var(--font-sm);
+  padding: 0.4rem 0.65rem;
   cursor: pointer;
-  transition: background 0.15s;
+  transition: var(--transition-fast);
   white-space: nowrap;
 }
 
 .cal-action-btn:hover {
-  background: rgba(255, 182, 193, 0.12);
-  border-color: #ffb6c1;
+  background: var(--color-hover-light);
+  border-color: var(--color-primary);
 }
 
 .cal-action-btn.active {
-  background: rgba(255, 182, 193, 0.15);
-  border-color: #ff9bac;
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
 }
 
 /* ─── 슬라이더 ─── */

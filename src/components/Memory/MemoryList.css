@@ -1,6 +1,6 @@
 /* src/components/Memory/MemoryList.css */
 .memories-container {
-  padding: 1rem;
+  padding: var(--spacing-lg);
   background-color: var(--main-bg);
   height: calc(100dvh - 112px);
   overflow-y: auto;
@@ -8,14 +8,14 @@
 }
 
 .memories-header {
-  margin-bottom: 1rem;
+  margin-bottom: var(--spacing-lg);
 }
 
 .memories-title {
-  font-size: 1.1rem;
-  font-weight: 700;
+  font-size: var(--font-2xl);
+  font-weight: var(--font-weight-bold);
   color: var(--text-main);
-  margin-bottom: 0.25rem;
+  margin-bottom: var(--spacing-xs);
 }
 
 .memories-subtitle {
@@ -63,21 +63,23 @@
   background: white;
   border: 1px solid var(--color-gray-200);
   color: var(--color-gray-600);
-  font-size: 0.8rem;
-  font-weight: 500;
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-normal);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: var(--transition-fast);
 }
 
 .filter-button:hover {
-  color: var(--color-gray-800);
+  background: var(--color-hover-light);
+  color: var(--color-primary);
+  border-color: var(--color-primary);
 }
 
 .filter-button.active {
-  background-color: white;
-  color: var(--color-primary);
-  border-color: var(--color-primary-light);
-  box-shadow: var(--shadow-sm);
+  background: var(--color-primary);
+  color: white;
+  border-color: var(--color-primary);
+  box-shadow: var(--shadow-md);
 }
 
 .memories-grid {
