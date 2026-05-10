@@ -3,6 +3,7 @@ import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
+import EmptyState from '../common/EmptyState';
 
 const DayModal = ({
   isOpen, onClose, selectedDate, dayEvents, specialDays = [],
@@ -161,10 +162,11 @@ const DayModal = ({
 
           {/* 일반 일정 */}
           {dayEvents.length === 0 && !(cycleEnabled && dayPeriods.length > 0) ? (
-            <div className="day-modal-empty">
-              <div className="empty-icon">📅</div>
-              <p className="empty-text">이 날에는 일정이 없습니다</p>
-            </div>
+            <EmptyState
+              icon="📅"
+              title="이 날에는 일정이 없습니다"
+              text="새로운 일정을 추가하거나 추억을 기록해보세요!"
+            />
           ) : (
             <div className="day-events-list">
               {sortedEvents

@@ -1,3 +1,15 @@
+v0.3.61-dev.2 (2026.05.11)
+- feat: Phase 1-2. 빈 상태 개선 (EmptyState 컴포넌트 통합)
+  ✓ src/components/common/EmptyState.jsx 신규 생성
+    - icon, title, text, button props로 유연한 커스터마이징
+    - 부드러운 애니메이션 (float 효과)
+    - 그래디언트 배경으로 시각적 강조
+  ✓ MemoryList.js: 기존 empty state → EmptyState 컴포넌트로 통일
+  ✓ BucketListPage.jsx: 단순 텍스트 → 아이콘+제목+설명으로 개선
+    - 예정/완료 탭별 다른 아이콘 (🎯/✅)
+  ✓ DayModal.js: 기존 empty state → EmptyState 컴포넌트로 통일
+  ✓ TravelPlanPage.js: 기존 empty state → EmptyState 컴포넌트로 통일
+
 v0.3.61-dev.1 (2026.05.11)
 - feat: Phase 1-1. 더블 탭 방지 기능 추가 (useDoubleClickPrevention 훅)
   ✓ src/hooks/useDoubleClickPrevention.js 신규 생성

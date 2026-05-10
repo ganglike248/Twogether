@@ -8,6 +8,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import TripModal from './TripModal';
 import TripCard from './TripCard';
 import TripDetail from './TripDetail';
+import EmptyState from '../common/EmptyState';
 import './TravelPlanPage.css';
 
 const TravelPlanPage = () => {
@@ -186,27 +187,15 @@ const TravelPlanPage = () => {
                     <p className="travel-plan-loading-text">여행 계획을 불러오는 중...</p>
                 </div>
             ) : filteredTrips.length === 0 ? (
-                <div className="travel-plan-empty-state">
-                    <div className="travel-plan-empty-icon">✈️</div>
-                    <h2 className="travel-plan-empty-title">
-                        {searchQuery || filter !== 'all'
-                            ? '검색 결과가 없습니다'
-                            : '아직 여행 계획이 없습니다'}
-                    </h2>
-                    <p className="travel-plan-empty-text">
-                        {searchQuery || filter !== 'all'
-                            ? '다른 검색어나 필터를 시도해보세요'
-                            : '새로운 여행을 계획해보세요!'}
-                    </p>
-                    {!searchQuery && filter === 'all' && (
-                        <button
-                            onClick={() => { setEditingTrip(null); setShowTripModal(true); }}
-                            className="travel-plan-empty-button"
-                        >
-                            첫 여행 계획 만들기
-                        </button>
-                    )}
-                </div>
+                <EmptyState
+                    icon="✈️"
+                    title={searchQuery || filter !== 'all' ? '검색 결과가 없습니다' : '아직 여행 계획이 없습니다'}
+                    text={searchQuery || filter !== 'all' ? '다른 검색어나 필터를 시도해보세요' : '새로운 여행을 계획해보세요!'}
+                    button={!searchQuery && filter === 'all' ? {
+                        text: '첫 여행 계획 만들기',
+                        onClick: () => { setEditingTrip(null); setShowTripModal(true); }
+                    } : undefined}
+                />
             ) : (
                 <div className="travel-plan-trips-grid">
                     {filteredTrips.map(trip => (

@@ -14,6 +14,7 @@ import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
+import EmptyState from '../common/EmptyState';
 
 const BucketItem = React.memo(({
   item,
@@ -491,9 +492,14 @@ function BucketListPage() {
         {isLoading ? (
           <div className="bucket-loading">로딩 중...</div>
         ) : activeList.length === 0 ? (
-          <div className="bucket-empty">
-            {bucketList.length === 0 ? '리스트가 없습니다.' : '조건에 맞는 항목이 없습니다.'}
-          </div>
+          <EmptyState
+            icon={activeTab === 'pending' ? '🎯' : '✅'}
+            title={activeTab === 'pending' ? '예정된 항목이 없습니다' : '완료된 항목이 없습니다'}
+            text={bucketList.length === 0
+              ? '새로운 버킷을 추가해보세요!'
+              : '조건에 맞는 항목이 없습니다.'}
+            button={bucketList.length === 0 ? undefined : null}
+          />
         ) : (
           activeList.map(item => (
             <BucketItem

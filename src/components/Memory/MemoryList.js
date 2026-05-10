@@ -4,7 +4,7 @@ import { collection, query, orderBy, where, getDocs, startAfter, limit, onSnapsh
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import MemoryCard from './MemoryCard';
-import { Link } from 'react-router-dom';
+import EmptyState from '../common/EmptyState';
 import './MemoryList.css';
 
 const PAGE_SIZE = 10;
@@ -287,18 +287,14 @@ const MemoryList = () => {
           <p className="loading-text">{isSearching ? '검색 중...' : '추억을 불러오는 중...'}</p>
         </div>
       ) : filteredMemories.length === 0 ? (
-        <div className="empty-state">
-          <div className="empty-icon"></div>
-          <h2 className="empty-title">해당하는 추억이 없습니다</h2>
-          <p className="empty-text">
-            {filter === 'all'
-              ? '캘린더에서 일정을 만들어보세요!'
-              : '선택한 필터에 해당하는 추억이 없습니다.'}
-          </p>
-          <Link to="/calendar" className="empty-button">
-            추억 만들러 가기
-          </Link>
-        </div>
+        <EmptyState
+          icon="📸"
+          title="해당하는 추억이 없습니다"
+          text={filter === 'all'
+            ? '캘린더에서 일정을 만들어보세요!'
+            : '선택한 필터에 해당하는 추억이 없습니다.'}
+          button={{ text: '추억 만들러 가기', link: '/calendar' }}
+        />
       ) : (
         <div className="memories-grid">
           {filteredMemories.map((memory) => (
