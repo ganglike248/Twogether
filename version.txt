@@ -1,3 +1,16 @@
+v0.3.61-dev.6 (2026.05.11)
+- feat: Phase 1-8. Google Analytics 통합 (페이지뷰 추적)
+  ✓ src/firebase.js: getAnalytics() 초기화 추가
+    - VITE_FIREBASE_MEASUREMENT_ID 환경변수 사용
+    - Firebase 앱과 함께 Analytics 자동 활성화
+  ✓ src/services/analyticsService.js 신규 생성
+    - logPageView(pageName, pagePath): 페이지뷰 로깅
+    - logAnalyticsEvent(eventName, eventData): 커스텀 이벤트 로깅
+  ✓ src/components/common/ScrollToTop.js: 라우트 변경 시 GA 로깅
+    - pathname 변경 시 자동으로 logPageView 호출
+  ✓ package.json: 버전 업데이트 (0.3.61-dev.5 → 0.3.61-dev.6)
+  → 모든 페이지 방문 및 사용자 이동 경로가 Google Analytics에 기록됨
+
 v0.3.61-dev.5 (2026.05.11)
 - feat: Phase 1-5. 404 페이지 추가 (경로 오류 처리)
   ✓ src/components/common/NotFoundPage.jsx 신규 생성
