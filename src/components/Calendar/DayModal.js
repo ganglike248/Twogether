@@ -4,6 +4,7 @@ import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
 import EmptyState from '../common/EmptyState';
+import { MdCalendarToday } from 'react-icons/md';
 
 const DayModal = ({
   isOpen, onClose, selectedDate, dayEvents, specialDays = [],
@@ -163,7 +164,7 @@ const DayModal = ({
           {/* 일반 일정 */}
           {dayEvents.length === 0 && !(cycleEnabled && dayPeriods.length > 0) ? (
             <EmptyState
-              icon="📅"
+              icon={<MdCalendarToday size={56} />}
               title="이 날에는 일정이 없습니다"
               text="새로운 일정을 추가하거나 추억을 기록해보세요!"
             />

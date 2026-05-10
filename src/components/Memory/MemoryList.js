@@ -5,6 +5,7 @@ import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import MemoryCard from './MemoryCard';
 import EmptyState from '../common/EmptyState';
+import { MdPhotoCamera } from 'react-icons/md';
 import './MemoryList.css';
 
 const PAGE_SIZE = 10;
@@ -288,7 +289,7 @@ const MemoryList = () => {
         </div>
       ) : filteredMemories.length === 0 ? (
         <EmptyState
-          icon="📸"
+          icon={<MdPhotoCamera size={56} />}
           title="해당하는 추억이 없습니다"
           text={filter === 'all'
             ? '캘린더에서 일정을 만들어보세요!'

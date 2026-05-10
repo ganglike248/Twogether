@@ -9,6 +9,7 @@ import TripModal from './TripModal';
 import TripCard from './TripCard';
 import TripDetail from './TripDetail';
 import EmptyState from '../common/EmptyState';
+import { MdFlightTakeoff } from 'react-icons/md';
 import './TravelPlanPage.css';
 
 const TravelPlanPage = () => {
@@ -188,7 +189,7 @@ const TravelPlanPage = () => {
                 </div>
             ) : filteredTrips.length === 0 ? (
                 <EmptyState
-                    icon="✈️"
+                    icon={<MdFlightTakeoff size={56} />}
                     title={searchQuery || filter !== 'all' ? '검색 결과가 없습니다' : '아직 여행 계획이 없습니다'}
                     text={searchQuery || filter !== 'all' ? '다른 검색어나 필터를 시도해보세요' : '새로운 여행을 계획해보세요!'}
                     button={!searchQuery && filter === 'all' ? {

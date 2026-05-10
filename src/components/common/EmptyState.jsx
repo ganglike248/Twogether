@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import './EmptyState.css';
 
 const EmptyState = ({
-  icon = '📋',
+  icon = null,
   title = '데이터가 없습니다',
   text = '',
   button = null,
@@ -11,7 +11,7 @@ const EmptyState = ({
 }) => {
   return (
     <div className="empty-state-container">
-      <div className="empty-state-icon">{icon}</div>
+      {icon && <div className="empty-state-icon">{icon}</div>}
       <h2 className="empty-state-title">{title}</h2>
       {text && <p className="empty-state-text">{text}</p>}
 
