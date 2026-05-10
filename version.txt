@@ -1,3 +1,13 @@
+v0.3.61-dev.3 (2026.05.11)
+- feat: Phase 1-3. Sentry 통합 (에러 모니터링)
+  ✓ npm install @sentry/react @sentry/tracing
+  ✓ src/main.jsx: Sentry.init() 초기화
+    - VITE_SENTRY_DSN 환경변수로 조건부 활성화
+    - BrowserTracing, Replay 통합으로 성능 모니터링
+    - environment 변수로 프로덕션/개발 환경 구분
+  ✓ package.json: 버전 업데이트 (0.3.61-dev.2 → 0.3.61-dev.3)
+  → 프로덕션 에러가 자동으로 Sentry 대시보드에 수집됨
+
 v0.3.61-dev.2 (2026.05.11)
 - feat: Phase 1-2. 빈 상태 개선 (EmptyState 컴포넌트 통합)
   ✓ src/components/common/EmptyState.jsx 신규 생성
@@ -6,7 +16,7 @@ v0.3.61-dev.2 (2026.05.11)
     - 그래디언트 배경으로 시각적 강조
   ✓ MemoryList.js: 기존 empty state → EmptyState 컴포넌트로 통일
   ✓ BucketListPage.jsx: 단순 텍스트 → 아이콘+제목+설명으로 개선
-    - 예정/완료 탭별 다른 아이콘 (🎯/✅)
+    - react-icons로 아이콘 통일 (MdSchedule, MdCheckCircle)
   ✓ DayModal.js: 기존 empty state → EmptyState 컴포넌트로 통일
   ✓ TravelPlanPage.js: 기존 empty state → EmptyState 컴포넌트로 통일
 
