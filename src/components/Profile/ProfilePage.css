@@ -298,6 +298,37 @@
   cursor: default;
 }
 
+/* 비밀번호 변경 버튼 */
+.profile-change-password-btn {
+  width: 100%;
+  padding: 0.65rem 1rem;
+  background: none;
+  border: none;
+  color: var(--color-primary);
+  font-size: 0.88rem;
+  font-weight: 600;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  transition: background 0.15s;
+  border-radius: var(--border-radius);
+  font-family: inherit;
+}
+
+.profile-change-password-btn:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.profile-change-password-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-field-icon {
+  font-size: 0.9rem;
+}
+
 .profile-code {
   font-size: 1.05rem !important;
   letter-spacing: 0.2em;

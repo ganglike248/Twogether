@@ -4,10 +4,11 @@ import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiUser, HiCamera } from 'react-icons/hi2';
+import { HiArrowLeft, HiUser, HiCamera, HiLockClosed } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
+import ChangePasswordModal from './ChangePasswordModal';
 import './ProfilePage.css';
 
 const MAX_IMAGE_SIZE_MB = 10;
@@ -24,6 +25,7 @@ const ProfilePage = () => {
   const [origDate, setOrigDate] = useState('');
 
   const [showCycleModal, setShowCycleModal] = useState(false);
+  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
 
   // 사진 (임시 상태 — 저장 버튼 누를 때만 실제 반영)
   const [pendingHeroFile, setPendingHeroFile] = useState(null);   // 새 파일
@@ -278,6 +280,17 @@ const ProfilePage = () => {
               required
             />
           </div>
+          <div className="profile-field">
+            <button
+              type="button"
+              className="profile-change-password-btn"
+              onClick={() => setShowChangePasswordModal(true)}
+              disabled={loading}
+            >
+              <HiLockClosed className="profile-field-icon" />
+              비밀번호 변경
+            </button>
+          </div>
         </div>
 
         <button
@@ -345,6 +358,12 @@ const ProfilePage = () => {
           </div>
         </div>
       )}
+
+      {/* 비밀번호 변경 모달 */}
+      <ChangePasswordModal
+        isOpen={showChangePasswordModal}
+        onClose={() => setShowChangePasswordModal(false)}
+      />
     </div>
   );
 };

@@ -1,3 +1,26 @@
+v0.3.61-dev.8 (2026.05.11)
+- feat: Phase 1-7. 비밀번호 변경 기능 (계정 보안 강화)
+  ✓ src/components/Profile/ChangePasswordModal.jsx 신규 생성
+    - 현재 비밀번호 → 새 비밀번호 → 비밀번호 확인 입력 필드
+    - Firebase reauthenticateWithCredential + updatePassword 통합
+    - 현재 비밀번호 검증 (EmailAuthProvider)
+    - 비밀번호 강도 검증 (최소 6자 이상)
+    - 에러 처리: wrong-password, weak-password, requires-recent-login
+    - 보안: 비밀번호 표시/숨김 토글 제공
+  ✓ src/components/Profile/ChangePasswordModal.css 신규 생성
+    - 모달 오버레이 + 슬라이드 애니메이션
+    - 폼 유효성 검증 (제출 버튼 비활성화)
+    - react-icons(HiLockClosed, HiXMark) 일관된 UI
+  ✓ src/components/Profile/ProfilePage.jsx: 비밀번호 변경 버튼 추가
+    - import: HiLockClosed 아이콘 추가
+    - 내 정보 섹션에 "비밀번호 변경" 버튼 추가
+    - ChangePasswordModal 상태 관리 (showChangePasswordModal)
+  ✓ src/components/Profile/ProfilePage.css: 버튼 스타일 추가
+    - .profile-change-password-btn: 호버 효과, 비활성화 상태
+    - .profile-field-icon: 아이콘 스타일
+  ✓ package.json: 버전 업데이트 (0.3.61-dev.7 → 0.3.61-dev.8)
+  → 사용자가 안전하게 비밀번호를 변경할 수 있음 (현재 비밀번호 재인증 필수)
+
 v0.3.61-dev.7 (2026.05.11)
 - feat: Phase 1-6. 커스텀 이벤트 로깅 (사용자 행동 추적)
   ✓ src/hooks/useAnalytics.js 신규 생성
