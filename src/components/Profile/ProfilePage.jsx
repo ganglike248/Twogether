@@ -4,7 +4,7 @@ import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiUser, HiCamera, HiLockClosed } from 'react-icons/hi2';
+import { HiArrowLeft, HiUser, HiCamera, HiLockClosed, HiPencil } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
@@ -210,66 +210,66 @@ const ProfilePage = () => {
 
   return (
     <div className="profile-page">
-
       <form className="profile-form" onSubmit={handleSave}>
 
-        {/* 홈 화면 이미지 */}
-        <p className="profile-section-label">홈 화면 이미지</p>
-        <div className="profile-hero-row">
-          <div className="profile-hero-wrap" onClick={handleHeroClick}>
-            {displayHeroUrl
-              ? <img
-                  src={displayHeroUrl}
-                  alt="홈 이미지"
-                  className="profile-hero-img"
-                />
-              : <div className="profile-hero-placeholder" />
-            }
-            <div className={`profile-hero-overlay${loading ? ' uploading' : ''}`}>
-              <HiCamera className="profile-hero-camera" />
-              <span>변경</span>
+        {/* 홈 화면 이미지 섹션 */}
+        <div className="profile-section">
+          <div className="profile-section-title">홈 화면 이미지</div>
+          <div className="profile-hero-container">
+            <div className="profile-hero-wrap" onClick={handleHeroClick}>
+              {displayHeroUrl
+                ? <img
+                    src={displayHeroUrl}
+                    alt="홈 이미지"
+                    className="profile-hero-img"
+                  />
+                : <div className="profile-hero-placeholder" />
+              }
+              <div className={`profile-hero-overlay${loading ? ' uploading' : ''}`}>
+                <HiCamera className="profile-hero-camera" />
+                <span>변경</span>
+              </div>
+              <input
+                ref={heroInputRef}
+                type="file"
+                accept="image/*"
+                style={{ display: 'none' }}
+                onChange={handleHeroFileChange}
+              />
             </div>
-            <input
-              ref={heroInputRef}
-              type="file"
-              accept="image/*"
-              style={{ display: 'none' }}
-              onChange={handleHeroFileChange}
-            />
-          </div>
-          <div className="profile-hero-info">
-            <p className="profile-hero-info-title">홈 화면 대표 사진</p>
-            <p className="profile-hero-info-desc">홈 화면 왼쪽에 표시되는 커플 사진입니다.</p>
-            <ul className="profile-hero-info-list">
-              <li>형식: JPG, PNG, WEBP, GIF</li>
-              <li>최대 크기: 10MB</li>
-              <li>세로 방향 사진 권장</li>
-            </ul>
-            {pendingHeroDelete && (
-              <p className="profile-hero-pending-msg">사진이 제거됩니다 (저장 시 반영)</p>
-            )}
-            {pendingHeroFile && (
-              <p className="profile-hero-pending-msg">새 사진이 선택됐습니다 (저장 시 반영)</p>
-            )}
-            {displayHeroUrl && (
-              <button
-                type="button"
-                className="profile-hero-delete-btn"
-                onClick={handleHeroDelete}
-              >
-                사진 제거
-              </button>
-            )}
+            <div className="profile-hero-info">
+              <p className="profile-hero-info-desc">홈 화면 왼쪽에 표시되는 커플 사진입니다.</p>
+              <ul className="profile-hero-info-list">
+                <li>형식: JPG, PNG, WEBP, GIF</li>
+                <li>최대 크기: 10MB</li>
+                <li>세로 방향 사진 권장</li>
+              </ul>
+              {pendingHeroDelete && (
+                <p className="profile-hero-pending-msg">사진이 제거됩니다 (저장 시 반영)</p>
+              )}
+              {pendingHeroFile && (
+                <p className="profile-hero-pending-msg">새 사진이 선택됐습니다 (저장 시 반영)</p>
+              )}
+              {displayHeroUrl && (
+                <button
+                  type="button"
+                  className="profile-hero-delete-btn"
+                  onClick={handleHeroDelete}
+                >
+                  사진 제거
+                </button>
+              )}
+            </div>
           </div>
         </div>
 
-        {/* 내 닉네임만 수정 */}
-        <p className="profile-section-label">내 정보</p>
+        {/* 내 정보 섹션 */}
         <div className="profile-section">
+          <div className="profile-section-title">내 정보</div>
           <div className="profile-field">
             <label className="profile-label">
-              <HiUser className="profile-label-icon" />
-              닉네임
+              <HiPencil className="profile-label-icon" />
+              닉네임 수정
             </label>
             <input
               type="text"
@@ -278,21 +278,26 @@ const ProfilePage = () => {
               maxLength={20}
               placeholder="닉네임"
               required
+              className="profile-input-editable"
             />
-          </div>
-          <div className="profile-field">
-            <button
-              type="button"
-              className="profile-change-password-btn"
-              onClick={() => setShowChangePasswordModal(true)}
-              disabled={loading}
-            >
-              <HiLockClosed className="profile-field-icon" />
-              비밀번호 변경
-            </button>
           </div>
         </div>
 
+        {/* 보안 섹션 */}
+        <div className="profile-section">
+          <div className="profile-section-title">보안</div>
+          <button
+            type="button"
+            className="profile-change-password-btn"
+            onClick={() => setShowChangePasswordModal(true)}
+            disabled={loading}
+          >
+            <HiLockClosed className="profile-field-icon" />
+            비밀번호 변경
+          </button>
+        </div>
+
+        {/* 저장 버튼 */}
         <button
           type="submit"
           className={`profile-save-btn${saved ? ' saved' : ''}`}
