@@ -12,6 +12,7 @@ import CoupleSetupPage from './components/Auth/CoupleSetupPage';
 import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
 import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
+import NotFoundPage from './components/common/NotFoundPage';
 import Home from './components/Home/Home';
 import Calendar from './components/Calendar/Calendar';
 import MemoryList from './components/Memory/MemoryList';
@@ -92,7 +93,7 @@ const router = createBrowserRouter([
         element: <ProtectedRoute key="home-image-settings"><Layout><HomeImageSettingsPage /></Layout></ProtectedRoute>,
         key: 'home-image-settings',
       },
-      { path: '*', element: <Navigate to="/" replace /> },
+      { path: '*', element: <NotFoundPage />, key: 'not-found' },
     ],
   },
 ]);

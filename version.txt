@@ -1,3 +1,15 @@
+v0.3.61-dev.5 (2026.05.11)
+- feat: Phase 1-5. 404 페이지 추가 (경로 오류 처리)
+  ✓ src/components/common/NotFoundPage.jsx 신규 생성
+    - 사용자 친화적인 404 메시지 표시
+    - MdErrorOutline 아이콘으로 시각적 강조
+    - "홈으로 돌아가기" 버튼으로 네비게이션 제공
+  ✓ App.jsx: 와일드카드 라우트(*) 변경
+    - Navigate → NotFoundPage로 변경
+    - 존재하지 않는 경로 접근 시 폴백 UI 표시
+  ✓ package.json: 버전 업데이트 (0.3.61-dev.4 → 0.3.61-dev.5)
+  → 잘못된 경로 접근 시 명확한 피드백 제공
+
 v0.3.61-dev.4 (2026.05.11)
 - feat: Phase 1-4. 에러 바운더리 통합 (개발 디버깅 강화)
   ✓ src/components/common/ErrorBoundary.jsx 신규 생성
