@@ -144,5 +144,13 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
     }
+
+    // 개인 캘린더: 소유자만 접근 가능
+    match /personal_events/{docId} {
+      allow read, write: if isAuthenticated() &&
+        request.auth.uid == resource.data.userId;
+      allow create: if isAuthenticated() &&
+        request.auth.uid == request.resource.data.userId;
+    }
   }
 }

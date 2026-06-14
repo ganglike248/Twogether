@@ -89,6 +89,11 @@ export const AuthProvider = ({ children }) => {
   const member0Name = member0Uid === user?.uid ? (userDoc?.displayName || '') : (partnerDoc?.displayName || '');
   const member1Name = member1Uid === user?.uid ? (userDoc?.displayName || '') : (partnerDoc?.displayName || '');
 
+  // 현재 유저의 역할 ('boyfriend' | 'girlfriend' | null)
+  const myRole = user?.uid === member0Uid ? 'boyfriend'
+               : user?.uid === member1Uid ? 'girlfriend'
+               : null;
+
   // eventType('boyfriend'|'girlfriend'|'couple') → 표시 이름
   const getMemberName = (eventType) => {
     if (eventType === 'boyfriend') return member0Name || '멤버1';
@@ -97,7 +102,7 @@ export const AuthProvider = ({ children }) => {
   };
 
   return (
-    <AuthContext.Provider value={{ user, userDoc, coupleDoc, coupleId, partnerDoc, getMemberName, loading }}>
+    <AuthContext.Provider value={{ user, userDoc, coupleDoc, coupleId, partnerDoc, myRole, getMemberName, loading }}>
       {children}
     </AuthContext.Provider>
   );

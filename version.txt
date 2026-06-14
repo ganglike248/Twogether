@@ -1,3 +1,15 @@
+v0.3.11 (2026.06.14)
+- feat: 개인 캘린더 기능 추가 (완전 비공개 일정 관리)
+  ✓ Firestore personal_events 컬렉션 신규 생성 (userId 기반 접근 제어)
+  ✓ AuthContext에 myRole 추가 (boyfriend/girlfriend 자동 판별)
+  ✓ useCalendarData 확장: userId 파라미터 추가, personal_events 구독
+  ✓ EventModal 체크박스: 내 타입 선택 시만 "나만 보기" 체크박스 표시
+  ✓ localStorage 상태 유지: 마지막 선택 상태 기억
+  ✓ Calendar 탭 필터: [전체] [개인] [커플] 3가지 뷰 모드
+  ✓ 개인/공유 이벤트 자동 분기: 저장 시 personal_events vs events 선택
+  ✓ 보안: personal_events는 소유자만 접근 가능 (Firestore 규칙)
+  ✓ 향후 기능: "커플에 공유" 버튼 (개인 → 공유 일정 변환)
+
 v0.3.61-dev.8 (2026.05.11)
 - feat: Phase 1-7. 비밀번호 변경 기능 (계정 보안 강화)
   ✓ src/components/Profile/ChangePasswordModal.jsx 신규 생성

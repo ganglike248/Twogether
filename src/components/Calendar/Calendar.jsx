@@ -7,7 +7,10 @@ import DayModal from './DayModal';
 import EditLogModal from '../EditLog/EditLogModal';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
-import { createEvent, updateEvent, deleteEvent } from '../../services/eventService';
+import {
+  createEvent, updateEvent, deleteEvent,
+  createPersonalEvent, updatePersonalEvent, deletePersonalEvent
+} from '../../services/eventService';
 import { createCycle, deleteCycle } from '../../services/cycleService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
@@ -26,7 +29,7 @@ const Calendar = () => {
   const { user, coupleId, coupleDoc } = useAuthContext();
 
   // Data fetching
-  const { events, cycles, isLoading } = useCalendarData(coupleId);
+  const { events, cycles, isLoading } = useCalendarData(coupleId, user?.uid);
 
   // State management
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -35,6 +38,7 @@ const Calendar = () => {
   const [selectedDate, setSelectedDate] = useState(null);
   const [showEditLog, setShowEditLog] = useState(false);
   const [selectedEventForLog, setSelectedEventForLog] = useState(null);
+  const [viewMode, setViewMode] = useState('all'); // 'all' | 'personal' | 'couple'
   const [currentDate, setCurrentDate] = useState(() => {
     const d = new Date();
     return new Date(d.getFullYear(), d.getMonth(), 1);
@@ -52,10 +56,21 @@ const Calendar = () => {
     handleTouchEnd,
   } = navigation;
 
+  // Filter events by view mode
+  const filteredEvents = useMemo(() => {
+    if (viewMode === 'personal') {
+      return events.filter(e => e.extendedProps?.eventType === 'personal');
+    }
+    if (viewMode === 'couple') {
+      return events.filter(e => e.extendedProps?.eventType !== 'personal');
+    }
+    return events; // 'all'
+  }, [events, viewMode]);
+
   // Event data transformation
   const { specialDaysMap, allEvents } = useCalendarEvents(
     currentDate,
-    events,
+    filteredEvents,
     cycles,
     coupleDoc
   );
@@ -130,17 +145,37 @@ const Calendar = () => {
       if (!eventData.start || !eventData.end || !eventData.title)
         throw new Error('Event data is incomplete!');
       const uid = user?.uid;
-      if (eventData.id) await updateEvent(eventData.id, eventData, uid, coupleId);
-      else await createEvent(eventData, uid, coupleId);
+      const isPersonal = eventData.isPersonal === true; // EventModal에서 이미 정확하게 설정됨
+
+      if (eventData.id) {
+        // 수정: 개인/공유 구분
+        if (isPersonal) {
+          await updatePersonalEvent(eventData.id, eventData, uid, coupleId);
+        } else {
+          await updateEvent(eventData.id, eventData, uid, coupleId);
+        }
+      } else {
+        // 신규: 개인/공유 구분
+        if (isPersonal) {
+          await createPersonalEvent(eventData, uid, coupleId);
+        } else {
+          await createEvent(eventData, uid, coupleId);
+        }
+      }
       setIsModalOpen(false);
-    } catch {
+    } catch (error) {
       toast.error('일정 저장 중 오류가 발생했습니다.');
     }
   };
 
   const handleDeleteEvent = async (eventId) => {
     try {
-      await deleteEvent(eventId, user?.uid, coupleId);
+      const event = filteredEvents.find(e => e.id === eventId);
+      if (event?.extendedProps?.isPersonal) {
+        await deletePersonalEvent(eventId);
+      } else {
+        await deleteEvent(eventId, user?.uid, coupleId);
+      }
       setIsModalOpen(false);
     } catch {
       toast.error('일정 삭제 중 오류가 발생했습니다.');
@@ -215,6 +250,28 @@ const Calendar = () => {
         onGoToday={goToday}
         onShowEditLog={() => { setSelectedEventForLog(null); setShowEditLog(true); }}
       />
+
+      {/* 캘린더 탭 필터 */}
+      <div className="calendar-tabs">
+        <button
+          className={`calendar-tab ${viewMode === 'all' ? 'active' : ''}`}
+          onClick={() => setViewMode('all')}
+        >
+          💑 전체
+        </button>
+        <button
+          className={`calendar-tab ${viewMode === 'personal' ? 'active' : ''}`}
+          onClick={() => setViewMode('personal')}
+        >
+          👤 개인
+        </button>
+        <button
+          className={`calendar-tab ${viewMode === 'couple' ? 'active' : ''}`}
+          onClick={() => setViewMode('couple')}
+        >
+          ❤️ 커플
+        </button>
+      </div>
 
       {isLoading ? (
         <div className="loading-container">

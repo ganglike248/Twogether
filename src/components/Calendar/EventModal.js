@@ -8,7 +8,7 @@ import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
-  const { getMemberName } = useAuthContext();
+  const { getMemberName, myRole } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
   const [title, setTitle] = useState('');
@@ -16,6 +16,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate] = useState('');
   const [eventType, setEventType] = useState('couple');
+  const [isPersonal, setIsPersonal] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showEventLog, setShowEventLog] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -45,6 +46,11 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       }
 
       setEventType(event.eventType || 'couple');
+      setIsPersonal(event.extendedProps?.isPersonal || false);
+    } else {
+      // 새 일정 생성 시 localStorage에서 마지막 선택 상태 복원
+      const lastPersonalState = localStorage.getItem('twogether_personal_default') === 'true';
+      setIsPersonal(lastPersonalState);
     }
   }, [event]);
 
@@ -88,10 +94,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         description,
         start: adjustedStartDate,
         end: adjustedEndDate,
-        eventType
+        eventType,
+        isPersonal: isPersonal && eventType === myRole, // 내 타입일 때만 개인 일정 가능
       };
 
+      // localStorage에 마지막 선택 상태 저장
+      if (eventType === myRole) {
+        localStorage.setItem('twogether_personal_default', isPersonal ? 'true' : 'false');
+      }
+
       await onSave(eventData);
+
       logEvent('event_created', {
         eventType,
         isMultiDay,
@@ -224,6 +237,20 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   </label>
                 </div>
               </div>
+
+              {/* 개인 일정 체크박스 */}
+              {eventType === myRole && (
+                <div className="checkbox-group" style={{ marginTop: '0.75rem', paddingLeft: '0.5rem' }}>
+                  <label className="checkbox-label">
+                    <input
+                      type="checkbox"
+                      checked={isPersonal}
+                      onChange={(e) => setIsPersonal(e.target.checked)}
+                    />
+                    <span className="checkbox-text">나만 보기 (개인 일정)</span>
+                  </label>
+                </div>
+              )}
             </div>
           </div>
 

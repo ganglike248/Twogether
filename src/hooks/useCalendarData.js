@@ -2,7 +2,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
-export const useCalendarData = (coupleId) => {
+export const useCalendarData = (coupleId, userId) => {
   const [events, setEvents] = useState([]);
   const [cycles, setCycles] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -113,6 +113,37 @@ export const useCalendarData = (coupleId) => {
     });
     return () => unsubscribe();
   }, [coupleId]);
+
+  // 개인 일정 구독
+  useEffect(() => {
+    if (!userId) return;
+    const personalRef = query(
+      collection(db, 'personal_events'),
+      where('userId', '==', userId)
+    );
+    const unsubscribe = onSnapshot(personalRef, (snapshot) => {
+      const personalData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          start: data.start,
+          end: data.end,
+          allDay: true,
+          color: 'var(--color-personal)',
+          textColor: '#757575',
+          extendedProps: {
+            description: data.description,
+            eventType: 'personal',
+            isPersonal: true,
+            sharedToCoupleEventId: data.sharedToCoupleEventId || null,
+          }
+        };
+      });
+      setEvents(prev => [...prev.filter(e => e.extendedProps.eventType !== 'personal'), ...personalData]);
+    }, () => {});
+    return () => unsubscribe();
+  }, [userId]);
 
   return { events, cycles, isLoading };
 };

@@ -188,3 +188,116 @@ export const deleteTravelEvent = async (tripId, userId = 'anonymous', coupleId =
     await deleteDoc(eventDoc.ref);
   }));
 };
+
+// ═════════════════════════════════════════════════════════════════
+// 개인 일정 (personal_events 컬렉션)
+// ═════════════════════════════════════════════════════════════════
+
+export const createPersonalEvent = async (eventData, userId, coupleId = null) => {
+  const { id, isPersonal, ...dataWithoutId } = eventData;
+  const newEvent = {
+    ...dataWithoutId,
+    userId,
+    coupleId,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+  };
+  const docRef = await addDoc(collection(db, 'personal_events'), newEvent);
+  return { id: docRef.id, ...newEvent };
+};
+
+export const updatePersonalEvent = async (eventId, eventData, userId, coupleId = null) => {
+  const eventRef = doc(db, 'personal_events', eventId);
+  const { isPersonal, ...dataWithoutIsPersonal } = eventData;
+  const updatedData = {
+    ...dataWithoutIsPersonal,
+    updatedAt: serverTimestamp(),
+  };
+  await updateDoc(eventRef, updatedData);
+  return { id: eventId, ...updatedData };
+};
+
+export const deletePersonalEvent = async (eventId) => {
+  await deleteDoc(doc(db, 'personal_events', eventId));
+  return eventId;
+};
+
+export const sharePersonalToCoupleEvent = async (personalEventId, personalEventData, eventType = 'couple', userId = 'anonymous', coupleId = null) => {
+  const coupleEventData = {
+    title: personalEventData.title,
+    description: personalEventData.description,
+    start: personalEventData.start,
+    end: personalEventData.end,
+    eventType,
+    coupleId,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    createdBy: userId,
+    updatedBy: userId,
+  };
+
+  const docRef = await addDoc(collection(db, 'events'), coupleEventData);
+  await saveEditLog(docRef.id, coupleEventData, 'created', userId, coupleId);
+
+  // personal_events의 sharedToCoupleEventId 업데이트
+  await updateDoc(doc(db, 'personal_events', personalEventId), {
+    sharedToCoupleEventId: docRef.id,
+    updatedAt: serverTimestamp(),
+  });
+
+  return { id: docRef.id, ...coupleEventData };
+};
+
+export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null) => {
+  if (isPersonal) {
+    // personal_events → events로 변환
+    const personalRef = doc(db, 'personal_events', eventId);
+    const personalSnap = await getDoc(personalRef);
+
+    if (!personalSnap.exists()) throw new Error('Personal event not found');
+
+    const personalData = personalSnap.data();
+    const newEventData = {
+      title: personalData.title,
+      description: personalData.description,
+      start: personalData.start,
+      end: personalData.end,
+      eventType: newType,
+      coupleId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+      createdBy: userId,
+      updatedBy: userId,
+    };
+
+    const coupleDocRef = await addDoc(collection(db, 'events'), newEventData);
+    await saveEditLog(coupleDocRef.id, newEventData, 'created', userId, coupleId);
+    await deleteDoc(personalRef);
+
+    return { id: coupleDocRef.id, ...newEventData };
+  } else {
+    // events → personal_events로 변환
+    const eventRef = doc(db, 'events', eventId);
+    const eventSnap = await getDoc(eventRef);
+
+    if (!eventSnap.exists()) throw new Error('Event not found');
+
+    const eventData = eventSnap.data();
+    const newPersonalData = {
+      title: eventData.title,
+      description: eventData.description,
+      start: eventData.start,
+      end: eventData.end,
+      userId,
+      coupleId,
+      createdAt: serverTimestamp(),
+      updatedAt: serverTimestamp(),
+    };
+
+    const personalDocRef = await addDoc(collection(db, 'personal_events'), newPersonalData);
+    await saveEditLog(eventId, { type: 'converted_to_personal' }, 'converted_to_personal', userId, coupleId);
+    await deleteDoc(eventRef);
+
+    return { id: personalDocRef.id, ...newPersonalData };
+  }
+};
