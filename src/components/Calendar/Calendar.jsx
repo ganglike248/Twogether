@@ -16,6 +16,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import { useCalendarNavigation } from '../../hooks/useCalendarNavigation';
+import { getContrastColor } from '../../services/colorService';
 import './Calendar.css';
 
 const addDaysToStr = (dateStr, days) => {
@@ -30,6 +31,37 @@ const Calendar = () => {
 
   // Data fetching
   const { events, cycles, isLoading } = useCalendarData(coupleId, user?.uid);
+
+  // 이벤트 색상을 CSS 변수에 동기화
+  useEffect(() => {
+    if (userDoc?.eventTypeColors) {
+      const colors = userDoc.eventTypeColors;
+
+      if (colors.boyfriend) {
+        document.documentElement.style.setProperty('--color-boyfriend', colors.boyfriend);
+        document.documentElement.style.setProperty('--color-boyfriend-background', `${colors.boyfriend}55`);
+        document.documentElement.style.setProperty('--color-boyfriend-border', `${colors.boyfriend}1a`);
+        document.documentElement.style.setProperty('--color-boyfriend-shadow', `${colors.boyfriend}4d`);
+        document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(colors.boyfriend));
+      }
+
+      if (colors.girlfriend) {
+        document.documentElement.style.setProperty('--color-girlfriend', colors.girlfriend);
+        document.documentElement.style.setProperty('--color-girlfriend-background', `${colors.girlfriend}55`);
+        document.documentElement.style.setProperty('--color-girlfriend-border', `${colors.girlfriend}1a`);
+        document.documentElement.style.setProperty('--color-girlfriend-shadow', `${colors.girlfriend}4d`);
+        document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(colors.girlfriend));
+      }
+
+      if (colors.personal) {
+        document.documentElement.style.setProperty('--color-personal', colors.personal);
+        document.documentElement.style.setProperty('--color-personal-background', `${colors.personal}55`);
+        document.documentElement.style.setProperty('--color-personal-border', `${colors.personal}26`);
+        document.documentElement.style.setProperty('--color-personal-shadow', `${colors.personal}4d`);
+        document.documentElement.style.setProperty('--color-personal-font', getContrastColor(colors.personal));
+      }
+    }
+  }, [userDoc?.eventTypeColors]);
 
   // 사용자 정의 색상 적용
   const eventsWithCustomColors = useMemo(() => {

@@ -1,8 +1,9 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { getContrastColor } from '../../services/colorService';
 import EmptyState from '../common/EmptyState';
 import { MdCalendarToday } from 'react-icons/md';
 
@@ -11,8 +12,39 @@ const DayModal = ({
   onAddEvent, onEditEvent,
   dayPeriods = [], cycleSettings, onAddPeriod, onDeletePeriod,
 }) => {
-  const { getMemberName } = useAuthContext();
+  const { getMemberName, userDoc } = useAuthContext();
   const [showPeriodForm, setShowPeriodForm] = useState(false);
+
+  // 이벤트 색상을 CSS 변수에 동기화
+  useEffect(() => {
+    if (userDoc?.eventTypeColors) {
+      const colors = userDoc.eventTypeColors;
+
+      if (colors.personal) {
+        document.documentElement.style.setProperty('--color-personal', colors.personal);
+        document.documentElement.style.setProperty('--color-personal-background', `${colors.personal}55`);
+        document.documentElement.style.setProperty('--color-personal-border', `${colors.personal}26`);
+        document.documentElement.style.setProperty('--color-personal-shadow', `${colors.personal}4d`);
+        document.documentElement.style.setProperty('--color-personal-font', getContrastColor(colors.personal));
+      }
+
+      if (colors.boyfriend) {
+        document.documentElement.style.setProperty('--color-boyfriend', colors.boyfriend);
+        document.documentElement.style.setProperty('--color-boyfriend-background', `${colors.boyfriend}55`);
+        document.documentElement.style.setProperty('--color-boyfriend-border', `${colors.boyfriend}1a`);
+        document.documentElement.style.setProperty('--color-boyfriend-shadow', `${colors.boyfriend}4d`);
+        document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(colors.boyfriend));
+      }
+
+      if (colors.girlfriend) {
+        document.documentElement.style.setProperty('--color-girlfriend', colors.girlfriend);
+        document.documentElement.style.setProperty('--color-girlfriend-background', `${colors.girlfriend}55`);
+        document.documentElement.style.setProperty('--color-girlfriend-border', `${colors.girlfriend}1a`);
+        document.documentElement.style.setProperty('--color-girlfriend-shadow', `${colors.girlfriend}4d`);
+        document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(colors.girlfriend));
+      }
+    }
+  }, [userDoc?.eventTypeColors]);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
@@ -62,6 +94,7 @@ const DayModal = ({
       case 'boyfriend': return '🐶';
       case 'girlfriend': return '🐹';
       case 'couple': return '🥰';
+      case 'personal': return '🔒';
       default: return '📅';
     }
   };
@@ -70,6 +103,7 @@ const DayModal = ({
     if (isTrip) return '여행';
     if (eventType === 'couple') return '데이트';
     if (eventType === 'boyfriend' || eventType === 'girlfriend') return getMemberName(eventType);
+    if (eventType === 'personal') return '개인';
     return '일정';
   };
 

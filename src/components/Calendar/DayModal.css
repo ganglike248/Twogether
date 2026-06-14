@@ -117,13 +117,13 @@
 }
 
 .day-special-item.holiday {
-  background: rgba(232, 67, 90, 0.07);
-  border: 1px solid rgba(232, 67, 90, 0.15);
+  background: var(--color-holiday-background);
+  border: 1px solid var(--color-holiday-border);
 }
 
 .day-special-item.couple {
-  background: rgba(255, 155, 172, 0.07);
-  border: 1px solid rgba(255, 155, 172, 0.18);
+  background: var(--color-couple-special-background);
+  border: 1px solid var(--color-couple-special-border);
 }
 
 .day-special-prefix {
@@ -138,8 +138,8 @@
   font-weight: 600;
 }
 
-.day-special-item.holiday .day-special-name { color: #f08090; }
-.day-special-item.couple  .day-special-name { color: #ff7096; }
+.day-special-item.holiday .day-special-name { color: var(--color-holiday); }
+.day-special-item.couple  .day-special-name { color: var(--color-couple-special-name); }
 
 .day-events-list {
   display: flex;
@@ -159,22 +159,27 @@
 
 .day-event-item.couple {
   background-color: var(--color-couple-background);
-  border-color: rgba(255, 107, 107, 0.1);
+  border-color: var(--color-couple-border);
 }
 
 .day-event-item.boyfriend {
   background-color: var(--color-boyfriend-background);
-  border-color: rgba(161, 188, 255, 0.1);
+  border-color: var(--color-boyfriend-border);
 }
 
 .day-event-item.girlfriend {
   background-color: var(--color-girlfriend-background);
-  border-color: rgba(148, 255, 134, 0.1);
+  border-color: var(--color-girlfriend-border);
 }
 
 .day-event-item.trip {
-  background-color: rgba(165, 94, 234, 0.08);
-  border-color: rgba(165, 94, 234, 0.1);
+  background-color: var(--color-trip-background);
+  border-color: var(--color-trip-border);
+}
+
+.day-event-item.personal {
+  background-color: var(--color-personal-background);
+  border-color: var(--color-personal-border);
 }
 
 .day-event-item:hover {
@@ -184,22 +189,27 @@
 
 .day-event-item.couple:hover {
   border-color: var(--color-couple);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.2);
+  box-shadow: 0 4px 12px var(--color-couple-shadow);
 }
 
 .day-event-item.boyfriend:hover {
   border-color: var(--color-boyfriend);
-  box-shadow: 0 4px 12px rgba(161, 188, 255, 0.2);
+  box-shadow: 0 4px 12px var(--color-boyfriend-shadow);
 }
 
 .day-event-item.girlfriend:hover {
   border-color: var(--color-girlfriend);
-  box-shadow: 0 4px 12px rgba(148, 255, 134, 0.2);
+  box-shadow: 0 4px 12px var(--color-girlfriend-shadow);
 }
 
 .day-event-item.trip:hover {
-  border-color: #a55eea;
-  box-shadow: 0 4px 12px rgba(165, 94, 234, 0.2);
+  border-color: var(--color-trip);
+  box-shadow: 0 4px 12px var(--color-trip-shadow);
+}
+
+.day-event-item.personal:hover {
+  border-color: #4ECDC4;
+  box-shadow: 0 4px 12px rgba(78, 205, 196, 0.2);
 }
 
 .event-icon {
@@ -239,18 +249,23 @@
 }
 
 .event-type.couple {
-  background-color: rgba(255, 107, 107, 0.2);
-  color: #d94f4f;
+  background-color: var(--color-couple-background);
+  color: var(--color-couple-font);
 }
 
 .event-type.boyfriend {
-  background-color: rgba(161, 188, 255, 0.2);
-  color: #4a7fc4;
+  background-color: var(--color-boyfriend-background);
+  color: var(--color-boyfriend-font);
 }
 
 .event-type.girlfriend {
-  background-color: rgba(148, 255, 134, 0.2);
-  color: #3da05a;
+  background-color: var(--color-girlfriend-background);
+  color: var(--color-girlfriend-font);
+}
+
+.event-type.personal {
+  background-color: var(--color-personal-background);
+  color: var(--color-personal-font);
 }
 
 .event-type.trip {

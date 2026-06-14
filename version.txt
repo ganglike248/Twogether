@@ -1,3 +1,11 @@
+v0.3.14 (2026.06.14)
+- fix: 이벤트 타입 배경색 동기화 및 opacity 강화
+  ✓ EventModal.css, DayModal.css `.event-type` CSS 변수 적용 (색상 동기화)
+  ✓ MemoryCard.css 아이콘 배경색을 CSS 변수로 변수화
+  ✓ Calendar.jsx, DayModal.js background opacity 0x33 → 0x55 (20% → 33%)
+  ✓ index.css 기본값 opacity 0.2 → 0.33 (색상이 더 진하게 표시됨)
+  ⚠️ 색상 동기화는 완료되었으나, 여전히 배경색 진하기 개선 필요할 수 있음
+
 v0.3.13 (2026.06.14)
 - fix: 캘린더 탭 버튼 스타일 개선 (헤더 버튼과 통일)
   ✓ calendar-tabs 배경색을 var(--main-bg)로 변경 (calendar-header와 동일)

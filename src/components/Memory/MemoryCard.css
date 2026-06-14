@@ -34,15 +34,15 @@
 }
 
 .icon-boyfriend {
-  background-color: rgba(161, 188, 255, 0.2);
+  background-color: var(--color-boyfriend-background);
 }
 
 .icon-girlfriend {
-  background-color: rgba(148, 255, 134, 0.2);
+  background-color: var(--color-girlfriend-background);
 }
 
 .icon-couple {
-  background-color: rgba(255, 107, 107, 0.2);
+  background-color: var(--color-couple-background);
 }
 
 .card-title {

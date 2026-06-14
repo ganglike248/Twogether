@@ -316,37 +316,37 @@
 }
 
 .radio-label.boyfriend {
-  color: #4a7fc4;
+  color: var(--color-boyfriend-font);
   background-color: var(--color-boyfriend-background);
 }
 
 .radio-label.girlfriend {
-  color: #3da05a;
+  color: var(--color-girlfriend-font);
   background-color: var(--color-girlfriend-background);
 }
 
 .radio-label.couple {
-  color: #d94f4f;
+  color: var(--color-couple-font);
   background-color: var(--color-couple-background);
 }
 
 /* 선택된 라벨 스타일 */
 .radio-option input[type="radio"]:checked + .radio-label.boyfriend {
-  background-color: rgba(74, 123, 247, 0.2);
+  background-color: var(--color-boyfriend-background);
   border: 1px solid var(--color-boyfriend);
-  box-shadow: 0 0 0 2px rgba(74, 123, 247, 0.3);
+  box-shadow: 0 0 0 2px var(--color-boyfriend-shadow);
 }
 
 .radio-option input[type="radio"]:checked + .radio-label.girlfriend {
-  background-color: rgba(139, 195, 74, 0.2);
+  background-color: var(--color-girlfriend-background);
   border: 1px solid var(--color-girlfriend);
-  box-shadow: 0 0 0 2px rgba(139, 195, 74, 0.3);
+  box-shadow: 0 0 0 2px var(--color-girlfriend-shadow);
 }
 
 .radio-option input[type="radio"]:checked + .radio-label.couple {
-  background-color: rgba(255, 107, 107, 0.2);
+  background-color: var(--color-couple-background);
   border: 1px solid var(--color-couple);
-  box-shadow: 0 0 0 2px rgba(255, 107, 107, 0.3);
+  box-shadow: 0 0 0 2px var(--color-couple-shadow);
 }
 
 @keyframes spin {
