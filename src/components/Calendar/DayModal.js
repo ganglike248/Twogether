@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { getContrastColor } from '../../services/colorService';
+import useColorSync from '../../hooks/useColorSync';
 import EmptyState from '../common/EmptyState';
 import { MdCalendarToday } from 'react-icons/md';
 
@@ -15,39 +15,7 @@ const DayModal = ({
   const { getMemberName, userDoc, partnerDoc, myRole } = useAuthContext();
   const [showPeriodForm, setShowPeriodForm] = useState(false);
 
-  // 이벤트 색상을 CSS 변수에 동기화
-  useEffect(() => {
-    const userColors = userDoc?.eventTypeColors || {};
-    const partnerColors = partnerDoc?.eventTypeColors || {};
-
-    // personal: 항상 내 색상
-    if (userColors.personal) {
-      document.documentElement.style.setProperty('--color-personal', userColors.personal);
-      document.documentElement.style.setProperty('--color-personal-background', `${userColors.personal}55`);
-      document.documentElement.style.setProperty('--color-personal-border', `${userColors.personal}26`);
-      document.documentElement.style.setProperty('--color-personal-shadow', `${userColors.personal}4d`);
-      document.documentElement.style.setProperty('--color-personal-font', getContrastColor(userColors.personal));
-    }
-
-    // boyfriend/girlfriend: 해당 역할의 소유자 색상 사용
-    const boyfriendColor = myRole === 'boyfriend' ? userColors.boyfriend : partnerColors.boyfriend;
-    if (boyfriendColor) {
-      document.documentElement.style.setProperty('--color-boyfriend', boyfriendColor);
-      document.documentElement.style.setProperty('--color-boyfriend-background', `${boyfriendColor}55`);
-      document.documentElement.style.setProperty('--color-boyfriend-border', `${boyfriendColor}1a`);
-      document.documentElement.style.setProperty('--color-boyfriend-shadow', `${boyfriendColor}4d`);
-      document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(boyfriendColor));
-    }
-
-    const girlfriendColor = myRole === 'girlfriend' ? userColors.girlfriend : partnerColors.girlfriend;
-    if (girlfriendColor) {
-      document.documentElement.style.setProperty('--color-girlfriend', girlfriendColor);
-      document.documentElement.style.setProperty('--color-girlfriend-background', `${girlfriendColor}55`);
-      document.documentElement.style.setProperty('--color-girlfriend-border', `${girlfriendColor}1a`);
-      document.documentElement.style.setProperty('--color-girlfriend-shadow', `${girlfriendColor}4d`);
-      document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(girlfriendColor));
-    }
-  }, [userDoc?.eventTypeColors, partnerDoc?.eventTypeColors, myRole]);
+  useColorSync(userDoc, partnerDoc, myRole);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);

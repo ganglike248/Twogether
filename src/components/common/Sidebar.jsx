@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { HiXMark, HiUser, HiCog, HiArrowRightOnRectangle, HiUsers } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
+import { version } from '../../../package.json';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
@@ -89,7 +90,7 @@ const Sidebar = ({ isOpen, onClose }) => {
 
         {/* 하단 푸터 */}
         <div className="sidebar-footer">
-          <span className="sidebar-version">v0.3.46</span>
+          <span className="sidebar-version">v{version}</span>
           <span className="sidebar-feedback">Business9498@gmail.com</span>
           <button className="sidebar-logout" onClick={handleLogout}>
             <HiArrowRightOnRectangle />

@@ -29,7 +29,7 @@ export const createTrip = async (tripData, userId = 'anonymous', coupleId = null
 
   // 여행 이벤트 자동 생성
   try {
-    await createTravelEvent(tripData, userId, coupleId);
+    await createTravelEvent(tripWithId, userId, coupleId);
   } catch (error) {
     console.error('여행 이벤트 생성 실패:', error);
   }

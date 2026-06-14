@@ -13,26 +13,11 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [expandedLogs, setExpandedLogs] = useState(new Set());
-  const [eventsData, setEventsData] = useState({}); // 이벤트 데이터 캐시
+  const [eventsData, setEventsData] = useState({});
+  const eventsDataRef = useRef({});
   const modalBodyRef = useRef(null);
 
-  useEffect(() => {
-    if (isOpen) {
-      resetAndFetchLogs();
-    }
-  }, [isOpen, eventId, filter]);
-
-  const resetAndFetchLogs = async () => {
-    setLogs([]);
-    setLastDoc(null);
-    setHasMore(true);
-    setExpandedLogs(new Set());
-    setEventsData({});
-    await fetchLogs(true);
-  };
-
-  // fetchLogs를 useCallback으로 감싸서 의존성 문제 해결
-  const fetchLogs = useCallback(async (isInitial = false) => {
+  const fetchLogs = useCallback(async (isInitial = false, startAfterDoc = null) => {
     if (isInitial) {
       setLoading(true);
     } else {
@@ -40,27 +25,23 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     }
 
     try {
-      const result = await getEditLogs(coupleId, eventId, 10, isInitial ? null : lastDoc);
-      const filteredLogs = filter === 'all' 
-        ? result.logs 
+      const result = await getEditLogs(coupleId, eventId, 10, startAfterDoc);
+      const filteredLogs = filter === 'all'
+        ? result.logs
         : result.logs.filter(log => log.action === filter);
 
-      // 각 로그의 이벤트 데이터를 조회
-      const newEventsData = { ...eventsData };
-      const fetchPromises = filteredLogs.map(async (log) => {
+      const newEventsData = { ...eventsDataRef.current };
+      await Promise.all(filteredLogs.map(async (log) => {
         if (log.eventId && !newEventsData[log.eventId]) {
           try {
             const eventData = await getEventById(log.eventId);
-            if (eventData) {
-              newEventsData[log.eventId] = eventData;
-            }
+            if (eventData) newEventsData[log.eventId] = eventData;
           } catch (error) {
             console.error(`Error fetching event ${log.eventId}:`, error);
           }
         }
-      });
-
-      await Promise.all(fetchPromises);
+      }));
+      eventsDataRef.current = newEventsData;
       setEventsData(newEventsData);
 
       if (isInitial) {
@@ -68,7 +49,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
       } else {
         setLogs(prev => [...prev, ...filteredLogs]);
       }
-      
+
       setLastDoc(result.lastDoc);
       setHasMore(result.hasMore);
     } catch (error) {
@@ -80,15 +61,31 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
         setLoadingMore(false);
       }
     }
-  }, [coupleId, eventId, filter, lastDoc, eventsData]);
+  }, [coupleId, eventId, filter]);
+
+  const resetAndFetchLogs = useCallback(async () => {
+    setLogs([]);
+    setLastDoc(null);
+    setHasMore(true);
+    setExpandedLogs(new Set());
+    eventsDataRef.current = {};
+    setEventsData({});
+    await fetchLogs(true, null);
+  }, [fetchLogs]);
+
+  useEffect(() => {
+    if (isOpen) {
+      resetAndFetchLogs();
+    }
+  }, [isOpen, eventId, filter, resetAndFetchLogs]);
 
   const handleScroll = useCallback(() => {
     if (!modalBodyRef.current || !hasMore || loadingMore) return;
     const { scrollTop, scrollHeight, clientHeight } = modalBodyRef.current;
     if (scrollHeight - scrollTop - clientHeight < 100) {
-      fetchLogs(false);
+      fetchLogs(false, lastDoc);
     }
-  }, [hasMore, loadingMore, fetchLogs]);
+  }, [hasMore, loadingMore, fetchLogs, lastDoc]);
 
   useEffect(() => {
     const modalBody = modalBodyRef.current;

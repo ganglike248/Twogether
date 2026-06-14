@@ -1,22 +1,20 @@
 // src/components/Profile/ProfilePage.jsx
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiUser, HiCamera, HiLockClosed, HiPencil } from 'react-icons/hi2';
+import { HiCamera, HiLockClosed, HiPencil } from 'react-icons/hi2';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
+import useHeroImage from '../../hooks/useHeroImage';
 import ChangePasswordModal from './ChangePasswordModal';
 import './ProfilePage.css';
 
-const MAX_IMAGE_SIZE_MB = 10;
-const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif', 'image/heic', 'image/heif'];
-
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, userDoc, coupleDoc, coupleId, partnerDoc, myRole } = useAuthContext();
+  const { user, userDoc, coupleDoc, coupleId } = useAuthContext();
 
   // 텍스트 필드
   const [displayName, setDisplayName] = useState('');
@@ -24,32 +22,22 @@ const ProfilePage = () => {
   const [origName, setOrigName] = useState('');
   const [origDate, setOrigDate] = useState('');
 
-  const [showCycleModal, setShowCycleModal] = useState(false);
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
-
-  // 사진 (임시 상태 — 저장 버튼 누를 때만 실제 반영)
-  const [pendingHeroFile, setPendingHeroFile] = useState(null);   // 새 파일
-  const [pendingHeroDelete, setPendingHeroDelete] = useState(false); // 삭제 예약
-  const [heroPreviewUrl, setHeroPreviewUrl] = useState(null);     // 미리보기 blob URL
-  const heroInputRef = useRef(null);
-
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
   const [showHeroDeleteModal, setShowHeroDeleteModal] = useState(false);
 
-  // Firestore의 현재 저장된 이미지 URL
-  const heroImageUrl = coupleDoc?.heroImageUrl || null;
-
-  // 화면에 표시할 이미지: 삭제 예약이면 null, 새 파일 미리보기 우선, 없으면 저장된 URL
-  const displayHeroUrl = pendingHeroDelete ? null : (heroPreviewUrl || heroImageUrl);
-
-  // blob URL 정리
-  useEffect(() => {
-    return () => {
-      if (heroPreviewUrl) URL.revokeObjectURL(heroPreviewUrl);
-    };
-  }, [heroPreviewUrl]);
+  const {
+    pendingHeroFile,
+    pendingHeroDelete,
+    displayHeroUrl,
+    heroInputRef,
+    handleHeroClick,
+    handleHeroFileChange,
+    confirmHeroDelete,
+    resetPending,
+  } = useHeroImage(coupleDoc?.heroImageUrl || null);
 
   useEffect(() => {
     if (userDoc) {
@@ -82,48 +70,12 @@ const ProfilePage = () => {
     }
   }, [blocker.state]);
 
-  // ─── 사진 핸들러 ───────────────────────────────────────────
-
-  const handleHeroClick = () => {
-    if (!loading) heroInputRef.current?.click();
-  };
-
-  const handleHeroFileChange = (e) => {
-    const file = e.target.files[0];
-    if (!file) return;
-
-    // 파일 크기 검증
-    if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      toast.error(`파일 크기는 ${MAX_IMAGE_SIZE_MB}MB 이하여야 합니다.`);
-      e.target.value = '';
-      return;
-    }
-
-    // 파일 타입 검증 (type이 비어있을 경우 통과 — storageService에서 재검증)
-    if (file.type && !ALLOWED_IMAGE_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, WEBP, GIF)');
-      e.target.value = '';
-      return;
-    }
-
-    if (heroPreviewUrl) URL.revokeObjectURL(heroPreviewUrl);
-    setPendingHeroFile(file);
-    setPendingHeroDelete(false);
-    setHeroPreviewUrl(URL.createObjectURL(file));
-    e.target.value = '';
-  };
-
   const handleHeroDelete = () => {
     setShowHeroDeleteModal(true);
   };
 
-  const confirmHeroDelete = () => {
-    if (heroPreviewUrl) {
-      URL.revokeObjectURL(heroPreviewUrl);
-      setHeroPreviewUrl(null);
-    }
-    setPendingHeroFile(null);
-    setPendingHeroDelete(true);
+  const handleConfirmHeroDelete = () => {
+    confirmHeroDelete();
     setShowHeroDeleteModal(false);
   };
 
@@ -142,13 +94,11 @@ const ProfilePage = () => {
       if (pendingHeroFile) {
         const url = await uploadHeroImage(coupleId, pendingHeroFile);
         await updateDoc(doc(db, 'couples', coupleId), { heroImageUrl: url });
-        if (heroPreviewUrl) URL.revokeObjectURL(heroPreviewUrl);
-        setPendingHeroFile(null);
-        setHeroPreviewUrl(null);
+        resetPending();
       } else if (pendingHeroDelete) {
         await removeHeroImage(coupleId);
         await updateDoc(doc(db, 'couples', coupleId), { heroImageUrl: null });
-        setPendingHeroDelete(false);
+        resetPending();
       }
 
       setOrigName(displayName.trim());
@@ -216,7 +166,7 @@ const ProfilePage = () => {
         <div className="profile-section">
           <div className="profile-section-title">홈 화면 이미지</div>
           <div className="profile-hero-container">
-            <div className="profile-hero-wrap" onClick={handleHeroClick}>
+            <div className="profile-hero-wrap" onClick={() => handleHeroClick(loading)}>
               {displayHeroUrl
                 ? <img
                     src={displayHeroUrl}
@@ -356,7 +306,7 @@ const ProfilePage = () => {
               </button>
               <button
                 className="profile-modal-btn discard"
-                onClick={confirmHeroDelete}
+                onClick={handleConfirmHeroDelete}
               >
                 제거
               </button>
