@@ -14,23 +14,26 @@ const MemoryCard = React.memo(({ memory }) => {
       <div className="memory-card" onClick={() => setShowDetail(true)}>
         <div className="card-header-container">
           <div className={`card-icon ${
-            memory.eventType === 'boyfriend' ? 'icon-boyfriend' : 
-            memory.eventType === 'girlfriend' ? 'icon-girlfriend' : 'icon-couple'
+            memory.eventType === 'boyfriend' ? 'icon-boyfriend' :
+            memory.eventType === 'girlfriend' ? 'icon-girlfriend' :
+            memory.eventType === 'personal' ? 'icon-personal' : 'icon-couple'
           }`}>
-            {memory.eventType === 'boyfriend' ? '🐶' : 
-             memory.eventType === 'girlfriend' ? '🐹' : '🥰'}
+            {memory.eventType === 'boyfriend' ? '🐶' :
+             memory.eventType === 'girlfriend' ? '🐹' :
+             memory.eventType === 'personal' ? '🔒' : '🥰'}
           </div>
           <h3 className="card-title">{memory.title}</h3>
         </div>
-        
+
         <div className="card-content">
           <div className="card-meta">
             <span className="card-date">{formatDate(memory.start)}</span>
             <span className={`card-badge ${
-              memory.eventType === 'boyfriend' ? 'badge-boyfriend' : 
-              memory.eventType === 'girlfriend' ? 'badge-girlfriend' : 'badge-couple'
+              memory.eventType === 'boyfriend' ? 'badge-boyfriend' :
+              memory.eventType === 'girlfriend' ? 'badge-girlfriend' :
+              memory.eventType === 'personal' ? 'badge-personal' : 'badge-couple'
             }`}>
-              {getMemberName(memory.eventType)}
+              {memory.eventType === 'personal' ? '개인' : getMemberName(memory.eventType)}
             </span>
           </div>
           

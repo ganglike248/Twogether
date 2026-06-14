@@ -11,12 +11,15 @@ import './MemoryList.css';
 const PAGE_SIZE = 10;
 
 const MemoryList = () => {
-  const { coupleId, getMemberName } = useAuthContext();
+  const { coupleId, getMemberName, user } = useAuthContext();
+  const userId = user?.uid;
+
   const [memories, setMemories] = useState([]);
+  const [personalMemories, setPersonalMemories] = useState([]);
   const [filteredMemories, setFilteredMemories] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [loadingMore, setLoadingMore] = useState(false);
-  const [filter, setFilter] = useState('all'); // 'all', 'boyfriend', 'girlfriend', 'couple'
+  const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [lastDoc, setLastDoc] = useState(null);
@@ -24,7 +27,6 @@ const MemoryList = () => {
 
   const containerRef = useRef(null);
 
-  // 메모리 데이터 정규화
   const normalizeMemory = (data) => {
     if (data.eventType === undefined) {
       data.eventType = data.isCouple ? 'couple' : 'boyfriend';
@@ -32,77 +34,91 @@ const MemoryList = () => {
     return data;
   };
 
-  // 필터와 검색 조합 적용
-  const applyFiltersAndSearch = (allMemories, currentFilter, currentSearch) => {
-    let result = allMemories;
+  // 공유 + 개인 일정을 필터/검색에 따라 합산 (검색 중에는 검색 useEffect가 처리)
+  useEffect(() => {
+    if (searchTerm.trim()) return;
 
-    // 필터 적용
-    if (currentFilter !== 'all') {
-      result = result.filter(memory => memory.eventType === currentFilter);
+    let result;
+    if (filter === 'personal') {
+      result = [...personalMemories];
+    } else if (filter === 'all') {
+      result = [...memories, ...personalMemories]
+        .sort((a, b) => (a.start > b.start ? -1 : a.start < b.start ? 1 : 0));
+    } else {
+      result = memories.filter(m => m.eventType === filter);
     }
-
-    // 검색 적용
-    if (currentSearch.trim()) {
-      const searchLower = currentSearch.toLowerCase();
-      result = result.filter(memory => {
-        const titleMatch = (memory.title || '').toLowerCase().includes(searchLower);
-        const descriptionMatch = (memory.description || '').toLowerCase().includes(searchLower);
-        return titleMatch || descriptionMatch;
-      });
-    }
-
     setFilteredMemories(result);
-  };
+  }, [memories, personalMemories, filter, searchTerm]);
 
-  // 필터 기반 실시간 구독
+  // 개인 일정 실시간 구독 (과거 이벤트만)
+  useEffect(() => {
+    if (!userId) return;
+    const q = query(
+      collection(db, 'personal_events'),
+      where('userId', '==', userId)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const today = new Date();
+      today.setHours(23, 59, 59, 999);
+      const todayStr = today.toISOString().split('T')[0];
+      const data = snapshot.docs
+        .map(doc => ({ id: doc.id, ...doc.data(), eventType: 'personal', isPersonal: true }))
+        .filter(m => m.start && m.start.split('T')[0] <= todayStr)
+        .sort((a, b) => (a.start > b.start ? -1 : 1));
+      setPersonalMemories(data);
+    });
+    return () => unsubscribe();
+  }, [userId]);
+
+  // 공유 일정 구독 (개인 필터 선택 시 스킵)
   useEffect(() => {
     if (!coupleId) return;
 
+    if (filter === 'personal') {
+      setMemories([]);
+      setLastDoc(null);
+      setHasMore(false);
+      setIsLoading(false);
+      return;
+    }
+
+    setIsLoading(true);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
 
     const constraints = [
-      where("coupleId", "==", coupleId),
-      where("start", "<=", todayStr),
-      orderBy("start", "desc"),
+      where('coupleId', '==', coupleId),
+      where('start', '<=', todayStr),
+      orderBy('start', 'desc'),
       limit(PAGE_SIZE)
     ];
 
     if (filter !== 'all') {
-      constraints.splice(2, 0, where("eventType", "==", filter));
+      constraints.splice(2, 0, where('eventType', '==', filter));
     }
 
-    const q = query(collection(db, "events"), ...constraints);
-
-    const unsubscribe = onSnapshot(q, (querySnapshot) => {
+    const q = query(collection(db, 'events'), ...constraints);
+    const unsubscribe = onSnapshot(q, (snapshot) => {
       const memoriesData = [];
-      querySnapshot.forEach((doc) => {
-        memoriesData.push({
-          id: doc.id,
-          ...normalizeMemory(doc.data()),
-        });
+      snapshot.forEach(doc => {
+        memoriesData.push({ id: doc.id, ...normalizeMemory(doc.data()) });
       });
-
       setMemories(memoriesData);
-      // 검색어가 없을 때만 필터된 결과 업데이트 (검색 중이면 검색 useEffect에서 처리)
-      if (!searchTerm.trim()) {
-        applyFiltersAndSearch(memoriesData, filter, '');
-      }
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
       setHasMore(memoriesData.length === PAGE_SIZE);
       setIsLoading(false);
     }, (error) => {
-      console.error("Error subscribing to memories:", error);
+      console.error('Error subscribing to memories:', error);
       setIsLoading(false);
     });
 
     return () => unsubscribe();
-  }, [coupleId, filter, searchTerm]);
+  }, [coupleId, filter]);
 
-  // 추가 메모리 로드 (필터 포함 페이지네이션) - 검색 중일 때는 작동 안 함
+  // 추가 공유 일정 로드 (스크롤)
   const fetchMoreMemories = useCallback(async () => {
-    if (!coupleId || !lastDoc || !hasMore || searchTerm.trim()) return;
+    if (!coupleId || !lastDoc || !hasMore || searchTerm.trim() || filter === 'personal') return;
     setLoadingMore(true);
 
     try {
@@ -111,104 +127,116 @@ const MemoryList = () => {
       const todayStr = today.toISOString().split('T')[0];
 
       const constraints = [
-        where("coupleId", "==", coupleId),
-        where("start", "<=", todayStr),
-        orderBy("start", "desc"),
+        where('coupleId', '==', coupleId),
+        where('start', '<=', todayStr),
+        orderBy('start', 'desc'),
         startAfter(lastDoc),
         limit(PAGE_SIZE)
       ];
 
       if (filter !== 'all') {
-        constraints.splice(2, 0, where("eventType", "==", filter));
+        constraints.splice(2, 0, where('eventType', '==', filter));
       }
 
-      const q = query(collection(db, "events"), ...constraints);
-      const querySnapshot = await getDocs(q);
-      const memoriesData = [];
+      const q = query(collection(db, 'events'), ...constraints);
+      const snapshot = await getDocs(q);
+      const newMemories = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...normalizeMemory(doc.data()),
+      }));
 
-      querySnapshot.forEach((doc) => {
-        memoriesData.push({
-          id: doc.id,
-          ...normalizeMemory(doc.data()),
-        });
-      });
-
-      const updatedMemories = [...memories, ...memoriesData];
-      setMemories(updatedMemories);
-      // 검색어가 없을 때만 필터링 적용
-      if (!searchTerm.trim()) {
-        applyFiltersAndSearch(updatedMemories, filter, '');
-      }
-      setLastDoc(querySnapshot.docs[querySnapshot.docs.length - 1] || null);
-      setHasMore(memoriesData.length === PAGE_SIZE);
+      setMemories(prev => [...prev, ...newMemories]);
+      setLastDoc(snapshot.docs[snapshot.docs.length - 1] || null);
+      setHasMore(newMemories.length === PAGE_SIZE);
     } catch (error) {
-      console.error("Error fetching more memories:", error);
+      console.error('Error fetching more memories:', error);
     } finally {
       setLoadingMore(false);
     }
   }, [coupleId, lastDoc, hasMore, filter, searchTerm]);
 
-  // 필터 변경 시 페이지네이션 초기화 (onSnapshot이 자동으로 새 데이터 로드)
   const resetPagination = useCallback(() => {
     setLastDoc(null);
     setHasMore(true);
   }, []);
 
-  // 검색어 변경 시 Firestore에서 전체 데이터 로드
+  // 검색 처리 (공유 + 개인 일정 통합)
   useEffect(() => {
     if (!coupleId) return;
-
     const searchLower = searchTerm.toLowerCase();
+
     if (!searchLower.trim()) {
-      // 검색 종료 - 무한 스크롤 모드로 돌아감
       setIsSearching(false);
-      applyFiltersAndSearch(memories, filter, '');
-      return;
+      return; // compute useEffect가 filteredMemories 갱신
     }
 
-    // 검색 시작 - 전체 데이터 로드
     setIsSearching(true);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
     const todayStr = today.toISOString().split('T')[0];
 
-    const constraints = [
-      where("coupleId", "==", coupleId),
-      where("start", "<=", todayStr),
-      orderBy("start", "desc")
-    ];
+    const promises = [];
 
-    if (filter !== 'all') {
-      constraints.splice(2, 0, where("eventType", "==", filter));
+    // 공유 일정 검색 (personal 필터 제외)
+    if (filter !== 'personal') {
+      const constraints = [
+        where('coupleId', '==', coupleId),
+        where('start', '<=', todayStr),
+        orderBy('start', 'desc'),
+      ];
+      if (filter !== 'all') {
+        constraints.splice(2, 0, where('eventType', '==', filter));
+      }
+      promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
+    } else {
+      promises.push(Promise.resolve(null));
     }
 
-    const q = query(collection(db, "events"), ...constraints);
-    getDocs(q).then((querySnapshot) => {
-      const searchResults = [];
-      querySnapshot.forEach((doc) => {
-        const data = normalizeMemory(doc.data());
-        // 클라이언트에서 검색어 필터링
-        const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
-        const descriptionMatch = (data.description || '').toLowerCase().includes(searchLower);
-        if (titleMatch || descriptionMatch) {
-          searchResults.push({
-            id: doc.id,
-            ...data,
-          });
-        }
-      });
-      setFilteredMemories(searchResults);
+    // 개인 일정 검색 (all/personal 필터)
+    if (userId && (filter === 'all' || filter === 'personal')) {
+      promises.push(getDocs(query(
+        collection(db, 'personal_events'),
+        where('userId', '==', userId)
+      )));
+    } else {
+      promises.push(Promise.resolve(null));
+    }
+
+    Promise.all(promises).then(([sharedSnapshot, personalSnapshot]) => {
+      const results = [];
+
+      if (sharedSnapshot) {
+        sharedSnapshot.forEach(doc => {
+          const data = normalizeMemory(doc.data());
+          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
+          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
+          if (titleMatch || descMatch) results.push({ id: doc.id, ...data });
+        });
+      }
+
+      if (personalSnapshot) {
+        personalSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (!data.start || data.start.split('T')[0] > todayStr) return;
+          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
+          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
+          if (titleMatch || descMatch) {
+            results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
+          }
+        });
+      }
+
+      results.sort((a, b) => (a.start > b.start ? -1 : 1));
+      setFilteredMemories(results);
       setIsSearching(false);
-    }).catch((error) => {
-      console.error("Error searching memories:", error);
+    }).catch(err => {
+      console.error('Error searching memories:', err);
       setIsSearching(false);
     });
-  }, [searchTerm, coupleId, filter]);
+  }, [searchTerm, coupleId, userId, filter]);
 
-  // 스크롤 핸들러 (검색 중일 때는 비활성화)
   const handleScroll = useCallback(() => {
     if (!containerRef.current || !hasMore || loadingMore || isSearching) return;
-
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     if (scrollHeight - scrollTop - clientHeight < 100) {
       fetchMoreMemories();
@@ -224,8 +252,8 @@ const MemoryList = () => {
   }, [handleScroll]);
 
   return (
-    <div 
-      className="memories-container" 
+    <div
+      className="memories-container"
       ref={containerRef}
     >
       <div className="memories-header">
@@ -245,37 +273,31 @@ const MemoryList = () => {
 
       <div className="filter-container">
         <button
-          onClick={() => {
-            setFilter('all');
-            resetPagination();
-          }}
+          onClick={() => { setFilter('all'); resetPagination(); }}
           className={`filter-button ${filter === 'all' ? 'active' : ''}`}
         >
           전체
         </button>
         <button
-          onClick={() => {
-            setFilter('couple');
-            resetPagination();
-          }}
+          onClick={() => { setFilter('personal'); resetPagination(); }}
+          className={`filter-button ${filter === 'personal' ? 'active' : ''}`}
+        >
+          개인
+        </button>
+        <button
+          onClick={() => { setFilter('couple'); resetPagination(); }}
           className={`filter-button ${filter === 'couple' ? 'active' : ''}`}
         >
           데이트
         </button>
         <button
-          onClick={() => {
-            setFilter('boyfriend');
-            resetPagination();
-          }}
+          onClick={() => { setFilter('boyfriend'); resetPagination(); }}
           className={`filter-button ${filter === 'boyfriend' ? 'active' : ''}`}
         >
           {getMemberName('boyfriend')}
         </button>
         <button
-          onClick={() => {
-            setFilter('girlfriend');
-            resetPagination();
-          }}
+          onClick={() => { setFilter('girlfriend'); resetPagination(); }}
           className={`filter-button ${filter === 'girlfriend' ? 'active' : ''}`}
         >
           {getMemberName('girlfriend')}
@@ -304,16 +326,14 @@ const MemoryList = () => {
         </div>
       )}
 
-      {/* 더 불러오는 중 표시 */}
       {loadingMore && (
         <div className="loading-more">
           <div className="loading-spinner small"></div>
           <p>더 많은 추억을 불러오는 중...</p>
         </div>
       )}
-      
-      {/* 더 이상 로드할 항목이 없을 때 (검색 중이 아닐 때) */}
-      {!hasMore && memories.length > 0 && !isLoading && !isSearching && (
+
+      {!hasMore && filter !== 'personal' && memories.length > 0 && !isLoading && !isSearching && (
         <div className="no-more-logs">
           <p>모든 추억을 불러왔습니다.</p>
         </div>

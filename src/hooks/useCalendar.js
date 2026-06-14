@@ -3,13 +3,12 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
-const useCalendar = (coupleId) => {
+const useCalendar = (coupleId, userId) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
     if (!coupleId) {
-      setEvents([]);
       setLoading(false);
       return;
     }
@@ -46,7 +45,7 @@ const useCalendar = (coupleId) => {
           },
         };
       });
-      setEvents(eventsData);
+      setEvents(prev => [...prev.filter(e => !e.extendedProps?.isPersonal), ...eventsData]);
       setLoading(false);
     }, () => {
       setLoading(false);
@@ -54,6 +53,34 @@ const useCalendar = (coupleId) => {
 
     return () => unsubscribe();
   }, [coupleId]);
+
+  useEffect(() => {
+    if (!userId) return;
+    const q = query(
+      collection(db, 'personal_events'),
+      where('userId', '==', userId)
+    );
+    const unsubscribe = onSnapshot(q, (snapshot) => {
+      const personalData = snapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          title: data.title,
+          start: data.start,
+          end: data.end,
+          color: 'var(--color-personal)',
+          extendedProps: {
+            description: data.description,
+            eventType: 'personal',
+            isPersonal: true,
+            imageUrls: data.imageUrls || [],
+          },
+        };
+      });
+      setEvents(prev => [...prev.filter(e => !e.extendedProps?.isPersonal), ...personalData]);
+    }, () => {});
+    return () => unsubscribe();
+  }, [userId]);
 
   return { events, loading };
 };

@@ -91,6 +91,15 @@
   color: var(--color-couple-font);
 }
 
+.icon-personal {
+  background-color: var(--color-personal-background);
+}
+
+.badge-personal {
+  background-color: var(--color-personal-background);
+  color: var(--color-personal-font);
+}
+
 .card-description {
   font-size: 0.8rem;
   color: var(--color-gray-600);

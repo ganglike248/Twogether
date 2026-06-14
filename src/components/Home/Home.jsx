@@ -21,7 +21,7 @@ import WheelModal from '../Wheel/WheelModal';
 import './Home.css';
 
 const Home = () => {
-  const { coupleId, coupleDoc } = useAuthContext();
+  const { user, coupleId, coupleDoc } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -33,7 +33,7 @@ const Home = () => {
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const { events } = useCalendar(coupleId);
+  const { events } = useCalendar(coupleId, user?.uid);
   const { trips } = useTrips(coupleId);
   const navigate = useNavigate();
 
@@ -166,6 +166,7 @@ const Home = () => {
   };
 
   const eventTypeColor = (event) => {
+    if (event?.extendedProps?.isPersonal) return 'var(--color-personal)';
     const type = event?.extendedProps?.eventType;
     if (type === 'couple') return '#ff6b6b';
     if (type === 'boyfriend') return '#81bbf5';
