@@ -12,15 +12,15 @@ const DayModal = ({
   onAddEvent, onEditEvent,
   dayPeriods = [], cycleSettings, onAddPeriod, onDeletePeriod,
 }) => {
-  const { getMemberName, userDoc, partnerDoc } = useAuthContext();
+  const { getMemberName, userDoc, partnerDoc, myRole } = useAuthContext();
   const [showPeriodForm, setShowPeriodForm] = useState(false);
 
-  // 이벤트 색상을 CSS 변수에 동기화 (내 색상 + 파트너 색상)
+  // 이벤트 색상을 CSS 변수에 동기화
   useEffect(() => {
     const userColors = userDoc?.eventTypeColors || {};
     const partnerColors = partnerDoc?.eventTypeColors || {};
 
-    // 자신의 색상 (personal)
+    // personal: 항상 내 색상
     if (userColors.personal) {
       document.documentElement.style.setProperty('--color-personal', userColors.personal);
       document.documentElement.style.setProperty('--color-personal-background', `${userColors.personal}55`);
@@ -29,8 +29,8 @@ const DayModal = ({
       document.documentElement.style.setProperty('--color-personal-font', getContrastColor(userColors.personal));
     }
 
-    // 파트너의 색상 우선, 없으면 자신의 색상 (boyfriend/girlfriend는 파트너 색상 사용)
-    const boyfriendColor = partnerColors.boyfriend || userColors.boyfriend;
+    // boyfriend/girlfriend: 해당 역할의 소유자 색상 사용
+    const boyfriendColor = myRole === 'boyfriend' ? userColors.boyfriend : partnerColors.boyfriend;
     if (boyfriendColor) {
       document.documentElement.style.setProperty('--color-boyfriend', boyfriendColor);
       document.documentElement.style.setProperty('--color-boyfriend-background', `${boyfriendColor}55`);
@@ -39,7 +39,7 @@ const DayModal = ({
       document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(boyfriendColor));
     }
 
-    const girlfriendColor = partnerColors.girlfriend || userColors.girlfriend;
+    const girlfriendColor = myRole === 'girlfriend' ? userColors.girlfriend : partnerColors.girlfriend;
     if (girlfriendColor) {
       document.documentElement.style.setProperty('--color-girlfriend', girlfriendColor);
       document.documentElement.style.setProperty('--color-girlfriend-background', `${girlfriendColor}55`);
@@ -47,7 +47,7 @@ const DayModal = ({
       document.documentElement.style.setProperty('--color-girlfriend-shadow', `${girlfriendColor}4d`);
       document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(girlfriendColor));
     }
-  }, [userDoc?.eventTypeColors, partnerDoc?.eventTypeColors]);
+  }, [userDoc?.eventTypeColors, partnerDoc?.eventTypeColors, myRole]);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
