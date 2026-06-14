@@ -404,34 +404,34 @@
 /* ─── 캘린더 탭 필터 ─── */
 .calendar-tabs {
   display: flex;
-  gap: 0.5rem;
-  padding: 0.75rem;
-  justify-content: center;
-  background: white;
+  gap: 0.4rem;
+  padding: 0.6rem 0.75rem;
+  justify-content: flex-start;
+  background: var(--main-bg);
   border-bottom: 1px solid var(--card-border);
   flex-shrink: 0;
 }
 
 .calendar-tab {
-  padding: 0.5rem 1rem;
-  border: 1.5px solid var(--color-gray-300);
+  padding: 0.4rem 0.65rem;
+  border: 1.5px solid var(--card-border);
   background: white;
-  color: var(--color-gray-700);
-  border-radius: 1.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
+  color: var(--color-primary);
+  border-radius: var(--border-radius);
+  font-size: var(--font-sm);
+  font-weight: var(--font-weight-bold);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: var(--transition-fast);
+  white-space: nowrap;
 }
 
 .calendar-tab:hover {
+  background: var(--color-hover-light);
   border-color: var(--color-primary);
-  color: var(--color-primary);
 }
 
 .calendar-tab.active {
   background: var(--color-primary);
   color: white;
   border-color: var(--color-primary);
-  font-weight: 600;
 }

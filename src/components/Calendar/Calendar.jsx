@@ -283,19 +283,19 @@ const Calendar = () => {
           className={`calendar-tab ${viewMode === 'all' ? 'active' : ''}`}
           onClick={() => setViewMode('all')}
         >
-          💑 전체
+          전체
         </button>
         <button
           className={`calendar-tab ${viewMode === 'personal' ? 'active' : ''}`}
           onClick={() => setViewMode('personal')}
         >
-          👤 개인
+          개인
         </button>
         <button
           className={`calendar-tab ${viewMode === 'couple' ? 'active' : ''}`}
           onClick={() => setViewMode('couple')}
         >
-          ❤️ 커플
+          커플
         </button>
       </div>
 
