@@ -215,7 +215,7 @@ select {
   border-radius: var(--border-radius);
   width: 100%;
   box-sizing: border-box;
-  font-size: 0.875rem;
+  font-size: 1rem; /* iOS Safari zoom 방지: 16px 미만 시 포커스 시 자동 확대됨 */
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background-color: white;

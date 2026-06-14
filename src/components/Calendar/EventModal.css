@@ -72,6 +72,7 @@
 .date-input-group {
   display: flex;
   flex-direction: column;
+  min-width: 0; /* iOS Safari: grid 컬럼 초과 방지 */
 }
 
 .date-input-group .form-label {
@@ -87,7 +88,7 @@
   padding: 0.7rem;
   border: 1px solid var(--color-gray-300);
   border-radius: var(--border-radius);
-  font-size: 0.85rem;
+  font-size: 1rem; /* iOS zoom 방지: 16px 이상 필수 */
   text-align: center;
   background-color: white;
   transition: all 0.2s ease;
@@ -123,10 +124,10 @@
 .form-grid input[type="date"] {
   width: 100%;
   box-sizing: border-box;
-  padding: 0.75rem;
+  padding: 0.75rem 0.4rem;
   border: 1px solid var(--color-gray-300);
   border-radius: var(--border-radius);
-  font-size: 0.875rem;
+  font-size: 1rem; /* iOS zoom 방지: 16px 이상 필수 */
   transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
