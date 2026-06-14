@@ -150,11 +150,13 @@ const Calendar = () => {
 
       const startDate = getDateString(event.start);
       const endDate = event.end ? getDateString(event.end) : startDate;
+      const isPersonalEvent = event.extendedProps?.isPersonal || false;
       setSelectedEvent({
         id: event.id, title: event.title,
         start: startDate, end: endDate,
         description: event.extendedProps?.description || '',
-        eventType: event.extendedProps?.eventType || 'couple',
+        eventType: isPersonalEvent ? myRole : (event.extendedProps?.eventType || 'couple'),
+        isPersonal: isPersonalEvent,
         imageUrls: event.extendedProps?.imageUrls || []
       });
       setIsDayModalOpen(false);
