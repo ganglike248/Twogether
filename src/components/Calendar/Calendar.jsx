@@ -171,17 +171,22 @@ const Calendar = () => {
       if (!eventData.start || !eventData.end || !eventData.title)
         throw new Error('Event data is incomplete!');
       const uid = user?.uid;
-      const isPersonal = eventData.isPersonal === true; // EventModal에서 이미 정확하게 설정됨
+      const isPersonal = eventData.isPersonal === true;
 
       if (eventData.id) {
-        // 수정: 개인/공유 구분
-        if (isPersonal) {
+        const wasPersonal = events.find(e => e.id === eventData.id)?.extendedProps?.isPersonal || false;
+
+        if (wasPersonal && !isPersonal) {
+          // 개인 → 공유 전환: 개인 일정 삭제 후 공유 일정으로 새로 생성
+          await deletePersonalEvent(eventData.id);
+          const { id: _id, isPersonal: _ip, ...newEventData } = eventData;
+          await createEvent(newEventData, uid, coupleId);
+        } else if (isPersonal) {
           await updatePersonalEvent(eventData.id, eventData, uid, coupleId);
         } else {
           await updateEvent(eventData.id, eventData, uid, coupleId);
         }
       } else {
-        // 신규: 개인/공유 구분
         if (isPersonal) {
           await createPersonalEvent(eventData, uid, coupleId);
         } else {
@@ -196,7 +201,8 @@ const Calendar = () => {
 
   const handleDeleteEvent = async (eventId) => {
     try {
-      const event = filteredEvents.find(e => e.id === eventId);
+      // filteredEvents 대신 events 사용: 탭 필터에 관계없이 원본 속성으로 판별
+      const event = events.find(e => e.id === eventId);
       if (event?.extendedProps?.isPersonal) {
         await deletePersonalEvent(eventId);
       } else {
