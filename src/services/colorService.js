@@ -1,17 +1,19 @@
 // src/services/colorService.js
 
-// 기본 색상 팔레트
+// 기본 색상 팔레트 (30색 - 파스텔 전 스펙트럼)
 export const DEFAULT_COLOR_PALETTE = [
-  '#c7ceea',  // 라벤더 (기존 boyfriend)
-  '#b5ead7',  // 민트 (기존 girlfriend)
-  '#4ECDC4',  // 청록색 (기존 personal)
-  '#FFB6B9',  // 분홍색
-  '#FEC8D8',  // 밝은 분홍
-  '#FFDAC1',  // 복숭아색
-  '#E0BBE4',  // 자주색
-  '#957DAD',  // 진 자주색
-  '#FFD6E8',  // 밝은 분홍 2
-  '#A8D8EA',  // 하늘색
+  // 레드/코랄/핑크
+  '#FFB3B3', '#FFC8C0', '#FFB3C8', '#F5B3D0', '#FFB3E8',
+  // 퍼플/라벤더/바이올렛
+  '#E8B3FF', '#D4B3FF', '#C7CEEA', '#B8B8FF', '#B3C4FF',
+  // 블루/스카이/티얼
+  '#B3D8FF', '#B3EEFF', '#B3F4F5', '#B3F0E8', '#B3EFDD',
+  // 그린/민트/라임
+  '#B5EAD7', '#B8F0C8', '#C8F5B3', '#DDFAB3', '#F0FFB3',
+  // 옐로우/오렌지/피치
+  '#FFF8B3', '#FFF0B3', '#FFE4B3', '#FFD4B3', '#FFCAB3',
+  // 뉴트럴/그레이/어스
+  '#F5F5F5', '#EDE8F0', '#E8EEEE', '#EEE8E0', '#F5EBE0',
 ];
 
 export const DEFAULT_EVENT_TYPE_COLORS = {

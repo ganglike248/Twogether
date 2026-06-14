@@ -10,40 +10,49 @@ import './EventTypeColorSettingsModal.css';
 const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
   const { user, userDoc, myRole } = useAuthContext();
   const [eventTypeColors, setEventTypeColors] = useState({ ...DEFAULT_EVENT_TYPE_COLORS });
-  const [customColors, setCustomColors] = useState({});
-  const [selectedSource, setSelectedSource] = useState({}); // 'palette' | 'custom'
+  const [selectedKey, setSelectedKey] = useState(myRole || 'personal');
+  const [customInput, setCustomInput] = useState('');
   const [saving, setSaving] = useState(false);
+  const colorInputRef = useRef(null);
 
   useEffect(() => {
     if (!isOpen) return;
-    if (userDoc?.eventTypeColors) {
-      setEventTypeColors({ ...DEFAULT_EVENT_TYPE_COLORS, ...userDoc.eventTypeColors });
-    } else {
-      setEventTypeColors(DEFAULT_EVENT_TYPE_COLORS);
-    }
-    setCustomColors({});
-    // 기본 상태: 팔레트에 포커스
-    const initialSource = {};
-    if (myRole) initialSource[myRole] = 'palette';
-    initialSource['personal'] = 'palette';
-    setSelectedSource(initialSource);
+    setEventTypeColors(
+      userDoc?.eventTypeColors
+        ? { ...DEFAULT_EVENT_TYPE_COLORS, ...userDoc.eventTypeColors }
+        : { ...DEFAULT_EVENT_TYPE_COLORS }
+    );
+    setSelectedKey(myRole || 'personal');
+    setCustomInput('');
   }, [userDoc, isOpen, myRole]);
 
   if (!isOpen) return null;
 
-  const handleColorSelect = (key, color) => {
-    setEventTypeColors({ ...eventTypeColors, [key]: color });
-    setSelectedSource({ ...selectedSource, [key]: 'palette' });
-    // 커스텀 입력 제거
-    const newCustom = { ...customColors };
-    delete newCustom[key];
-    setCustomColors(newCustom);
+  const currentColor = eventTypeColors[selectedKey] || '#ffffff';
+
+  const typeOptions = [
+    ...(myRole ? [{ key: myRole, label: '내 일정' }] : []),
+    { key: 'personal', label: '개인 일정' },
+  ];
+
+  const handleTabChange = (key) => {
+    setSelectedKey(key);
+    setCustomInput('');
   };
 
-  const handleCustomColorChange = (key, color) => {
-    setCustomColors({ ...customColors, [key]: color });
-    setEventTypeColors({ ...eventTypeColors, [key]: color });
-    setSelectedSource({ ...selectedSource, [key]: 'custom' });
+  const handleColorSelect = (color) => {
+    setEventTypeColors({ ...eventTypeColors, [selectedKey]: color });
+    setCustomInput('');
+  };
+
+  const handleCustomColorChange = (raw) => {
+    let val = raw.toUpperCase();
+    if (!val.startsWith('#')) val = '#' + val;
+    val = val.slice(0, 7);
+    setCustomInput(val);
+    if (/^#[0-9A-F]{6}$/.test(val)) {
+      setEventTypeColors({ ...eventTypeColors, [selectedKey]: val });
+    }
   };
 
   const handleSave = async () => {
@@ -54,107 +63,10 @@ const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
       toast.success('색상 설정이 저장되었습니다!');
       onClose();
     } catch (error) {
-      console.error('Error saving event color settings:', error);
       toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
     } finally {
       setSaving(false);
     }
-  };
-
-  const ColorSection = ({ label, colorKey }) => {
-    const isCustomSelected = selectedSource[colorKey] === 'custom';
-    const isPaletteSelected = selectedSource[colorKey] === 'palette';
-    const colorInputRef = useRef(null);
-
-    return (
-      <div className="csm-section">
-        <div className="csm-label">{label}</div>
-
-        <div className="color-section-layout">
-          {/* 현재 색상 (왼쪽) */}
-          <div className="current-color-display">
-            <div
-              className="current-color-box"
-              style={{ backgroundColor: eventTypeColors[colorKey] || '#ffffff' }}
-            />
-            <div className="current-color-text">
-              {eventTypeColors[colorKey] || '#FFFFFF'}
-            </div>
-          </div>
-
-          {/* 프리셋 색상 (오른쪽) */}
-          <div className={`preset-colors${isCustomSelected ? ' disabled' : ''}`} onClick={() => isCustomSelected && handleColorSelect(colorKey, eventTypeColors[colorKey])}>
-            {DEFAULT_COLOR_PALETTE.map((color) => (
-              <button
-                key={color}
-                className={`csm-color-btn${eventTypeColors[colorKey] === color && isPaletteSelected ? ' selected' : ''}`}
-                style={{ backgroundColor: color }}
-                onClick={(e) => {
-                  e.stopPropagation();
-                  handleColorSelect(colorKey, color);
-                }}
-                title={color}
-              />
-            ))}
-          </div>
-        </div>
-
-        {/* 커스텀 컬러 섹션 */}
-        <div
-          className={`csm-custom-section${isPaletteSelected ? ' disabled' : ''}`}
-          onClick={() => isPaletteSelected && handleCustomColorChange(colorKey, eventTypeColors[colorKey])}
-        >
-          <div className="csm-custom-label">색상 직접 선택</div>
-          <div className="csm-custom-color">
-            {/* 숨겨진 color input */}
-            <input
-              ref={colorInputRef}
-              type="color"
-              value={customColors[colorKey] || eventTypeColors[colorKey] || '#ffffff'}
-              onChange={(e) => handleCustomColorChange(colorKey, e.target.value)}
-              className="csm-color-input-hidden"
-              onClick={(e) => e.stopPropagation()}
-            />
-
-            {/* 팔레트 아이콘 버튼 */}
-            <button
-              className="csm-color-icon-btn"
-              onClick={(e) => {
-                e.stopPropagation();
-                colorInputRef.current?.click();
-              }}
-              title="색상 선택"
-              style={{
-                color: eventTypeColors[colorKey] || '#ffffff',
-                borderColor: eventTypeColors[colorKey] || '#cccccc'
-              }}
-            >
-              <MdColorLens size={28} />
-            </button>
-
-            {/* 텍스트 입력 */}
-            <input
-              type="text"
-              value={customColors[colorKey] || eventTypeColors[colorKey] || '#ffffff'}
-              onChange={(e) => {
-                const value = e.target.value.toUpperCase();
-                let formatted = value.startsWith('#') ? value : '#' + value;
-                formatted = formatted.slice(0, 7);
-
-                if (/^#[0-9A-F]{6}$/i.test(formatted)) {
-                  handleCustomColorChange(colorKey, formatted);
-                }
-                e.target.value = formatted;
-              }}
-              className="csm-color-text"
-              placeholder="#000000"
-              onClick={(e) => e.stopPropagation()}
-              maxLength="7"
-            />
-          </div>
-        </div>
-      </div>
-    );
   };
 
   return (
@@ -166,34 +78,80 @@ const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
         </div>
 
         <div className="csm-content">
-          {myRole && (
-            <ColorSection
-              label={`내 일정 색상`}
-              colorKey={myRole}
-            />
-          )}
+          {/* 타입 선택 탭 */}
+          <div className="csm-type-selector">
+            {typeOptions.map(({ key, label }) => (
+              <button
+                key={key}
+                className={`csm-type-btn${selectedKey === key ? ' active' : ''}`}
+                style={selectedKey === key ? {
+                  borderColor: eventTypeColors[key],
+                  backgroundColor: `${eventTypeColors[key]}22`,
+                } : {}}
+                onClick={() => handleTabChange(key)}
+              >
+                <span
+                  className="csm-type-dot"
+                  style={{ backgroundColor: eventTypeColors[key] }}
+                />
+                {label}
+              </button>
+            ))}
+          </div>
 
-          <ColorSection
-            label="개인 일정 색상"
-            colorKey="personal"
-          />
+          {/* 현재 색상 미리보기 */}
+          <div className="csm-preview-row">
+            <div className="csm-preview-box" style={{ backgroundColor: currentColor }} />
+            <span className="csm-preview-hex">{currentColor.toUpperCase()}</span>
+          </div>
+
+          {/* 팔레트 */}
+          <div className="csm-palette">
+            {DEFAULT_COLOR_PALETTE.map((color) => (
+              <button
+                key={color}
+                className={`csm-color-btn${currentColor === color ? ' selected' : ''}`}
+                style={{ backgroundColor: color }}
+                onClick={() => handleColorSelect(color)}
+                title={color}
+              />
+            ))}
+          </div>
+
+          {/* 커스텀 색상 */}
+          <div className="csm-custom-row">
+            <input
+              ref={colorInputRef}
+              type="color"
+              value={currentColor}
+              onChange={(e) => handleCustomColorChange(e.target.value)}
+              className="csm-color-input-hidden"
+            />
+            <button
+              className="csm-color-icon-btn"
+              onClick={() => colorInputRef.current?.click()}
+              style={{ color: currentColor, borderColor: currentColor }}
+              title="색상 직접 선택"
+            >
+              <MdColorLens size={24} />
+            </button>
+            <input
+              type="text"
+              className="csm-color-text"
+              value={customInput || currentColor}
+              placeholder="#000000"
+              maxLength="7"
+              onChange={(e) => handleCustomColorChange(e.target.value)}
+            />
+            <span className="csm-custom-hint">직접 입력</span>
+          </div>
         </div>
 
         <div className="csm-footer">
-          <button
-            type="button"
-            onClick={onClose}
-            className="csm-btn-cancel"
-            disabled={saving}
-          >
+          <button type="button" onClick={onClose} className="csm-btn-cancel" disabled={saving}>
             취소
           </button>
-          <button
-            type="button"
-            onClick={handleSave}
-            className="csm-btn-save"
-            disabled={saving}
-          >
+          <button type="button" onClick={handleSave} className="csm-btn-save" disabled={saving}>
             {saving ? '저장 중...' : '저장'}
           </button>
         </div>
