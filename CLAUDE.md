@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.16 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.3.20 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -34,7 +34,26 @@
 
 ### 개인 일정 (personal_events)
 소유자(userId)만 접근 가능한 비공개 일정. `coupleId` 없이 `userId` 기반으로 Firestore 규칙 적용.  
-캘린더에서 [전체] / [개인] / [커플] 탭으로 필터링.
+캘린더에서 [전체] / [개인] / [커플] 탭으로 필터링.  
+MemoryList에도 [개인] 필터 탭으로 표시됨 (과거 일정만, start <= 오늘).  
+Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.  
+`useCalendar(coupleId, userId)` — userId 두 번째 파라미터 필수. `extendedProps.isPersonal = true`로 구분.
+
+### iOS 입력 관련 주의사항
+iOS Safari에서 `font-size < 16px` 입력창 포커스 시 뷰포트 자동 확대 발생.  
+`src/index.css`의 `input, textarea, select` font-size를 **1rem 이상** 유지 필수 — 줄이면 iOS에서 zoom 버그 재발.  
+CSS grid 내 `input[type="date"]`는 `min-width: 0` 없으면 셀 넘침 → 겹침 발생 (EventModal.css의 `.date-input-group`에 적용됨).
+
+### 코드 스플리팅 & 성능 구조
+`src/App.jsx`: 11개 페이지 컴포넌트 모두 `React.lazy()` + `<Suspense>` 처리 — 방문 시에만 해당 청크 로드.  
+`vite.config.js`: `manualChunks`로 vendor 분리 (fullcalendar/framer-motion/firebase/react/date-fns).  
+초기 번들 1,474kB → 104kB (93% 감소). fullcalendar 228kB는 /calendar 방문 시에만 로드.  
+`PageLoader` 컴포넌트: `index.html`에 정의된 `preloader-spin` 키프레임 재사용 (JS 로드 전부터 동작).
+
+### Firestore 오프라인 퍼시스턴스
+`src/firebase.js`: `initializeFirestore` + `persistentLocalCache` + `persistentMultipleTabManager` 적용.  
+재방문 시 IndexedDB에서 즉시 데이터 반환 → 빈 화면 없이 로딩.  
+Safari 프라이빗 모드 등 IndexedDB 미지원 환경: try-catch로 `getFirestore()` in-memory 폴백.
 
 ## AuthContext API
 `user, userDoc, coupleDoc, coupleId, partnerDoc, myRole, getMemberName, loading` 전역 제공.
@@ -83,6 +102,7 @@ services/
 hooks/
   usePersonalEvents.js   → personal_events 실시간 구독 (userId 기반)
   useCalendarData.js     → 커플 이벤트 + 개인 이벤트 통합
+  useCalendar.js         → FullCalendar용 이벤트 훅 (coupleId, userId) — userId 필수
   useDoubleClickPrevention.js → 더블 탭/클릭 방지
   useAnalytics.js        → Google Analytics 페이지뷰 추적
 ```
