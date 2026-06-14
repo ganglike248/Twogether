@@ -64,6 +64,40 @@ export default defineConfig({
       },
     }),
   ],
+  build: {
+    rollupOptions: {
+      output: {
+        manualChunks(id) {
+          // FullCalendar: 캘린더 페이지에서만 사용하는 대형 라이브러리
+          if (id.includes('node_modules/@fullcalendar')) {
+            return 'vendor-fullcalendar';
+          }
+          // framer-motion: 홈 페이지에서만 사용
+          if (id.includes('node_modules/framer-motion')) {
+            return 'vendor-framer-motion';
+          }
+          // Firebase SDK: 앱 전체에서 공유 (항상 필요)
+          if (id.includes('node_modules/firebase')) {
+            return 'vendor-firebase';
+          }
+          // React 코어: 항상 필요한 기반 라이브러리
+          if (
+            id.includes('node_modules/react/') ||
+            id.includes('node_modules/react-dom/') ||
+            id.includes('node_modules/react-router') ||
+            id.includes('node_modules/scheduler/')
+          ) {
+            return 'vendor-react';
+          }
+          // date-fns: 날짜 처리 유틸
+          if (id.includes('node_modules/date-fns')) {
+            return 'vendor-date-fns';
+          }
+        },
+      },
+    },
+    chunkSizeWarningLimit: 700, // Firebase SDK 특성상 단일 청크가 633kB — 정상 범위
+  },
   esbuild: {
     loader: 'jsx',
     include: /src\/.*\.[jt]sx?$/,

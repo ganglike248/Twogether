@@ -1,38 +1,63 @@
 // src/App.jsx
-import React from 'react';
-import { createBrowserRouter, RouterProvider, Navigate, Outlet } from 'react-router-dom';
+import React, { lazy, Suspense } from 'react';
+import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
 
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
-import LoginPage from './components/Auth/LoginPage';
-import CoupleSetupPage from './components/Auth/CoupleSetupPage';
 import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
 import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
 import NotFoundPage from './components/common/NotFoundPage';
-import Home from './components/Home/Home';
-import Calendar from './components/Calendar/Calendar';
-import MemoryList from './components/Memory/MemoryList';
-import BucketListPage from './components/BucketList/BucketListPage';
-import TravelPlanPage from './components/Travel/TravelPlanPage';
-import ProfilePage from './components/Profile/ProfilePage';
-import CoupleInfoPage from './components/CoupleInfo/CoupleInfoPage';
-import SettingsPage from './components/Settings/SettingsPage';
-import HomeImageSettingsPage from './components/HomeImageSettings/HomeImageSettingsPage';
+
+// 페이지 컴포넌트 lazy loading — 방문 시점에만 해당 청크 로드
+const LoginPage = lazy(() => import('./components/Auth/LoginPage'));
+const CoupleSetupPage = lazy(() => import('./components/Auth/CoupleSetupPage'));
+const Home = lazy(() => import('./components/Home/Home'));
+const Calendar = lazy(() => import('./components/Calendar/Calendar'));
+const MemoryList = lazy(() => import('./components/Memory/MemoryList'));
+const BucketListPage = lazy(() => import('./components/BucketList/BucketListPage'));
+const TravelPlanPage = lazy(() => import('./components/Travel/TravelPlanPage'));
+const ProfilePage = lazy(() => import('./components/Profile/ProfilePage'));
+const CoupleInfoPage = lazy(() => import('./components/CoupleInfo/CoupleInfoPage'));
+const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
+const HomeImageSettingsPage = lazy(() => import('./components/HomeImageSettings/HomeImageSettingsPage'));
 
 import './App.css';
 
-// AuthProvider와 공통 컴포넌트를 라우터 내부에 배치해야 useNavigate 등이 동작함
+// 페이지 전환 중 표시할 로딩 UI (index.html preloader와 동일한 스타일)
+const PageLoader = () => (
+  <div style={{
+    position: 'fixed',
+    inset: 0,
+    display: 'flex',
+    flexDirection: 'column',
+    alignItems: 'center',
+    justifyContent: 'center',
+    background: 'linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%)',
+  }}>
+    <div style={{
+      width: 40,
+      height: 40,
+      border: '3px solid #ffb6c1',
+      borderTopColor: '#ff6b6b',
+      borderRadius: '50%',
+      animation: 'preloader-spin 0.8s linear infinite',
+    }} />
+  </div>
+);
+
 const RootLayout = () => (
   <ErrorBoundary>
     <AuthProvider>
       <ScrollToTop />
       <ToastContainer position="bottom-right" />
       <PWAUpdatePrompt />
-      <Outlet />
+      <Suspense fallback={<PageLoader />}>
+        <Outlet />
+      </Suspense>
     </AuthProvider>
   </ErrorBoundary>
 );
