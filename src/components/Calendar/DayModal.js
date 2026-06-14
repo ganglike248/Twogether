@@ -12,39 +12,42 @@ const DayModal = ({
   onAddEvent, onEditEvent,
   dayPeriods = [], cycleSettings, onAddPeriod, onDeletePeriod,
 }) => {
-  const { getMemberName, userDoc } = useAuthContext();
+  const { getMemberName, userDoc, partnerDoc } = useAuthContext();
   const [showPeriodForm, setShowPeriodForm] = useState(false);
 
-  // 이벤트 색상을 CSS 변수에 동기화
+  // 이벤트 색상을 CSS 변수에 동기화 (내 색상 + 파트너 색상)
   useEffect(() => {
-    if (userDoc?.eventTypeColors) {
-      const colors = userDoc.eventTypeColors;
+    const userColors = userDoc?.eventTypeColors || {};
+    const partnerColors = partnerDoc?.eventTypeColors || {};
 
-      if (colors.personal) {
-        document.documentElement.style.setProperty('--color-personal', colors.personal);
-        document.documentElement.style.setProperty('--color-personal-background', `${colors.personal}55`);
-        document.documentElement.style.setProperty('--color-personal-border', `${colors.personal}26`);
-        document.documentElement.style.setProperty('--color-personal-shadow', `${colors.personal}4d`);
-        document.documentElement.style.setProperty('--color-personal-font', getContrastColor(colors.personal));
-      }
-
-      if (colors.boyfriend) {
-        document.documentElement.style.setProperty('--color-boyfriend', colors.boyfriend);
-        document.documentElement.style.setProperty('--color-boyfriend-background', `${colors.boyfriend}55`);
-        document.documentElement.style.setProperty('--color-boyfriend-border', `${colors.boyfriend}1a`);
-        document.documentElement.style.setProperty('--color-boyfriend-shadow', `${colors.boyfriend}4d`);
-        document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(colors.boyfriend));
-      }
-
-      if (colors.girlfriend) {
-        document.documentElement.style.setProperty('--color-girlfriend', colors.girlfriend);
-        document.documentElement.style.setProperty('--color-girlfriend-background', `${colors.girlfriend}55`);
-        document.documentElement.style.setProperty('--color-girlfriend-border', `${colors.girlfriend}1a`);
-        document.documentElement.style.setProperty('--color-girlfriend-shadow', `${colors.girlfriend}4d`);
-        document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(colors.girlfriend));
-      }
+    // 자신의 색상 (personal)
+    if (userColors.personal) {
+      document.documentElement.style.setProperty('--color-personal', userColors.personal);
+      document.documentElement.style.setProperty('--color-personal-background', `${userColors.personal}55`);
+      document.documentElement.style.setProperty('--color-personal-border', `${userColors.personal}26`);
+      document.documentElement.style.setProperty('--color-personal-shadow', `${userColors.personal}4d`);
+      document.documentElement.style.setProperty('--color-personal-font', getContrastColor(userColors.personal));
     }
-  }, [userDoc?.eventTypeColors]);
+
+    // 파트너의 색상 우선, 없으면 자신의 색상 (boyfriend/girlfriend는 파트너 색상 사용)
+    const boyfriendColor = partnerColors.boyfriend || userColors.boyfriend;
+    if (boyfriendColor) {
+      document.documentElement.style.setProperty('--color-boyfriend', boyfriendColor);
+      document.documentElement.style.setProperty('--color-boyfriend-background', `${boyfriendColor}55`);
+      document.documentElement.style.setProperty('--color-boyfriend-border', `${boyfriendColor}1a`);
+      document.documentElement.style.setProperty('--color-boyfriend-shadow', `${boyfriendColor}4d`);
+      document.documentElement.style.setProperty('--color-boyfriend-font', getContrastColor(boyfriendColor));
+    }
+
+    const girlfriendColor = partnerColors.girlfriend || userColors.girlfriend;
+    if (girlfriendColor) {
+      document.documentElement.style.setProperty('--color-girlfriend', girlfriendColor);
+      document.documentElement.style.setProperty('--color-girlfriend-background', `${girlfriendColor}55`);
+      document.documentElement.style.setProperty('--color-girlfriend-border', `${girlfriendColor}1a`);
+      document.documentElement.style.setProperty('--color-girlfriend-shadow', `${girlfriendColor}4d`);
+      document.documentElement.style.setProperty('--color-girlfriend-font', getContrastColor(girlfriendColor));
+    }
+  }, [userDoc?.eventTypeColors, partnerDoc?.eventTypeColors]);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
