@@ -16,7 +16,7 @@ const ALLOWED_IMAGE_TYPES = ['image/jpeg', 'image/png', 'image/webp', 'image/gif
 
 const ProfilePage = () => {
   const navigate = useNavigate();
-  const { user, userDoc, coupleDoc, coupleId, partnerDoc } = useAuthContext();
+  const { user, userDoc, coupleDoc, coupleId, partnerDoc, myRole } = useAuthContext();
 
   // 텍스트 필드
   const [displayName, setDisplayName] = useState('');
@@ -296,6 +296,7 @@ const ProfilePage = () => {
             비밀번호 변경
           </button>
         </div>
+
 
         {/* 저장 버튼 */}
         <button

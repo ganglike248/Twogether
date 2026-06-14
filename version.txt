@@ -1,3 +1,8 @@
+v0.3.12 (2026.06.14)
+- fix: 색상 선택기 UI 개선 (color picker 위치 정상화)
+  ✓ 팔레트 아이콘 버튼에서 color picker 위치 개선
+  ✓ EventTypeColorSettingsModal에서 color picker 올바른 위치에서 표시
+
 v0.3.11 (2026.06.14)
 - feat: 개인 캘린더 기능 추가 (완전 비공개 일정 관리)
   ✓ Firestore personal_events 컬렉션 신규 생성 (userId 기반 접근 제어)

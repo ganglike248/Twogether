@@ -3,12 +3,14 @@ import { useNavigate } from 'react-router-dom';
 import { HiInformationCircle } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import CycleSettingsModal from '../Profile/CycleSettingsModal';
+import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
 import './SettingsPage.css';
 
 const SettingsPage = () => {
   const navigate = useNavigate();
   const { coupleDoc } = useAuthContext();
   const [showCycleModal, setShowCycleModal] = useState(false);
+  const [showColorModal, setShowColorModal] = useState(false);
 
   return (
     <div className="settings-page">
@@ -28,6 +30,16 @@ const SettingsPage = () => {
         <span className="profile-cycle-btn-arrow">›</span>
       </button>
 
+      {/* 이벤트 색상 설정 */}
+      <button
+        className="profile-cycle-btn"
+        onClick={() => setShowColorModal(true)}
+      >
+        <span className="profile-cycle-btn-icon">🎨</span>
+        <span className="profile-cycle-btn-text">이벤트 색상 설정</span>
+        <span className="profile-cycle-btn-arrow">›</span>
+      </button>
+
       {/* 앱 소개 다시보기 */}
       <button
         className="profile-onboarding-btn"
@@ -40,6 +52,11 @@ const SettingsPage = () => {
       <CycleSettingsModal
         isOpen={showCycleModal}
         onClose={() => setShowCycleModal(false)}
+      />
+
+      <EventTypeColorSettingsModal
+        isOpen={showColorModal}
+        onClose={() => setShowColorModal(false)}
       />
     </div>
   );

@@ -26,10 +26,36 @@ const addDaysToStr = (dateStr, days) => {
 
 const Calendar = () => {
   const navigatePage = useNavigate();
-  const { user, coupleId, coupleDoc } = useAuthContext();
+  const { user, coupleId, coupleDoc, userDoc, partnerDoc } = useAuthContext();
 
   // Data fetching
   const { events, cycles, isLoading } = useCalendarData(coupleId, user?.uid);
+
+  // 사용자 정의 색상 적용
+  const eventsWithCustomColors = useMemo(() => {
+    const userColors = userDoc?.eventTypeColors || {};
+    const partnerColors = partnerDoc?.eventTypeColors || {};
+
+    return events.map(event => {
+      const eventType = event.extendedProps?.eventType;
+      let color = event.color;
+
+      // 개인 일정: 내 색상 사용
+      if (event.extendedProps?.isPersonal) {
+        color = userColors.personal || '#4ECDC4';
+      }
+      // 남친 일정: 소유자의 색상 사용
+      else if (eventType === 'boyfriend') {
+        color = userColors.boyfriend || partnerColors.boyfriend || '#c7ceea';
+      }
+      // 여친 일정: 소유자의 색상 사용
+      else if (eventType === 'girlfriend') {
+        color = userColors.girlfriend || partnerColors.girlfriend || '#b5ead7';
+      }
+
+      return { ...event, color };
+    });
+  }, [events, userDoc, partnerDoc]);
 
   // State management
   const [selectedEvent, setSelectedEvent] = useState(null);
@@ -59,13 +85,13 @@ const Calendar = () => {
   // Filter events by view mode
   const filteredEvents = useMemo(() => {
     if (viewMode === 'personal') {
-      return events.filter(e => e.extendedProps?.eventType === 'personal');
+      return eventsWithCustomColors.filter(e => e.extendedProps?.eventType === 'personal' || e.extendedProps?.isPersonal);
     }
     if (viewMode === 'couple') {
-      return events.filter(e => e.extendedProps?.eventType !== 'personal');
+      return eventsWithCustomColors.filter(e => e.extendedProps?.eventType !== 'personal' && !e.extendedProps?.isPersonal);
     }
-    return events; // 'all'
-  }, [events, viewMode]);
+    return eventsWithCustomColors; // 'all'
+  }, [eventsWithCustomColors, viewMode]);
 
   // Event data transformation
   const { specialDaysMap, allEvents } = useCalendarEvents(

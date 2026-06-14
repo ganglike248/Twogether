@@ -543,3 +543,11 @@
   font-size: 1rem;
   flex-shrink: 0;
 }
+
+/* 섹션 설명 */
+.profile-section-desc {
+  font-size: 0.8rem;
+  color: var(--color-gray-600);
+  margin: 0 0 0.75rem;
+  line-height: 1.4;
+}
