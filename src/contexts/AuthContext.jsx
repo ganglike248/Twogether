@@ -68,17 +68,20 @@ export const AuthProvider = ({ children }) => {
   }, [userDoc?.coupleId]);
 
   // 파트너 user doc 실시간 구독
+  // 배열 참조 대신 개별 UID 문자열을 의존성으로 사용 — coupleDoc 스냅샷마다 불필요한 재구독 방지
   useEffect(() => {
-    if (!coupleDoc?.members || !user) { setPartnerDoc(null); return; }
-    const partnerUid = coupleDoc.members.find(uid => uid !== user.uid);
-    if (!partnerUid) { setPartnerDoc(null); return; }
+    const m0 = coupleDoc?.members?.[0];
+    const m1 = coupleDoc?.members?.[1];
+    const userUid = user?.uid;
+    if (!m0 || !m1 || !userUid) { setPartnerDoc(null); return; }
+    const partnerUid = m0 === userUid ? m1 : m0;
 
     const partnerRef = doc(db, 'users', partnerUid);
     const unsubPartner = onSnapshot(partnerRef, (snap) => {
       setPartnerDoc(snap.exists() ? { id: snap.id, ...snap.data() } : null);
     }, () => setPartnerDoc(null));
     return () => unsubPartner();
-  }, [coupleDoc?.members, user]);
+  }, [coupleDoc?.members?.[0], coupleDoc?.members?.[1], user?.uid]);
 
   const loading = authLoading || userDocLoading;
   const coupleId = userDoc?.coupleId || null;

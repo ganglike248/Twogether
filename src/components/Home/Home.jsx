@@ -144,8 +144,8 @@ const Home = () => {
     } catch { return false; }
   });
 
-  // 다음 100일 기념일
-  const nextMilestone = Math.ceil(dday / 100) * 100;
+  // 다음 100일 기념일 (dday=0이면 아직 로드 전이므로 100 기준으로 계산)
+  const nextMilestone = dday > 0 ? Math.ceil(dday / 100) * 100 : 100;
   const daysToMilestone = nextMilestone - dday;
   const milestoneDate = loveStartDate ? addDays(loveStartDate, nextMilestone - 1) : today;
   const milestoneDateStr = format(milestoneDate, 'yyyy-MM-dd');

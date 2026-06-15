@@ -13,6 +13,7 @@ import {
   serverTimestamp,
   onSnapshot,
   writeBatch,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { updateTravelEvent, deleteTravelEvent } from './eventService';
@@ -192,13 +193,17 @@ export const toggleScheduleCompletion = async (tripId, day, scheduleId) => {
     where('day', '==', day)
   );
   const snap = await getDocs(q);
-  if (!snap.empty) {
-    const scheduleDoc = snap.docs[0];
-    const updated = scheduleDoc.data().schedules.map(s =>
+  if (snap.empty) return;
+
+  const scheduleDocRef = snap.docs[0].ref;
+  await runTransaction(db, async (transaction) => {
+    const scheduleSnap = await transaction.get(scheduleDocRef);
+    if (!scheduleSnap.exists()) return;
+    const updated = scheduleSnap.data().schedules.map(s =>
       s.id === scheduleId ? { ...s, completed: !s.completed } : s
     );
-    await updateDoc(scheduleDoc.ref, { schedules: updated, updatedAt: serverTimestamp() });
-  }
+    transaction.update(scheduleDocRef, { schedules: updated, updatedAt: serverTimestamp() });
+  });
 };
 
 export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, travelTime) => {
