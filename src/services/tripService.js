@@ -5,36 +5,61 @@ import {
   updateDoc,
   deleteDoc,
   doc,
+  getDoc,
   getDocs,
   query,
   where,
   orderBy,
   serverTimestamp,
   onSnapshot,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { createTravelEvent, updateTravelEvent, deleteTravelEvent } from './eventService';
+import { updateTravelEvent, deleteTravelEvent } from './eventService';
 
 export const createTrip = async (tripData, userId = 'anonymous', coupleId = null) => {
+  const tripRef = doc(collection(db, 'trips'));
+  const eventRef = doc(collection(db, 'events'));
+  const editLogRef = doc(collection(db, 'edit_logs'));
+
+  const eventData = {
+    title: `🌏 ${tripData.title}`,
+    description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
+    start: tripData.startDate,
+    end: tripData.endDate,
+    eventType: 'travel',
+    tripId: tripRef.id,
+    coupleId,
+    createdAt: serverTimestamp(),
+    updatedAt: serverTimestamp(),
+    createdBy: userId,
+    updatedBy: userId,
+  };
   const newTrip = {
     ...tripData,
     coupleId,
+    calendarEventId: eventRef.id,
     status: 'planning',
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
     createdBy: userId,
   };
-  const docRef = await addDoc(collection(db, 'trips'), newTrip);
-  const tripWithId = { id: docRef.id, ...newTrip };
 
-  // 여행 이벤트 자동 생성
-  try {
-    await createTravelEvent(tripWithId, userId, coupleId);
-  } catch (error) {
-    console.error('여행 이벤트 생성 실패:', error);
-  }
+  const batch = writeBatch(db);
+  batch.set(tripRef, newTrip);
+  batch.set(eventRef, eventData);
+  batch.set(editLogRef, {
+    eventId: eventRef.id,
+    action: 'created',
+    changes: eventData,
+    userId,
+    coupleId,
+    timestamp: serverTimestamp(),
+    userAgent: navigator.userAgent,
+  });
+  await batch.commit();
 
-  return tripWithId;
+  return { id: tripRef.id, ...newTrip };
 };
 
 export const subscribeToTrips = (coupleId, callback) => {
@@ -55,37 +80,74 @@ export const subscribeToTrips = (coupleId, callback) => {
 };
 
 export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
-  await updateDoc(doc(db, 'trips', tripId), {
-    ...tripData,
-    updatedAt: serverTimestamp(),
-  });
+  const tripRef = doc(db, 'trips', tripId);
+  const tripSnap = await getDoc(tripRef);
 
-  // 여행 이벤트 자동 업데이트
-  try {
-    await updateTravelEvent(tripId, tripData, userId, coupleId);
-  } catch (error) {
-    console.error('여행 이벤트 업데이트 실패:', error);
+  const batch = writeBatch(db);
+  batch.update(tripRef, { ...tripData, updatedAt: serverTimestamp() });
+
+  if (tripSnap.exists() && tripSnap.data().calendarEventId) {
+    // 신규 여행: calendarEventId로 직접 참조
+    const eventRef = doc(db, 'events', tripSnap.data().calendarEventId);
+    const editLogRef = doc(collection(db, 'edit_logs'));
+    const updatedEventData = {
+      title: `🌏 ${tripData.title}`,
+      description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
+      start: tripData.startDate,
+      end: tripData.endDate,
+      updatedAt: serverTimestamp(),
+      updatedBy: userId,
+    };
+    batch.update(eventRef, updatedEventData);
+    batch.set(editLogRef, {
+      eventId: tripSnap.data().calendarEventId,
+      action: 'updated',
+      changes: updatedEventData,
+      userId,
+      coupleId,
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+    });
+    await batch.commit();
+  } else {
+    // 레거시 여행: tripId로 쿼리해서 이벤트 업데이트
+    await batch.commit();
+    try {
+      await updateTravelEvent(tripId, tripData, userId, coupleId);
+    } catch (error) {
+      console.error('여행 이벤트 업데이트 실패:', error);
+    }
   }
 };
 
 export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) => {
-  const schedulesSnap = await getDocs(
-    query(collection(db, 'tripSchedules'), where('tripId', '==', tripId))
-  );
-  const travelTimesSnap = await getDocs(
-    query(collection(db, 'travelTimes'), where('tripId', '==', tripId))
-  );
-  await Promise.all([
-    ...schedulesSnap.docs.map(d => deleteDoc(d.ref)),
-    ...travelTimesSnap.docs.map(d => deleteDoc(d.ref)),
-    deleteDoc(doc(db, 'trips', tripId)),
+  const tripRef = doc(db, 'trips', tripId);
+  const tripSnap = await getDoc(tripRef);
+  const calendarEventId = tripSnap.exists() ? tripSnap.data().calendarEventId : null;
+
+  const [schedulesSnap, travelTimesSnap] = await Promise.all([
+    getDocs(query(collection(db, 'tripSchedules'), where('tripId', '==', tripId))),
+    getDocs(query(collection(db, 'travelTimes'), where('tripId', '==', tripId))),
   ]);
 
-  // 여행 이벤트 자동 삭제
-  try {
-    await deleteTravelEvent(tripId, userId, coupleId);
-  } catch (error) {
-    console.error('여행 이벤트 삭제 실패:', error);
+  const batch = writeBatch(db);
+  batch.delete(tripRef);
+  schedulesSnap.docs.forEach(d => batch.delete(d.ref));
+  travelTimesSnap.docs.forEach(d => batch.delete(d.ref));
+
+  if (calendarEventId) {
+    // 신규 여행: calendarEventId로 직접 삭제
+    batch.delete(doc(db, 'events', calendarEventId));
+  }
+  await batch.commit();
+
+  if (!calendarEventId) {
+    // 레거시 여행: tripId로 쿼리해서 이벤트 삭제
+    try {
+      await deleteTravelEvent(tripId, userId, coupleId);
+    } catch (error) {
+      console.error('여행 이벤트 삭제 실패:', error);
+    }
   }
 };
 

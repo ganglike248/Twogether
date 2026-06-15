@@ -17,6 +17,7 @@ import {
   getDocs,
   serverTimestamp,
   arrayUnion,
+  writeBatch,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -63,29 +64,35 @@ export const signOut = async () => {
 
 // 새 커플 생성 (초대 코드 생성)
 export const createCouple = async (uid, anniversaryDate) => {
-  // 중복되지 않는 초대 코드 생성
+  // inviteCodes 컬렉션에서 중복 없는 초대 코드 생성
   let inviteCode;
   let codeExists = true;
   while (codeExists) {
     inviteCode = generateInviteCode();
-    const q = query(collection(db, 'couples'), where('inviteCode', '==', inviteCode));
-    const snap = await getDocs(q);
-    codeExists = !snap.empty;
+    const snap = await getDoc(doc(db, 'inviteCodes', inviteCode));
+    codeExists = snap.exists();
   }
 
-  // couples 문서 생성
-  const coupleRef = await addDoc(collection(db, 'couples'), {
+  const coupleRef = doc(collection(db, 'couples'));
+  const batch = writeBatch(db);
+
+  batch.set(coupleRef, {
     members: [uid],
     inviteCode,
-    anniversaryDate, // 'YYYY-MM-DD' 형식
+    anniversaryDate,
     createdAt: serverTimestamp(),
     createdBy: uid,
   });
-
-  // users 문서에 coupleId 업데이트
-  await updateDoc(doc(db, 'users', uid), {
+  // 초대 코드 매핑 (couples 읽기를 멤버 전용으로 제한하기 위한 분리)
+  batch.set(doc(db, 'inviteCodes', inviteCode), {
     coupleId: coupleRef.id,
+    creatorUid: uid,
+    joined: false,
+    createdAt: serverTimestamp(),
   });
+  await batch.commit();
+
+  await updateDoc(doc(db, 'users', uid), { coupleId: coupleRef.id });
 
   return { coupleId: coupleRef.id, inviteCode };
 };
@@ -94,38 +101,30 @@ export const createCouple = async (uid, anniversaryDate) => {
 export const joinCouple = async (uid, inviteCode) => {
   const code = inviteCode.trim().toUpperCase();
 
-  // 코드로 couples 문서 찾기
-  const q = query(collection(db, 'couples'), where('inviteCode', '==', code));
-  const snap = await getDocs(q);
+  // inviteCodes에서 coupleId 조회 (couples 컬렉션을 직접 쿼리하지 않음)
+  const inviteSnap = await getDoc(doc(db, 'inviteCodes', code));
 
-  if (snap.empty) {
+  if (!inviteSnap.exists()) {
     throw new Error('유효하지 않은 초대 코드입니다.');
   }
 
-  const coupleDoc = snap.docs[0];
-  const coupleData = coupleDoc.data();
+  const { coupleId, creatorUid, joined } = inviteSnap.data();
 
-  // 이미 2명이면 거부
-  if (coupleData.members.length >= 2) {
+  if (joined) {
     throw new Error('이미 커플이 연결된 코드입니다.');
   }
-
-  // 자기 자신 코드이면 거부
-  if (coupleData.members.includes(uid)) {
+  if (creatorUid === uid) {
     throw new Error('자신의 초대 코드는 사용할 수 없습니다.');
   }
 
-  // couples 문서에 두 번째 멤버 추가
-  await updateDoc(coupleDoc.ref, {
-    members: arrayUnion(uid),
-  });
+  const batch = writeBatch(db);
+  batch.update(doc(db, 'couples', coupleId), { members: arrayUnion(uid) });
+  batch.update(doc(db, 'inviteCodes', code), { joined: true });
+  await batch.commit();
 
-  // users 문서에 coupleId 업데이트
-  await updateDoc(doc(db, 'users', uid), {
-    coupleId: coupleDoc.id,
-  });
+  await updateDoc(doc(db, 'users', uid), { coupleId });
 
-  return { coupleId: coupleDoc.id };
+  return { coupleId };
 };
 
 // 커플 정보 조회

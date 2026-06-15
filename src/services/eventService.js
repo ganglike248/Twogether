@@ -12,7 +12,8 @@ import {
   serverTimestamp,
   orderBy,
   startAfter,
-  limit
+  limit,
+  writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
@@ -143,25 +144,6 @@ export const getEventById = async (eventId) => {
   return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
 };
 
-export const createTravelEvent = async (tripData, userId = 'anonymous', coupleId = null) => {
-  const eventData = {
-    title: `🌏 ${tripData.title}`,
-    description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
-    start: tripData.startDate,
-    end: tripData.endDate,
-    eventType: 'travel',
-    tripId: tripData.id || tripData.tripId,
-    coupleId,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    createdBy: userId,
-    updatedBy: userId,
-  };
-  const docRef = await addDoc(collection(db, 'events'), eventData);
-  await saveEditLog(docRef.id, eventData, 'created', userId, coupleId);
-  return { id: docRef.id, ...eventData };
-};
-
 export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
   const q = query(collection(db, 'events'), where('tripId', '==', tripId));
   const querySnapshot = await getDocs(q);
@@ -249,17 +231,20 @@ export const sharePersonalToCoupleEvent = async (personalEventId, personalEventD
 };
 
 export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null) => {
+  const batch = writeBatch(db);
+
   if (isPersonal) {
-    // personal_events → events로 변환
+    // personal_events → events (원자적 변환)
     const personalRef = doc(db, 'personal_events', eventId);
     const personalSnap = await getDoc(personalRef);
-
     if (!personalSnap.exists()) throw new Error('Personal event not found');
 
     const personalData = personalSnap.data();
+    const newEventRef = doc(collection(db, 'events'));
+    const editLogRef = doc(collection(db, 'edit_logs'));
     const newEventData = {
       title: personalData.title,
-      description: personalData.description,
+      description: personalData.description || '',
       start: personalData.start,
       end: personalData.end,
       eventType: newType,
@@ -270,22 +255,31 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       updatedBy: userId,
     };
 
-    const coupleDocRef = await addDoc(collection(db, 'events'), newEventData);
-    await saveEditLog(coupleDocRef.id, newEventData, 'created', userId, coupleId);
-    await deleteDoc(personalRef);
-
-    return { id: coupleDocRef.id, ...newEventData };
+    batch.set(newEventRef, newEventData);
+    batch.delete(personalRef);
+    batch.set(editLogRef, {
+      eventId: newEventRef.id,
+      action: 'created',
+      changes: newEventData,
+      userId,
+      coupleId,
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+    });
+    await batch.commit();
+    return { id: newEventRef.id, ...newEventData };
   } else {
-    // events → personal_events로 변환
+    // events → personal_events (원자적 변환)
     const eventRef = doc(db, 'events', eventId);
     const eventSnap = await getDoc(eventRef);
-
     if (!eventSnap.exists()) throw new Error('Event not found');
 
     const eventData = eventSnap.data();
+    const newPersonalRef = doc(collection(db, 'personal_events'));
+    const editLogRef = doc(collection(db, 'edit_logs'));
     const newPersonalData = {
       title: eventData.title,
-      description: eventData.description,
+      description: eventData.description || '',
       start: eventData.start,
       end: eventData.end,
       userId,
@@ -294,10 +288,18 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       updatedAt: serverTimestamp(),
     };
 
-    const personalDocRef = await addDoc(collection(db, 'personal_events'), newPersonalData);
-    await saveEditLog(eventId, { type: 'converted_to_personal' }, 'converted_to_personal', userId, coupleId);
-    await deleteDoc(eventRef);
-
-    return { id: personalDocRef.id, ...newPersonalData };
+    batch.set(newPersonalRef, newPersonalData);
+    batch.delete(eventRef);
+    batch.set(editLogRef, {
+      eventId,
+      action: 'converted_to_personal',
+      changes: { type: 'converted_to_personal' },
+      userId,
+      coupleId,
+      timestamp: serverTimestamp(),
+      userAgent: navigator.userAgent,
+    });
+    await batch.commit();
+    return { id: newPersonalRef.id, ...newPersonalData };
   }
 };
