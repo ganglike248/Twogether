@@ -5,7 +5,7 @@ import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { useTripSchedules } from '../../hooks/useTrip';
-import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, getTravelTimes } from '../../services/tripService';
+import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../services/tripService';
 import { formatDate, convertToDate } from '../../utils/dataUtils';
 import ScheduleItem from './ScheduleItem';
 import ScheduleModal from './ScheduleModal';
@@ -51,21 +51,15 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     }, [schedules]);
 
     useEffect(() => {
-        const loadTravelTimes = async () => {
-            if (!trip.id || !activeDay) return;
-            try {
-                const times = await getTravelTimes(trip.id, activeDay);
-                const timesMap = {};
-                times.forEach(time => {
-                    timesMap[`${time.fromScheduleId}-${time.toScheduleId}`] = time.travelTime;
-                });
-                setTravelTimes(prev => ({ ...prev, [activeDay]: timesMap }));
-            } catch (error) {
-                console.error('Error loading travel times:', error);
-            }
-        };
-        loadTravelTimes();
-    }, [trip.id, activeDay, daySchedules]);
+        const unsubscribe = subscribeTravelTimes(trip.id, activeDay, (times) => {
+            const timesMap = {};
+            times.forEach(time => {
+                timesMap[`${time.fromScheduleId}-${time.toScheduleId}`] = time.travelTime;
+            });
+            setTravelTimes(prev => ({ ...prev, [activeDay]: timesMap }));
+        });
+        return unsubscribe;
+    }, [trip.id, activeDay]);
 
     useEffect(() => { setTotalBudget(trip.budget || 0); }, [trip.budget]);
 

@@ -241,12 +241,12 @@ const MemoryList = () => {
   }, [searchTerm, coupleId, userId, filter]);
 
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || !hasMore || loadingMore || isSearching) return;
+    if (!containerRef.current || !hasMore || loadingMore || isSearching || searchTerm.trim()) return;
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     if (scrollHeight - scrollTop - clientHeight < 100) {
       fetchMoreMemories();
     }
-  }, [hasMore, loadingMore, isSearching, fetchMoreMemories]);
+  }, [hasMore, loadingMore, isSearching, searchTerm, fetchMoreMemories]);
 
   useEffect(() => {
     const container = containerRef.current;

@@ -220,12 +220,14 @@ export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, 
   }
 };
 
-export const getTravelTimes = async (tripId, day) => {
+export const subscribeTravelTimes = (tripId, day, callback) => {
+  if (!tripId || !day) return () => {};
   const q = query(
     collection(db, 'travelTimes'),
     where('tripId', '==', tripId),
     where('day', '==', day)
   );
-  const snap = await getDocs(q);
-  return snap.docs.map(d => ({ id: d.id, ...d.data() }));
+  return onSnapshot(q, (snap) => {
+    callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
 };

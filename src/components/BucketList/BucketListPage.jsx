@@ -117,52 +117,30 @@ function BucketListPage() {
     return () => unsubscribe();
   }, [coupleId]);
 
-  // bucketList 실시간 구독
+  // bucketList 실시간 구독 (카테고리 필터 없이 전체 구독 — 탭/필터는 클라이언트 처리)
   useEffect(() => {
     if (!coupleId) return;
 
     setIsLoading(true);
-    let unsubscribeSnapshot = null;
-    let timeoutId = null;
-
-    const setupSubscription = () => {
-      const currentFilter = tabFilters[activeTab];
-      const constraints = [where('coupleId', '==', coupleId)];
-      if (currentFilter !== 'all') {
-        constraints.push(where('category', '==', currentFilter));
-      }
-
-      const q = query(collection(db, 'bucketlists'), ...constraints);
-
-      unsubscribeSnapshot = onSnapshot(
-        q,
-        (querySnapshot) => {
-          const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-          setBucketList(data);
-          setIsLoading(false);
-        },
-        (error) => {
-          console.error('버킷리스트 로드 실패:', error);
-          if (error.code !== 'cancelled') {
-            toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
-          }
-          setIsLoading(false);
+    const q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
+    const unsubscribe = onSnapshot(
+      q,
+      (querySnapshot) => {
+        const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
+        setBucketList(data);
+        setIsLoading(false);
+      },
+      (error) => {
+        console.error('버킷리스트 로드 실패:', error);
+        if (error.code !== 'cancelled') {
+          toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
         }
-      );
-    };
-
-    setupSubscription();
-
-    // 정리: 이전 구독 정리
-    return () => {
-      if (unsubscribeSnapshot) {
-        unsubscribeSnapshot();
+        setIsLoading(false);
       }
-      if (timeoutId) {
-        clearTimeout(timeoutId);
-      }
-    };
-  }, [coupleId, activeTab, tabFilters]);
+    );
+
+    return () => unsubscribe();
+  }, [coupleId]);
 
   const getFirstCategory = () => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
@@ -355,16 +333,18 @@ function BucketListPage() {
   };
 
   const pendingList = useMemo(() => {
+    const catFilter = tabFilters['pending'];
     return bucketList
-      .filter(item => !item.completed)
+      .filter(item => !item.completed && (catFilter === 'all' || item.category === catFilter))
       .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [bucketList]);
+  }, [bucketList, tabFilters]);
 
   const completedList = useMemo(() => {
+    const catFilter = tabFilters['completed'];
     return bucketList
-      .filter(item => item.completed)
+      .filter(item => item.completed && (catFilter === 'all' || item.category === catFilter))
       .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
-  }, [bucketList]);
+  }, [bucketList, tabFilters]);
 
   const activeList = activeTab === 'pending' ? pendingList : completedList;
   const bucketListRef = useRef(null);

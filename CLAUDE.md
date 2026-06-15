@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.22 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.3.35 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -148,9 +148,22 @@ utils/
 - **TravelTimeInput** (`src/components/Travel/TravelTimeInput.jsx`) — 여행 일정 간 이동 시간 기록
 - **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
 
+## 주요 서비스 패턴 주의사항
+
+### BucketListPage 구독 구조 (v0.3.35~)
+`bucketlists` 컬렉션은 `coupleId` 기준으로만 구독 (카테고리 필터 없음).  
+카테고리 필터는 `pendingList` / `completedList` useMemo에서 `tabFilters` 적용 — Firestore 재구독 없이 클라이언트에서 처리.
+
+### TripDetail 이동 시간 구독 (v0.3.35~)
+`getTravelTimes` (getDocs 일회성) 대신 `subscribeTravelTimes` (onSnapshot) 사용.  
+의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
+
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시
 - 소셜 로그인 (Google/Kakao, 장기)
+- EventModal 모달 재열기 시 이전 입력값 잔류 (event=null 재열기 시 useEffect 미실행)
+- useCalendar.js + useCalendarData.js 중복 onSnapshot 구독 통합 (Home↔Calendar 이동 시 과금)
+- 가임기 계산 의학 기준 재검증 (useCalendarEvents.js:86, cl<19 음수 가드 필요)
 
 ## 작업 규칙
 1. 기능 하나 완성 후 커밋 허락 받고 다음 작업 — 여러 요청이어도 한 번에 몰아서 하지 말 것
