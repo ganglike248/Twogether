@@ -48,7 +48,12 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       setEventType(event.eventType || 'couple');
       setIsPersonal(event.isPersonal || event.extendedProps?.isPersonal || false);
     } else {
-      // 새 일정 생성 시 localStorage에서 마지막 선택 상태 복원
+      // 새 일정 생성 시 폼 초기화 + localStorage에서 마지막 개인 일정 여부 복원
+      setTitle('');
+      setDescription('');
+      setStartDate('');
+      setEndDate('');
+      setEventType('couple');
       const lastPersonalState = localStorage.getItem('twogether_personal_default') === 'true';
       setIsPersonal(lastPersonalState);
     }
