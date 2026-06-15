@@ -191,17 +191,7 @@ function BucketListPage() {
     try {
       const coupleDocRef = doc(db, 'couples', coupleId);
       await updateDoc(coupleDocRef, { customCategories: updatedCategories });
-      setCustomCategories(updatedCategories);
-
-      const allCategories = { ...DEFAULT_CATEGORIES, ...updatedCategories };
-      const options = [
-        { value: 'all', label: '전체' },
-        ...Object.keys(allCategories).sort().map(key => ({
-          value: key,
-          label: getCategoryDisplayName(key, updatedCategories)
-        }))
-      ];
-      setCategoryOptions(options);
+      // onSnapshot이 즉시 실행되어 customCategories + categoryOptions 업데이트
       toast.success('카테고리가 저장되었습니다.');
     } catch (error) {
       console.error('카테고리 저장 실패:', error);

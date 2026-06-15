@@ -70,13 +70,9 @@ export const subscribeToTrips = (coupleId, callback) => {
     orderBy('startDate', 'desc')
   );
   return onSnapshot(q, (querySnapshot) => {
+    // Firestore query의 orderBy('startDate', 'desc')가 이미 정렬 처리
     const trips = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-    const sorted = trips.sort((a, b) => {
-      const aDate = a.startDate?.toDate ? a.startDate.toDate() : new Date(a.startDate);
-      const bDate = b.startDate?.toDate ? b.startDate.toDate() : new Date(b.startDate);
-      return bDate - aDate;
-    });
-    callback(sorted);
+    callback(trips);
   });
 };
 
