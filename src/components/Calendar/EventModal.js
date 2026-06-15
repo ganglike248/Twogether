@@ -201,6 +201,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                     />
                   </div>
                 </div>
+                <p style={{ fontSize: '0.75rem', color: '#888', margin: '0.25rem 0 0' }}>종료일 미입력 시 하루 일정으로 처리됩니다</p>
               </div>
             </div>
 

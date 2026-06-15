@@ -357,11 +357,10 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
                   <div
                     key={item.id}
                     className="wheel-item wheel-direct-item"
-                    onClick={() => handleRemoveDirectItem(item.id)}
-                    style={{ backgroundColor: '#f5f5f5', color: '#333', cursor: 'pointer' }}
+                    style={{ backgroundColor: '#f5f5f5', color: '#333' }}
                   >
                     <span className="wheel-item-title">{item.title}</span>
-                    <button className="wheel-item-remove">✕</button>
+                    <button className="wheel-item-remove" onClick={() => handleRemoveDirectItem(item.id)}>✕</button>
                   </div>
                 ))}
               </div>

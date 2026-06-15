@@ -273,17 +273,20 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                       </div>
                       
                       {/* 요약 정보 */}
-                      {/* <div className="log-summary">
+                      <div className="log-summary">
                         {log.action === 'created' && (
                           <span>새로운 일정이 생성되었습니다</span>
                         )}
                         {log.action === 'deleted' && (
                           <span>일정이 삭제되었습니다</span>
                         )}
+                        {log.action === 'converted_to_personal' && (
+                          <span>개인 일정으로 전환되었습니다</span>
+                        )}
                         {log.action === 'updated' && hasChanges && (
                           <span>{meaningfulChanges.length}개 항목이 수정되었습니다</span>
                         )}
-                      </div> */}
+                      </div>
 
                       {/* 자세히 보기 버튼 */}
                       {hasChanges && (
