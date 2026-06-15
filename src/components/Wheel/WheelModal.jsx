@@ -64,6 +64,21 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
     }
   }, [step]);
 
+  // 모달 닫힐 때 상태 초기화
+  useEffect(() => {
+    if (!isOpen) {
+      setStep('select');
+      setDirectItems([]);
+      setDirectInput('');
+      setSelectedBucketItems([]);
+      setIsSpinning(false);
+      setSpinResult(null);
+      setSlotOffset(0);
+      setShowBucketFilter(false);
+      setBucketFilter({ category: 'all', completed: false });
+    }
+  }, [isOpen]);
+
 
   const handleAddDirectItem = () => {
     if (!directInput.trim()) {

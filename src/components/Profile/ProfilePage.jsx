@@ -138,6 +138,8 @@ const ProfilePage = () => {
       } else {
         navigate('/', { replace: true });
       }
+    } else {
+      if (blocker.state === 'blocked') blocker.reset();
     }
   };
 

@@ -211,7 +211,7 @@ function BucketListPage() {
 
   const handleAdd = async () => {
     if (!canClick()) return;
-    if (!addForm.title.trim()) return;
+    if (!addForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
     try {
       const newItem = {
         title: addForm.title,

@@ -97,6 +97,7 @@ const CoupleInfoPage = () => {
     } catch (error) {
       console.error('Failed to save:', error);
       toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      if (blocker.state === 'blocked') blocker.reset();
     } finally {
       setLoading(false);
     }

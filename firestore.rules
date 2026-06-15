@@ -83,10 +83,7 @@ service cloud.firestore {
       );
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
-      allow update: if isAuthenticated() && (
-        resource.data.coupleId == null ||
-        isCoupleMe(resource.data.coupleId)
-      );
+      allow update: if false;
       allow delete: if false;
     }
 

@@ -43,6 +43,9 @@ const CoupleSetupPage = () => {
   // 로그아웃 후 또는 미로그인 상태 → 로그인 페이지
   if (!authLoading && !user) return <Navigate to="/login" replace />;
 
+  // 이미 커플 연결 완료된 사용자 → 홈으로
+  if (!authLoading && user && coupleDoc?.members?.length >= 2 && !generatedCode) return <Navigate to="/" replace />;
+
   const handleTabChange = (newTab) => {
     setTab(newTab);
     setError('');

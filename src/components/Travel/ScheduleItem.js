@@ -60,7 +60,6 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
                 </button>
                 <div
                     className={`schedule-item-completion-indicator ${schedule.completed ? 'schedule-item-completed' : ''}`}
-                    onClick={handleToggleComplete}
                 >
                     {schedule.completed ? '✓' : '○'}
                 </div>
@@ -72,11 +71,11 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
                         {schedule.title}
                     </h3>
 
-                    {schedule.description.trim() && (
+                    {(schedule.description || '').trim() && (
                         <p className="schedule-item-description">{schedule.description}</p>
                     )}
 
-                    {schedule.location.trim() && (
+                    {(schedule.location || '').trim() && (
                         <p className="schedule-item-location">📍 {schedule.location}</p>
                     )}
 

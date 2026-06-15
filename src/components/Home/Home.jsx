@@ -12,7 +12,7 @@ import {
 } from 'react-icons/hi2';
 import useCalendar from '../../hooks/useCalendar';
 import { useTrips, useTripSchedules } from '../../hooks/useTrip';
-import { collection, query, where, onSnapshot, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { convertToDate } from '../../utils/dataUtils';
@@ -28,7 +28,6 @@ const Home = () => {
   const [dday, setDday] = useState(0);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
   const [bucketList, setBucketList] = useState([]);
-  const [customCategories, setCustomCategories] = useState({});
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
   );
@@ -45,6 +44,7 @@ const Home = () => {
   }, [location.state?.showTutorial]);
 
   const heroImageUrl = coupleDoc?.heroImageUrl || null;
+  const customCategories = coupleDoc?.customCategories || {};
 
   useEffect(() => {
     if (!anniversaryDate) return;
@@ -62,21 +62,6 @@ const Home = () => {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(all);
       setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
-    });
-    return () => unsubscribe();
-  }, [coupleId]);
-
-  // 커스텀 카테고리 구독
-  useEffect(() => {
-    if (!coupleId) return;
-    const coupleDocRef = doc(db, 'couples', coupleId);
-    const unsubscribe = onSnapshot(coupleDocRef, (coupleDocSnap) => {
-      try {
-        const loadedCustomCategories = coupleDocSnap.data()?.customCategories || {};
-        setCustomCategories(loadedCustomCategories);
-      } catch (error) {
-        console.error('카테고리 로드 실패:', error);
-      }
     });
     return () => unsubscribe();
   }, [coupleId]);
