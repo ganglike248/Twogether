@@ -321,7 +321,8 @@ function BucketListPage() {
   };
 
   const handleEditSave = async () => {
-    if (!editForm.title.trim()) return;
+    if (!canClick()) return;
+    if (!editForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
     try {
       await updateDoc(doc(db, 'bucketlists', editForm.id), {
         title: editForm.title,

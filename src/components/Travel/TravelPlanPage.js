@@ -34,9 +34,9 @@ const TravelPlanPage = () => {
             return;
         }
         const trip = trips.find(t => t.id === tripId);
-        if (trip) setSelectedTrip(trip);
-        // trips가 아직 로딩 중이면 selectedTrip 유지 (목록 플래시 방지)
-    }, [tripId, trips]);
+        if (trip) { setSelectedTrip(trip); return; }
+        if (!loading) navigate('/travel', { replace: true }); // 로드 후에도 없으면 목록으로
+    }, [tripId, trips, loading, navigate]);
 
     // 필터링 및 검색
     useEffect(() => {
@@ -105,7 +105,7 @@ const TravelPlanPage = () => {
 
     // 여행 상세 보기
     const handleViewTrip = (trip) => {
-        navigate(`/travel/${trip.id}`, { replace: true });
+        navigate(`/travel/${trip.id}`);
     };
 
     // 여행 편집
