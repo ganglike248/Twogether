@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { toast } from 'react-toastify';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
 import EmptyState from '../common/EmptyState';
@@ -103,6 +104,10 @@ const DayModal = ({
 
   const handlePeriodSubmit = async () => {
     const length = Number(periodFormLength) || defaultPeriodLength;
+    if (length < 1 || length > 14) {
+      toast.warning('기간은 1~14일 사이로 입력해주세요.');
+      return;
+    }
     setPeriodSubmitting(true);
     try {
       await onAddPeriod(selectedDate, length);

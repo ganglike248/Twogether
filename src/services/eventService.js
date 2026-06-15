@@ -204,32 +204,6 @@ export const deletePersonalEvent = async (eventId) => {
   return eventId;
 };
 
-export const sharePersonalToCoupleEvent = async (personalEventId, personalEventData, eventType = 'couple', userId = 'anonymous', coupleId = null) => {
-  const coupleEventData = {
-    title: personalEventData.title,
-    description: personalEventData.description,
-    start: personalEventData.start,
-    end: personalEventData.end,
-    eventType,
-    coupleId,
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-    createdBy: userId,
-    updatedBy: userId,
-  };
-
-  const docRef = await addDoc(collection(db, 'events'), coupleEventData);
-  await saveEditLog(docRef.id, coupleEventData, 'created', userId, coupleId);
-
-  // personal_events의 sharedToCoupleEventId 업데이트
-  await updateDoc(doc(db, 'personal_events', personalEventId), {
-    sharedToCoupleEventId: docRef.id,
-    updatedAt: serverTimestamp(),
-  });
-
-  return { id: docRef.id, ...coupleEventData };
-};
-
 // overrides: 폼에서 편집된 title/description/start/end를 Firestore 저장 값보다 우선 적용
 export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null, overrides = {}) => {
   const batch = writeBatch(db);
