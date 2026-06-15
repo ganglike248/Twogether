@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.20 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.3.21 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -19,11 +19,17 @@
 `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` **명시 필수**.  
 미명시 시 rules가 기본 `*.appspot.com` 버킷에 배포되어 앱에서 403 에러 발생.
 
+### Firebase Storage rules 소유권 제한
+Storage Rules는 Firestore를 직접 쿼리할 수 없어 coupleId 소유권 검증 불가.  
+`storageService.js`의 `validateCoupleIdAccess()`가 유일한 소유권 방어선.  
+write에는 `size < 10MB && image/*` 조건 적용 중. (완전한 rules 검증은 Auth custom claims + Cloud Functions 필요)
+
 ### Firebase Storage + Workbox
 `firebasestorage.googleapis.com`을 Workbox runtimeCaching에 넣으면 서비스 워커가 CORS 없이 fetch → opaque 응답 → 이미지 로딩 실패 (특히 iOS). **현재 의도적으로 캐싱에서 제외**되어 있음.
 
 ### EventForm.js / MemoryForm.js
-두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
+두 파일 모두 **미사용 dead code** — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.  
+파일 자체는 존재하나 어디서도 import되지 않음. 추후 삭제 예정.
 
 ### BucketListPage
 `onSnapshot` 사용 (실시간 구독) — 파트너 변경 사항이 즉시 반영됨.
@@ -60,6 +66,7 @@ Safari 프라이빗 모드 등 IndexedDB 미지원 환경: try-catch로 `getFire
 - `members[0]` = boyfriend (커플 생성자), `members[1]` = girlfriend (합류자)
 - `myRole` = `'boyfriend'` | `'girlfriend'` | `null` — 현재 유저의 역할
 - `getMemberName('boyfriend'|'girlfriend'|'couple')` → 실제 displayName 반환
+- `getMemberName('personal')` → `'데이트'` 반환 (personal 타입은 UI에서 직접 `'개인'` 처리 필요)
 
 ## ProtectedRoute 순서
 loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통과
@@ -100,15 +107,30 @@ services/
   storageService.js      → Firebase Storage (hero 이미지 업로드/삭제; 이벤트 이미지는 미구현)
 
 hooks/
-  usePersonalEvents.js   → personal_events 실시간 구독 (userId 기반)
-  useCalendarData.js     → 커플 이벤트 + 개인 이벤트 통합
-  useCalendar.js         → FullCalendar용 이벤트 훅 (coupleId, userId) — userId 필수
+  useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합)
+  useCalendar.js         → Home.jsx 전용 FullCalendar 이벤트 훅 (coupleId, userId) — userId 필수
+  useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
+  useCalendarNavigation.js → 캘린더 슬라이드 네비게이션
+  useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
+  useTrip.js             → 여행 구독 (useTrips, useTripSchedules)
+  useHeroImage.js        → 홈 사진 파일 선택/미리보기
   useDoubleClickPrevention.js → 더블 탭/클릭 방지
   useAnalytics.js        → Google Analytics 페이지뷰 추적
+  
+  ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendar/useCalendarData 내부에 통합
 ```
+
+## 문서화되지 않은 구현 기능 (실제 존재)
+- **WheelModal** (`src/components/Wheel/WheelModal.jsx`) — 돌림판 슬롯머신. 버킷리스트 연동 + 직접 항목 추가. Home에서 버튼으로 열림
+- **OnboardingSlides / TutorialSlides** (`src/components/Onboarding/`) — 최초 로그인 시 온보딩, 커플 연결 후 튜토리얼 자동 표시
+- **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
+- **TravelTimeInput** (`src/components/Travel/TravelTimeInput.jsx`) — 여행 일정 간 이동 시간 기록
+- **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
 
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시
+- 미사용 파일 삭제: `EventForm.js`, `MemoryForm.js`, `useMemory.js`
+- 미사용 패키지 제거: `react-virtuoso`
 - 소셜 로그인 (Google/Kakao, 장기)
 
 ## 작업 규칙

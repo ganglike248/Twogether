@@ -25,9 +25,10 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
           <div className="memory-details">
             <div className={`memory-badge ${
               memory.eventType === 'boyfriend' ? 'boyfriend' :
-              memory.eventType === 'girlfriend' ? 'girlfriend' : 'couple'
+              memory.eventType === 'girlfriend' ? 'girlfriend' :
+              memory.eventType === 'personal' ? 'personal' : 'couple'
             }`}>
-              {getMemberName(memory.eventType)}
+              {memory.eventType === 'personal' ? '개인' : getMemberName(memory.eventType)}
             </div>
 
             <div className="memory-section">

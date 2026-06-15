@@ -82,6 +82,11 @@
   color: #d94f4f;
 }
 
+.memory-badge.personal {
+  background-color: var(--color-personal-background);
+  color: var(--color-personal-font);
+}
+
 .memory-section {
   margin-bottom: 1.5rem;
   padding-bottom: 1.5rem;
