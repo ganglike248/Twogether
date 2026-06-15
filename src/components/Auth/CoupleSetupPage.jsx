@@ -174,7 +174,7 @@ const CoupleSetupPage = () => {
                     <input
                       type="text"
                       value={inviteCode}
-                      onChange={e => setInviteCode(e.target.value.toUpperCase())}
+                      onChange={e => setInviteCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
                       placeholder="6자리 코드를 입력해주세요"
                       maxLength={6}
                       style={{ letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.2rem' }}

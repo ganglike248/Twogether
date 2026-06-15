@@ -56,6 +56,7 @@ const CycleSettingsModal = ({ isOpen, onClose }) => {
           periodLength: Number(settings.periodLength) || 5,
         },
       });
+      toast.success('저장되었습니다.');
       onClose();
     } catch (err) {
       console.error('[CycleSettingsModal] 저장 실패:', err);

@@ -63,7 +63,7 @@ export const AuthProvider = ({ children }) => {
       } else {
         setCoupleDoc(null);
       }
-    });
+    }, () => setCoupleDoc(null));
     return () => unsubscribeCouple();
   }, [userDoc?.coupleId]);
 

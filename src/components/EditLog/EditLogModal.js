@@ -176,6 +176,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
       case 'created': return '#4CAF50';
       case 'updated': return '#FF9800';
       case 'deleted': return '#F44336';
+      case 'converted_to_personal': return '#9C27B0';
       default: return '#757575';
     }
   };
@@ -185,6 +186,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
       case 'created': return '생성됨';
       case 'updated': return '수정됨';
       case 'deleted': return '삭제됨';
+      case 'converted_to_personal': return '개인 전환됨';
       default: return action;
     }
   };

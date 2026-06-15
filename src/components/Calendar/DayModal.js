@@ -3,7 +3,6 @@ import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
-import useColorSync from '../../hooks/useColorSync';
 import EmptyState from '../common/EmptyState';
 import { MdCalendarToday } from 'react-icons/md';
 
@@ -12,10 +11,8 @@ const DayModal = ({
   onAddEvent, onEditEvent,
   dayPeriods = [], cycleSettings, onAddPeriod, onDeletePeriod,
 }) => {
-  const { getMemberName, userDoc, partnerDoc, myRole } = useAuthContext();
+  const { getMemberName } = useAuthContext();
   const [showPeriodForm, setShowPeriodForm] = useState(false);
-
-  useColorSync(userDoc, partnerDoc, myRole);
   const [periodFormLength, setPeriodFormLength] = useState('');
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);

@@ -28,6 +28,7 @@ const Navigation = () => {
           to={path}
           replace
           className={`bottom-nav-item ${isActive(path) ? 'active' : ''}`}
+          aria-current={isActive(path) ? 'page' : undefined}
         >
           <Icon className="nav-icon" />
           <span className="nav-label">{label}</span>
