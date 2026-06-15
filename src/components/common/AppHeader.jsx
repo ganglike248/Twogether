@@ -3,6 +3,7 @@ import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiHeart, HiBars3 } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { calcDday } from '../../utils/dataUtils';
 import Sidebar from './Sidebar';
 import './AppHeader.css';
 
@@ -11,14 +12,7 @@ const AppHeader = () => {
   const { coupleDoc } = useAuthContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const dday = useMemo(() => {
-    if (!coupleDoc?.anniversaryDate) return null;
-    const start = new Date(coupleDoc.anniversaryDate);
-    start.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
-  }, [coupleDoc?.anniversaryDate]);
+  const dday = useMemo(() => calcDday(coupleDoc?.anniversaryDate), [coupleDoc?.anniversaryDate]);
 
   return (
     <>

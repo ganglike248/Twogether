@@ -1,5 +1,5 @@
 // src/utils/dateUtils.js
-import { format, isSameDay, isToday, parseISO } from 'date-fns';
+import { format, isSameDay, isToday, parseISO, differenceInCalendarDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
 // Firestore Timestamp 또는 문자열을 Date 객체로 변환
@@ -50,6 +50,17 @@ export const checkIfSameDay = (dateString1, dateString2) => {
   } catch (error) {
     console.error("Error checking if same day:", error);
     return false;
+  }
+};
+
+// 연애 D+day 계산 (anniversaryDate 문자열 'YYYY-MM-DD' → 오늘까지 경과 일수 + 1)
+export const calcDday = (anniversaryDate) => {
+  if (!anniversaryDate) return null;
+  try {
+    const start = parseISO(anniversaryDate);
+    return differenceInCalendarDays(new Date(), start) + 1;
+  } catch {
+    return null;
   }
 };
 

@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { HiXMark, HiUser, HiCog, HiArrowRightOnRectangle, HiUsers } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
+import { calcDday } from '../../utils/dataUtils';
 import { version } from '../../../package.json';
 import './Sidebar.css';
 
@@ -10,14 +11,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { userDoc, partnerDoc, coupleDoc } = useAuthContext();
 
-  const dday = useMemo(() => {
-    if (!coupleDoc?.anniversaryDate) return null;
-    const start = new Date(coupleDoc.anniversaryDate);
-    start.setHours(0, 0, 0, 0);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    return Math.floor((today - start) / (1000 * 60 * 60 * 24)) + 1;
-  }, [coupleDoc?.anniversaryDate]);
+  const dday = useMemo(() => calcDday(coupleDoc?.anniversaryDate), [coupleDoc?.anniversaryDate]);
 
   const handleNavigation = (path) => {
     navigate(path, { replace: true });
