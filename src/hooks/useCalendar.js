@@ -45,7 +45,7 @@ const useCalendar = (coupleId, userId) => {
           },
         };
       });
-      setEvents(prev => [...prev.filter(e => !e.extendedProps?.isPersonal), ...eventsData]);
+      setEvents(prev => [...prev.filter(e => e.extendedProps?.isPersonal), ...eventsData]);
       setLoading(false);
     }, () => {
       setLoading(false);
