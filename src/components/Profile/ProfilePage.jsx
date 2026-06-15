@@ -18,9 +18,7 @@ const ProfilePage = () => {
 
   // 텍스트 필드
   const [displayName, setDisplayName] = useState('');
-  const [anniversaryDate, setAnniversaryDate] = useState('');
   const [origName, setOrigName] = useState('');
-  const [origDate, setOrigDate] = useState('');
 
   const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
   const [loading, setLoading] = useState(false);
@@ -47,17 +45,8 @@ const ProfilePage = () => {
     }
   }, [userDoc]);
 
-  useEffect(() => {
-    if (coupleDoc) {
-      const date = coupleDoc.anniversaryDate || '';
-      setAnniversaryDate(date);
-      setOrigDate(date);
-    }
-  }, [coupleDoc]);
-
   const isDirty =
     displayName !== origName ||
-    anniversaryDate !== origDate ||
     pendingHeroFile !== null ||
     pendingHeroDelete;
 
@@ -87,9 +76,6 @@ const ProfilePage = () => {
     try {
       await updateProfile(auth.currentUser, { displayName: displayName.trim() });
       await updateDoc(doc(db, 'users', user.uid), { displayName: displayName.trim() });
-      if (coupleId && anniversaryDate) {
-        await updateDoc(doc(db, 'couples', coupleId), { anniversaryDate });
-      }
 
       if (pendingHeroFile) {
         const url = await uploadHeroImage(coupleId, pendingHeroFile);
@@ -102,7 +88,6 @@ const ProfilePage = () => {
       }
 
       setOrigName(displayName.trim());
-      setOrigDate(anniversaryDate);
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       return true;
