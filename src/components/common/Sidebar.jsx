@@ -1,4 +1,4 @@
-import React, { useMemo } from 'react';
+import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiXMark, HiUser, HiCog, HiArrowRightOnRectangle, HiUsers } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -10,6 +10,7 @@ import './Sidebar.css';
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { userDoc, partnerDoc, coupleDoc } = useAuthContext();
+  const [showLogoutModal, setShowLogoutModal] = useState(false);
 
   const dday = useMemo(() => calcDday(coupleDoc?.anniversaryDate), [coupleDoc?.anniversaryDate]);
 
@@ -19,7 +20,7 @@ const Sidebar = ({ isOpen, onClose }) => {
   };
 
   const handleLogout = () => {
-    if (!window.confirm('정말 로그아웃하시겠습니까?')) return;
+    setShowLogoutModal(false);
     signOut();
   };
 
@@ -86,12 +87,36 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar-footer">
           <span className="sidebar-version">v{version}</span>
           <span className="sidebar-feedback">Business9498@gmail.com</span>
-          <button className="sidebar-logout" onClick={handleLogout}>
+          <button className="sidebar-logout" onClick={() => setShowLogoutModal(true)}>
             <HiArrowRightOnRectangle />
             <span>로그아웃</span>
           </button>
         </div>
       </aside>
+
+      {/* 로그아웃 확인 모달 */}
+      {showLogoutModal && (
+        <div className="sidebar-modal-overlay">
+          <div className="sidebar-modal-box">
+            <p className="sidebar-modal-title">로그아웃</p>
+            <p className="sidebar-modal-msg">정말 로그아웃하시겠습니까?</p>
+            <div className="sidebar-modal-actions">
+              <button
+                className="sidebar-modal-btn"
+                onClick={() => setShowLogoutModal(false)}
+              >
+                취소
+              </button>
+              <button
+                className="sidebar-modal-btn confirm"
+                onClick={handleLogout}
+              >
+                로그아웃
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </>
   );
 };

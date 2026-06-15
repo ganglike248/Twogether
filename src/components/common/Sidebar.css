@@ -215,3 +215,66 @@
   width: 16px;
   height: 16px;
 }
+
+/* 로그아웃 확인 모달 */
+.sidebar-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 400;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sidebar-modal-box {
+  background: #fff;
+  border-radius: 16px;
+  padding: 1.5rem 1.25rem 1.25rem;
+  width: min(320px, 90vw);
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
+}
+
+.sidebar-modal-title {
+  font-size: 1rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem;
+}
+
+.sidebar-modal-msg {
+  font-size: 0.875rem;
+  color: #666;
+  margin: 0 0 1.25rem;
+}
+
+.sidebar-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+  justify-content: flex-end;
+}
+
+.sidebar-modal-btn {
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 8px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  cursor: pointer;
+  background: #f0f0f0;
+  color: #333;
+  transition: background 0.2s;
+}
+
+.sidebar-modal-btn:hover {
+  background: #e0e0e0;
+}
+
+.sidebar-modal-btn.confirm {
+  background: #ff6b6b;
+  color: #fff;
+}
+
+.sidebar-modal-btn.confirm:hover {
+  background: #e05555;
+}

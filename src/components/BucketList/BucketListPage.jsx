@@ -69,7 +69,6 @@ function BucketListPage() {
   const canClick = useDoubleClickPrevention(500);
   const [bucketList, setBucketList] = useState([]);
   const [customCategories, setCustomCategories] = useState({});
-  const [filterCategory, setFilterCategory] = useState('all');
   const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
   const [activeTab, setActiveTab] = useState('pending');
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
