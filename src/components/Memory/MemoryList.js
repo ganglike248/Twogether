@@ -170,6 +170,7 @@ const MemoryList = () => {
       return; // compute useEffect가 filteredMemories 갱신
     }
 
+    let cancelled = false;
     setIsSearching(true);
     const today = new Date();
     today.setHours(0, 0, 0, 0);
@@ -203,6 +204,7 @@ const MemoryList = () => {
     }
 
     Promise.all(promises).then(([sharedSnapshot, personalSnapshot]) => {
+      if (cancelled) return;
       const results = [];
 
       if (sharedSnapshot) {
@@ -230,9 +232,12 @@ const MemoryList = () => {
       setFilteredMemories(results);
       setIsSearching(false);
     }).catch(err => {
+      if (cancelled) return;
       console.error('Error searching memories:', err);
       setIsSearching(false);
     });
+
+    return () => { cancelled = true; };
   }, [searchTerm, coupleId, userId, filter]);
 
   const handleScroll = useCallback(() => {

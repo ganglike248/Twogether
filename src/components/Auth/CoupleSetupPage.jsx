@@ -18,6 +18,13 @@ const CoupleSetupPage = () => {
   const [copied, setCopied] = useState(false);
   const [connected, setConnected] = useState(false);
 
+  // 새로고침 복구: coupleDoc이 1명이면 초대 코드를 state에 복원하여 파트너 연결 감지 유지
+  useEffect(() => {
+    if (!generatedCode && coupleDoc?.members?.length === 1 && coupleDoc?.inviteCode) {
+      setGeneratedCode(coupleDoc.inviteCode);
+    }
+  }, [coupleDoc?.members?.length, coupleDoc?.inviteCode, generatedCode]);
+
   // creator: 파트너가 합류하면(members가 2명이 되면) 연결 완료 감지
   useEffect(() => {
     if (!generatedCode) return;

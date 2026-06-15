@@ -3,7 +3,7 @@ import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
-const useCalendar = (coupleId, userId) => {
+const useCalendar = (coupleId, userId, myRole = null) => {
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
 
@@ -22,7 +22,7 @@ const useCalendar = (coupleId, userId) => {
       const eventsData = querySnapshot.docs.map((doc) => {
         const data = doc.data();
         const eventType = data.eventType || (data.isCouple !== undefined
-          ? (data.isCouple ? 'couple' : 'boyfriend') : 'couple');
+          ? (data.isCouple ? 'couple' : (myRole || 'boyfriend')) : 'couple');
         let color;
         switch (eventType) {
           case 'boyfriend':

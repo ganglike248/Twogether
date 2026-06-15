@@ -21,7 +21,7 @@ import WheelModal from '../Wheel/WheelModal';
 import './Home.css';
 
 const Home = () => {
-  const { user, coupleId, coupleDoc } = useAuthContext();
+  const { user, coupleId, coupleDoc, myRole } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -33,7 +33,7 @@ const Home = () => {
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const { events } = useCalendar(coupleId, user?.uid);
+  const { events } = useCalendar(coupleId, user?.uid, myRole);
   const { trips } = useTrips(coupleId);
   const navigate = useNavigate();
 
