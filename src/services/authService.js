@@ -90,9 +90,9 @@ export const createCouple = async (uid, anniversaryDate) => {
     joined: false,
     createdAt: serverTimestamp(),
   });
+  // users/{uid} 업데이트를 batch에 포함 — 커플 생성과 원자적으로 처리
+  batch.update(doc(db, 'users', uid), { coupleId: coupleRef.id });
   await batch.commit();
-
-  await updateDoc(doc(db, 'users', uid), { coupleId: coupleRef.id });
 
   return { coupleId: coupleRef.id, inviteCode };
 };
@@ -120,9 +120,9 @@ export const joinCouple = async (uid, inviteCode) => {
   const batch = writeBatch(db);
   batch.update(doc(db, 'couples', coupleId), { members: arrayUnion(uid) });
   batch.update(doc(db, 'inviteCodes', code), { joined: true });
+  // users/{uid} 업데이트를 batch에 포함 — 합류와 원자적으로 처리
+  batch.update(doc(db, 'users', uid), { coupleId });
   await batch.commit();
-
-  await updateDoc(doc(db, 'users', uid), { coupleId });
 
   return { coupleId };
 };

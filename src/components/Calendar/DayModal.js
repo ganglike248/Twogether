@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { format, subDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import './DayModal.css';
@@ -21,6 +21,18 @@ const DayModal = ({
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDeletePeriodModal, setShowDeletePeriodModal] = useState(false);
   const [periodToDelete, setPeriodToDelete] = useState(null);
+  const moreMenuRef = useRef(null);
+
+  useEffect(() => {
+    if (!showMoreMenu) return;
+    const handleOutsideClick = (e) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
+        setShowMoreMenu(false);
+      }
+    };
+    document.addEventListener('mousedown', handleOutsideClick);
+    return () => document.removeEventListener('mousedown', handleOutsideClick);
+  }, [showMoreMenu]);
 
   if (!isOpen || !selectedDate) return null;
 
@@ -274,7 +286,7 @@ const DayModal = ({
             </button>
 
             {cycleEnabled && (
-              <div className="more-menu-wrapper">
+              <div className="more-menu-wrapper" ref={moreMenuRef}>
                 <button
                   className="more-menu-btn"
                   onClick={() => setShowMoreMenu(!showMoreMenu)}
