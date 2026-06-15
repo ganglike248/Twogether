@@ -188,7 +188,7 @@ const DayModal = ({
                   const eventStart = getDateString(event.start);
                   const eventEnd = event.end ? getDateString(event.end) : eventStart;
                   const isTrip = event.extendedProps?.isTrip;
-                  const eventTypeClass = isTrip ? 'trip' : event.extendedProps.eventType;
+                  const eventTypeClass = isTrip ? 'trip' : event.extendedProps?.eventType;
                   return (
                     <div
                       key={event.id}
@@ -196,13 +196,13 @@ const DayModal = ({
                       onClick={() => onEditEvent(event)}
                     >
                       <div className="event-icon">
-                        {getEventTypeIcon(event.extendedProps.eventType, isTrip)}
+                        {getEventTypeIcon(event.extendedProps?.eventType, isTrip)}
                       </div>
                       <div className="event-details">
                         <div className="event-title">{event.title}</div>
                         <div className="event-meta">
                           <span className={`event-type ${eventTypeClass}`}>
-                            {getEventTypeName(event.extendedProps.eventType, isTrip)}
+                            {getEventTypeName(event.extendedProps?.eventType, isTrip)}
                           </span>
                           <span className="event-date-range">
                             {formatDateRange(eventStart, eventEnd)}

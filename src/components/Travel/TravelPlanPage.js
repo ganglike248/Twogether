@@ -59,8 +59,8 @@ const TravelPlanPage = () => {
         // 검색어 필터링
         if (searchQuery.trim()) {
             filtered = filtered.filter(trip =>
-                trip.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                trip.destination.toLowerCase().includes(searchQuery.toLowerCase())
+                trip.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                trip.destination?.toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 

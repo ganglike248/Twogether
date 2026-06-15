@@ -510,7 +510,7 @@ function BucketListPage() {
             <BucketItem
               key={item.id}
               item={item}
-              isCompleted={activeTab === 'completed'}
+              isCompleted={item.completed}
               customCategories={customCategories}
               onOpenEditModal={handleOpenEditModal}
               onOpenDateModal={handleOpenDateModal}

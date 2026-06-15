@@ -9,7 +9,7 @@ export const useCalendarData = (coupleId, userId) => {
 
   // 일정 구독
   useEffect(() => {
-    if (!coupleId) return;
+    if (!coupleId) { setIsLoading(false); return; }
     const eventsRef = query(
       collection(db, 'events'),
       where('coupleId', '==', coupleId)

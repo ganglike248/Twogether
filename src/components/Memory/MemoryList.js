@@ -29,7 +29,7 @@ const MemoryList = () => {
 
   const normalizeMemory = (data) => {
     if (data.eventType === undefined) {
-      data.eventType = data.isCouple ? 'couple' : 'boyfriend';
+      return { ...data, eventType: data.isCouple ? 'couple' : 'boyfriend' };
     }
     return data;
   };

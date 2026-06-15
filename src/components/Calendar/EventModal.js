@@ -123,9 +123,14 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     setShowDeleteModal(true);
   };
 
-  const confirmDelete = () => {
-    onDelete(event.id);
-    setShowDeleteModal(false);
+  const confirmDelete = async () => {
+    try {
+      await onDelete(event.id);
+    } catch (err) {
+      toast.error(`삭제 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
+    } finally {
+      setShowDeleteModal(false);
+    }
   };
 
   if (!isOpen) return null;
