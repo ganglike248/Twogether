@@ -9,7 +9,8 @@ import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
 import {
   createEvent, updateEvent, deleteEvent,
-  createPersonalEvent, updatePersonalEvent, deletePersonalEvent
+  createPersonalEvent, updatePersonalEvent, deletePersonalEvent,
+  convertEventType
 } from '../../services/eventService';
 import { createCycle, deleteCycle } from '../../services/cycleService';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -176,11 +177,15 @@ const Calendar = () => {
       if (eventData.id) {
         const wasPersonal = events.find(e => e.id === eventData.id)?.extendedProps?.isPersonal || false;
 
-        if (wasPersonal && !isPersonal) {
-          // 개인 → 공유 전환: 개인 일정 삭제 후 공유 일정으로 새로 생성
-          await deletePersonalEvent(eventData.id);
-          const { id: _id, isPersonal: _ip, ...newEventData } = eventData;
-          await createEvent(newEventData, uid, coupleId);
+        if (wasPersonal !== isPersonal) {
+          // 개인 ↔ 공유 전환: writeBatch로 원자적 변환 (중간 실패 시 데이터 소실 방지)
+          const overrides = {
+            title: eventData.title,
+            description: eventData.description,
+            start: eventData.start,
+            end: eventData.end,
+          };
+          await convertEventType(eventData.id, wasPersonal, eventData.eventType, uid, coupleId, overrides);
         } else if (isPersonal) {
           await updatePersonalEvent(eventData.id, eventData, uid, coupleId);
         } else {

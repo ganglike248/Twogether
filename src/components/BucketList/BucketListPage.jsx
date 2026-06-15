@@ -4,7 +4,7 @@ import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, on
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { format } from 'date-fns';
+import { format, parseISO } from 'date-fns';
 import { MdCheckCircle, MdRadioButtonUnchecked, MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd, MdSettings, MdSchedule } from 'react-icons/md';
 import '../BucketList/BucketListPage.css';
 import './bucket-modal.css';
@@ -360,7 +360,7 @@ function BucketListPage() {
 
   const formatBucketDate = (dateStr) => {
     if (!dateStr) return '';
-    return format(new Date(dateStr), 'yy.MM.dd');
+    return format(parseISO(dateStr), 'yy.MM.dd');
   };
 
   const pendingList = useMemo(() => {

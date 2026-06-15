@@ -230,7 +230,8 @@ export const sharePersonalToCoupleEvent = async (personalEventId, personalEventD
   return { id: docRef.id, ...coupleEventData };
 };
 
-export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null) => {
+// overrides: 폼에서 편집된 title/description/start/end를 Firestore 저장 값보다 우선 적용
+export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null, overrides = {}) => {
   const batch = writeBatch(db);
 
   if (isPersonal) {
@@ -243,10 +244,10 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
     const newEventRef = doc(collection(db, 'events'));
     const editLogRef = doc(collection(db, 'edit_logs'));
     const newEventData = {
-      title: personalData.title,
-      description: personalData.description || '',
-      start: personalData.start,
-      end: personalData.end,
+      title: overrides.title ?? personalData.title,
+      description: overrides.description ?? personalData.description ?? '',
+      start: overrides.start ?? personalData.start,
+      end: overrides.end ?? personalData.end,
       eventType: newType,
       coupleId,
       createdAt: serverTimestamp(),
@@ -278,10 +279,10 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
     const newPersonalRef = doc(collection(db, 'personal_events'));
     const editLogRef = doc(collection(db, 'edit_logs'));
     const newPersonalData = {
-      title: eventData.title,
-      description: eventData.description || '',
-      start: eventData.start,
-      end: eventData.end,
+      title: overrides.title ?? eventData.title,
+      description: overrides.description ?? eventData.description ?? '',
+      start: overrides.start ?? eventData.start,
+      end: overrides.end ?? eventData.end,
       userId,
       coupleId,
       createdAt: serverTimestamp(),
