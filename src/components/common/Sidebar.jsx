@@ -5,12 +5,15 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
 import { calcDday } from '../../utils/dataUtils';
 import { version } from '../../../package.json';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
   const { userDoc, partnerDoc, coupleDoc } = useAuthContext();
   const [showLogoutModal, setShowLogoutModal] = useState(false);
+  useModalBackButton(isOpen, onClose);
+  useModalBackButton(showLogoutModal, () => setShowLogoutModal(false));
 
   const dday = useMemo(() => calcDday(coupleDoc?.anniversaryDate), [coupleDoc?.anniversaryDate]);
 

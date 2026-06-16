@@ -3,10 +3,12 @@ import React from 'react';
 import { subDays, parseISO, format } from 'date-fns';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dataUtils';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 import './MemoryDetail.css';
 
 const MemoryDetail = ({ isOpen, onClose, memory }) => {
   const { getMemberName } = useAuthContext();
+  useModalBackButton(isOpen, onClose);
   if (!isOpen || !memory) return null;
 
   const startDay = memory.start?.split('T')[0];
