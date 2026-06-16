@@ -65,6 +65,11 @@ CSS grid 내 `input[type="date"]`는 `min-width: 0` 없으면 셀 넘침 → 겹
 초기 번들 1,474kB → 104kB (93% 감소). fullcalendar 228kB는 /calendar 방문 시에만 로드.  
 `PageLoader` 컴포넌트: `index.html`에 정의된 `preloader-spin` 키프레임 재사용 (JS 로드 전부터 동작).
 
+### Sentry 에러 추적
+`src/main.jsx`에서 `VITE_SENTRY_DSN` 환경변수 존재 시 `Sentry.init()` 실행 (browserTracingIntegration, 프로덕션 샘플링 10%).  
+`src/components/common/ErrorBoundary.jsx`가 `Sentry.withProfiler()`로 래핑되어 React 렌더링 에러를 자동으로 `captureException`.  
+`VITE_SENTRY_DSN`이 없는 프로덕션 빌드에서는 콘솔 경고만 출력됨 (에러 추적 비활성화).
+
 ### Firestore 오프라인 퍼시스턴스
 `src/firebase.js`: `initializeFirestore` + `persistentLocalCache` + `persistentMultipleTabManager` 적용.  
 재방문 시 IndexedDB에서 즉시 데이터 반환 → 빈 화면 없이 로딩.  
@@ -126,12 +131,12 @@ hooks/
   useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합)
   useCalendar.js         → Home.jsx 전용 이벤트 훅 (coupleId, userId) — userId 필수, 필터 패턴 주의(위 참고)
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
-  useCalendarNavigation.js → 캘린더 슬라이드 네비게이션
+  useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
   useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
   useTrip.js             → 여행 구독 (useTrips, useTripSchedules)
   useHeroImage.js        → 홈 사진 파일 선택/미리보기
   useDoubleClickPrevention.js → 더블 탭/클릭 방지
-  useAnalytics.js        → Google Analytics 페이지뷰 추적
+  useAnalytics.js        → analyticsService.js 래퍼 훅 — Google Analytics 커스텀 이벤트 + 페이지뷰 추적
   
   ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendar/useCalendarData 내부에 통합
 
@@ -147,6 +152,8 @@ utils/
 - **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
 - **TravelTimeInput** (`src/components/Travel/TravelTimeInput.jsx`) — 여행 일정 간 이동 시간 기록
 - **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
+- **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
+- **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
 
 ## 주요 서비스 패턴 주의사항
 
