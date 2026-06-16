@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import './CycleSettingsModal.css';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 export const CYCLE_COLOR_PALETTE = [
   { label: '핑크',     value: '#ffd6e0', text: '#b5445a' },
@@ -32,6 +33,7 @@ const CycleSettingsModal = ({ isOpen, onClose }) => {
   const { coupleDoc, coupleId } = useAuthContext();
   const [settings, setSettings] = useState(DEFAULT_SETTINGS);
   const [saving, setSaving] = useState(false);
+  useModalBackButton(isOpen, onClose);
 
   useEffect(() => {
     if (!isOpen) return;

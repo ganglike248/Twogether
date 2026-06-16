@@ -6,11 +6,13 @@ import EditLogModal from '../EditLog/EditLogModal';
 import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const { getMemberName, myRole } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
+  useModalBackButton(isOpen, onClose);
   const [title, setTitle] = useState('');
   const [description, setDescription] = useState('');
   const [startDate, setStartDate] = useState('');

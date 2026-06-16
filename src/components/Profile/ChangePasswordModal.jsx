@@ -4,8 +4,10 @@ import { toast } from 'react-toastify';
 import { HiLockClosed, HiXMark } from 'react-icons/hi2';
 import { auth } from '../../firebase';
 import './ChangePasswordModal.css';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
+  useModalBackButton(isOpen, onClose);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');

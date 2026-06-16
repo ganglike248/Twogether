@@ -3,9 +3,11 @@ import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getEditLogs, getEventById } from '../../services/eventService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import './EditLogModal.css';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
   const { coupleId } = useAuthContext();
+  useModalBackButton(isOpen, onClose);
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);

@@ -4,8 +4,10 @@ import { toast } from 'react-toastify';
 import { MdClose, MdAdd } from 'react-icons/md';
 import { getCategoryColor, getCategoryDisplayName, DEFAULT_CATEGORIES } from '../../services/categoryColorService';
 import './WheelModal.css';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
+  useModalBackButton(isOpen, onClose);
   const [step, setStep] = useState('select'); // 'select' | 'spin'
   const [directItems, setDirectItems] = useState([]);
   const [directInput, setDirectInput] = useState('');

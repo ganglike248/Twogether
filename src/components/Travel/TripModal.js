@@ -5,8 +5,10 @@ import { toast } from 'react-toastify';
 import './TripModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
 import { convertToDate } from '../../utils/dataUtils';
+import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
+    useModalBackButton(isOpen, onClose);
     const [formData, setFormData] = useState({
         title: '',
         destination: '',
