@@ -158,9 +158,9 @@ const Home = () => {
   const eventTypeColor = (event) => {
     if (event?.extendedProps?.isPersonal) return 'var(--color-personal)';
     const type = event?.extendedProps?.eventType;
-    if (type === 'couple') return '#ff6b6b';
-    if (type === 'boyfriend') return '#81bbf5';
-    if (type === 'girlfriend') return '#6ec49a';
+    if (type === 'couple') return 'var(--color-couple)';
+    if (type === 'boyfriend') return 'var(--color-boyfriend)';
+    if (type === 'girlfriend') return 'var(--color-girlfriend)';
     return '#adb5bd';
   };
 

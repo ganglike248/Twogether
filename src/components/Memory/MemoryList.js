@@ -59,8 +59,7 @@ const MemoryList = () => {
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
       const today = new Date();
-      today.setHours(23, 59, 59, 999);
-      const todayStr = today.toISOString().split('T')[0];
+      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
       const data = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data(), eventType: 'personal', isPersonal: true }))
         .filter(m => m.start && m.start.split('T')[0] <= todayStr)
