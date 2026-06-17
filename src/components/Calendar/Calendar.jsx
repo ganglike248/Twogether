@@ -17,7 +17,6 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import { useCalendarNavigation } from '../../hooks/useCalendarNavigation';
-import useColorSync from '../../hooks/useColorSync';
 import './Calendar.css';
 
 const addDaysToStr = (dateStr, days) => {
@@ -32,8 +31,6 @@ const Calendar = () => {
 
   // Data fetching
   const { events, cycles, isLoading } = useCalendarData(coupleId, user?.uid);
-
-  useColorSync(userDoc, partnerDoc, myRole);
 
   // 사용자 정의 색상 적용
   const eventsWithCustomColors = useMemo(() => {
