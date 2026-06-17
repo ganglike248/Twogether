@@ -25,7 +25,7 @@
 }
 
 .day-modal-header {
-  padding: 1.25rem;
+  padding: 0.875rem 1rem;
   border-bottom: 1px solid var(--color-gray-200);
   display: flex;
   align-items: flex-start;
@@ -38,7 +38,7 @@
 }
 
 .day-modal-title {
-  font-size: 1.25rem;
+  font-size: 1.05rem;
   font-weight: 700;
   color: var(--text-main);
   margin: 0 0 0.2rem 0;
@@ -82,13 +82,13 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 3rem 1rem;
+  padding: 1.5rem 1rem;
   text-align: center;
 }
 
 .empty-icon {
-  font-size: 3rem;
-  margin-bottom: 1rem;
+  font-size: 2rem;
+  margin-bottom: 0.75rem;
   opacity: 0.5;
 }
 
@@ -150,7 +150,7 @@
 .day-event-item {
   display: flex;
   align-items: center;
-  padding: 0.75rem;
+  padding: 0.5rem 0.75rem;
   border-radius: var(--border-radius);
   cursor: pointer;
   transition: all 0.15s ease;
