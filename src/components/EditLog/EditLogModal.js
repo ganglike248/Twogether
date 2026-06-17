@@ -2,6 +2,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { getEditLogs, getEventById } from '../../services/eventService';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { MdCalendarToday, MdEdit } from 'react-icons/md';
 import './EditLogModal.css';
 import { useModalBackButton } from '../../hooks/useModalBackButton';
 
@@ -267,10 +268,10 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                       {/* 개선된 날짜와 일정 제목 표시 */}
                       <div className="event-info">
                         <div className="event-date">
-                          📅 날짜: {formatEventDate(log)}
+                          <MdCalendarToday className="log-meta-icon" color="#4dabf7" /> 날짜: {formatEventDate(log)}
                         </div>
                         <div className="event-title">
-                          📝 제목: {getEventTitle(log)}
+                          <MdEdit className="log-meta-icon" color="#74c0fc" /> 제목: {getEventTitle(log)}
                         </div>
                       </div>
                       

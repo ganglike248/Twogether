@@ -4,6 +4,7 @@ import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
+import { MdDateRange } from 'react-icons/md';
 import { useTripSchedules } from '../../hooks/useTrip';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../services/tripService';
 import { formatDate, convertToDate } from '../../utils/dataUtils';
@@ -257,7 +258,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     </div>
                 ) : currentDaySchedules.length === 0 ? (
                     <div className="td-empty">
-                        <div className="td-empty-icon">🗓️</div>
+                        <div className="td-empty-icon"><MdDateRange size={48} color="#4dabf7" /></div>
                         <p className="td-empty-text">일정이 없어요</p>
                         <button className="td-empty-add-btn" onClick={() => setShowScheduleModal(true)}>
                             첫 일정 추가하기

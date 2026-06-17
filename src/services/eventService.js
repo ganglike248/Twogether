@@ -150,7 +150,7 @@ export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', 
   if (!querySnapshot.empty) {
     const eventDoc = querySnapshot.docs[0];
     const updatedEventData = {
-      title: `🌏 ${tripData.title}`,
+      title: tripData.title,
       description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
       start: tripData.startDate,
       end: tripData.endDate,

@@ -1,6 +1,7 @@
 import React, { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { HiXMark, HiUser, HiCog, HiArrowRightOnRectangle, HiUsers } from 'react-icons/hi2';
+import { MdFavorite } from 'react-icons/md';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
 import { calcDday } from '../../utils/dataUtils';
@@ -47,7 +48,7 @@ const Sidebar = ({ isOpen, onClose }) => {
           <h2 className="sidebar-title">우리두리</h2>
           <div className="profile-names-row">
             <span className="profile-name">{userDoc?.displayName || '...'}</span>
-            <span className="profile-heart">♥</span>
+            <MdFavorite className="profile-heart" color="#ff6b6b" />
             <span className="profile-name">{partnerDoc?.displayName || '...'}</span>
           </div>
           {dday !== null && (

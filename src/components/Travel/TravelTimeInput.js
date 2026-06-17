@@ -1,5 +1,6 @@
 // src/components/Travel/TravelTimeInput.js
 import React, { useState, useEffect } from 'react';
+import { MdDirectionsCar } from 'react-icons/md';
 import './TravelTimeInput.css';
 
 const TravelTimeInput = ({ fromScheduleId, toScheduleId, initialTravelTime, onSave }) => {
@@ -57,7 +58,7 @@ const TravelTimeInput = ({ fromScheduleId, toScheduleId, initialTravelTime, onSa
                 </div>
             ) : travelTime ? (
                 <div className="travel-time-display" onClick={handleStartEdit}>
-                    <span className="travel-time-icon">🚗</span>
+                    <MdDirectionsCar className="travel-time-icon" color="#4dabf7" />
                     <span className="travel-time-text">{travelTime}</span>
                     <button
                         onClick={(e) => {

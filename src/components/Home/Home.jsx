@@ -173,7 +173,7 @@ const Home = () => {
               <img src={heroImageUrl} alt="우리" className="hero-img" />
               <div className="hero-overlay" />
               <div className="hero-text">
-                <div className="hero-dday">❤+{dday}</div>
+                <div className="hero-dday"><HiHeart className="hero-dday-heart" />+{dday}</div>
               </div>
             </>
           ) : (
@@ -255,7 +255,7 @@ const Home = () => {
           </>
         ) : (
           <div className="trip-empty-state">
-            <span className="trip-empty-icon">✈️</span>
+            <HiPaperAirplane className="trip-empty-icon" />
             <span className="trip-empty-text">다음 여행은 어디로~?</span>
           </div>
         )}

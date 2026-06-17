@@ -78,7 +78,7 @@ const DayModal = ({
       case 'girlfriend': return '🐹';
       case 'couple': return '🥰';
       case 'personal': return '🔒';
-      default: return '📅';
+      default: return <MdCalendarToday size={18} color="#4dabf7" />;
     }
   };
 
@@ -185,7 +185,7 @@ const DayModal = ({
           {/* 일반 일정 */}
           {dayEvents.length === 0 && !(cycleEnabled && dayPeriods.length > 0) ? (
             <EmptyState
-              icon={<MdCalendarToday size={56} />}
+              icon={<MdCalendarToday size={56} color="#4dabf7" />}
               title="이 날에는 일정이 없습니다"
               text="새로운 일정을 추가하거나 추억을 기록해보세요!"
             />

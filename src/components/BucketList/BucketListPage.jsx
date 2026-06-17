@@ -5,7 +5,7 @@ import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { format, parseISO } from 'date-fns';
-import { MdCheckCircle, MdRadioButtonUnchecked, MdAutoAwesome, MdCalendarToday, MdEdit, MdAdd, MdSettings, MdSchedule } from 'react-icons/md';
+import { MdCheckCircle, MdRadioButtonUnchecked, MdCalendarToday, MdEdit, MdAdd, MdSettings, MdSchedule, MdCheck } from 'react-icons/md';
 import '../BucketList/BucketListPage.css';
 import './bucket-modal.css';
 import BaseModal from './BaseModal';
@@ -415,7 +415,7 @@ function BucketListPage() {
 
       <div className="bucket-add-wrapper">
         <button className="bucket-add-top" onClick={handleOpenAddModal}>
-          <MdAdd className="add-icon" /> 새로운 버킷 추가
+          <MdAdd className="add-icon" color="#51cf66" /> 새로운 버킷 추가
         </button>
         <button className="bucket-wheel-btn" onClick={() => setIsWheelModalOpen(true)} title="돌림판으로 선택">
           🎡
@@ -461,7 +461,7 @@ function BucketListPage() {
               onClick={handleOpenCategoryManager}
               title="카테고리 관리"
             >
-              <MdSettings />
+              <MdSettings color="#74c0fc" />
             </button>
           </div>
         </div>
@@ -469,7 +469,7 @@ function BucketListPage() {
           <div className="bucket-loading">로딩 중...</div>
         ) : activeList.length === 0 ? (
           <EmptyState
-            icon={activeTab === 'pending' ? <MdSchedule size={56} /> : <MdCheckCircle size={56} />}
+            icon={activeTab === 'pending' ? <MdSchedule size={56} color="#f59f00" /> : <MdCheckCircle size={56} color="#51cf66" />}
             title={activeTab === 'pending' ? '예정된 항목이 없습니다' : '완료된 항목이 없습니다'}
             text={bucketList.length === 0
               ? '새로운 버킷을 추가해보세요!'
@@ -497,7 +497,8 @@ function BucketListPage() {
         isOpen={modalState.type === 'add'}
         onClose={closeModal}
         title="새로운 버킷 추가"
-        icon={MdAutoAwesome}
+        icon={MdAdd}
+        iconColor="#51cf66"
       >
         <input
           className="bucket-modal-input"
@@ -541,6 +542,7 @@ function BucketListPage() {
         onClose={closeModal}
         title="완료 날짜"
         icon={MdCalendarToday}
+        iconColor="#4dabf7"
       >
         <input
           className="bucket-modal-input"
@@ -606,6 +608,7 @@ function BucketListPage() {
         onClose={closeModal}
         title="버킷 상세"
         icon={MdEdit}
+        iconColor="#74c0fc"
       >
         <label className="bucket-selector-label">제목</label>
         <input
@@ -629,7 +632,7 @@ function BucketListPage() {
         />
         {editForm.completedAt && (
           <div className="bucket-modal-completed-badge">
-            <span className="bucket-modal-completed-badge-icon">✓</span>
+            <MdCheck className="bucket-modal-completed-badge-icon" color="#51cf66" />
             <span className="bucket-modal-completed-badge-text">
               {formatBucketDate(editForm.completedAt)} 완료
             </span>

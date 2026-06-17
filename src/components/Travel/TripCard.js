@@ -1,6 +1,7 @@
 // src/components/Travel/TripCard.js
 import React, { useState, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
+import { MdEdit, MdDelete, MdLocationOn } from 'react-icons/md';
 import './TripCard.css';
 import { useTripSchedules } from '../../hooks/useTrip';
 import { formatDate, convertToDate } from '../../utils/dataUtils';
@@ -68,7 +69,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                         }}
                         title="수정"
                     >
-                        ✏️
+                        <MdEdit color="#74c0fc" />
                     </button>
                     <button
                         className="trip-card-delete-btn"
@@ -78,14 +79,14 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                         }}
                         title="삭제"
                     >
-                        🗑️
+                        <MdDelete color="#ff6b6b" />
                     </button>
                 </div>
             </div>
 
             <div className="trip-card-content">
                 <h3 className="trip-card-title">{trip.title}</h3>
-                <p className="trip-card-destination">📍 {trip.destination}</p>
+                <p className="trip-card-destination"><MdLocationOn className="trip-card-location-icon" color="#ff6b6b" />{trip.destination}</p>
 
                 <div className="trip-card-dates">
                     <span className="trip-card-date-range">

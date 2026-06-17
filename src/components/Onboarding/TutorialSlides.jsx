@@ -132,7 +132,7 @@ const TutorialSlides = ({ onClose }) => {
         </div>
 
         <button className="tutorial-next-btn" onClick={goNext}>
-          {isLast ? '시작하기 💕' : '다음'}
+          {isLast ? '💕 시작하기' : '다음'}
         </button>
       </div>
     </div>

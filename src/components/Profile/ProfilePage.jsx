@@ -5,6 +5,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile } from 'firebase/auth';
 import { toast } from 'react-toastify';
 import { HiCamera, HiLockClosed, HiPencil } from 'react-icons/hi2';
+import { MdCheck } from 'react-icons/md';
 import { db, auth } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { uploadHeroImage, removeHeroImage } from '../../services/storageService';
@@ -241,7 +242,7 @@ const ProfilePage = () => {
           className={`profile-save-btn${saved ? ' saved' : ''}`}
           disabled={loading}
         >
-          {loading ? '저장 중...' : saved ? '저장됐어요 ✓' : '저장'}
+          {loading ? '저장 중...' : saved ? <><MdCheck className="inline-check" color="#51cf66" />저장됐어요</> : '저장'}
         </button>
 
       </form>

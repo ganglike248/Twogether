@@ -82,7 +82,7 @@ export const useCalendarData = (coupleId, userId) => {
 
         return {
           id: doc.id,
-          title: `✈️ ${data.title}`,
+          title: data.title,
           start: `${startDate}T00:00:00`,
           end: `${adjustedEndDate}T00:00:00`,
           allDay: true,

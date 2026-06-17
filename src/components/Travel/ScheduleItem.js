@@ -1,5 +1,6 @@
 // src/components/Travel/ScheduleItem.js
 import React, { useState } from 'react';
+import { MdEdit, MdDelete, MdCheck, MdCircle, MdLocationOn, MdAttachMoney } from 'react-icons/md';
 import './ScheduleItem.css';
 
 const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
@@ -49,19 +50,19 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
                     onClick={handleEdit}
                     title="수정"
                 >
-                    ✏️
+                    <MdEdit color="#74c0fc" />
                 </button>
                 <button
                     className="schedule-item-delete-btn"
                     onClick={handleDelete}
                     title="삭제"
                 >
-                    🗑️
+                    <MdDelete color="#ff6b6b" />
                 </button>
                 <div
                     className={`schedule-item-completion-indicator ${schedule.completed ? 'schedule-item-completed' : ''}`}
                 >
-                    {schedule.completed ? '✓' : '○'}
+                    {schedule.completed ? <MdCheck color="#51cf66" /> : <MdCircle color="#ced4da" />}
                 </div>
             </div>
             </div>
@@ -76,11 +77,11 @@ const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
                     )}
 
                     {(schedule.location || '').trim() && (
-                        <p className="schedule-item-location">📍 {schedule.location}</p>
+                        <p className="schedule-item-location"><MdLocationOn className="schedule-item-meta-icon" color="#ff6b6b" />{schedule.location}</p>
                     )}
 
                     {schedule.cost > 0 && (
-                        <p className="schedule-item-cost">💰 {schedule.cost.toLocaleString()}원</p>
+                        <p className="schedule-item-cost"><MdAttachMoney className="schedule-item-meta-icon" color="#51cf66" />{schedule.cost.toLocaleString()}원</p>
                     )}
                 </div>
 
