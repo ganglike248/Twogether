@@ -99,7 +99,7 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
       }
 
       // 배란일
-      if (showOvulation) {
+      if (showOvulation && cl - 14 >= 0) {
         result.push({
           id: 'cycle-ovulation',
           title: '배란일',
