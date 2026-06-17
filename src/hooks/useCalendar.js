@@ -1,15 +1,17 @@
-// src/hooks/useCalendar.js
 import { useState, useEffect } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 const useCalendar = (coupleId, userId, myRole = null) => {
   const [events, setEvents] = useState([]);
-  const [loading, setLoading] = useState(true);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [personalLoaded, setPersonalLoaded] = useState(false);
+
+  const loading = !eventsLoaded || !personalLoaded;
 
   useEffect(() => {
     if (!coupleId) {
-      setLoading(false);
+      setEventsLoaded(true);
       return;
     }
 
@@ -46,16 +48,19 @@ const useCalendar = (coupleId, userId, myRole = null) => {
         };
       });
       setEvents(prev => [...prev.filter(e => e.extendedProps?.isPersonal), ...eventsData]);
-      setLoading(false);
+      setEventsLoaded(true);
     }, () => {
-      setLoading(false);
+      setEventsLoaded(true);
     });
 
     return () => unsubscribe();
   }, [coupleId]);
 
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setPersonalLoaded(true);
+      return;
+    }
     const q = query(
       collection(db, 'personal_events'),
       where('userId', '==', userId)
@@ -78,7 +83,10 @@ const useCalendar = (coupleId, userId, myRole = null) => {
         };
       });
       setEvents(prev => [...prev.filter(e => !e.extendedProps?.isPersonal), ...personalData]);
-    }, () => {});
+      setPersonalLoaded(true);
+    }, () => {
+      setPersonalLoaded(true);
+    });
     return () => unsubscribe();
   }, [userId]);
 

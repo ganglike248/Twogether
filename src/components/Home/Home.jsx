@@ -28,12 +28,13 @@ const Home = () => {
   const [dday, setDday] = useState(0);
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
   const [bucketList, setBucketList] = useState([]);
+  const [bucketLoading, setBucketLoading] = useState(true);
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const { events } = useCalendar(coupleId, user?.uid, myRole);
-  const { trips } = useTrips(coupleId);
+  const { events, loading: calendarLoading } = useCalendar(coupleId, user?.uid, myRole);
+  const { trips, loading: tripsLoading } = useTrips(coupleId);
   const navigate = useNavigate();
 
   // 프로필 또는 커플 연결 후 튜토리얼 표시
@@ -56,13 +57,17 @@ const Home = () => {
 
   // 버킷리스트 구독
   useEffect(() => {
-    if (!coupleId) return;
+    if (!coupleId) {
+      setBucketLoading(false);
+      return;
+    }
     const q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
     const unsubscribe = onSnapshot(q, (snap) => {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(all);
       setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
-    });
+      setBucketLoading(false);
+    }, () => setBucketLoading(false));
     return () => unsubscribe();
   }, [coupleId]);
 
@@ -158,6 +163,16 @@ const Home = () => {
     if (type === 'girlfriend') return '#6ec49a';
     return '#adb5bd';
   };
+
+  const isLoading = calendarLoading || tripsLoading || bucketLoading;
+
+  if (isLoading) {
+    return (
+      <div className="home-loading">
+        <div className="home-loading-spinner" />
+      </div>
+    );
+  }
 
   return (
     <div className="home-container">
