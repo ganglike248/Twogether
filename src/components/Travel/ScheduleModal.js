@@ -5,7 +5,7 @@ import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
 import { useModalBackButton } from '../../hooks/useModalBackButton';
 
-const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
+const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
     useModalBackButton(isOpen, onClose);
     const [formData, setFormData] = useState({
         time: '',
@@ -17,8 +17,10 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
     useEffect(() => {
+        setShowDeleteConfirm(false);
         if (schedule) {
             setFormData({
                 time: schedule.time || '',
@@ -43,28 +45,22 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
 
     const validateForm = () => {
         const newErrors = {};
-
         if (!formData.title.trim()) {
             newErrors.title = '일정 제목을 입력해주세요';
         }
-
         if (formData.time && formData.endTime && formData.time >= formData.endTime) {
             newErrors.endTime = '종료 시간은 시작 시간보다 늦어야 합니다';
         }
-
         if (formData.cost && (isNaN(removeCommas(formData.cost)) || removeCommas(formData.cost) < 0)) {
             newErrors.cost = '올바른 비용을 입력해주세요';
         }
-
         setErrors(newErrors);
         return Object.keys(newErrors).length === 0;
     };
 
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         if (!validateForm()) return;
-
         setLoading(true);
         try {
             const scheduleData = {
@@ -72,11 +68,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
                 cost: formData.cost ? parseInt(removeCommas(formData.cost)) : 0,
                 completed: schedule?.completed || false
             };
-
-            if (schedule?.id) {
-                scheduleData.id = schedule.id;
-            }
-
+            if (schedule?.id) scheduleData.id = schedule.id;
             await onSave(scheduleData);
         } catch (error) {
             console.error('Error saving schedule:', error);
@@ -86,18 +78,16 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
         }
     };
 
+    const handleDelete = () => {
+        onDelete(schedule.id);
+        onClose();
+    };
+
     const handleChange = (field, value) => {
         let processedValue = value;
-
-        // 비용 필드의 경우 콤마 처리
-        if (field === 'cost') {
-            processedValue = formatInputNumber(value);
-        }
-
+        if (field === 'cost') processedValue = formatInputNumber(value);
         setFormData(prev => ({ ...prev, [field]: processedValue }));
-        if (errors[field]) {
-            setErrors(prev => ({ ...prev, [field]: '' }));
-        }
+        if (errors[field]) setErrors(prev => ({ ...prev, [field]: '' }));
     };
 
     if (!isOpen) return null;
@@ -126,7 +116,6 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
                                     onChange={(e) => handleChange('time', e.target.value)}
                                 />
                             </div>
-
                             <div className="schedule-modal-form-group">
                                 <label className="schedule-modal-form-label" htmlFor="schedule-end-time">
                                     종료 시간
@@ -183,47 +172,78 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave }) => {
                             />
                         </div>
 
-                        <div className="schedule-modal-form-row">
-                            <div className="schedule-modal-form-group">
-                                <label className="schedule-modal-form-label" htmlFor="schedule-cost">
-                                    비용 (원)
-                                </label>
-                                <input
-                                    id="schedule-cost"
-                                    type="text"
-                                    value={formData.cost}
-                                    onChange={(e) => handleChange('cost', e.target.value)}
-                                    placeholder="0"
-                                    min="0"
-                                    className={errors.cost ? 'schedule-modal-error' : ''}
-                                />
-                                {errors.cost && <span className="schedule-modal-error-text">{errors.cost}</span>}
-                            </div>
+                        <div className="schedule-modal-form-group">
+                            <label className="schedule-modal-form-label" htmlFor="schedule-cost">
+                                비용 (원)
+                            </label>
+                            <input
+                                id="schedule-cost"
+                                type="text"
+                                value={formData.cost}
+                                onChange={(e) => handleChange('cost', e.target.value)}
+                                placeholder="0"
+                                className={errors.cost ? 'schedule-modal-error' : ''}
+                            />
+                            {errors.cost && <span className="schedule-modal-error-text">{errors.cost}</span>}
                         </div>
                     </div>
 
-                    <div className="schedule-modal-footer">
-                        <button
-                            type="button"
-                            onClick={onClose}
-                            className="schedule-modal-btn schedule-modal-btn-secondary"
-                            disabled={loading}
-                        >
-                            취소
-                        </button>
-                        <button
-                            type="submit"
-                            className="schedule-modal-btn schedule-modal-btn-primary"
-                            disabled={loading}
-                        >
-                            {loading ? (
-                                <>
-                                    <span className="schedule-modal-loading-indicator"></span>
-                                    저장 중...
-                                </>
-                            ) : '저장'}
-                        </button>
-                    </div>
+                    {showDeleteConfirm ? (
+                        <div className="schedule-modal-delete-confirm">
+                            <span className="schedule-modal-delete-confirm-text">정말 삭제하시겠습니까?</span>
+                            <div className="schedule-modal-delete-confirm-btns">
+                                <button
+                                    type="button"
+                                    className="schedule-modal-btn schedule-modal-btn-secondary"
+                                    onClick={() => setShowDeleteConfirm(false)}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    type="button"
+                                    className="schedule-modal-btn schedule-modal-btn-danger"
+                                    onClick={handleDelete}
+                                >
+                                    삭제
+                                </button>
+                            </div>
+                        </div>
+                    ) : (
+                        <div className="schedule-modal-footer">
+                            {schedule?.id && onDelete && (
+                                <button
+                                    type="button"
+                                    className="schedule-modal-btn-delete-text"
+                                    onClick={() => setShowDeleteConfirm(true)}
+                                    disabled={loading}
+                                >
+                                    삭제
+                                </button>
+                            )}
+                            <div className="schedule-modal-footer-actions">
+                                <button
+                                    type="button"
+                                    onClick={onClose}
+                                    className="schedule-modal-btn schedule-modal-btn-secondary"
+                                    disabled={loading}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    type="submit"
+                                    className="schedule-modal-btn schedule-modal-btn-primary"
+                                    disabled={loading}
+                                >
+                                    {loading ? (
+                                        <>
+                                            <span className="schedule-modal-loading-indicator" />
+                                            저장 중...
+                                        </>
+                                    ) : '저장'}
+                                </button>
+                            </div>
+                        </div>
+                    )}
                 </form>
             </div>
         </div>

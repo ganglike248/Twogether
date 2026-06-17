@@ -1,113 +1,59 @@
 // src/components/Travel/ScheduleItem.js
-import React, { useState } from 'react';
-import { MdEdit, MdDelete, MdCheck, MdCircle, MdLocationOn, MdAttachMoney } from 'react-icons/md';
+import React from 'react';
+import { MdCheck, MdLocationOn, MdAttachMoney } from 'react-icons/md';
+import { HiChevronRight } from 'react-icons/hi2';
 import './ScheduleItem.css';
 
-const ScheduleItem = ({ schedule, onEdit, onDelete, onToggleComplete }) => {
-    const [showDeleteModal, setShowDeleteModal] = useState(false);
+const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
     const formatTime = (time) => {
         if (!time) return '';
         try {
             const [hours, minutes] = time.split(':');
             return `${hours.padStart(2, '0')}:${minutes.padStart(2, '0')}`;
-        } catch (error) {
-            return time;
-        }
-    };
-
-    const handleToggleComplete = () => {
-        onToggleComplete(schedule.id);
-    };
-
-    const handleEdit = (e) => {
-        e.stopPropagation();
-        onEdit(schedule);
-    };
-
-    const handleDelete = (e) => {
-        e.stopPropagation();
-        setShowDeleteModal(true);
-    };
-
-    const confirmDelete = () => {
-        onDelete(schedule.id);
-        setShowDeleteModal(false);
+        } catch { return time; }
     };
 
     return (
-        <div className={`schedule-item ${schedule.completed ? 'schedule-item-completed' : ''}`}>
-            <div className="schedule-item-main" onClick={handleToggleComplete}>
+        <div
+            className={`schedule-item ${schedule.completed ? 'schedule-item-completed' : ''}`}
+            onClick={() => onEdit(schedule)}
+        >
+            <button
+                className={`schedule-item-checkbox ${schedule.completed ? 'checked' : ''}`}
+                onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
+                aria-label={schedule.completed ? '완료 취소' : '완료'}
+            >
+                {schedule.completed && <MdCheck size={16} />}
+            </button>
+
+            <div className="schedule-item-body">
                 {schedule.time && (
                     <div className="schedule-item-time">
                         {formatTime(schedule.time)}
                         {schedule.endTime && ` - ${formatTime(schedule.endTime)}`}
                     </div>
                 )}
-
-                <div className="schedule-item-actions">
-                <button
-                    className="schedule-item-edit-btn"
-                    onClick={handleEdit}
-                    title="수정"
-                >
-                    <MdEdit color="#74c0fc" />
-                </button>
-                <button
-                    className="schedule-item-delete-btn"
-                    onClick={handleDelete}
-                    title="삭제"
-                >
-                    <MdDelete color="#ff6b6b" />
-                </button>
-                <div
-                    className={`schedule-item-completion-indicator ${schedule.completed ? 'schedule-item-completed' : ''}`}
-                >
-                    {schedule.completed ? <MdCheck color="#51cf66" /> : <MdCircle color="#ced4da" />}
-                </div>
-            </div>
+                <h3 className={`schedule-item-title ${schedule.completed ? 'schedule-item-strikethrough' : ''}`}>
+                    {schedule.title}
+                </h3>
+                {(schedule.description || '').trim() && (
+                    <p className="schedule-item-description">{schedule.description}</p>
+                )}
+                {(schedule.location || '').trim() && (
+                    <p className="schedule-item-location">
+                        <MdLocationOn className="schedule-item-meta-icon" />
+                        {schedule.location}
+                    </p>
+                )}
+                {schedule.cost > 0 && (
+                    <p className="schedule-item-cost">
+                        <MdAttachMoney className="schedule-item-meta-icon" />
+                        {schedule.cost.toLocaleString()}원
+                    </p>
+                )}
             </div>
 
-            <div className="schedule-item-content">
-                    <h3 className={`schedule-item-title ${schedule.completed ? 'schedule-item-strikethrough' : ''}`}>
-                        {schedule.title}
-                    </h3>
-
-                    {(schedule.description || '').trim() && (
-                        <p className="schedule-item-description">{schedule.description}</p>
-                    )}
-
-                    {(schedule.location || '').trim() && (
-                        <p className="schedule-item-location"><MdLocationOn className="schedule-item-meta-icon" color="#ff6b6b" />{schedule.location}</p>
-                    )}
-
-                    {schedule.cost > 0 && (
-                        <p className="schedule-item-cost"><MdAttachMoney className="schedule-item-meta-icon" color="#51cf66" />{schedule.cost.toLocaleString()}원</p>
-                    )}
-                </div>
-
-            {/* 삭제 확인 모달 */}
-            {showDeleteModal && (
-                <div className="schedule-delete-modal-overlay" onClick={() => setShowDeleteModal(false)}>
-                    <div className="schedule-delete-modal" onClick={e => e.stopPropagation()}>
-                        <p className="schedule-delete-modal-title">일정 삭제</p>
-                        <p className="schedule-delete-modal-msg">이 일정을 삭제하시겠습니까?</p>
-                        <div className="schedule-delete-modal-actions">
-                            <button
-                                className="schedule-delete-modal-btn cancel"
-                                onClick={() => setShowDeleteModal(false)}
-                            >
-                                취소
-                            </button>
-                            <button
-                                className="schedule-delete-modal-btn delete"
-                                onClick={confirmDelete}
-                            >
-                                삭제
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            )}
+            <HiChevronRight className="schedule-item-chevron" />
         </div>
     );
 };

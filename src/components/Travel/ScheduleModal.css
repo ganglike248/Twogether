@@ -112,10 +112,16 @@
     min-height: 80px;
 }
 
+/* 시작/종료 시간 나란히 */
 .schedule-modal-form-row {
     display: flex;
-    flex-direction: column;
-    gap: 1rem;
+    flex-direction: row;
+    gap: 0.75rem;
+}
+
+.schedule-modal-form-row .schedule-modal-form-group {
+    flex: 1;
+    margin-bottom: 1rem;
 }
 
 .schedule-modal-error-text {
@@ -125,16 +131,64 @@
     margin-top: 0.25rem;
 }
 
+/* Footer */
 .schedule-modal-footer {
     padding: 0.875rem 1rem;
     border-top: 1px solid rgba(255, 182, 193, 0.2);
     display: flex;
-    flex-direction: column-reverse;
-    gap: 0.625rem;
+    align-items: center;
+    gap: 0.5rem;
 }
 
+.schedule-modal-footer-actions {
+    display: flex;
+    gap: 0.5rem;
+    margin-left: auto;
+}
+
+.schedule-modal-btn-delete-text {
+    background: none;
+    border: none;
+    color: #ff6b6b;
+    font-size: 0.875rem;
+    font-weight: 500;
+    cursor: pointer;
+    padding: 0.5rem 0;
+    touch-action: manipulation;
+    flex-shrink: 0;
+}
+
+.schedule-modal-btn-delete-text:disabled {
+    opacity: 0.4;
+    cursor: not-allowed;
+}
+
+/* Delete confirm bar */
+.schedule-modal-delete-confirm {
+    padding: 0.875rem 1rem;
+    border-top: 1px solid rgba(255, 107, 107, 0.2);
+    background: rgba(255, 107, 107, 0.04);
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+}
+
+.schedule-modal-delete-confirm-text {
+    flex: 1;
+    font-size: 0.875rem;
+    color: #495057;
+    font-weight: 500;
+}
+
+.schedule-modal-delete-confirm-btns {
+    display: flex;
+    gap: 0.5rem;
+    flex-shrink: 0;
+}
+
+/* Buttons */
 .schedule-modal-btn {
-    padding: 0.6rem 1.25rem;
+    padding: 0.6rem 1.1rem;
     border: none;
     border-radius: 0.75rem;
     font-weight: 600;
@@ -145,7 +199,6 @@
     justify-content: center;
     gap: 0.375rem;
     font-size: 0.875rem;
-    width: 100%;
     min-height: 40px;
     touch-action: manipulation;
 }
@@ -166,6 +219,11 @@
     color: white;
 }
 
+.schedule-modal-btn-danger {
+    background: #ff6b6b;
+    color: white;
+}
+
 .schedule-modal-loading-indicator {
     width: 16px;
     height: 16px;
@@ -176,13 +234,8 @@
 }
 
 @keyframes schedule-modal-spin {
-    0% {
-        transform: rotate(0deg);
-    }
-
-    100% {
-        transform: rotate(360deg);
-    }
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
 }
 
 .schedule-modal-form-group input[type="time"] {

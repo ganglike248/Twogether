@@ -131,7 +131,10 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const status = statusMap[trip.status] || statusMap.planning;
 
     const currentDaySchedules = (daySchedules[activeDay] || [])
-        .sort((a, b) => (a.time || '00:00').localeCompare(b.time || '00:00'));
+        .sort((a, b) => {
+            if (a.completed !== b.completed) return a.completed ? 1 : -1;
+            return (a.time || '00:00').localeCompare(b.time || '00:00');
+        });
 
     const budgetPercent = totalBudget > 0 ? Math.min((usedBudget / totalBudget) * 100, 100) : 0;
     const isOverBudget = usedBudget > totalBudget && totalBudget > 0;
@@ -271,7 +274,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                                 <ScheduleItem
                                     schedule={schedule}
                                     onEdit={s => { setSelectedSchedule(s); setShowScheduleModal(true); }}
-                                    onDelete={handleDeleteSchedule}
                                     onToggleComplete={handleToggleCompletion}
                                 />
                                 {index < currentDaySchedules.length - 1 && (
@@ -296,6 +298,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     onClose={() => { setShowScheduleModal(false); setSelectedSchedule(null); }}
                     schedule={selectedSchedule}
                     onSave={handleSaveSchedule}
+                    onDelete={handleDeleteSchedule}
                 />
             )}
         </div>
