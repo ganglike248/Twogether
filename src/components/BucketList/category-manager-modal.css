@@ -127,14 +127,14 @@
 
 .btn-save,
 .btn-add {
-  background-color: #4D96FF;
+  background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
   color: white;
   flex: 1;
 }
 
 .btn-save:hover:not(:disabled),
 .btn-add:hover {
-  background-color: #3d7ed9;
+  background: linear-gradient(135deg, #ff9bb5 0%, #ff82a0 100%);
 }
 
 .btn-save:disabled,
@@ -154,7 +154,7 @@
 }
 
 .category-add-form {
-  border: 2px dashed #4D96FF;
+  border: 2px dashed #ffb6c1;
   border-radius: 8px;
   padding: 12px;
   background-color: #f9f9f9;
@@ -163,9 +163,9 @@
 .btn-add-category {
   width: 100%;
   padding: 12px;
-  border: 1px dashed #4D96FF;
+  border: 1px dashed #ffb6c1;
   background-color: transparent;
-  color: #4D96FF;
+  color: #e879a0;
   border-radius: 6px;
   font-size: 13px;
   font-weight: 500;
@@ -178,7 +178,7 @@
 }
 
 .btn-add-category:hover {
-  background-color: #f0f8ff;
+  background-color: #fff0f5;
 }
 
 .category-delete-modal-overlay {

@@ -2,7 +2,7 @@
 .travel-plan-container {
     padding: 1rem;
     background-color: var(--main-bg);
-    min-height: 100vh;
+    min-height: 100%;
 }
 
 .travel-plan-header {

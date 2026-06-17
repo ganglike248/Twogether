@@ -115,7 +115,7 @@
   border: 1.5px solid var(--color-gray-300);
   border-radius: 0.9rem;
   font-size: 0.9rem;
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: inherit;
   background: #fff;
   color: var(--text-main);
   outline: none;
@@ -132,7 +132,6 @@
   border-color: var(--main-pink);
   background: rgba(255, 214, 224, 0.3);
   box-shadow: 0 0 0 3px rgba(255, 214, 224, 0.2);
-  transform: translateY(-2px);
 }
 
 .bucket-modal-textarea {
@@ -266,7 +265,7 @@
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
-  font-family: 'Noto Sans KR', sans-serif;
+  font-family: inherit;
 }
 
 /* 기본 버튼 */
