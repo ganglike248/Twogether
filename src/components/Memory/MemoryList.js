@@ -83,9 +83,8 @@ const MemoryList = () => {
     }
 
     setIsLoading(true);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const _d = new Date();
+    const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
 
     const constraints = [
       where('coupleId', '==', coupleId),
@@ -122,9 +121,8 @@ const MemoryList = () => {
     setLoadingMore(true);
 
     try {
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-      const todayStr = today.toISOString().split('T')[0];
+      const _d = new Date();
+      const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
 
       const constraints = [
         where('coupleId', '==', coupleId),
@@ -172,9 +170,8 @@ const MemoryList = () => {
 
     let cancelled = false;
     setIsSearching(true);
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const todayStr = today.toISOString().split('T')[0];
+    const _d = new Date();
+    const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
 
     const promises = [];
 
