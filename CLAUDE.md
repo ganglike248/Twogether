@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.36 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.3.37 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -48,6 +48,15 @@ Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.
 - 커플 이벤트 구독: `prev.filter(e => e.extendedProps?.isPersonal)` → 개인 이벤트 보존 + 커플 교체
 - 개인 이벤트 구독: `prev.filter(e => !e.extendedProps?.isPersonal)` → 커플 이벤트 보존 + 개인 교체
 필터 방향을 반대로 쓰면 한쪽 이벤트가 손실되므로 주의.
+
+**useCalendar.js vs useCalendarData.js 개인 이벤트 구별 기준 차이**:
+- `useCalendar.js`(Home 전용): `extendedProps.isPersonal` 플래그로 구별
+- `useCalendarData.js`(Calendar 전용): `extendedProps.eventType !== 'personal'`로 구별
+두 훅이 서로 다른 필드를 기준으로 필터링함. 수정 시 혼용 금지.
+
+**useCalendar.js 세 번째 인자 `myRole`**: 레거시 `isCouple` boolean 필드 폴백 처리용.
+`data.eventType`이 존재하는 신규 이벤트에서는 `myRole`이 실제로 사용되지 않음.
+시그니처: `useCalendar(coupleId, userId, myRole)` — `myRole`은 있어도 없어도 신규 데이터에 영향 없음.
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
@@ -128,8 +137,9 @@ services/
   authService.js         → 회원가입/로그인, createCouple(inviteCodes 동시 생성), joinCouple(inviteCodes 조회)
 
 hooks/
-  useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합)
-  useCalendar.js         → Home.jsx 전용 이벤트 훅 (coupleId, userId) — userId 필수, 필터 패턴 주의(위 참고)
+  useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
+                           여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함 (useCalendar에는 없음 — Home은 여행 이벤트를 표시하지 않으므로 문제 없음).
+  useCalendar.js         → Home.jsx 전용 이벤트 훅 (coupleId, userId, myRole) — userId 필수, 필터 패턴 주의(위 참고). myRole은 레거시 폴백 전용(위 참고)
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
   useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
   useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
@@ -137,7 +147,8 @@ hooks/
   useHeroImage.js        → 홈 사진 파일 선택/미리보기
   useDoubleClickPrevention.js → 더블 탭/클릭 방지
   useAnalytics.js        → analyticsService.js 래퍼 훅 — Google Analytics 커스텀 이벤트 + 페이지뷰 추적
-  useModalBackButton.js  → 모달 뒤로가기 처리 — 열릴 때 pushState, 뒤로가기 시 onClose 호출, 일반 닫기 시 history.back() 정리. 모듈 레벨 LIFO 스택으로 스택 모달(DayModal→EventModal)도 순서대로 처리
+  useModalBackButton.js  → 모달 뒤로가기 처리 — 열릴 때 pushState, 뒤로가기 시 onClose 호출, 일반 닫기 시 history.back() 정리. 모듈 레벨 LIFO 스택으로 스택 모달(DayModal→EventModal)도 순서대로 처리.
+                           같은 컴포넌트에서 2번 호출 가능 (예: Sidebar — 사이드바 자체 + 로그아웃 확인 모달 각각 등록). LIFO 순으로 로그아웃 모달 → 사이드바 순 닫힘이 보장됨.
   
   ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendar/useCalendarData 내부에 통합
 
@@ -167,11 +178,15 @@ utils/
 의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
 
 ## 남은 작업
-- 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시
+- 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
 - 소셜 로그인 (Google/Kakao, 장기)
-- EventModal 모달 재열기 시 이전 입력값 잔류 (event=null 재열기 시 useEffect 미실행)
 - useCalendar.js + useCalendarData.js 중복 onSnapshot 구독 통합 (Home↔Calendar 이동 시 과금)
-- 가임기 계산 의학 기준 재검증 (useCalendarEvents.js:86, cl<19 음수 가드 필요)
+- 배란일 음수 가드 미적용: `useCalendarEvents.js` 가임기는 `cl - 19 >= 0` 체크 있으나 배란일(`cl - 14`)에는 가드 없음 — cycleLength < 14 설정 시 음수 날짜 오프셋 발생 가능
+- MemoryList 검색 시 페이지네이션 미동작: 검색어 입력 중 `fetchMoreMemories` 스킵 → 전체 로드 후 클라이언트 필터 방식 (대량 데이터 시 성능 이슈)
+
+### EventModal 개인 일정 localStorage 동작 (의도적 설계)
+`localStorage('twogether_personal_default')`: 저장 시(`handleSubmit`) 마지막으로 선택한 개인/공유 여부를 저장하고, 새 일정 생성 시(`event=null`) 해당 값으로 초기화함.
+CLAUDE.md 이전 버전의 "이전 입력값 잔류 버그" 기록은 오류 — **의도적인 UX 설계**. 수정 대상 아님.
 
 ## 작업 규칙
 1. 기능 하나 완성 후 커밋 허락 받고 다음 작업 — 여러 요청이어도 한 번에 몰아서 하지 말 것
