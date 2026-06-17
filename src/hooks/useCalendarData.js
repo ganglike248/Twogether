@@ -5,11 +5,21 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 export const useCalendarData = (coupleId, userId) => {
   const [events, setEvents] = useState([]);
   const [cycles, setCycles] = useState([]);
-  const [isLoading, setIsLoading] = useState(true);
+  const [eventsLoaded, setEventsLoaded] = useState(false);
+  const [tripsLoaded, setTripsLoaded] = useState(false);
+  const [cyclesLoaded, setCyclesLoaded] = useState(false);
+  const [personalLoaded, setPersonalLoaded] = useState(false);
+
+  const isLoading = !eventsLoaded || !tripsLoaded || !cyclesLoaded || !personalLoaded;
 
   // 일정 구독
   useEffect(() => {
-    if (!coupleId) { setIsLoading(false); return; }
+    if (!coupleId) {
+      setEventsLoaded(true);
+      setTripsLoaded(true);
+      setCyclesLoaded(true);
+      return;
+    }
     const eventsRef = query(
       collection(db, 'events'),
       where('coupleId', '==', coupleId)
@@ -38,9 +48,12 @@ export const useCalendarData = (coupleId, userId) => {
           }
         };
       });
-      setEvents(eventsData);
-      setIsLoading(false);
-    }, () => setIsLoading(false));
+      setEvents(prev => [
+        ...prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal'),
+        ...eventsData
+      ]);
+      setEventsLoaded(true);
+    }, () => setEventsLoaded(true));
     return () => unsubscribe();
   }, [coupleId]);
 
@@ -55,7 +68,6 @@ export const useCalendarData = (coupleId, userId) => {
       const tripsData = snapshot.docs.map(doc => {
         const data = doc.data();
 
-        // startDate를 문자열로 변환
         let startDate;
         if (data.startDate?.toDate) {
           startDate = data.startDate.toDate().toISOString().split('T')[0];
@@ -65,7 +77,6 @@ export const useCalendarData = (coupleId, userId) => {
           startDate = String(data.startDate);
         }
 
-        // endDate를 문자열로 변환
         let endDate;
         if (data.endDate?.toDate) {
           endDate = data.endDate.toDate().toISOString().split('T')[0];
@@ -96,6 +107,7 @@ export const useCalendarData = (coupleId, userId) => {
         };
       });
       setEvents(prev => [...prev.filter(e => !e.extendedProps.isTrip), ...tripsData]);
+      setTripsLoaded(true);
     });
     return () => unsubscribe();
   }, [coupleId]);
@@ -110,13 +122,17 @@ export const useCalendarData = (coupleId, userId) => {
     const unsubscribe = onSnapshot(cyclesRef, (snapshot) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCycles(data);
+      setCyclesLoaded(true);
     });
     return () => unsubscribe();
   }, [coupleId]);
 
   // 개인 일정 구독
   useEffect(() => {
-    if (!userId) return;
+    if (!userId) {
+      setPersonalLoaded(true);
+      return;
+    }
     const personalRef = query(
       collection(db, 'personal_events'),
       where('userId', '==', userId)
@@ -141,7 +157,8 @@ export const useCalendarData = (coupleId, userId) => {
         };
       });
       setEvents(prev => [...prev.filter(e => e.extendedProps.eventType !== 'personal'), ...personalData]);
-    }, () => {});
+      setPersonalLoaded(true);
+    }, () => setPersonalLoaded(true));
     return () => unsubscribe();
   }, [userId]);
 

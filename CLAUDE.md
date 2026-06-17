@@ -146,6 +146,7 @@ services/
 hooks/
   useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
                            여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함 (useCalendar에는 없음 — Home은 여행 이벤트를 표시하지 않으므로 문제 없음).
+                           isLoading: 4개 구독(events/trips/cycles/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false. 커플 이벤트 snapshot 교체 시 functional update로 trips/personal 보존.
   useCalendar.js         → Home.jsx 전용 이벤트 훅 (coupleId, userId, myRole) — userId 필수, 필터 패턴 주의(위 참고). myRole은 레거시 폴백 전용(위 참고)
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
   useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
