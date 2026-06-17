@@ -83,8 +83,7 @@ function BucketListPage() {
   const [editForm, setEditForm] = useState({ id: '', title: '', content: '', category: 'food', completed: false, completedAt: null });
   const [completionDate, setCompletionDate] = useState('');
   const [selectedItemId, setSelectedItemId] = useState(null);
-  const [showDeleteModal, setShowDeleteModal] = useState(false);
-  const [itemToDelete, setItemToDelete] = useState(null);
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const scrollPositions = useRef({ pending: 0, completed: 0 });
 
   // customCategories 실시간 구독
@@ -243,20 +242,10 @@ function BucketListPage() {
     }
   };
 
-  const handleDelete = async (id) => {
-    setItemToDelete(id);
-    setShowDeleteModal(true);
-  };
-
-  const confirmDelete = async () => {
-    if (!itemToDelete) return;
+  const handleConfirmDelete = async () => {
     try {
-      await deleteDoc(doc(db, 'bucketlists', itemToDelete));
-      setShowDeleteModal(false);
-      setItemToDelete(null);
-      if (modalState.type === 'edit') {
-        closeModal();
-      }
+      await deleteDoc(doc(db, 'bucketlists', editForm.id));
+      closeModal();
     } catch (error) {
       console.error('삭제 실패:', error);
       toast.error('삭제 중 오류가 발생했습니다.');
@@ -268,6 +257,7 @@ function BucketListPage() {
     setCompletionDate('');
     setSelectedItemId(null);
     setAddForm(f => ({ ...f, category: getFirstCategory() }));
+    setShowDeleteConfirm(false);
   };
 
   const handleOpenEditModal = (item) => {
@@ -320,11 +310,6 @@ function BucketListPage() {
       console.error('미완료 변경 실패:', error);
       toast.error('미완료 처리 중 오류가 발생했습니다.');
     }
-  };
-
-  const handleEditDelete = () => {
-    setItemToDelete(editForm.id);
-    setShowDeleteModal(true);
   };
 
   const formatBucketDate = (dateStr) => {
@@ -578,30 +563,6 @@ function BucketListPage() {
         onSave={handleSaveCategories}
       />
 
-      {/* 삭제 확인 모달 */}
-      {showDeleteModal && (
-        <div className="bucket-modal-overlay">
-          <div className="bucket-modal-box">
-            <p className="bucket-modal-title">항목 삭제</p>
-            <p className="bucket-modal-msg">정말 삭제하시겠습니까?</p>
-            <div className="bucket-modal-actions">
-              <button
-                className="bucket-modal-btn bucket-modal-btn-cancel"
-                onClick={() => setShowDeleteModal(false)}
-              >
-                취소
-              </button>
-              <button
-                className="bucket-modal-btn bucket-modal-btn-delete"
-                onClick={confirmDelete}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
       {/* 편집 모달 */}
       <BaseModal
         isOpen={modalState.type === 'edit'}
@@ -649,46 +610,59 @@ function BucketListPage() {
             </button>
           </div>
         )}
-        <div className="bucket-modal-actions">
-          <div className="bucket-modal-actions-primary">
-            {!editForm.completed && (
+        {showDeleteConfirm ? (
+          <div className="bucket-modal-delete-confirm">
+            <span className="bucket-modal-delete-confirm-text">정말 삭제하시겠습니까?</span>
+            <div className="bucket-modal-delete-confirm-btns">
               <button
-                className="bucket-modal-btn bucket-modal-btn-complete"
-                onClick={handleEditComplete}
+                className="bucket-modal-btn bucket-modal-btn-cancel"
+                onClick={() => setShowDeleteConfirm(false)}
               >
-                완료
+                취소
               </button>
-            )}
-            {editForm.completed && (
               <button
-                className="bucket-modal-btn bucket-modal-btn-incomplete"
-                onClick={() => handleEditUncheck(editForm.id)}
+                className="bucket-modal-btn bucket-modal-btn-delete"
+                onClick={handleConfirmDelete}
               >
-                미완료
+                삭제
               </button>
-            )}
-            <button
-              className="bucket-modal-btn bucket-modal-btn-delete"
-              onClick={handleEditDelete}
-            >
-              삭제
-            </button>
+            </div>
           </div>
-          <div className="bucket-modal-actions-secondary">
-            <button
-              className="bucket-modal-btn bucket-modal-btn-save"
-              onClick={handleEditSave}
-            >
-              저장
-            </button>
-            <button
-              className="bucket-modal-btn bucket-modal-btn-cancel"
-              onClick={closeModal}
-            >
-              닫기
-            </button>
+        ) : (
+          <div className="bucket-modal-actions">
+            <div className="bucket-modal-footer-row">
+              <button
+                className="bucket-modal-btn-delete-text"
+                onClick={() => setShowDeleteConfirm(true)}
+              >
+                삭제
+              </button>
+              <div className="bucket-modal-footer-actions">
+                {!editForm.completed ? (
+                  <button
+                    className="bucket-modal-btn bucket-modal-btn-complete"
+                    onClick={handleEditComplete}
+                  >
+                    완료
+                  </button>
+                ) : (
+                  <button
+                    className="bucket-modal-btn bucket-modal-btn-incomplete"
+                    onClick={() => handleEditUncheck(editForm.id)}
+                  >
+                    미완료
+                  </button>
+                )}
+                <button
+                  className="bucket-modal-btn bucket-modal-btn-save"
+                  onClick={handleEditSave}
+                >
+                  저장
+                </button>
+              </div>
+            </div>
           </div>
-        </div>
+        )}
       </BaseModal>
 
       {/* 돌림판 모달 */}

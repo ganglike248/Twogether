@@ -3,10 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
-
 const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
-    useModalBackButton(isOpen, onClose);
     const [formData, setFormData] = useState({
         time: '',
         endTime: '',

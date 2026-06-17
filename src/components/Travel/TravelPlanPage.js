@@ -112,20 +112,52 @@ const TravelPlanPage = () => {
     const handleEditTrip = (trip) => {
         setEditingTrip(trip); // selectedTrip과 분리하여 useEffect 덮어쓰기 방지
         setShowTripModal(true);
-        if (tripId) {
-            navigate('/travel');
-        }
     };
 
     if (tripId) {
         if (!selectedTrip) return null; // 여행 데이터 로딩 중 — 목록 플래시 방지
         return (
-            <TripDetail
-                trip={selectedTrip}
-                onBack={() => navigate('/travel', { replace: true })}
-                onEdit={() => handleEditTrip(selectedTrip)}
-                onDelete={() => handleDeleteTrip(selectedTrip.id)}
-            />
+            <>
+                <TripDetail
+                    trip={selectedTrip}
+                    onBack={() => navigate('/travel', { replace: true })}
+                    onEdit={() => handleEditTrip(selectedTrip)}
+                    onDelete={() => handleDeleteTrip(selectedTrip.id)}
+                />
+                {showTripModal && (
+                    <TripModal
+                        isOpen={showTripModal}
+                        onClose={() => {
+                            setShowTripModal(false);
+                            setEditingTrip(null);
+                        }}
+                        trip={editingTrip}
+                        onSave={handleSaveTrip}
+                    />
+                )}
+                {showDeleteModal && (
+                    <div className="travel-plan-modal-overlay">
+                        <div className="travel-plan-modal-box">
+                            <p className="travel-plan-modal-title">여행 삭제</p>
+                            <p className="travel-plan-modal-msg">이 여행 계획을 삭제하시겠습니까?</p>
+                            <div className="travel-plan-modal-actions">
+                                <button
+                                    className="travel-plan-modal-btn"
+                                    onClick={() => setShowDeleteModal(false)}
+                                >
+                                    취소
+                                </button>
+                                <button
+                                    className="travel-plan-modal-btn delete"
+                                    onClick={confirmDeleteTrip}
+                                >
+                                    삭제
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                )}
+            </>
         );
     }
 

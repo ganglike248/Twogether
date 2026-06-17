@@ -344,6 +344,61 @@
   color: white;
 }
 
+/* ================ 편집 모달 footer 레이아웃 ================ */
+.bucket-modal-footer-row {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.bucket-modal-footer-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-left: auto;
+}
+
+.bucket-modal-btn-delete-text {
+  background: none;
+  border: none;
+  color: #ff6b6b;
+  font-size: 0.875rem;
+  font-weight: 500;
+  cursor: pointer;
+  padding: 0.5rem 0;
+  touch-action: manipulation;
+  flex-shrink: 0;
+}
+
+/* 인라인 삭제 확인 바 */
+.bucket-modal-delete-confirm {
+  padding: 0.5rem 0;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  border-top: 1px solid rgba(255, 107, 107, 0.2);
+  margin-top: 0.5rem;
+  padding-top: 1rem;
+}
+
+.bucket-modal-delete-confirm-text {
+  flex: 1;
+  font-size: 0.875rem;
+  color: #495057;
+  font-weight: 500;
+}
+
+.bucket-modal-delete-confirm-btns {
+  display: flex;
+  gap: 0.5rem;
+  flex-shrink: 0;
+}
+
+.bucket-modal-delete-confirm-btns .bucket-modal-btn {
+  flex: 0;
+  padding: 0.6rem 1rem;
+  font-size: 0.85rem;
+}
+
 /* ================ 완료 상태 표시 ================ */
 .bucket-modal-completed-badge {
   background: rgba(163, 216, 202, 0.1);
