@@ -88,7 +88,9 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="change-password-modal-overlay">
+    <div className="change-password-modal-overlay" onClick={(e) => {
+      if (e.target === e.currentTarget && !loading) onClose();
+    }}>
       <div className="change-password-modal">
         <div className="change-password-modal-header">
           <h2 className="change-password-modal-title">

@@ -197,7 +197,9 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
   if (!isOpen) return null;
 
   return (
-    <div className="modal-overlay">
+    <div className="modal-overlay" onClick={(e) => {
+      if (e.target === e.currentTarget) onClose();
+    }}>
       <div className="log-modal-container">
         <div className="log-modal-header">
           <h2 className="log-modal-title">

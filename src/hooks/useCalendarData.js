@@ -5,6 +5,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 export const useCalendarData = (coupleId, userId) => {
   const [events, setEvents] = useState([]);
   const [cycles, setCycles] = useState([]);
+  const [trips, setTrips] = useState([]);
   const [eventsLoaded, setEventsLoaded] = useState(false);
   const [tripsLoaded, setTripsLoaded] = useState(false);
   const [cyclesLoaded, setCyclesLoaded] = useState(false);
@@ -107,6 +108,9 @@ export const useCalendarData = (coupleId, userId) => {
         };
       });
       setEvents(prev => [...prev.filter(e => !e.extendedProps.isTrip), ...tripsData]);
+      // trips 상태에 원본 데이터 저장 (Home.jsx에서 사용)
+      const tripsRawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+      setTrips(tripsRawData);
       setTripsLoaded(true);
     });
     return () => unsubscribe();
@@ -162,5 +166,5 @@ export const useCalendarData = (coupleId, userId) => {
     return () => unsubscribe();
   }, [userId]);
 
-  return { events, cycles, isLoading };
+  return { events, cycles, trips, isLoading };
 };

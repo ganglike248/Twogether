@@ -1,5 +1,5 @@
 // src/components/Memory/MemoryList.js
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { collection, query, orderBy, where, getDocs, startAfter, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';

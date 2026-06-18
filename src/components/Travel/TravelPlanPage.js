@@ -1,5 +1,5 @@
 // src/components/Travel/TravelPlanPage.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
@@ -68,7 +68,7 @@ const TravelPlanPage = () => {
     }, [trips, filter, searchQuery]);
 
     // 여행 저장
-    const handleSaveTrip = async (tripData) => {
+    const handleSaveTrip = useCallback(async (tripData) => {
         try {
             if (tripData.id) {
                 await updateTrip(tripData.id, tripData, user?.uid, coupleId);
@@ -80,16 +80,16 @@ const TravelPlanPage = () => {
             console.error('Error saving trip:', error);
             toast.error(`여행 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
         }
-    };
+    }, [user?.uid, coupleId]);
 
     // 여행 삭제 요청
-    const handleDeleteTrip = async (tripId) => {
+    const handleDeleteTrip = useCallback(async (tripId) => {
         setTripToDelete(tripId);
         setShowDeleteModal(true);
-    };
+    }, []);
 
     // 여행 삭제 확인
-    const confirmDeleteTrip = async () => {
+    const confirmDeleteTrip = useCallback(async () => {
         if (!tripToDelete) return;
         try {
             await deleteTrip(tripToDelete, user?.uid, coupleId);
@@ -102,18 +102,18 @@ const TravelPlanPage = () => {
             console.error('Error deleting trip:', error);
             toast.error(`여행 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
         }
-    };
+    }, [tripToDelete, user?.uid, coupleId, selectedTrip?.id, navigate]);
 
     // 여행 상세 보기
-    const handleViewTrip = (trip) => {
+    const handleViewTrip = useCallback((trip) => {
         navigate(`/travel/${trip.id}`);
-    };
+    }, [navigate]);
 
     // 여행 편집
-    const handleEditTrip = (trip) => {
+    const handleEditTrip = useCallback((trip) => {
         setEditingTrip(trip); // selectedTrip과 분리하여 useEffect 덮어쓰기 방지
         setShowTripModal(true);
-    };
+    }, []);
 
     if (tripId) {
         if (!selectedTrip) return null; // 여행 데이터 로딩 중 — 목록 플래시 방지

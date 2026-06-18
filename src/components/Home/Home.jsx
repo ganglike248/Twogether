@@ -10,8 +10,8 @@ import { ko } from 'date-fns/locale';
 import {
   HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart
 } from 'react-icons/hi2';
-import useCalendar from '../../hooks/useCalendar';
-import { useTrips, useTripSchedules } from '../../hooks/useTrip';
+import { useCalendarData } from '../../hooks/useCalendarData';
+import { useTripSchedules } from '../../hooks/useTrip';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -34,8 +34,7 @@ const Home = () => {
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const { events, loading: calendarLoading } = useCalendar(coupleId, user?.uid, myRole);
-  const { trips, loading: tripsLoading } = useTrips(coupleId);
+  const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
   const navigate = useNavigate();
 
   // 프로필 또는 커플 연결 후 튜토리얼 표시
@@ -165,7 +164,7 @@ const Home = () => {
     return '#adb5bd';
   };
 
-  const isLoading = calendarLoading || tripsLoading || bucketLoading;
+  const isLoading = calendarLoading || bucketLoading;
 
   if (isLoading) {
     return <HomeSkeleton />;

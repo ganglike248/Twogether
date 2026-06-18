@@ -1,5 +1,5 @@
 // src/components/Calendar/Calendar.jsx
-import React, { useState, useEffect, useRef, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
 import { useSearchParams, useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EventModal from './EventModal';
@@ -127,13 +127,13 @@ const Calendar = () => {
     new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
   ], [currentDate]);
 
-  const handleAddEventFromDay = (date) => {
+  const handleAddEventFromDay = useCallback((date) => {
     setSelectedEvent({ start: date, end: date, allDay: true });
     setIsDayModalOpen(false);
     setIsModalOpen(true);
-  };
+  }, []);
 
-  const handleEditEventFromDay = (event) => {
+  const handleEditEventFromDay = useCallback((event) => {
     try {
       if (event.extendedProps?.isTrip) {
         navigatePage(`/travel/${event.id}`);
@@ -163,9 +163,9 @@ const Calendar = () => {
     } catch {
       toast.error('일정 수정 중 오류가 발생했습니다.');
     }
-  };
+  }, [myRole, events, navigatePage]);
 
-  const handleSaveEvent = async (eventData) => {
+  const handleSaveEvent = useCallback(async (eventData) => {
     try {
       if (!eventData.start || !eventData.end || !eventData.title)
         throw new Error('Event data is incomplete!');
@@ -200,9 +200,9 @@ const Calendar = () => {
     } catch (error) {
       toast.error('일정 저장 중 오류가 발생했습니다.');
     }
-  };
+  }, [events, user?.uid, coupleId]);
 
-  const handleDeleteEvent = async (eventId) => {
+  const handleDeleteEvent = useCallback(async (eventId) => {
     try {
       // filteredEvents 대신 events 사용: 탭 필터에 관계없이 원본 속성으로 판별
       const event = events.find(e => e.id === eventId);
@@ -215,23 +215,23 @@ const Calendar = () => {
     } catch {
       toast.error('일정 삭제 중 오류가 발생했습니다.');
     }
-  };
+  }, [events, user?.uid, coupleId]);
 
-  const handleAddPeriod = async (startDate, periodLength) => {
+  const handleAddPeriod = useCallback(async (startDate, periodLength) => {
     try {
       await createCycle({ startDate, periodLength }, user?.uid, coupleId);
     } catch {
       toast.error('생리 기록 중 오류가 발생했습니다.');
     }
-  };
+  }, [user?.uid, coupleId]);
 
-  const handleDeletePeriod = async (cycleId) => {
+  const handleDeletePeriod = useCallback(async (cycleId) => {
     try {
       await deleteCycle(cycleId);
     } catch {
       toast.error('생리 기록 삭제 중 오류가 발생했습니다.');
     }
-  };
+  }, []);
 
 
   const getDayEvents = () => {
@@ -264,16 +264,16 @@ const Calendar = () => {
     currentDate.getFullYear() === new Date().getFullYear() &&
     currentDate.getMonth() === new Date().getMonth();
 
-  const handleDateClick = (info) => {
+  const handleDateClick = useCallback((info) => {
     setSelectedDate(info.dateStr);
     setIsDayModalOpen(true);
-  };
+  }, []);
 
-  const handleMoreLinkClick = (info) => {
+  const handleMoreLinkClick = useCallback((info) => {
     setSelectedDate(info.date.toISOString().split('T')[0]);
     setIsDayModalOpen(true);
     return 'stop';
-  };
+  }, []);
 
   return (
     <div className="calendar-container">

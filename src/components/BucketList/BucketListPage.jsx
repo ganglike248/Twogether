@@ -1,5 +1,5 @@
 // src/components/BucketList/BucketListPage.jsx
-import React, { useEffect, useState, useMemo, useRef } from 'react';
+import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
@@ -204,13 +204,13 @@ function BucketListPage() {
     }
   };
 
-  const handleOpenDateModal = (id) => {
+  const handleOpenDateModal = useCallback((id) => {
     setSelectedItemId(id);
     setCompletionDate(format(new Date(), 'yyyy-MM-dd')); // 오늘 날짜 기본값
     setModalState({ type: 'date', data: null });
-  };
+  }, []);
 
-  const handleCompleteWithDate = async () => {
+  const handleCompleteWithDate = useCallback(async () => {
     if (!selectedItemId || !completionDate) return;
 
     // 날짜 검증: 미래 날짜 방지 (timezone 고려)
@@ -241,9 +241,9 @@ function BucketListPage() {
       console.error('버킷 완료 실패:', error);
       toast.error('버킷 완료 중 오류가 발생했습니다.');
     }
-  };
+  }, [selectedItemId, completionDate, modalState.data, editForm.completed]);
 
-  const handleConfirmDelete = async () => {
+  const handleConfirmDelete = useCallback(async () => {
     try {
       await deleteDoc(doc(db, 'bucketlists', editForm.id));
       closeModal();
@@ -251,17 +251,17 @@ function BucketListPage() {
       console.error('삭제 실패:', error);
       toast.error('삭제 중 오류가 발생했습니다.');
     }
-  };
+  }, [editForm.id]);
 
-  const closeModal = () => {
+  const closeModal = useCallback(() => {
     setModalState({ type: null, data: null });
     setCompletionDate('');
     setSelectedItemId(null);
     setAddForm(f => ({ ...f, category: getFirstCategory() }));
     setShowDeleteConfirm(false);
-  };
+  }, []);
 
-  const handleOpenEditModal = (item) => {
+  const handleOpenEditModal = useCallback((item) => {
     // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
     const validCategory = isValidCategory(item.category) ? item.category : getFirstCategory();
     // 유효하지 않은 카테고리인 경우 경고
@@ -277,9 +277,9 @@ function BucketListPage() {
       completedAt: item.completedAt
     });
     setModalState({ type: 'edit', data: item });
-  };
+  }, []);
 
-  const handleEditSave = async () => {
+  const handleEditSave = useCallback(async () => {
     if (!canClick()) return;
     if (!editForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
     try {
@@ -294,12 +294,12 @@ function BucketListPage() {
       console.error('버킷 수정 실패:', error);
       toast.error('버킷 수정 중 오류가 발생했습니다.');
     }
-  };
+  }, [editForm, canClick, closeModal]);
 
-  const handleEditComplete = () => {
+  const handleEditComplete = useCallback(() => {
     setSelectedItemId(editForm.id);
     setModalState({ type: 'date', data: 'from-edit' });
-  };
+  }, [editForm.id]);
 
   const handleEditUncheck = async (id = editForm.id) => {
     try {

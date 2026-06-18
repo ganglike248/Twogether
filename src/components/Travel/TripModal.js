@@ -126,7 +126,9 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="trip-modal-overlay">
+        <div className="trip-modal-overlay" onClick={(e) => {
+            if (e.target === e.currentTarget) onClose();
+        }}>
             <div className="trip-modal-container">
                 <div className="trip-modal-header">
                     <h2 className="trip-modal-title">
