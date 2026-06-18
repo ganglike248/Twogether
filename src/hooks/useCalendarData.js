@@ -49,6 +49,7 @@ export const useCalendarData = (coupleId, userId) => {
           }
         };
       });
+      // 커플 이벤트(couple/boyfriend/girlfriend) 업데이트: 기존 trip/personal 보존
       setEvents(prev => [
         ...prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal'),
         ...eventsData
@@ -107,6 +108,7 @@ export const useCalendarData = (coupleId, userId) => {
           }
         };
       });
+      // 여행 이벤트 업데이트: 기존 trip이 아닌 것들(couple/boyfriend/girlfriend/personal) 보존
       setEvents(prev => [...prev.filter(e => !e.extendedProps.isTrip), ...tripsData]);
       // trips 상태에 원본 데이터 저장 (Home.jsx에서 사용)
       const tripsRawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
@@ -160,6 +162,7 @@ export const useCalendarData = (coupleId, userId) => {
           }
         };
       });
+      // 개인 이벤트 업데이트: 기존 personal이 아닌 것들(couple/boyfriend/girlfriend/trip) 보존
       setEvents(prev => [...prev.filter(e => e.extendedProps.eventType !== 'personal'), ...personalData]);
       setPersonalLoaded(true);
     }, () => setPersonalLoaded(true));
