@@ -7,6 +7,7 @@ import DayModal from './DayModal';
 import EditLogModal from '../EditLog/EditLogModal';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
+import CalendarSkeleton from './CalendarSkeleton';
 import {
   createEvent, updateEvent, deleteEvent,
   createPersonalEvent, updatePersonalEvent, deletePersonalEvent,
@@ -308,10 +309,7 @@ const Calendar = () => {
       </div>
 
       {isLoading ? (
-        <div className="loading-container">
-          <div className="loading-spinner"></div>
-          <p className="loading-text">캘린더를 불러오는 중...</p>
-        </div>
+        <CalendarSkeleton />
       ) : (
         <CalendarGrid
           months={months}

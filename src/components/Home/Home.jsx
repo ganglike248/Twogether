@@ -18,6 +18,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { convertToDate } from '../../utils/dataUtils';
 import TutorialSlides from '../Onboarding/TutorialSlides';
 import WheelModal from '../Wheel/WheelModal';
+import HomeSkeleton from './HomeSkeleton';
 import './Home.css';
 
 const Home = () => {
@@ -167,11 +168,7 @@ const Home = () => {
   const isLoading = calendarLoading || tripsLoading || bucketLoading;
 
   if (isLoading) {
-    return (
-      <div className="home-loading">
-        <div className="home-loading-spinner" />
-      </div>
-    );
+    return <HomeSkeleton />;
   }
 
   return (

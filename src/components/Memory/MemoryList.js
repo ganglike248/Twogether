@@ -5,6 +5,7 @@ import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import MemoryCard from './MemoryCard';
 import EmptyState from '../common/EmptyState';
+import { MemoryListSkeleton } from './MemoryCardSkeleton';
 import { MdPhotoCamera } from 'react-icons/md';
 import './MemoryList.css';
 
@@ -25,6 +26,12 @@ const MemoryList = () => {
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
 
+  // 검색 결과 페이지네이션
+  const [searchResults, setSearchResults] = useState([]);
+  const [searchLastDoc, setSearchLastDoc] = useState(null);
+  const [searchHasMore, setSearchHasMore] = useState(true);
+  const [searchIsLoadingMore, setSearchIsLoadingMore] = useState(false);
+
   const containerRef = useRef(null);
 
   const normalizeMemory = (data) => {
@@ -34,10 +41,15 @@ const MemoryList = () => {
     return data;
   };
 
-  // 공유 + 개인 일정을 필터/검색에 따라 합산 (검색 중에는 검색 useEffect가 처리)
+  // 공유 + 개인 일정을 필터/검색에 따라 합산
   useEffect(() => {
-    if (searchTerm.trim()) return;
+    // 검색 중이면 searchResults 사용
+    if (searchTerm.trim()) {
+      setFilteredMemories(searchResults);
+      return;
+    }
 
+    // 검색 미중일 때 기존 목록 + 페이지네이션 결과
     let result;
     if (filter === 'personal') {
       result = [...personalMemories];
@@ -48,7 +60,7 @@ const MemoryList = () => {
       result = memories.filter(m => m.eventType === filter);
     }
     setFilteredMemories(result);
-  }, [memories, personalMemories, filter, searchTerm]);
+  }, [memories, personalMemories, filter, searchTerm, searchResults]);
 
   // 개인 일정 실시간 구독 (과거 이벤트만)
   useEffect(() => {
@@ -157,18 +169,110 @@ const MemoryList = () => {
     setHasMore(true);
   }, []);
 
-  // 검색 처리 (공유 + 개인 일정 통합)
+  // 검색 결과 추가 로드 (페이지네이션)
+  const fetchMoreSearchResults = useCallback(async () => {
+    if (!coupleId || !searchTerm.trim() || searchIsLoadingMore || !searchHasMore) return;
+
+    setSearchIsLoadingMore(true);
+    try {
+      const searchLower = searchTerm.toLowerCase();
+      const _d = new Date();
+      const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
+
+      const promises = [];
+      let hasSearchConstraints = false;
+
+      // 공유 일정 검색
+      if (filter !== 'personal') {
+        const constraints = [
+          where('coupleId', '==', coupleId),
+          where('start', '<=', todayStr),
+          orderBy('start', 'desc'),
+        ];
+        if (filter !== 'all') {
+          constraints.splice(2, 0, where('eventType', '==', filter));
+        }
+        if (searchLastDoc) {
+          constraints.push(startAfter(searchLastDoc));
+        }
+        constraints.push(limit(PAGE_SIZE));
+
+        hasSearchConstraints = true;
+        promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      // 개인 일정 검색
+      if (userId && (filter === 'all' || filter === 'personal')) {
+        promises.push(getDocs(query(
+          collection(db, 'personal_events'),
+          where('userId', '==', userId)
+        )));
+      } else {
+        promises.push(Promise.resolve(null));
+      }
+
+      const [sharedSnapshot, personalSnapshot] = await Promise.all(promises);
+      const results = [];
+
+      if (sharedSnapshot) {
+        sharedSnapshot.forEach(doc => {
+          const data = normalizeMemory(doc.data());
+          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
+          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
+          if (titleMatch || descMatch) results.push({ id: doc.id, ...data });
+        });
+      }
+
+      if (personalSnapshot) {
+        personalSnapshot.forEach(doc => {
+          const data = doc.data();
+          if (!data.start || data.start.split('T')[0] > todayStr) return;
+          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
+          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
+          if (titleMatch || descMatch) {
+            results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
+          }
+        });
+      }
+
+      // 이미 표시된 결과 제외하고 추가
+      setSearchResults(prev => {
+        const existingIds = new Set(prev.map(m => m.id));
+        const newResults = results.filter(r => !existingIds.has(r.id));
+        const combined = [...prev, ...newResults].sort((a, b) => (a.start > b.start ? -1 : 1));
+        return combined;
+      });
+
+      setSearchLastDoc(sharedSnapshot?.docs[sharedSnapshot.docs.length - 1] || null);
+      setSearchHasMore(results.length === PAGE_SIZE);
+    } catch (error) {
+      console.error('Error fetching more search results:', error);
+    } finally {
+      setSearchIsLoadingMore(false);
+    }
+  }, [coupleId, searchTerm, filter, userId, searchLastDoc, searchHasMore, searchIsLoadingMore]);
+
+  // 검색 처리 (공유 + 개인 일정 통합) — 검색어 변경 시 결과 초기화
   useEffect(() => {
     if (!coupleId) return;
     const searchLower = searchTerm.toLowerCase();
 
     if (!searchLower.trim()) {
       setIsSearching(false);
+      setSearchResults([]);
+      setSearchLastDoc(null);
+      setSearchHasMore(true);
       return; // compute useEffect가 filteredMemories 갱신
     }
 
     let cancelled = false;
     setIsSearching(true);
+    setSearchResults([]); // 검색어 변경 시 초기화
+    setSearchLastDoc(null);
+    setSearchHasMore(true);
+
     const _d = new Date();
     const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
 
@@ -180,6 +284,7 @@ const MemoryList = () => {
         where('coupleId', '==', coupleId),
         where('start', '<=', todayStr),
         orderBy('start', 'desc'),
+        limit(PAGE_SIZE),
       ];
       if (filter !== 'all') {
         constraints.splice(2, 0, where('eventType', '==', filter));
@@ -225,7 +330,9 @@ const MemoryList = () => {
       }
 
       results.sort((a, b) => (a.start > b.start ? -1 : 1));
-      setFilteredMemories(results);
+      setSearchResults(results);
+      setSearchLastDoc(sharedSnapshot?.docs[sharedSnapshot.docs.length - 1] || null);
+      setSearchHasMore(results.length === PAGE_SIZE);
       setIsSearching(false);
     }).catch(err => {
       if (cancelled) return;
@@ -237,12 +344,21 @@ const MemoryList = () => {
   }, [searchTerm, coupleId, userId, filter]);
 
   const handleScroll = useCallback(() => {
-    if (!containerRef.current || !hasMore || loadingMore || isSearching || searchTerm.trim()) return;
+    if (!containerRef.current || isLoading) return;
+
     const { scrollTop, scrollHeight, clientHeight } = containerRef.current;
     if (scrollHeight - scrollTop - clientHeight < 100) {
-      fetchMoreMemories();
+      // 검색 중인 경우
+      if (searchTerm.trim()) {
+        if (!searchHasMore || searchIsLoadingMore) return;
+        fetchMoreSearchResults();
+      } else {
+        // 일반 페이지네이션
+        if (!hasMore || loadingMore) return;
+        fetchMoreMemories();
+      }
     }
-  }, [hasMore, loadingMore, isSearching, searchTerm, fetchMoreMemories]);
+  }, [hasMore, loadingMore, searchTerm, searchHasMore, searchIsLoadingMore, isLoading, fetchMoreMemories, fetchMoreSearchResults]);
 
   useEffect(() => {
     const container = containerRef.current;
@@ -305,10 +421,12 @@ const MemoryList = () => {
         </button>
       </div>
 
-      {isLoading || isSearching ? (
+      {isLoading ? (
+        <MemoryListSkeleton />
+      ) : isSearching ? (
         <div className="loading-container">
           <div className="loading-spinner"></div>
-          <p className="loading-text">{isSearching ? '검색 중...' : '추억을 불러오는 중...'}</p>
+          <p className="loading-text">검색 중...</p>
         </div>
       ) : filteredMemories.length === 0 ? (
         <EmptyState
@@ -327,16 +445,22 @@ const MemoryList = () => {
         </div>
       )}
 
-      {loadingMore && (
+      {(loadingMore || searchIsLoadingMore) && (
         <div className="loading-more">
           <div className="loading-spinner small"></div>
-          <p>더 많은 추억을 불러오는 중...</p>
+          <p>{searchTerm.trim() ? '더 많은 검색 결과를 불러오는 중...' : '더 많은 추억을 불러오는 중...'}</p>
         </div>
       )}
 
-      {!hasMore && filter !== 'personal' && memories.length > 0 && !isLoading && !isSearching && (
+      {!hasMore && !searchTerm.trim() && filter !== 'personal' && memories.length > 0 && !isLoading && !isSearching && (
         <div className="no-more-logs">
           <p>모든 추억을 불러왔습니다.</p>
+        </div>
+      )}
+
+      {searchTerm.trim() && !searchHasMore && searchResults.length > 0 && !isSearching && (
+        <div className="no-more-logs">
+          <p>모든 검색 결과를 불러왔습니다.</p>
         </div>
       )}
     </div>

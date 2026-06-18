@@ -9,6 +9,7 @@ import TripModal from './TripModal';
 import TripCard from './TripCard';
 import TripDetail from './TripDetail';
 import EmptyState from '../common/EmptyState';
+import { TravelPlanSkeleton } from './TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
 import './TravelPlanPage.css';
 
@@ -215,10 +216,7 @@ const TravelPlanPage = () => {
             </div>
 
             {loading ? (
-                <div className="travel-plan-loading-container">
-                    <div className="travel-plan-loading-spinner"></div>
-                    <p className="travel-plan-loading-text">여행 계획을 불러오는 중...</p>
-                </div>
+                <TravelPlanSkeleton />
             ) : filteredTrips.length === 0 ? (
                 <EmptyState
                     icon={<MdFlightTakeoff size={56} />}

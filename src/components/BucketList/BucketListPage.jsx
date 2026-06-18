@@ -12,6 +12,7 @@ import BaseModal from './BaseModal';
 import CategorySelector from './CategorySelector';
 import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
+import { BucketListSkeleton } from './BucketListSkeleton';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
@@ -451,7 +452,7 @@ function BucketListPage() {
           </div>
         </div>
         {isLoading ? (
-          <div className="bucket-loading">로딩 중...</div>
+          <BucketListSkeleton />
         ) : activeList.length === 0 ? (
           <EmptyState
             icon={activeTab === 'pending' ? <MdSchedule size={56} color="#f59f00" /> : <MdCheckCircle size={56} color="#51cf66" />}
