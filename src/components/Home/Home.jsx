@@ -107,7 +107,20 @@ const Home = () => {
     : null;
   const { schedules: tripSchedules } = useTripSchedules(ongoingTrip?.id || null);
   const todayScheduleData = tripSchedules.find(s => s.day === ongoingDay);
-  const todayItems = todayScheduleData?.schedules?.slice(0, 3) || [];
+  const currentTime = format(today, 'HH:mm');
+  const todayItems = (todayScheduleData?.schedules || [])
+    .filter(item => !item.completed)
+    .filter(item => {
+      if (!item.time) return true;
+      return item.time > currentTime;
+    })
+    .sort((a, b) => {
+      if (a.time && b.time) return a.time.localeCompare(b.time);
+      if (a.time) return -1;
+      if (b.time) return 1;
+      return 0;
+    })
+    .slice(0, 3);
 
   const nextTripDays = nextTrip
     ? differenceInCalendarDays(convertToDate(nextTrip.startDate), today)

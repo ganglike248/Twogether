@@ -26,29 +26,31 @@ export const useCalendarData = (coupleId, userId) => {
       where('coupleId', '==', coupleId)
     );
     const unsubscribe = onSnapshot(eventsRef, (snapshot) => {
-      const eventsData = snapshot.docs.map(doc => {
-        const data = doc.data();
-        let color, textColor;
-        switch (data.eventType) {
-          case 'boyfriend':
-            color = 'var(--color-boyfriend)'; textColor = '#757575'; break;
-          case 'girlfriend':
-            color = 'var(--color-girlfriend)'; textColor = '#757575'; break;
-          case 'couple':
-          default:
-            color = 'var(--color-couple)'; textColor = '#757575'; break;
-        }
-        return {
-          id: doc.id, title: data.title, start: data.start, end: data.end,
-          allDay: true, color, textColor,
-          extendedProps: {
-            description: data.description,
-            eventType: data.eventType,
-            imageUrls: data.imageUrls || [],
-            isTrip: false
+      const eventsData = snapshot.docs
+        .filter(doc => doc.data().eventType !== 'travel')
+        .map(doc => {
+          const data = doc.data();
+          let color, textColor;
+          switch (data.eventType) {
+            case 'boyfriend':
+              color = 'var(--color-boyfriend)'; textColor = '#757575'; break;
+            case 'girlfriend':
+              color = 'var(--color-girlfriend)'; textColor = '#757575'; break;
+            case 'couple':
+            default:
+              color = 'var(--color-couple)'; textColor = '#757575'; break;
           }
-        };
-      });
+          return {
+            id: doc.id, title: data.title, start: data.start, end: data.end,
+            allDay: true, color, textColor,
+            extendedProps: {
+              description: data.description,
+              eventType: data.eventType,
+              imageUrls: data.imageUrls || [],
+              isTrip: false
+            }
+          };
+        });
       // 커플 이벤트(couple/boyfriend/girlfriend) 업데이트: 기존 trip/personal 보존
       setEvents(prev => [
         ...prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal'),
