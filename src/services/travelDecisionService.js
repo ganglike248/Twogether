@@ -144,7 +144,7 @@ export const addOption = async (tripId, decisionId, optionData) => {
     id: optionData.id || `opt_${Date.now()}`,
     url: optionData.url,
     title: optionData.title,
-    image: optionData.image || '',
+    images: optionData.images || [],
     description: optionData.description || '',
     price: optionData.price || '',
     scores: [],
@@ -179,7 +179,7 @@ export const updateOption = async (tripId, decisionId, optionId, updateData) => 
       url: updateData.url || opt.url,
       description: updateData.description || opt.description,
       price: updateData.price || opt.price,
-      image: updateData.image || opt.image,
+      images: updateData.images !== undefined ? updateData.images : opt.images,
     };
   });
 

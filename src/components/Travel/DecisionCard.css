@@ -17,13 +17,33 @@
     box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
 }
 
-/* ===== 이미지 (Top Full-width) ===== */
-.dc-image-full {
+/* ===== 이미지들 (가로 스크롤 갤러리) ===== */
+.dc-images-container {
+    position: relative;
     width: calc(100% + 1.5rem);
-    height: 140px;
     margin: -0.75rem -0.75rem 0.75rem -0.75rem;
-    overflow: hidden;
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    overflow: hidden;
+    background: var(--main-bg);
+}
+
+.dc-images-scroll {
+    display: flex;
+    gap: 0;
+    overflow-x: auto;
+    scroll-behavior: smooth;
+    height: 140px;
+    scrollbar-width: none;
+}
+
+.dc-images-scroll::-webkit-scrollbar {
+    display: none;
+}
+
+.dc-image-item {
+    flex: 0 0 100%;
+    height: 140px;
+    overflow: hidden;
     background: var(--main-bg);
 }
 
@@ -31,6 +51,39 @@
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+/* 스크롤 버튼 */
+.dc-scroll-btn {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 32px;
+    height: 32px;
+    border: none;
+    background: rgba(255, 255, 255, 0.9);
+    border-radius: 50%;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: var(--color-gray-700);
+    transition: all 0.2s;
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    z-index: 10;
+}
+
+.dc-scroll-btn:hover {
+    background: white;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.15);
+}
+
+.dc-scroll-left {
+    left: 0.5rem;
+}
+
+.dc-scroll-right {
+    right: 0.5rem;
 }
 
 /* ===== 헤더 ===== */
@@ -126,8 +179,9 @@
     overflow: hidden;
     text-overflow: ellipsis;
     display: -webkit-box;
-    -webkit-line-clamp: 1;
+    -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
+    white-space: pre-line;
 }
 
 /* ===== URL 링크 ===== */

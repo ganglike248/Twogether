@@ -10,13 +10,31 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
     url: '',
     description: '',
     price: '',
-    image: '',
+    images: [],
   });
+  const [imageInput, setImageInput] = useState('');
 
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddImage = () => {
+    if (imageInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, imageInput.trim()],
+      }));
+      setImageInput('');
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -34,14 +52,13 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
         url: formData.url.trim() || '',
         description: formData.description.trim() || '',
         price: formData.price.trim() || '',
-        image: formData.image.trim() || '',
+        images: formData.images,
         scores: [],
         totalScore: 0,
-        reservationStatus: 'unbooked',
-        reservationNumber: '',
       });
 
-      setFormData({ title: '', url: '', description: '', price: '', image: '' });
+      setFormData({ title: '', url: '', description: '', price: '', images: [] });
+      setImageInput('');
       onClose();
       toast.success('옵션이 추가되었습니다.');
     } catch (error) {
@@ -89,12 +106,12 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
           {/* 설명 */}
           <div className="aom-form-group">
             <label className="aom-label">설명</label>
-            <input
-              type="text"
+            <textarea
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="숙소 설명, 메뉴 정보 등"
-              className="aom-input"
+              className="aom-textarea"
+              rows="3"
             />
           </div>
 
@@ -110,16 +127,49 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
             />
           </div>
 
-          {/* 이미지 */}
+          {/* 이미지들 */}
           <div className="aom-form-group">
-            <label className="aom-label">이미지 URL</label>
-            <input
-              type="url"
-              value={formData.image}
-              onChange={(e) => handleChange('image', e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="aom-input"
-            />
+            <label className="aom-label">
+              이미지 URL
+              <span className="aom-label-hint">이미지 꾹 누르기(우클릭) → '이미지 주소 복사' 선택</span>
+            </label>
+            <div className="aom-image-input-group">
+              <input
+                type="url"
+                value={imageInput}
+                onChange={(e) => setImageInput(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="aom-input"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddImage()}
+              />
+              <button
+                type="button"
+                onClick={handleAddImage}
+                className="aom-add-image-btn"
+                disabled={loading}
+              >
+                추가
+              </button>
+            </div>
+
+            {/* 추가된 이미지 목록 */}
+            {formData.images.length > 0 && (
+              <div className="aom-images-list">
+                {formData.images.map((img, idx) => (
+                  <div key={idx} className="aom-image-item">
+                    <span className="aom-image-url">{img}</span>
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="aom-remove-image-btn"
+                      disabled={loading}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 버튼 */}

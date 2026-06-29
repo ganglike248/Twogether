@@ -1,9 +1,9 @@
 // src/components/Travel/DecisionCard.jsx
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { addScore, getUserScore, deleteOption, updateOption } from '../../services/travelDecisionService';
 import EditOptionModal from './EditOptionModal';
-import { MdEdit, MdDelete, MdAddCircle } from 'react-icons/md';
+import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionCard.css';
 
@@ -12,6 +12,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [savingScore, setSavingScore] = useState(false);
   const [selectedScore, setSelectedScore] = useState(null);
+  const imageScrollRef = useRef(null);
 
   const myScore = getUserScore(option, currentUserId);
 
@@ -82,16 +83,52 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     }
   };
 
+  const handleScroll = (direction) => {
+    if (imageScrollRef.current) {
+      const itemWidth = imageScrollRef.current.clientWidth;
+      imageScrollRef.current.scrollBy({
+        left: direction === 'left' ? -itemWidth : itemWidth,
+        behavior: 'smooth',
+      });
+    }
+  };
+
   return (
     <div className="decision-card">
-      {/* 이미지 (Top Full-width) */}
-      {option.image && (
-        <div className="dc-image-full">
-          <img
-            src={option.image}
-            alt={option.title}
-            className="dc-image"
-          />
+      {/* 이미지들 (가로 스크롤 갤러리) */}
+      {option.images && option.images.length > 0 && (
+        <div className="dc-images-container">
+          <div className="dc-images-scroll" ref={imageScrollRef}>
+            {option.images.map((img, idx) => (
+              <div key={idx} className="dc-image-item">
+                <img
+                  src={img}
+                  alt={`${option.title} ${idx + 1}`}
+                  className="dc-image"
+                />
+              </div>
+            ))}
+          </div>
+
+          {/* 스크롤 버튼 */}
+          {option.images.length > 1 && (
+            <>
+              <button
+                className="dc-scroll-btn dc-scroll-left"
+                onClick={() => handleScroll('left')}
+                title="왼쪽 스크롤"
+              >
+                <MdChevronLeft size={20} />
+              </button>
+              <button
+                className="dc-scroll-btn dc-scroll-right"
+                onClick={() => handleScroll('right')}
+                title="오른쪽 스크롤"
+              >
+                <MdChevronRight size={20} />
+              </button>
+            </>
+          )}
         </div>
       )}
 

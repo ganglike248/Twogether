@@ -9,14 +9,32 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
     url: option.url || '',
     description: option.description || '',
     price: option.price || '',
-    image: option.image || '',
+    images: option.images || [],
   });
+  const [imageInput, setImageInput] = useState('');
   const [loading, setLoading] = useState(false);
 
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
     setFormData(prev => ({ ...prev, [field]: value }));
+  };
+
+  const handleAddImage = () => {
+    if (imageInput.trim()) {
+      setFormData(prev => ({
+        ...prev,
+        images: [...prev.images, imageInput.trim()],
+      }));
+      setImageInput('');
+    }
+  };
+
+  const handleRemoveImage = (index) => {
+    setFormData(prev => ({
+      ...prev,
+      images: prev.images.filter((_, i) => i !== index),
+    }));
   };
 
   const handleSubmit = async (e) => {
@@ -34,7 +52,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
         url: formData.url.trim() || '',
         description: formData.description.trim() || '',
         price: formData.price.trim() || '',
-        image: formData.image.trim() || '',
+        images: formData.images,
       });
     } finally {
       setLoading(false);
@@ -80,12 +98,12 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
           {/* 설명 */}
           <div className="eom-form-group">
             <label className="eom-label">설명</label>
-            <input
-              type="text"
+            <textarea
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
               placeholder="숙소 설명, 메뉴 정보 등"
-              className="eom-input"
+              className="eom-textarea"
+              rows="3"
             />
           </div>
 
@@ -101,16 +119,50 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
             />
           </div>
 
-          {/* 이미지 URL */}
+          {/* 이미지들 */}
           <div className="eom-form-group">
-            <label className="eom-label">이미지 URL</label>
-            <input
-              type="url"
-              value={formData.image}
-              onChange={(e) => handleChange('image', e.target.value)}
-              placeholder="https://example.com/image.jpg"
-              className="eom-input"
-            />
+            <label className="eom-label">
+              이미지 URL
+              <span className="eom-label-hint">이미지 꾹 누르기(우클릭) → '이미지 주소 복사' 선택</span>
+            </label>
+            <div className="eom-image-input-group">
+              <input
+                type="url"
+                value={imageInput}
+                onChange={(e) => setImageInput(e.target.value)}
+                placeholder="https://example.com/image.jpg"
+                className="eom-input"
+                onKeyPress={(e) => e.key === 'Enter' && handleAddImage()}
+              />
+              <button
+                type="button"
+                onClick={handleAddImage}
+                className="eom-add-image-btn"
+                disabled={loading}
+              >
+                추가
+              </button>
+            </div>
+
+            {/* 추가된 이미지 목록 */}
+            {formData.images.length > 0 && (
+              <div className="eom-images-preview">
+                {formData.images.map((img, idx) => (
+                  <div key={idx} className="eom-image-preview-item">
+                    <img src={img} alt={`Preview ${idx + 1}`} className="eom-image-thumb" />
+                    <button
+                      type="button"
+                      onClick={() => handleRemoveImage(idx)}
+                      className="eom-remove-image-btn"
+                      disabled={loading}
+                      title="이미지 제거"
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
 
           {/* 버튼 */}

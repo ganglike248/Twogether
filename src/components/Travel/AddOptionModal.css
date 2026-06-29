@@ -92,6 +92,15 @@
     font-size: 0.9rem;
     font-weight: 600;
     color: var(--color-gray-800);
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.aom-label-hint {
+    font-size: 0.75rem;
+    font-weight: 400;
+    color: var(--color-gray-500);
 }
 
 .aom-input {
@@ -107,6 +116,116 @@
     outline: none;
     border-color: #ffb6c1;
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+}
+
+.aom-textarea {
+    padding: 0.75rem;
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.15s;
+    resize: vertical;
+}
+
+.aom-textarea:focus {
+    outline: none;
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+}
+
+/* 이미지 입력 그룹 */
+.aom-image-input-group {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+}
+
+.aom-image-input-group .aom-input {
+    flex: 1;
+}
+
+.aom-add-image-btn {
+    padding: 0.75rem 1rem;
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    background: white;
+    color: #ffb6c1;
+    font-weight: 600;
+    font-size: 0.9rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    white-space: nowrap;
+}
+
+.aom-add-image-btn:hover:not(:disabled) {
+    background: rgba(255, 182, 193, 0.1);
+    border-color: #ffb6c1;
+}
+
+.aom-add-image-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 이미지 목록 */
+.aom-images-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    margin-top: 0.5rem;
+    padding: 0.5rem;
+    background: var(--main-bg);
+    border-radius: 0.4rem;
+    max-height: 150px;
+    overflow-y: auto;
+}
+
+.aom-image-item {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.5rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 0.3rem;
+    font-size: 0.75rem;
+}
+
+.aom-image-url {
+    flex: 1;
+    color: #3498db;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    word-break: break-all;
+}
+
+.aom-remove-image-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: white;
+    color: #e74c3c;
+    font-size: 0.9rem;
+    cursor: pointer;
+    border-radius: 0.2rem;
+    transition: all 0.15s;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+}
+
+.aom-remove-image-btn:hover:not(:disabled) {
+    background: rgba(231, 76, 60, 0.1);
+    color: #c0392b;
+}
+
+.aom-remove-image-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
 }
 
 /* 액션 버튼 */
