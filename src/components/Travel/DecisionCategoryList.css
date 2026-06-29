@@ -1,0 +1,168 @@
+/* src/components/Travel/DecisionCategoryList.css */
+
+.dcl-category-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 1rem;
+    background: var(--main-bg);
+    border-radius: var(--border-radius-lg);
+}
+
+.dcl-category-title {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    margin: 0 0 0.5rem 0;
+    padding-bottom: 0.75rem;
+    border-bottom: 2px solid rgba(255, 182, 193, 0.2);
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.dcl-category-icon {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #ff9bac;
+}
+
+.dcl-decisions-list {
+    display: flex;
+    flex-direction: column;
+    gap: 1.5rem;
+}
+
+.dcl-decision-group {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    padding: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.dcl-decision-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.75rem;
+    margin-bottom: 1rem;
+}
+
+.dcl-decision-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    margin: 0;
+}
+
+.dcl-decision-description {
+    font-size: 0.82rem;
+    color: var(--color-gray-600);
+    margin: 0.25rem 0 0 0;
+}
+
+.dcl-delete-btn {
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: white;
+    cursor: pointer;
+    color: #ff6b6b;
+    font-size: 0.875rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.dcl-delete-btn:hover {
+    background: #fff0f3;
+    border-color: #ff6b6b;
+}
+
+/* 후보 토글 버튼 */
+.dcl-toggle-options-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.5rem;
+    padding: 0.6rem 1rem;
+    width: 100%;
+    background: white;
+    border: 1.5px solid rgba(255, 182, 193, 0.3);
+    border-radius: 0.6rem;
+    color: #ff9bac;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.2s ease;
+    margin-bottom: 0.5rem;
+}
+
+.dcl-toggle-options-btn:hover {
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.08) 0%, rgba(255, 155, 172, 0.04) 100%);
+    border-color: rgba(255, 182, 193, 0.5);
+    color: #ff6b9d;
+}
+
+.dcl-toggle-options-btn svg {
+    transition: transform 0.3s ease;
+}
+
+.dcl-toggle-options-btn.expanded svg {
+    transform: rotate(180deg);
+}
+
+.dcl-options-list {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+    animation: slideDown 0.3s ease-out;
+}
+
+@keyframes slideDown {
+    from {
+        opacity: 0;
+        max-height: 0;
+        overflow: hidden;
+    }
+    to {
+        opacity: 1;
+        max-height: 1000px;
+        overflow: visible;
+    }
+}
+
+.dcl-add-option-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.4rem;
+    padding: 0.5rem 1rem;
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.2) 0%, rgba(255, 155, 172, 0.1) 100%);
+    border: 2px dashed rgba(255, 182, 193, 0.4);
+    border-radius: 0.5rem;
+    color: #ff9bac;
+    cursor: pointer;
+    font-size: 0.85rem;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+.dcl-add-option-btn:hover {
+    border-color: rgba(255, 182, 193, 0.6);
+    background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 155, 172, 0.15) 100%);
+    color: #ff6b9d;
+}
+
+/* 모바일 반응형 */
+@media (max-width: 640px) {
+    .dcl-options-list {
+        grid-template-columns: 1fr;
+    }
+}

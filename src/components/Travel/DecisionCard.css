@@ -1,0 +1,350 @@
+/* src/components/Travel/DecisionCard.css */
+
+.decision-card {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: var(--border-radius-lg);
+    padding: 0.75rem;
+    transition: all 0.15s;
+    box-shadow: var(--shadow-sm);
+}
+
+.decision-card:hover {
+    border-color: rgba(255, 182, 193, 0.3);
+    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
+}
+
+/* ===== 이미지 (Top Full-width) ===== */
+.dc-image-full {
+    width: calc(100% + 1.5rem);
+    height: 140px;
+    margin: -0.75rem -0.75rem 0.75rem -0.75rem;
+    overflow: hidden;
+    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
+    background: var(--main-bg);
+}
+
+.dc-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+}
+
+/* ===== 헤더 ===== */
+.dc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 0.5rem;
+}
+
+.dc-title-info {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+    flex: 1;
+}
+
+.dc-title {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+}
+
+.dc-price {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: #e67e22;
+    margin: 0;
+}
+
+/* ===== 액션 버튼들 (수정 + 삭제) ===== */
+.dc-action-buttons {
+    display: flex;
+    gap: 0.3rem;
+    flex-shrink: 0;
+}
+
+.dc-add-schedule-btn,
+.dc-edit-btn,
+.dc-delete-btn {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 28px;
+    height: 28px;
+    padding: 0;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 0.4rem;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.dc-add-schedule-btn {
+    color: #2ecc71;
+}
+
+.dc-add-schedule-btn:hover {
+    background: rgba(46, 204, 113, 0.08);
+    border-color: #2ecc71;
+    color: #27ae60;
+}
+
+.dc-edit-btn {
+    color: #3498db;
+}
+
+.dc-edit-btn:hover {
+    background: rgba(52, 152, 219, 0.08);
+    border-color: #3498db;
+    color: #2980b9;
+}
+
+.dc-delete-btn {
+    color: #e74c3c;
+}
+
+.dc-delete-btn:hover {
+    background: rgba(231, 76, 60, 0.08);
+    border-color: #e74c3c;
+    color: #c0392b;
+}
+
+/* ===== 설명 ===== */
+.dc-description {
+    font-size: 0.8rem;
+    color: var(--color-gray-600);
+    margin: 0;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    display: -webkit-box;
+    -webkit-line-clamp: 1;
+    -webkit-box-orient: vertical;
+}
+
+/* ===== URL 링크 ===== */
+.dc-url-link {
+    font-size: 0.75rem;
+    color: #3498db;
+    text-decoration: none;
+    word-break: break-all;
+    transition: color 0.15s;
+    margin: 0 0 0.25rem 0;
+    display: block;
+}
+
+.dc-url-link:hover {
+    color: #2980b9;
+    text-decoration: underline;
+}
+
+/* ===== 점수 표시 ===== */
+.dc-scores-display {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    font-size: 0.75rem;
+    flex-wrap: wrap;
+    padding: 0.5rem;
+    background: var(--main-bg);
+    border-radius: 0.4rem;
+}
+
+.dc-score-label {
+    font-weight: 600;
+    color: var(--color-gray-700);
+    white-space: nowrap;
+}
+
+.dc-total-score {
+    font-weight: 700;
+    color: #ffb6c1;
+    white-space: nowrap;
+}
+
+.dc-score-change-inline {
+    margin-left: auto;
+    padding: 0.3rem 0.6rem;
+    background: white;
+    border: 1px solid #4caf50;
+    color: #4caf50;
+    font-size: 0.7rem;
+    font-weight: 600;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.dc-score-change-inline:hover:not(:disabled) {
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.dc-score-change-inline:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== 평가 섹션 ===== */
+.dc-score-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding-top: 0.5rem;
+    border-top: 1px solid var(--card-border);
+}
+
+.dc-score-display {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    font-size: 0.8rem;
+}
+
+.dc-my-score {
+    font-weight: 700;
+    color: #4caf50;
+}
+
+.dc-score-change,
+.dc-score-btn {
+    padding: 0.4rem 0.8rem;
+    font-size: 0.75rem;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+    border: none;
+}
+
+.dc-score-change {
+    background: white;
+    border: 1px solid #4caf50;
+    color: #4caf50;
+}
+
+.dc-score-change:hover:not(:disabled) {
+    background: rgba(76, 175, 80, 0.1);
+}
+
+.dc-score-btn {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    width: 100%;
+}
+
+.dc-score-btn:hover:not(:disabled) {
+    opacity: 0.88;
+}
+
+.dc-score-change:disabled,
+.dc-score-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== 점수 선택 그리드 ===== */
+.dc-score-selector {
+    display: flex;
+    flex-direction: column;
+    gap: 0.4rem;
+    padding: 0.5rem;
+    background: var(--main-bg);
+    border-radius: 0.4rem;
+    border: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.dc-score-grid {
+    display: grid;
+    grid-template-columns: repeat(5, 1fr);
+    gap: 0.3rem;
+}
+
+.dc-score-option {
+    padding: 0.4rem;
+    font-size: 0.75rem;
+    font-weight: 600;
+    background: white;
+    border: 1.5px solid var(--card-border);
+    border-radius: 0.3rem;
+    color: var(--color-gray-700);
+    cursor: pointer;
+    transition: all 0.1s;
+}
+
+.dc-score-option:hover:not(:disabled) {
+    border-color: #ffb6c1;
+    color: #ffb6c1;
+}
+
+.dc-score-option.active {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border-color: #ff9bac;
+}
+
+.dc-score-option:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.dc-score-cancel {
+    padding: 0.3rem;
+    font-size: 0.7rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    color: var(--color-gray-600);
+    border-radius: 0.3rem;
+    cursor: pointer;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+.dc-score-cancel:hover:not(:disabled) {
+    background: var(--main-bg);
+    border-color: #ffb6c1;
+    color: #ffb6c1;
+}
+
+.dc-score-cancel:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* ===== 모바일 ===== */
+@media (max-width: 640px) {
+    .dc-header {
+        gap: 0.3rem;
+    }
+
+    .dc-image-small {
+        width: 45px;
+        height: 45px;
+    }
+
+    .dc-info-row {
+        flex-direction: column;
+        align-items: flex-start;
+    }
+
+    .dc-scores-compact {
+        width: 100%;
+        flex-wrap: wrap;
+    }
+
+    .dc-reservation-quick {
+        width: 100%;
+    }
+
+    .dc-score-grid {
+        grid-template-columns: repeat(5, 1fr);
+    }
+}

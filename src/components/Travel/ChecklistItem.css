@@ -1,0 +1,134 @@
+/* src/components/Travel/ChecklistItem.css */
+
+.checklist-item {
+    display: flex;
+    gap: 0.75rem;
+    align-items: flex-start;
+    padding: 0.75rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 0.75rem;
+    transition: all 0.15s;
+}
+
+.checklist-item:hover {
+    background: var(--main-bg);
+    border-color: rgba(255, 182, 193, 0.3);
+}
+
+.checklist-item.completed {
+    opacity: 0.7;
+}
+
+.checklist-item.completed .ci-title {
+    text-decoration: line-through;
+    color: var(--color-gray-500);
+}
+
+/* 체크박스 */
+.ci-checkbox {
+    width: 20px;
+    height: 20px;
+    border-radius: 0.4rem;
+    border: 2px solid var(--card-border);
+    cursor: pointer;
+    accent-color: #ffb6c1;
+    flex-shrink: 0;
+    margin-top: 0.2rem;
+}
+
+.ci-checkbox:hover {
+    border-color: #ffb6c1;
+}
+
+.ci-checkbox:checked {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    border-color: #ff9bac;
+}
+
+/* 콘텐츠 */
+.ci-content {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.ci-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.ci-title {
+    font-size: 0.95rem;
+    font-weight: 600;
+    color: var(--color-gray-800);
+    margin: 0;
+}
+
+.ci-priority {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 0.2rem 0.5rem;
+    background: rgba(0, 0, 0, 0.05);
+    border-radius: 0.3rem;
+    white-space: nowrap;
+}
+
+.ci-description {
+    font-size: 0.8rem;
+    color: var(--color-gray-600);
+    margin: 0;
+}
+
+.ci-completed-info {
+    font-size: 0.75rem;
+    color: #4caf50;
+    margin: 0;
+    font-weight: 600;
+}
+
+.ci-due-date {
+    font-size: 0.75rem;
+    color: #e67e22;
+    margin: 0;
+    font-weight: 600;
+}
+
+/* 액션 버튼 */
+.ci-actions {
+    display: flex;
+    gap: 0.25rem;
+    flex-shrink: 0;
+}
+
+.ci-edit-btn,
+.ci-delete-btn {
+    width: 24px;
+    height: 24px;
+    border-radius: 50%;
+    border: 1px solid transparent;
+    background: transparent;
+    cursor: pointer;
+    color: var(--color-gray-400);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.ci-edit-btn:hover {
+    background: rgba(52, 152, 219, 0.1);
+    border-color: #3498db;
+    color: #3498db;
+}
+
+.ci-delete-btn:hover {
+    background: #fff0f3;
+    border-color: #ff6b6b;
+    color: #ff6b6b;
+}

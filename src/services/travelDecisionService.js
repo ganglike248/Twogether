@@ -80,7 +80,6 @@ export const addScore = async (tripId, decisionId, optionId, userId, score) => {
       updatedScores.push({
         userId,
         score,
-        updatedAt: serverTimestamp(),
       });
     }
 
@@ -131,39 +130,6 @@ export const subscribeToDecisions = (tripId, callback) => {
 };
 
 /**
- * 예약 상태 업데이트
- */
-export const updateReservationStatus = async (
-  tripId,
-  decisionId,
-  optionId,
-  status,
-  reservationNumber = ''
-) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const updatedOptions = decisionSnap.data().options.map(opt => {
-    if (opt.id !== optionId) return opt;
-
-    return {
-      ...opt,
-      reservationStatus: status,
-      reservationNumber: status === 'booked' ? reservationNumber : '',
-    };
-  });
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
-};
-
-/**
  * 옵션 추가 (선택지 내에)
  */
 export const addOption = async (tripId, decisionId, optionData) => {
@@ -183,13 +149,39 @@ export const addOption = async (tripId, decisionId, optionData) => {
     price: optionData.price || '',
     scores: [],
     totalScore: 0,
-    reservationStatus: 'unbooked',
-    reservationNumber: '',
-    createdAt: serverTimestamp(),
-    createdBy: optionData.createdBy,
   };
 
   const updatedOptions = [...(decisionSnap.data().options || []), newOption];
+
+  await updateDoc(decisionRef, {
+    options: updatedOptions,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+/**
+ * 옵션 수정
+ */
+export const updateOption = async (tripId, decisionId, optionId, updateData) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  const decisionSnap = await getDoc(decisionRef);
+
+  if (!decisionSnap.exists()) {
+    throw new Error('Decision not found');
+  }
+
+  const updatedOptions = decisionSnap.data().options.map(opt => {
+    if (opt.id !== optionId) return opt;
+
+    return {
+      ...opt,
+      title: updateData.title || opt.title,
+      url: updateData.url || opt.url,
+      description: updateData.description || opt.description,
+      price: updateData.price || opt.price,
+      image: updateData.image || opt.image,
+    };
+  });
 
   await updateDoc(decisionRef, {
     options: updatedOptions,
@@ -279,3 +271,4 @@ export const getUserScore = (option, userId) => {
 export const hasUserScored = (option, userId) => {
   return getUserScore(option, userId) !== null;
 };
+

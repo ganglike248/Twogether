@@ -1,0 +1,169 @@
+/* src/components/Travel/EditOptionModal.css */
+
+.edit-option-modal-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    background: rgba(0, 0, 0, 0.5);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 999;
+    animation: fadeIn 0.2s ease-out;
+}
+
+@keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+}
+
+.edit-option-modal-container {
+    width: 100%;
+    max-width: 450px;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
+    animation: slideUp 0.3s ease-out;
+}
+
+@keyframes slideUp {
+    from { transform: translateY(20px); opacity: 0; }
+    to { transform: translateY(0); opacity: 1; }
+}
+
+.eom-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem;
+    border-bottom: 1px solid var(--card-border);
+    gap: 0.5rem;
+}
+
+.eom-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    margin: 0;
+}
+
+.eom-close {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 1px solid var(--card-border);
+    background: white;
+    cursor: pointer;
+    color: var(--color-gray-600);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s;
+    flex-shrink: 0;
+}
+
+.eom-close:hover {
+    background: var(--main-bg);
+    border-color: var(--color-gray-400);
+}
+
+.eom-form {
+    padding: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    overflow-y: auto;
+    max-height: calc(80vh - 100px);
+}
+
+/* 폼 그룹 */
+.eom-form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+}
+
+.eom-label {
+    font-size: 0.9rem;
+    font-weight: 600;
+    color: var(--color-gray-800);
+}
+
+.eom-input {
+    padding: 0.75rem;
+    border: 1px solid var(--card-border);
+    border-radius: 0.5rem;
+    font-size: 1rem;
+    font-family: inherit;
+    transition: all 0.15s;
+}
+
+.eom-input:focus {
+    outline: none;
+    border-color: #ffb6c1;
+    box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
+}
+
+/* 액션 버튼 */
+.eom-actions {
+    display: flex;
+    gap: 0.75rem;
+    justify-content: flex-end;
+    padding-top: 1rem;
+    border-top: 1px solid var(--card-border);
+}
+
+.eom-btn {
+    padding: 0.75rem 1.5rem;
+    border: none;
+    border-radius: 0.5rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: all 0.15s;
+}
+
+.eom-btn.cancel {
+    background: white;
+    border: 1px solid var(--card-border);
+    color: var(--color-gray-600);
+}
+
+.eom-btn.cancel:hover:not(:disabled) {
+    background: var(--main-bg);
+    border-color: var(--color-gray-400);
+}
+
+.eom-btn.submit {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+}
+
+.eom-btn.submit:hover:not(:disabled) {
+    opacity: 0.88;
+}
+
+.eom-btn:disabled {
+    opacity: 0.6;
+    cursor: not-allowed;
+}
+
+/* 모바일 */
+@media (max-width: 640px) {
+    .edit-option-modal-container {
+        max-width: 90vw;
+    }
+
+    .eom-actions {
+        flex-direction: column;
+    }
+
+    .eom-btn {
+        width: 100%;
+    }
+}

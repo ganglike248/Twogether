@@ -11,38 +11,16 @@ import {
 import { db } from '../firebase';
 
 /**
- * 기본 체크리스트 템플릿
- */
-const DEFAULT_CHECKLIST_TEMPLATE = [
-  { id: `item_${Date.now()}_0`, title: '항공권 예약', order: 1, priority: 'high' },
-  { id: `item_${Date.now()}_1`, title: '숙소 예약', order: 2, priority: 'high' },
-  { id: `item_${Date.now()}_2`, title: '렌트카 예약', order: 3, priority: 'high' },
-  { id: `item_${Date.now()}_3`, title: '비자 확인', order: 4, priority: 'high' },
-  { id: `item_${Date.now()}_4`, title: '여행자보험', order: 5, priority: 'medium' },
-  { id: `item_${Date.now()}_5`, title: '짐 준비', order: 6, priority: 'medium' },
-  { id: `item_${Date.now()}_6`, title: '여권 확인', order: 7, priority: 'high' },
-  { id: `item_${Date.now()}_7`, title: '환전하기', order: 8, priority: 'medium' },
-];
-
-/**
- * 체크리스트 생성 (기본 템플릿으로 초기화)
+ * 체크리스트 생성 (빈 상태로 시작)
  */
 export const createChecklist = async (tripId, coupleId) => {
   const tripRef = doc(db, 'trips', tripId);
   const checklistRef = doc(tripRef, 'checklists', 'main');
 
-  const items = DEFAULT_CHECKLIST_TEMPLATE.map((item, index) => ({
-    ...item,
-    id: `item_${Date.now()}_${index}`,
-    completed: false,
-    completedBy: null,
-    completedAt: null,
-  }));
-
   const checklistData = {
     tripId,
     coupleId,
-    items,
+    items: [],
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
@@ -149,7 +127,7 @@ export const toggleChecklistItem = async (tripId, itemId, userId) => {
 };
 
 /**
- * 체크리스트 항목 수정
+ * 체크리스트 항목 수정 (모든 필드)
  */
 export const updateChecklistItem = async (tripId, itemId, updates) => {
   const tripRef = doc(db, 'trips', tripId);
@@ -163,7 +141,14 @@ export const updateChecklistItem = async (tripId, itemId, updates) => {
   const checklist = checklistSnap.data();
   const updatedItems = (checklist.items || []).map(item => {
     if (item.id !== itemId) return item;
-    return { ...item, ...updates };
+    return {
+      ...item,
+      ...updates,
+      // 완료 상태 변경 시 타임스탬프 유지
+      updatedAt: updates.title || updates.description || updates.priority || updates.dueDate
+        ? serverTimestamp()
+        : item.updatedAt,
+    };
   });
 
   await updateDoc(checklistRef, {

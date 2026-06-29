@@ -1,0 +1,171 @@
+/* src/components/Travel/TravelChecklistTab.css */
+
+.travel-checklist-tab {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    padding: 1rem;
+}
+
+/* 로딩 */
+.tct-loading {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 3rem 1rem;
+    gap: 0.75rem;
+}
+
+.tct-spinner {
+    width: 36px;
+    height: 36px;
+    border: 3px solid rgba(255, 182, 193, 0.2);
+    border-top-color: #ffb6c1;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.tct-loading p {
+    font-size: 0.875rem;
+    color: var(--color-gray-500);
+    margin: 0;
+}
+
+/* 진행률 */
+.tct-progress-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    padding: 1rem;
+    background: var(--main-bg);
+    border-radius: var(--border-radius-lg);
+    border: 1px solid rgba(255, 182, 193, 0.2);
+}
+
+.tct-progress-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.tct-progress-label {
+    font-size: 0.9rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+}
+
+.tct-progress-percent {
+    font-size: 1.125rem;
+    font-weight: 700;
+    color: #ffb6c1;
+}
+
+.tct-progress-bar {
+    width: 100%;
+    height: 8px;
+    background: rgba(255, 182, 193, 0.2);
+    border-radius: 999px;
+    overflow: hidden;
+}
+
+.tct-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.4s ease;
+}
+
+.tct-progress-text {
+    font-size: 0.8rem;
+    color: var(--color-gray-600);
+}
+
+/* 액션 */
+.tct-actions {
+    display: flex;
+    gap: 0.5rem;
+}
+
+.tct-add-btn {
+    padding: 0.75rem 1rem;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border: none;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 0.9rem;
+    font-weight: 600;
+    transition: opacity 0.15s;
+    flex: 1;
+}
+
+.tct-add-btn:hover {
+    opacity: 0.88;
+}
+
+/* 빈 상태 */
+.tct-empty {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 1rem;
+    text-align: center;
+}
+
+.tct-empty-icon {
+    font-size: 2.5rem;
+    margin: 0 0 0.5rem 0;
+    color: #4caf50;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.tct-empty-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--color-gray-800);
+    margin: 0 0 0.25rem 0;
+}
+
+.tct-empty-text {
+    font-size: 0.875rem;
+    color: var(--color-gray-500);
+    margin: 0;
+}
+
+/* 항목 리스트 */
+.tct-items-list {
+    display: flex;
+    flex-direction: column;
+    gap: 0.5rem;
+    max-height: 400px;
+    overflow-y: auto;
+    padding: 0.25rem;
+}
+
+.tct-items-list::-webkit-scrollbar {
+    width: 4px;
+}
+
+.tct-items-list::-webkit-scrollbar-track {
+    background: transparent;
+}
+
+.tct-items-list::-webkit-scrollbar-thumb {
+    background: rgba(255, 182, 193, 0.3);
+    border-radius: 2px;
+}
+
+.tct-items-list::-webkit-scrollbar-thumb:hover {
+    background: rgba(255, 182, 193, 0.5);
+}

@@ -12,6 +12,8 @@ import { useModalBackButton } from '../../hooks/useModalBackButton';
 import ScheduleItem from './ScheduleItem';
 import ScheduleModal from './ScheduleModal';
 import TravelTimeInput from './TravelTimeInput';
+import TravelDecisionsTab from './TravelDecisionsTab';
+import TravelChecklistTab from './TravelChecklistTab';
 import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
@@ -23,6 +25,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const [travelTimes, setTravelTimes] = useState({});
     const [totalBudget, setTotalBudget] = useState(0);
     const [usedBudget, setUsedBudget] = useState(0);
+    const [showDaySelector, setShowDaySelector] = useState(false);
+    const [optionForSchedule, setOptionForSchedule] = useState(null);
 
     const { schedules, loading } = useTripSchedules(trip.id);
 
@@ -91,10 +95,34 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             await saveTripSchedule(trip.id, activeDay, updated);
             setShowScheduleModal(false);
             setSelectedSchedule(null);
+            setOptionForSchedule(null);
         } catch (error) {
             console.error('Error saving schedule:', error);
             toast.error('일정 저장 중 오류가 발생했습니다.');
         }
+    };
+
+    const handleAddOptionToSchedule = (option) => {
+        setOptionForSchedule(option);
+        setShowDaySelector(true);
+    };
+
+    const handleDaySelected = (day) => {
+        setActiveDay(day);
+        setShowDaySelector(false);
+
+        // 선택한 옵션 정보를 일정 모달에 pre-fill
+        const scheduleData = {
+            title: optionForSchedule.title || '',
+            description: `[${optionForSchedule.title || ''}]\n${optionForSchedule.description || ''}${optionForSchedule.url ? '\n' + optionForSchedule.url : ''}`.trim(),
+            location: '',
+            cost: '',
+            time: '',
+            endTime: '',
+        };
+
+        setSelectedSchedule(scheduleData);
+        setShowScheduleModal(true);
     };
 
     const handleDeleteSchedule = async (scheduleId) => {
@@ -323,20 +351,52 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 </>
             )}
 
-            {/* 선택 사항 탭 (placeholder) */}
+            {/* 선택 사항 탭 */}
             {activeTab === 'decisions' && (
                 <div className="trip-detail-decisions-section">
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
-                        선택 사항 기능은 준비 중입니다.
-                    </div>
+                    <TravelDecisionsTab
+                        trip={trip}
+                        tripDays={tripDays}
+                        onAddToSchedule={handleAddOptionToSchedule}
+                    />
                 </div>
             )}
 
-            {/* 준비 체크리스트 탭 (placeholder) */}
+            {/* 준비 체크리스트 탭 */}
             {activeTab === 'checklist' && (
                 <div className="trip-detail-checklist-section">
-                    <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
-                        준비 체크리스트 기능은 준비 중입니다.
+                    <TravelChecklistTab trip={trip} />
+                </div>
+            )}
+
+            {/* 날짜 선택 모달 */}
+            {showDaySelector && optionForSchedule && (
+                <div className="day-selector-overlay">
+                    <div className="day-selector-modal">
+                        <div className="dsm-header">
+                            <h3 className="dsm-title">어느 날에 추가할까요?</h3>
+                        </div>
+                        <div className="dsm-days">
+                            {Array.from({ length: tripDays }, (_, i) => i + 1).map(day => (
+                                <button
+                                    key={day}
+                                    className="dsm-day-btn"
+                                    onClick={() => handleDaySelected(day)}
+                                >
+                                    <span className="dsm-day-num">Day {day}</span>
+                                    <span className="dsm-day-date">{getDayDate(day)}</span>
+                                </button>
+                            ))}
+                        </div>
+                        <button
+                            className="dsm-cancel-btn"
+                            onClick={() => {
+                                setShowDaySelector(false);
+                                setOptionForSchedule(null);
+                            }}
+                        >
+                            취소
+                        </button>
                     </div>
                 </div>
             )}
