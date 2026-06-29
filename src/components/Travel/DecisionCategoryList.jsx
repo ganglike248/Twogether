@@ -1,11 +1,12 @@
 // src/components/Travel/DecisionCategoryList.jsx
 import React, { useState, useRef } from 'react';
-import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore } from 'react-icons/md';
-import { sortByUserScore, addOption } from '../../services/travelDecisionService';
+import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit } from 'react-icons/md';
+import { sortByUserScore, addOption, updateDecision } from '../../services/travelDecisionService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import DecisionCard from './DecisionCard';
 import DecisionTopPick from './DecisionTopPick';
 import AddOptionModal from './AddOptionModal';
+import DecisionModal from './DecisionModal';
 import { toast } from 'react-toastify';
 import './DecisionCategoryList.css';
 
@@ -29,7 +30,8 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
   const { coupleDoc, getMemberName } = useAuthContext();
   const [showAddModal, setShowAddModal] = useState(null); // decision ID or null
   const [addingOption, setAddingOption] = useState(false);
-  const [expandedOptions, setExpandedOptions] = useState({}); // decision ID -> boolean
+  const [expandedOptions, setExpandedOptions] = useState({}); // decision ID -> boolean (기본 true)
+  const [editingDecision, setEditingDecision] = useState(null); // decision being edited (for DecisionModal)
   const cardRefs = useRef({}); // optionId -> ref
 
   // 커플 멤버 정보
@@ -66,6 +68,28 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
       toast.error('옵션 추가 중 오류가 발생했습니다.');
     } finally {
       setAddingOption(false);
+    }
+  };
+
+  const handleOpenEditModal = (decision) => {
+    setEditingDecision(decision);
+  };
+
+  const handleSaveDecision = async (decisionData) => {
+    try {
+      if (editingDecision) {
+        // 수정 모드
+        await updateDecision(tripId, editingDecision.id, {
+          category: decisionData.category,
+          title: decisionData.title,
+          description: decisionData.description,
+        });
+        toast.success('비교 주제가 수정되었습니다.');
+      }
+      setEditingDecision(null);
+    } catch (error) {
+      console.error('Error saving decision:', error);
+      toast.error('저장 중 오류가 발생했습니다.');
     }
   };
 
@@ -126,8 +150,17 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
           <div key={decision.id} className="dcl-decision-group">
             {/* 선택지 제목 */}
             <div className="dcl-decision-header">
-              <div>
-                <h4 className="dcl-decision-title">{decision.title}</h4>
+              <div className="dcl-title-section">
+                <div className="dcl-title-view">
+                  <h4 className="dcl-decision-title">{decision.title}</h4>
+                  <button
+                    className="dcl-title-edit-btn"
+                    onClick={() => handleOpenEditModal(decision)}
+                    title="수정"
+                  >
+                    <MdEdit size={16} />
+                  </button>
+                </div>
                 {decision.description && (
                   <p className="dcl-decision-description">{decision.description}</p>
                 )}
@@ -151,17 +184,26 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                   girlfriendInfo={girlfriendInfo}
                 />
 
+                {/* 옵션 추가 버튼 */}
+                <button
+                  className="dcl-add-option-btn"
+                  onClick={() => setShowAddModal(decision.id)}
+                >
+                  <MdAdd size={18} />
+                  옵션 추가
+                </button>
+
                 {/* 후보 카드 토글 버튼 */}
                 <button
-                  className={`dcl-toggle-options-btn ${expandedOptions[decision.id] ? 'expanded' : 'collapsed'}`}
+                  className={`dcl-toggle-options-btn ${expandedOptions[decision.id] !== false ? 'expanded' : 'collapsed'}`}
                   onClick={() => toggleOptions(decision.id)}
                 >
                   <MdExpandMore size={18} />
-                  <span>{expandedOptions[decision.id] ? '후보 숨기기' : '후보 보기'} ({decision.options.length})</span>
+                  <span>{expandedOptions[decision.id] !== false ? '후보 숨기기' : '후보 보기'} ({decision.options.length})</span>
                 </button>
 
                 {/* 모든 옵션 카드 (접기/펼치기) */}
-                {expandedOptions[decision.id] && (
+                {expandedOptions[decision.id] !== false && (
                   <div className="dcl-options-list">
                     {decision.options.map(option => (
                       <div
@@ -183,15 +225,6 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
               </>
             )}
 
-            {/* 옵션 추가 버튼 */}
-            <button
-              className="dcl-add-option-btn"
-              onClick={() => setShowAddModal(decision.id)}
-            >
-              <MdAdd size={18} />
-              옵션 추가
-            </button>
-
             {/* 옵션 추가 모달 */}
             {showAddModal === decision.id && (
               <AddOptionModal
@@ -204,6 +237,15 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
           </div>
         ))}
       </div>
+
+      {/* 비교 주제 수정 모달 - DecisionModal 재사용 */}
+      <DecisionModal
+        isOpen={!!editingDecision}
+        onClose={() => setEditingDecision(null)}
+        editingDecision={editingDecision}
+        onSave={handleSaveDecision}
+        tripId={tripId}
+      />
     </div>
   );
 };

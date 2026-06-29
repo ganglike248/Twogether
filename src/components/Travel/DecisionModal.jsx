@@ -12,7 +12,7 @@ const categories = [
   { value: 'custom', label: '기타', icon: MdPushPin },
 ];
 
-const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave }) => {
+const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecision }) => {
   const [formData, setFormData] = useState({
     category: 'accommodation',
     title: '',
@@ -20,6 +20,23 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave }) => {
   });
 
   const [loading, setLoading] = useState(false);
+
+  // editingDecision이 변경되면 폼 데이터 업데이트
+  React.useEffect(() => {
+    if (editingDecision) {
+      setFormData({
+        category: editingDecision.category || 'accommodation',
+        title: editingDecision.title || '',
+        description: editingDecision.description || '',
+      });
+    } else {
+      setFormData({
+        category: 'accommodation',
+        title: '',
+        description: '',
+      });
+    }
+  }, [editingDecision, isOpen]);
 
   if (!isOpen) return null;
 
@@ -39,21 +56,22 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave }) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      toast.error('카테고리 제목을 입력해주세요.');
+      toast.error('제목을 입력해주세요.');
       return;
     }
 
     setLoading(true);
     try {
       await onSave({
+        ...(editingDecision && { id: editingDecision.id }),
         category: formData.category,
         title: formData.title,
         description: formData.description,
-        options: [],
+        ...(editingDecision ? {} : { options: [] }),
       });
     } catch (error) {
-      console.error('Error creating decision:', error);
-      toast.error('카테고리 생성 중 오류가 발생했습니다.');
+      console.error('Error saving decision:', error);
+      toast.error(editingDecision ? '수정 중 오류가 발생했습니다.' : '생성 중 오류가 발생했습니다.');
     } finally {
       setLoading(false);
     }
@@ -63,7 +81,9 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave }) => {
     <div className="decision-modal-overlay">
       <div className="decision-modal-container">
         <div className="decision-modal-header">
-          <h2 className="decision-modal-title">새로운 비교 주제 추가</h2>
+          <h2 className="decision-modal-title">
+            {editingDecision ? '비교 주제 수정' : '새로운 비교 주제 추가'}
+          </h2>
           <button className="decision-modal-close" onClick={onClose}>
             <MdClose size={20} />
           </button>
@@ -126,7 +146,7 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave }) => {
               className="dm-btn submit"
               disabled={loading}
             >
-              {loading ? '생성 중...' : '생성'}
+              {loading ? (editingDecision ? '수정 중...' : '생성 중...') : (editingDecision ? '수정' : '생성')}
             </button>
           </div>
         </form>

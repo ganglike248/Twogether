@@ -50,11 +50,41 @@
     margin-bottom: 1rem;
 }
 
+.dcl-title-section {
+    flex: 1;
+}
+
+.dcl-title-view {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
 .dcl-decision-title {
     font-size: 1rem;
     font-weight: 700;
     color: var(--color-gray-800);
     margin: 0;
+}
+
+.dcl-title-edit-btn {
+    width: 24px;
+    height: 24px;
+    padding: 0;
+    border: none;
+    background: white;
+    color: #3498db;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 0.3rem;
+    transition: all 0.15s;
+}
+
+.dcl-title-edit-btn:hover {
+    background: rgba(52, 152, 219, 0.1);
+    color: #2980b9;
 }
 
 .dcl-decision-description {
@@ -143,20 +173,21 @@
     align-items: center;
     justify-content: center;
     gap: 0.4rem;
-    padding: 0.5rem 1rem;
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.2) 0%, rgba(255, 155, 172, 0.1) 100%);
-    border: 2px dashed rgba(255, 182, 193, 0.4);
+    padding: 0.5rem 0.9rem;
+    background: white;
+    border: 1.5px solid #ffb6c1;
     border-radius: 0.5rem;
     color: #ff9bac;
     cursor: pointer;
     font-size: 0.85rem;
     font-weight: 600;
     transition: all 0.15s;
+    margin-bottom: 0.75rem;
 }
 
 .dcl-add-option-btn:hover {
-    border-color: rgba(255, 182, 193, 0.6);
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 155, 172, 0.15) 100%);
+    background: rgba(255, 182, 193, 0.05);
+    border-color: #ff9bac;
     color: #ff6b9d;
 }
 
@@ -164,5 +195,17 @@
 @media (max-width: 640px) {
     .dcl-options-list {
         grid-template-columns: 1fr;
+    }
+
+    .dcl-edit-modal-container {
+        max-width: 90vw;
+    }
+
+    .dcl-edit-modal-actions {
+        flex-direction: column;
+    }
+
+    .dcl-edit-modal-btn {
+        width: 100%;
     }
 }

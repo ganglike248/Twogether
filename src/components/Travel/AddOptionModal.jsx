@@ -60,7 +60,6 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
       setFormData({ title: '', url: '', description: '', price: '', images: [] });
       setImageInput('');
       onClose();
-      toast.success('옵션이 추가되었습니다.');
     } catch (error) {
       console.error('Error adding option:', error);
       toast.error('옵션 추가 중 오류가 발생했습니다.');
@@ -154,15 +153,16 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
 
             {/* 추가된 이미지 목록 */}
             {formData.images.length > 0 && (
-              <div className="aom-images-list">
+              <div className="aom-images-preview">
                 {formData.images.map((img, idx) => (
-                  <div key={idx} className="aom-image-item">
-                    <span className="aom-image-url">{img}</span>
+                  <div key={idx} className="aom-image-preview-item">
+                    <img src={img} alt={`Preview ${idx + 1}`} className="aom-image-thumb" />
                     <button
                       type="button"
                       onClick={() => handleRemoveImage(idx)}
                       className="aom-remove-image-btn"
                       disabled={loading}
+                      title="이미지 제거"
                     >
                       ✕
                     </button>
