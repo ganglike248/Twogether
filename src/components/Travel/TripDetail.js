@@ -15,6 +15,7 @@ import TravelTimeInput from './TravelTimeInput';
 import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
+    const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'decisions' | 'checklist'
     const [activeDay, setActiveDay] = useState(1);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState(null);
@@ -231,22 +232,47 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 )}
             </div>
 
-            {/* Day 탭 */}
-            <div className="trip-detail-day-tabs">
-                {Array.from({ length: tripDays }, (_, i) => i + 1).map(day => (
-                    <button
-                        key={day}
-                        className={`td-day-tab ${activeDay === day ? 'active' : ''}`}
-                        onClick={() => setActiveDay(day)}
-                    >
-                        <span className="td-day-num">Day {day}</span>
-                        <span className="td-day-date">{getDayDate(day)}</span>
-                    </button>
-                ))}
+            {/* 탭 */}
+            <div className="trip-detail-main-tabs">
+                <button
+                    className={`td-main-tab ${activeTab === 'schedule' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('schedule')}
+                >
+                    Day별 일정
+                </button>
+                <button
+                    className={`td-main-tab ${activeTab === 'decisions' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('decisions')}
+                >
+                    선택 사항
+                </button>
+                <button
+                    className={`td-main-tab ${activeTab === 'checklist' ? 'active' : ''}`}
+                    onClick={() => setActiveTab('checklist')}
+                >
+                    준비 체크리스트
+                </button>
             </div>
 
-            {/* 일정 영역 */}
-            <div className="trip-detail-schedule-section">
+            {/* Day별 일정 탭 */}
+            {activeTab === 'schedule' && (
+                <>
+                    {/* Day 탭 */}
+                    <div className="trip-detail-day-tabs">
+                        {Array.from({ length: tripDays }, (_, i) => i + 1).map(day => (
+                            <button
+                                key={day}
+                                className={`td-day-tab ${activeDay === day ? 'active' : ''}`}
+                                onClick={() => setActiveDay(day)}
+                            >
+                                <span className="td-day-num">Day {day}</span>
+                                <span className="td-day-date">{getDayDate(day)}</span>
+                            </button>
+                        ))}
+                    </div>
+
+                    {/* 일정 영역 */}
+                    <div className="trip-detail-schedule-section">
                 <div className="td-schedule-header">
                     <span className="td-schedule-title">Day {activeDay} 일정</span>
                     <button
@@ -293,7 +319,27 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                         ))}
                     </div>
                 )}
-            </div>
+                    </div>
+                </>
+            )}
+
+            {/* 선택 사항 탭 (placeholder) */}
+            {activeTab === 'decisions' && (
+                <div className="trip-detail-decisions-section">
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                        선택 사항 기능은 준비 중입니다.
+                    </div>
+                </div>
+            )}
+
+            {/* 준비 체크리스트 탭 (placeholder) */}
+            {activeTab === 'checklist' && (
+                <div className="trip-detail-checklist-section">
+                    <div style={{ padding: '2rem', textAlign: 'center', color: '#999' }}>
+                        준비 체크리스트 기능은 준비 중입니다.
+                    </div>
+                </div>
+            )}
 
             {showScheduleModal && (
                 <ScheduleModal

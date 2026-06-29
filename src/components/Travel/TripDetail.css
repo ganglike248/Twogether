@@ -338,3 +338,60 @@
 }
 
 .td-empty-add-btn:hover { opacity: 0.88; }
+
+/* 메인 탭 (Day별 일정, 선택 사항, 준비 체크리스트) */
+.trip-detail-main-tabs {
+    display: flex;
+    gap: 0.5rem;
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    padding: 0.5rem;
+    margin-top: 0.75rem;
+}
+
+.td-main-tab {
+    flex: 1;
+    padding: 0.625rem 0.875rem;
+    background: transparent;
+    border: 1px solid transparent;
+    border-radius: 0.75rem;
+    cursor: pointer;
+    font-size: 0.82rem;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    transition: all 0.15s;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.td-main-tab:hover {
+    background: rgba(255, 182, 193, 0.1);
+    color: var(--color-gray-700);
+}
+
+.td-main-tab.active {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border-color: #ff9bac;
+}
+
+/* 선택 사항 섹션 (placeholder) */
+.trip-detail-decisions-section {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    margin-top: 0.75rem;
+}
+
+/* 체크리스트 섹션 (placeholder) */
+.trip-detail-checklist-section {
+    background: white;
+    border-radius: var(--border-radius-lg);
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    margin-top: 0.75rem;
+}

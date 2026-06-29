@@ -159,5 +159,37 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.userId;
     }
+
+    // 여행 선택지 (v0.3.51): 커플 멤버만 접근 가능
+    match /trips/{tripId}/travelDecisions/{decisionId} {
+      allow read: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow delete: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+    }
+
+    // 여행 체크리스트 (v0.3.51): 커플 멤버만 접근 가능
+    match /trips/{tripId}/checklists/{checklistId} {
+      allow read: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow create: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+      allow delete: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
+    }
   }
 }
