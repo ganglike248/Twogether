@@ -174,6 +174,16 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
               </button>
             </div>
 
+            {/* 최고 선택 (옵션이 있을 때만) */}
+            {decision.options && decision.options.length > 0 && (
+              <DecisionTopPick
+                options={decision.options}
+                onSelectOption={(optionId) => handleSelectTopPick(optionId, decision.id)}
+                boyfriendInfo={boyfriendInfo}
+                girlfriendInfo={girlfriendInfo}
+              />
+            )}
+
             {/* 옵션 추가 버튼 - 항상 표시 (첫 후보 추가용) */}
             <button
               className="dcl-add-option-btn"
@@ -183,16 +193,9 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
               후보 추가하기
             </button>
 
-            {/* 최고 선택 + 후보 토글 (옵션이 있을 때만) */}
+            {/* 후보 카드 토글 + 옵션 카드 (옵션이 있을 때만) */}
             {decision.options && decision.options.length > 0 && (
               <>
-                <DecisionTopPick
-                  options={decision.options}
-                  onSelectOption={(optionId) => handleSelectTopPick(optionId, decision.id)}
-                  boyfriendInfo={boyfriendInfo}
-                  girlfriendInfo={girlfriendInfo}
-                />
-
                 {/* 후보 카드 토글 버튼 */}
                 <button
                   className={`dcl-toggle-options-btn ${expandedOptions[decision.id] !== false ? 'expanded' : 'collapsed'}`}
