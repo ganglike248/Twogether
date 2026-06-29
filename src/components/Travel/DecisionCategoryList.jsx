@@ -174,7 +174,16 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
               </button>
             </div>
 
-            {/* 최고 선택 (Q2 구현) */}
+            {/* 옵션 추가 버튼 - 항상 표시 (첫 후보 추가용) */}
+            <button
+              className="dcl-add-option-btn"
+              onClick={() => setShowAddModal(decision.id)}
+            >
+              <MdAdd size={18} />
+              후보 추가하기
+            </button>
+
+            {/* 최고 선택 + 후보 토글 (옵션이 있을 때만) */}
             {decision.options && decision.options.length > 0 && (
               <>
                 <DecisionTopPick
@@ -183,15 +192,6 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                   boyfriendInfo={boyfriendInfo}
                   girlfriendInfo={girlfriendInfo}
                 />
-
-                {/* 옵션 추가 버튼 */}
-                <button
-                  className="dcl-add-option-btn"
-                  onClick={() => setShowAddModal(decision.id)}
-                >
-                  <MdAdd size={18} />
-                  후보 추가하기
-                </button>
 
                 {/* 후보 카드 토글 버튼 */}
                 <button
