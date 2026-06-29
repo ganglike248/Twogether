@@ -1,7 +1,7 @@
 // src/components/Travel/TravelChecklistTab.jsx
 import React, { useState, useEffect } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { useTravelChecklist } from '../../hooks/useTravelChecklist';
+import { useAuthContext } from '../../../contexts/AuthContext';
+import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import {
   createChecklist,
   addChecklistItem,
@@ -9,7 +9,7 @@ import {
   deleteChecklistItem,
   toggleChecklistItem,
   calculateProgress,
-} from '../../services/travelChecklistService';
+} from '../../../services/travelChecklistService';
 import ChecklistItem from './ChecklistItem';
 import ChecklistModal from './ChecklistModal';
 import { MdCheckCircle } from 'react-icons/md';

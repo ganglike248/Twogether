@@ -1,6 +1,6 @@
 // src/components/Travel/TravelCardSkeleton.jsx
 import React from 'react';
-import Skeleton from '../common/Skeleton';
+import Skeleton from '../../common/Skeleton';
 
 export const TravelCardSkeleton = () => (
   <div className="travel-card-skeleton">

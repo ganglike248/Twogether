@@ -3,9 +3,9 @@ import React, { useState, useEffect } from 'react';
 import { format } from 'date-fns';
 import { toast } from 'react-toastify';
 import './TripModal.css';
-import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
-import { convertToDate } from '../../utils/dataUtils';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
+import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
+import { convertToDate } from '../../../utils/dataUtils';
+import { useModalBackButton } from '../../../hooks/useModalBackButton';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     useModalBackButton(isOpen, onClose);

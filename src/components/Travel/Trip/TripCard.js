@@ -3,8 +3,8 @@ import React, { useState, useEffect } from 'react';
 import { differenceInDays } from 'date-fns';
 import { MdEdit, MdDelete, MdLocationOn } from 'react-icons/md';
 import './TripCard.css';
-import { useTripSchedules } from '../../hooks/useTrip';
-import { formatDate, convertToDate } from '../../utils/dataUtils';
+import { useTripSchedules } from '../../../hooks/useTrip';
+import { formatDate, convertToDate } from '../../../utils/dataUtils';
 
 const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);

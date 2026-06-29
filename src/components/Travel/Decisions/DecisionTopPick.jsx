@@ -1,6 +1,6 @@
 // src/components/Travel/DecisionTopPick.jsx
 import React from 'react';
-import { getTopOptions } from '../../services/travelDecisionService';
+import { getTopOptions } from '../../../services/travelDecisionService';
 import { MdArrowForward } from 'react-icons/md';
 import './DecisionTopPick.css';
 

@@ -2,7 +2,7 @@
 import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import './ScheduleModal.css';
-import { addCommas, formatInputNumber, removeCommas } from '../../utils/numberFormat';
+import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
 const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
     const [formData, setFormData] = useState({
         time: '',

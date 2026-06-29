@@ -1,8 +1,8 @@
 // src/components/Travel/DecisionCategoryList.jsx
 import React, { useState, useRef } from 'react';
 import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit } from 'react-icons/md';
-import { sortByUserScore, addOption, updateDecision } from '../../services/travelDecisionService';
-import { useAuthContext } from '../../contexts/AuthContext';
+import { sortByUserScore, addOption, updateDecision } from '../../../services/travelDecisionService';
+import { useAuthContext } from '../../../contexts/AuthContext';
 import DecisionCard from './DecisionCard';
 import DecisionTopPick from './DecisionTopPick';
 import AddOptionModal from './AddOptionModal';

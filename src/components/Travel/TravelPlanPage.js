@@ -5,11 +5,11 @@ import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
 import { createTrip, updateTrip, deleteTrip } from '../../services/tripService';
 import { useAuthContext } from '../../contexts/AuthContext';
-import TripModal from './TripModal';
-import TripCard from './TripCard';
-import TripDetail from './TripDetail';
+import TripModal from './Trip/TripModal';
+import TripCard from './Trip/TripCard';
+import TripDetail from './Trip/TripDetail';
 import EmptyState from '../common/EmptyState';
-import { TravelPlanSkeleton } from './TravelCardSkeleton';
+import { TravelPlanSkeleton } from './Trip/TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
 import './TravelPlanPage.css';
 

@@ -1,7 +1,7 @@
 // src/components/Travel/DecisionCard.jsx
 import React, { useState, useRef } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { addScore, getUserScore, deleteOption, updateOption } from '../../services/travelDecisionService';
+import { useAuthContext } from '../../../contexts/AuthContext';
+import { addScore, getUserScore, deleteOption, updateOption } from '../../../services/travelDecisionService';
 import EditOptionModal from './EditOptionModal';
 import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { toast } from 'react-toastify';

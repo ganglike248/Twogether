@@ -5,15 +5,15 @@ import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { MdDateRange } from 'react-icons/md';
-import { useTripSchedules } from '../../hooks/useTrip';
-import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../services/tripService';
-import { formatDate, convertToDate } from '../../utils/dataUtils';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
-import ScheduleItem from './ScheduleItem';
-import ScheduleModal from './ScheduleModal';
-import TravelTimeInput from './TravelTimeInput';
-import TravelDecisionsTab from './TravelDecisionsTab';
-import TravelChecklistTab from './TravelChecklistTab';
+import { useTripSchedules } from '../../../hooks/useTrip';
+import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
+import { formatDate, convertToDate } from '../../../utils/dataUtils';
+import { useModalBackButton } from '../../../hooks/useModalBackButton';
+import ScheduleItem from '../Schedule/ScheduleItem';
+import ScheduleModal from '../Schedule/ScheduleModal';
+import TravelTimeInput from '../Schedule/TravelTimeInput';
+import TravelDecisionsTab from '../Decisions/TravelDecisionsTab';
+import TravelChecklistTab from '../Checklist/TravelChecklistTab';
 import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {

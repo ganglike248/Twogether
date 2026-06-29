@@ -1,13 +1,13 @@
 // src/components/Travel/TravelDecisionsTab.jsx
 import React, { useState } from 'react';
-import { useAuthContext } from '../../contexts/AuthContext';
-import { useTravelDecisions } from '../../hooks/useTravelDecisions';
+import { useAuthContext } from '../../../contexts/AuthContext';
+import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import {
   createDecision,
   deleteDecision,
   sortByUserScore,
   getTopOptions,
-} from '../../services/travelDecisionService';
+} from '../../../services/travelDecisionService';
 import DecisionCategoryList from './DecisionCategoryList';
 import DecisionModal from './DecisionModal';
 import { MdGpsFixed } from 'react-icons/md';
