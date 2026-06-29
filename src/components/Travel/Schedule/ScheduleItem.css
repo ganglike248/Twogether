@@ -107,6 +107,37 @@
     display: flex;
     align-items: center;
     gap: 0.2rem;
+    background: rgba(40, 167, 69, 0.05);
+    padding: 0.3rem 0.5rem;
+    border: 1px solid rgba(40, 167, 69, 0.15);
+    border-radius: 0.35rem;
+    cursor: pointer;
+    transition: all 0.15s ease;
+    font-family: inherit;
+    text-align: left;
+    width: fit-content;
+    outline: none;
+}
+
+.schedule-item-location:hover {
+    background: rgba(40, 167, 69, 0.12);
+    border-color: rgba(40, 167, 69, 0.3);
+    color: #1e7e34;
+}
+
+.schedule-item-location:active {
+    transform: scale(0.95);
+    background: rgba(40, 167, 69, 0.15);
+}
+
+.schedule-item-location-text {
+    text-decoration: underline;
+    text-decoration-color: rgba(40, 167, 69, 0.3);
+    text-underline-offset: 2px;
+}
+
+.schedule-item-location:hover .schedule-item-location-text {
+    text-decoration-color: rgba(40, 167, 69, 0.6);
 }
 
 .schedule-item-cost {

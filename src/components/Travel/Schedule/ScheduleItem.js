@@ -13,6 +13,20 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
         } catch { return time; }
     };
 
+    const handleLocationClick = (e) => {
+        e.stopPropagation();
+        const encodedLocation = encodeURIComponent(schedule.location);
+        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+
+        if (isMobile) {
+            // 모바일: 네이버 지도 앱 우선 (앱 없으면 웹으로 자동 폴백)
+            window.open(`naver://searchlist?query=${encodedLocation}`, '_blank');
+        } else {
+            // PC: 네이버 지도 웹 검색
+            window.open(`https://map.naver.com/?query=${encodedLocation}`, '_blank');
+        }
+    };
+
     return (
         <div
             className={`schedule-item ${schedule.completed ? 'schedule-item-completed' : ''}`}
@@ -40,10 +54,14 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
                     <p className="schedule-item-description">{schedule.description}</p>
                 )}
                 {(schedule.location || '').trim() && (
-                    <p className="schedule-item-location">
+                    <button
+                        className="schedule-item-location"
+                        onClick={handleLocationClick}
+                        title="네이버 지도에서 보기"
+                    >
                         <MdLocationOn className="schedule-item-meta-icon" />
-                        {schedule.location}
-                    </p>
+                        <span className="schedule-item-location-text">{schedule.location}</span>
+                    </button>
                 )}
                 {schedule.cost > 0 && (
                     <p className="schedule-item-cost">
