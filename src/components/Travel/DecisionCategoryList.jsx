@@ -190,7 +190,7 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                   onClick={() => setShowAddModal(decision.id)}
                 >
                   <MdAdd size={18} />
-                  옵션 추가
+                  후보 추가하기
                 </button>
 
                 {/* 후보 카드 토글 버튼 */}
