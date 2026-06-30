@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { addScore, getUserScore, deleteOption, updateOption } from '../../../services/travelDecisionService';
+import { handleOpenLink } from '../../../utils/appLinkUtils';
 import EditOptionModal from './EditOptionModal';
 import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { toast } from 'react-toastify';
@@ -174,14 +175,13 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
 
       {/* URL 링크 */}
       {option.url && (
-        <a
-          href={option.url}
-          target="_blank"
-          rel="noopener noreferrer"
+        <button
+          onClick={(e) => handleOpenLink(e, option.url)}
           className="dc-url-link"
+          title="링크 열기 (해당 앱으로 이동)"
         >
           {option.url}
-        </a>
+        </button>
       )}
 
       {/* 점수 표시 */}

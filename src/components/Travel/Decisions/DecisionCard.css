@@ -190,14 +190,29 @@
     color: #3498db;
     text-decoration: none;
     word-break: break-all;
-    transition: color 0.15s;
+    transition: all 0.15s;
     margin: 0 0 0.25rem 0;
     display: block;
+    background: none;
+    border: none;
+    padding: 0;
+    text-align: left;
+    font-family: inherit;
+    cursor: pointer;
+    padding: 0.3rem 0.5rem;
+    border-radius: 0.3rem;
+    margin-left: -0.5rem;
+    margin-right: -0.5rem;
 }
 
 .dc-url-link:hover {
     color: #2980b9;
     text-decoration: underline;
+    background: rgba(52, 152, 219, 0.05);
+}
+
+.dc-url-link:active {
+    transform: scale(0.98);
 }
 
 /* ===== 점수 표시 ===== */

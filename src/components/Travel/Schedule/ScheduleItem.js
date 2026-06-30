@@ -16,11 +16,24 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
     const handleLocationClick = (e) => {
         e.stopPropagation();
         const encodedLocation = encodeURIComponent(schedule.location);
-        const isMobile = /iPhone|iPad|iPod|Android/i.test(navigator.userAgent);
+        const userAgent = navigator.userAgent.toLowerCase();
+        const isAndroid = /android/i.test(userAgent);
+        const isIOS = /iphone|ipad|ipod/i.test(userAgent);
 
-        if (isMobile) {
-            // 모바일: 네이버 지도 앱 우선 (앱 없으면 웹으로 자동 폴백)
-            window.open(`naver://searchlist?query=${encodedLocation}`, '_blank');
+        if (isAndroid) {
+            // Android: 네이버 지도 앱 (naver://search?query=...) → 앱 없으면 웹으로 폴백
+            try {
+                window.location.href = `naver://search?query=${encodedLocation}`;
+                // 앱이 없으면 웹 버전으로 폴백 (500ms 후 웹 열기)
+                setTimeout(() => {
+                    window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
+                }, 500);
+            } catch {
+                window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
+            }
+        } else if (isIOS) {
+            // iOS: 모바일 웹 버전 (앱 URL scheme이 불안정함)
+            window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
         } else {
             // PC: 네이버 지도 웹 검색
             window.open(`https://map.naver.com/?query=${encodedLocation}`, '_blank');
