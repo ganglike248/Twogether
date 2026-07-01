@@ -49,21 +49,13 @@ trips 컬렉션에서만 여행 이벤트를 FullCalendar 형식으로 변환하
 MemoryList에도 [개인] 필터 탭으로 표시됨 (과거 일정만, start <= 오늘).
 MemoryList의 `todayStr` 계산: `toISOString()` 금지 — UTC 변환으로 KST에서 하루 밀리고, 이벤트 저장 형식(`'YYYY-MM-DDT00:00:00'`)과 문자열 비교 시 같은 날짜도 제외됨. 반드시 `getFullYear/getMonth/getDate()`로 로컬 날짜 포맷 사용.  
 Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.  
-`useCalendar(coupleId, userId)` — userId 두 번째 파라미터 필수. `extendedProps.isPersonal = true`로 구분.
+Home.jsx도 `useCalendarData(coupleId, userId)` 사용 — Calendar.jsx와 동일한 훅. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
 
-**useCalendar.js 필터 패턴 주의**: 두 `useEffect`가 각각 `setEvents`를 functional update로 호출.
-- 커플 이벤트 구독: `prev.filter(e => e.extendedProps?.isPersonal)` → 개인 이벤트 보존 + 커플 교체
-- 개인 이벤트 구독: `prev.filter(e => !e.extendedProps?.isPersonal)` → 커플 이벤트 보존 + 개인 교체
+**useCalendarData.js 필터 패턴 주의**: 4개 `useEffect`가 각각 `setEvents`를 functional update로 호출.
+- 커플 이벤트 구독: `prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal')` → trip/personal 보존 + 커플 교체
+- 여행 구독: `prev.filter(e => !e.extendedProps.isTrip)` → 커플/personal 보존 + trip 교체
+- 개인 이벤트 구독: `prev.filter(e => e.extendedProps.eventType !== 'personal')` → 커플/trip 보존 + personal 교체
 필터 방향을 반대로 쓰면 한쪽 이벤트가 손실되므로 주의.
-
-**useCalendar.js vs useCalendarData.js 개인 이벤트 구별 기준 차이**:
-- `useCalendar.js`(Home 전용): `extendedProps.isPersonal` 플래그로 구별
-- `useCalendarData.js`(Calendar 전용): `extendedProps.eventType !== 'personal'`로 구별
-두 훅이 서로 다른 필드를 기준으로 필터링함. 수정 시 혼용 금지.
-
-**useCalendar.js 세 번째 인자 `myRole`**: 레거시 `isCouple` boolean 필드 폴백 처리용.
-`data.eventType`이 존재하는 신규 이벤트에서는 `myRole`이 실제로 사용되지 않음.
-시그니처: `useCalendar(coupleId, userId, myRole)` — `myRole`은 있어도 없어도 신규 데이터에 영향 없음.
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
@@ -151,33 +143,36 @@ services/
   authService.js         → 회원가입/로그인, createCouple(inviteCodes 동시 생성), joinCouple(inviteCodes 조회)
 
 hooks/
-  useCalendarData.js     → Calendar.jsx 전용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
-                           여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함 (useCalendar에는 없음 — Home은 여행 이벤트를 표시하지 않으므로 문제 없음).
+  useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
+                           여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함.
                            isLoading: 4개 구독(events/trips/cycles/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false. 커플 이벤트 snapshot 교체 시 functional update로 trips/personal 보존.
-  useCalendar.js         → Home.jsx 전용 이벤트 훅 (coupleId, userId, myRole) — userId 필수, 필터 패턴 주의(위 참고). myRole은 레거시 폴백 전용(위 참고)
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
   useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
   useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
   useTrip.js             → 여행 구독 (useTrips, useTripSchedules)
+  useTravelChecklist.js  → trips/{tripId}/checklists/main 실시간 구독 래퍼
+  useTravelDecisions.js  → trips/{tripId}/travelDecisions 실시간 구독 래퍼
   useHeroImage.js        → 홈 사진 파일 선택/미리보기
   useDoubleClickPrevention.js → 더블 탭/클릭 방지
   useAnalytics.js        → analyticsService.js 래퍼 훅 — Google Analytics 커스텀 이벤트 + 페이지뷰 추적
   useModalBackButton.js  → 모달 뒤로가기 처리 — 열릴 때 pushState, 뒤로가기 시 onClose 호출, 일반 닫기 시 history.back() 정리. 모듈 레벨 LIFO 스택으로 스택 모달(DayModal→EventModal)도 순서대로 처리.
                            같은 컴포넌트에서 2번 호출 가능 (예: Sidebar — 사이드바 자체 + 로그아웃 확인 모달 각각 등록). LIFO 순으로 로그아웃 모달 → 사이드바 순 닫힘이 보장됨.
   
-  ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendar/useCalendarData 내부에 통합
+  ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendarData 내부에 통합
 
 utils/
   dataUtils.js           → 날짜 변환/포맷 유틸. calcDday(anniversaryDate) — D+day 계산 공통 함수
   koreanHolidays.js      → 한국 공휴일 + 음력 명절 + 커플기념일 계산
   numberFormat.js        → 숫자 포맷
+  appLinkUtils.js        → URL을 플랫폼별 앱 딥링크로 변환 (YouTube/Google Maps/Naver/Kakao/Yanolja 등). getAppLink(url), handleOpenLink(e, url)
 ```
 
 ## 추가 구현 기능 (주요 컴포넌트)
 - **WheelModal** (`src/components/Wheel/WheelModal.jsx`) — 돌림판 슬롯머신. 버킷리스트 연동 + 직접 항목 추가. Home에서 버튼으로 열림
 - **OnboardingSlides / TutorialSlides** (`src/components/Onboarding/`) — 최초 로그인 시 온보딩, 커플 연결 후 튜토리얼 자동 표시
 - **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
-- **TravelTimeInput** (`src/components/Travel/TravelTimeInput.jsx`) — 여행 일정 간 이동 시간 기록
+- **TravelTimeInput** (`src/components/Travel/Schedule/TravelTimeInput.js`) — 여행 일정 간 이동 시간 기록
+- **ScheduleModal** (`src/components/Travel/Schedule/ScheduleModal.js`) — 여행 일정 추가/편집 모달
 - **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
 - **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
@@ -211,8 +206,6 @@ utils/
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
 - 소셜 로그인 (Google/Kakao, 장기)
-- useCalendar.js + useCalendarData.js 중복 onSnapshot 구독 통합 (Home↔Calendar 이동 시 과금)
-- 배란일 음수 가드: v0.3.38에서 수정 완료
 - MemoryList 검색 시 페이지네이션 미동작: 검색어 입력 중 `fetchMoreMemories` 스킵 → 전체 로드 후 클라이언트 필터 방식 (대량 데이터 시 성능 이슈)
 
 ### EventModal 개인 일정 localStorage 동작 (의도적 설계)
