@@ -116,8 +116,8 @@ const TravelChecklistTab = ({ trip }) => {
             style={{
               width: `${progress}%`,
               background: progress === 100
-                ? 'linear-gradient(90deg, #4caf50, #45a049)'
-                : 'linear-gradient(90deg, #ffb6c1, #ff9bac)',
+                ? 'linear-gradient(90deg, #c8edc8, #b0e0b0)'
+                : 'linear-gradient(90deg, #ffe8ef, #ffd6e2)',
             }}
           />
         </div>

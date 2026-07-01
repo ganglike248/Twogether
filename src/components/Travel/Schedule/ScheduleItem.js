@@ -15,28 +15,35 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
 
     const handleLocationClick = (e) => {
         e.stopPropagation();
-        const encodedLocation = encodeURIComponent(schedule.location);
-        const userAgent = navigator.userAgent.toLowerCase();
-        const isAndroid = /android/i.test(userAgent);
-        const isIOS = /iphone|ipad|ipod/i.test(userAgent);
+        const query = schedule.location;
+        const encodedQuery = encodeURIComponent(query);
+        const ua = navigator.userAgent;
+        const isAndroid = /android/i.test(ua);
+        const isIOS = /iphone|ipad|ipod/i.test(ua);
+        const mobileWebUrl = `https://m.map.naver.com/search.naver?query=${encodedQuery}`;
 
         if (isAndroid) {
-            // Android: 네이버 지도 앱 (naver://search?query=...) → 앱 없으면 웹으로 폴백
-            try {
-                window.location.href = `naver://search?query=${encodedLocation}`;
-                // 앱이 없으면 웹 버전으로 폴백 (500ms 후 웹 열기)
-                setTimeout(() => {
-                    window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
-                }, 500);
-            } catch {
-                window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
-            }
+            // Android Intent URL: 앱 있으면 앱, 없으면 fallbackUrl로 자동 이동 (setTimeout 불필요)
+            const fallbackUrl = encodeURIComponent(mobileWebUrl);
+            window.location.href =
+                `intent://search?query=${encodedQuery}#Intent;scheme=naver;package=com.nhn.android.nmap;S.browser_fallback_url=${fallbackUrl};end`;
         } else if (isIOS) {
-            // iOS: 모바일 웹 버전 (앱 URL scheme이 불안정함)
-            window.open(`https://m.map.naver.com/search.naver?query=${encodedLocation}`, '_blank');
+            // iOS: nmap:// 딥링크 시도 → visibilitychange로 앱 열림 감지 → 미열림 시 웹 폴백
+            const appUrl = `nmap://search?query=${encodedQuery}&appname=twogether-206fb.web.app`;
+            let appOpened = false;
+            const onVisibilityChange = () => {
+                if (document.hidden) appOpened = true;
+                document.removeEventListener('visibilitychange', onVisibilityChange);
+            };
+            document.addEventListener('visibilitychange', onVisibilityChange);
+            window.location.href = appUrl;
+            setTimeout(() => {
+                document.removeEventListener('visibilitychange', onVisibilityChange);
+                if (!appOpened) window.open(mobileWebUrl, '_blank');
+            }, 1500);
         } else {
             // PC: 네이버 지도 웹 검색
-            window.open(`https://map.naver.com/?query=${encodedLocation}`, '_blank');
+            window.open(`https://map.naver.com/?query=${encodedQuery}`, '_blank');
         }
     };
 

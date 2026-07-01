@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.3 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.4 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -190,6 +190,15 @@ utils/
   - `undecideDecision()` — `travelDecisionService.js`에 추가됨 (status→'deciding', decidedOption→null)
 
 ## 주요 서비스 패턴 주의사항
+
+### travelChecklistService — serverTimestamp() 배열 금지 (v0.4.4~)
+`trips/{tripId}/checklists/main` 문서의 `items[]` 배열 안에 `serverTimestamp()`를 사용하면 Firestore가 쓰기를 거부함.  
+배열 항목 내부 타임스탬프는 반드시 `Date.now()` 사용. 문서 최상위 `updatedAt`은 `serverTimestamp()` 유지.
+
+### ScheduleItem 위치 딥링크 패턴 (v0.4.4~)
+- Android: `intent://search?query=...#Intent;scheme=naver;package=com.nhn.android.nmap;S.browser_fallback_url=...;end` — 앱/폴백 브라우저 자동 처리
+- iOS: `nmap://search?query=...&appname=twogether-206fb.web.app` + `visibilitychange` 이벤트로 앱 열림 감지, 1.5초 후 미열림 시 웹 폴백
+- `setTimeout` + `window.location.href` 조합 금지 — 앱 설치 여부와 무관하게 항상 웹 탭이 추가로 열림
 
 ### BucketListPage 구독 구조 (v0.3.35~)
 `bucketlists` 컬렉션은 `coupleId` 기준으로만 구독 (카테고리 필터 없음).  

@@ -1,10 +1,10 @@
 // src/services/travelChecklistService.js
 import {
-  collection,
   doc,
   getDoc,
   setDoc,
   updateDoc,
+  deleteDoc,
   serverTimestamp,
   onSnapshot,
 } from 'firebase/firestore';
@@ -82,7 +82,7 @@ export const addChecklistItem = async (tripId, itemData) => {
     dueDate: itemData.dueDate || null,
     priority: itemData.priority || 'medium',
     order: (checklist.items?.length || 0) + 1,
-    createdAt: serverTimestamp(),
+    createdAt: Date.now(),
   };
 
   const updatedItems = [...(checklist.items || []), newItem];
@@ -116,7 +116,7 @@ export const toggleChecklistItem = async (tripId, itemId, userId) => {
       ...item,
       completed: isCompleting,
       completedBy: isCompleting ? userId : null,
-      completedAt: isCompleting ? serverTimestamp() : null,
+      completedAt: isCompleting ? Date.now() : null,
     };
   });
 
@@ -144,10 +144,7 @@ export const updateChecklistItem = async (tripId, itemId, updates) => {
     return {
       ...item,
       ...updates,
-      // 완료 상태 변경 시 타임스탬프 유지
-      updatedAt: updates.title || updates.description || updates.priority || updates.dueDate
-        ? serverTimestamp()
-        : item.updatedAt,
+      updatedAt: Date.now(),
     };
   });
 

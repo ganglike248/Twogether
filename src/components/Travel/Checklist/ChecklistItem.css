@@ -32,18 +32,18 @@
     border-radius: 0.4rem;
     border: 2px solid var(--card-border);
     cursor: pointer;
-    accent-color: #ffb6c1;
+    accent-color: #ff9bac;
     flex-shrink: 0;
     margin-top: 0.2rem;
 }
 
 .ci-checkbox:hover {
-    border-color: #ffb6c1;
+    border-color: #ffc4ce;
 }
 
 .ci-checkbox:checked {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    border-color: #ff9bac;
+    background: linear-gradient(135deg, #ffd1dc 0%, #ffbcca 100%);
+    border-color: #ffbcca;
 }
 
 /* 콘텐츠 */
@@ -85,7 +85,7 @@
 
 .ci-completed-info {
     font-size: 0.75rem;
-    color: #4caf50;
+    color: #88c988;
     margin: 0;
     font-weight: 600;
 }
