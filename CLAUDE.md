@@ -214,6 +214,65 @@ utils/
 `localStorage('twogether_personal_default')`: 저장 시(`handleSubmit`) 마지막으로 선택한 개인/공유 여부를 저장하고, 새 일정 생성 시(`event=null`) 해당 값으로 초기화함.
 CLAUDE.md 이전 버전의 "이전 입력값 잔류 버그" 기록은 오류 — **의도적인 UX 설계**. 수정 대상 아님.
 
+## Capacitor 앱 빌드 가이드
+
+### 구조
+```
+android/   → Android 네이티브 프로젝트 (Android Studio로 열기)
+ios/       → iOS 네이티브 프로젝트 (Mac + Xcode 필요)
+assets/
+  icon-only.png        → 아이콘 소스 (1375×1375 RGBA)
+  splash-icon-only.png → 스플래시 아이콘 소스 (동일 파일)
+capacitor.config.ts    → 양 플랫폼 공통 설정
+```
+
+### 앱 ID / 패키지명
+- `com.twogether.app` — Android `applicationId` + iOS `Bundle Identifier` 동일 사용
+
+### 매번 빌드할 때 순서
+```
+npm run build          # 1. 웹 앱 빌드 (dist/ 갱신)
+npx cap sync           # 2. dist/ → android/ + ios/ 복사 + 플러그인 동기화
+```
+그 다음 Android Studio 또는 Xcode에서 빌드.
+
+### 아이콘/스플래시 재생성
+```
+npx capacitor-assets generate --android --ios
+```
+소스: `assets/icon-only.png`, `assets/splash-icon-only.png`  
+출력: `android/app/src/main/res/mipmap-*` + `ios/App/App/Assets.xcassets/`
+
+### Android 빌드 (Windows 가능)
+1. Android Studio에서 `android/` 폴더 열기
+2. Gradle sync 완료 대기
+3. Build → Generate Signed Bundle/APK → Android App Bundle (.aab) 선택
+4. keystore 생성 (최초 1회) — **keystore 파일 분실 시 업데이트 불가, 반드시 백업**
+5. Google Play Console에 .aab 업로드
+
+### iOS 빌드 (Mac + Xcode 필수)
+```bash
+# Mac에서 실행
+npx cap open ios       # Xcode 프로젝트 열기
+```
+1. Xcode에서 Signing & Capabilities → Team 설정 (Apple Developer 계정)
+2. Bundle Identifier: `com.twogether.app`
+3. Product → Archive → Distribute App → App Store Connect
+
+### 스플래시 스크린 동작 방식
+- **Android**: `android/app/src/main/res/drawable/splash.xml` — 핑크 배경 + 앱 아이콘 중앙
+- **iOS**: `Base.lproj/LaunchScreen.storyboard` — 핑크 배경(#fce4ec) + AppIcon 중앙
+- `@capacitor/splash-screen` 플러그인이 1500ms 후 자동 숨김
+
+### iOS Info.plist 권한
+현재 미리 기재된 항목 (이미지 업로드 기능 추가 시 활성화):
+- `NSCameraUsageDescription` — 카메라
+- `NSPhotoLibraryUsageDescription` — 갤러리
+
+### .gitignore 주의
+`android/` + `ios/` 폴더는 Git에 포함됨 — 네이티브 설정(colors.xml, Info.plist 등)이 여기에 있음.  
+`android/app/build/` 등 빌드 산출물은 `.gitignore`에서 자동 제외됨.
+
 ## 작업 규칙
 1. 기능 하나 완성 후 커밋 허락 받고 다음 작업 — 여러 요청이어도 한 번에 몰아서 하지 말 것
 2. 작업 완료 후 변경 파일·추가 기능·부작용 설명. 커밋은 내가 요청할 때만
