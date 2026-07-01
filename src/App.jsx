@@ -24,6 +24,7 @@ const ProfilePage = lazy(() => import('./components/Profile/ProfilePage'));
 const CoupleInfoPage = lazy(() => import('./components/CoupleInfo/CoupleInfoPage'));
 const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
 const HomeImageSettingsPage = lazy(() => import('./components/HomeImageSettings/HomeImageSettingsPage'));
+const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 
 import './App.css';
 
@@ -68,6 +69,7 @@ const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage />, key: 'login' },
       { path: '/couple-setup', element: <CoupleSetupPage />, key: 'couple-setup' },
+      { path: '/privacy', element: <PrivacyPage />, key: 'privacy' },
       {
         path: '/',
         element: <ProtectedRoute key="home"><Layout><Home /></Layout></ProtectedRoute>,

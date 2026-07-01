@@ -1,0 +1,141 @@
+.privacy-page {
+  min-height: 100vh;
+  background: linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%);
+  padding: 2rem 1rem 4rem;
+}
+
+.privacy-container {
+  max-width: 720px;
+  margin: 0 auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 2rem 2rem 3rem;
+  box-shadow: 0 2px 16px rgba(0, 0, 0, 0.06);
+}
+
+.privacy-header {
+  text-align: center;
+  margin-bottom: 2.5rem;
+  padding-bottom: 1.5rem;
+  border-bottom: 1px solid #f0e0e5;
+}
+
+.privacy-logo {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #c9596a;
+  margin-bottom: 0.75rem;
+}
+
+.privacy-header h1 {
+  font-size: 1.5rem;
+  font-weight: 700;
+  color: #333;
+  margin: 0 0 0.5rem;
+}
+
+.privacy-updated {
+  font-size: 0.85rem;
+  color: #999;
+  margin: 0;
+}
+
+section {
+  margin-bottom: 2rem;
+}
+
+section p {
+  color: #444;
+  line-height: 1.75;
+  font-size: 0.95rem;
+  margin: 0.5rem 0;
+}
+
+section h2 {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: #c9596a;
+  margin: 0 0 0.75rem;
+}
+
+section ul {
+  color: #444;
+  font-size: 0.95rem;
+  line-height: 1.75;
+  padding-left: 1.25rem;
+  margin: 0.5rem 0;
+}
+
+section ul li {
+  margin-bottom: 0.25rem;
+}
+
+.privacy-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.9rem;
+  margin: 0.75rem 0;
+}
+
+.privacy-table th,
+.privacy-table td {
+  text-align: left;
+  padding: 0.65rem 0.75rem;
+  border: 1px solid #f0e0e5;
+  color: #444;
+  line-height: 1.6;
+  vertical-align: top;
+}
+
+.privacy-table th {
+  background: #fdf0f3;
+  font-weight: 600;
+  color: #333;
+  white-space: nowrap;
+}
+
+.privacy-note {
+  font-size: 0.85rem !important;
+  color: #999 !important;
+}
+
+.privacy-contact {
+  background: #fdf5f7;
+  border-radius: 8px;
+  padding: 0.75rem 1rem;
+  margin-top: 0.5rem !important;
+}
+
+section a {
+  color: #c9596a;
+  text-decoration: none;
+}
+
+section a:hover {
+  text-decoration: underline;
+}
+
+.privacy-footer {
+  margin-top: 2.5rem;
+  padding-top: 1.5rem;
+  border-top: 1px solid #f0e0e5;
+  text-align: center;
+}
+
+.privacy-footer p {
+  font-size: 0.82rem;
+  color: #bbb;
+  margin: 0;
+}
+
+@media (max-width: 480px) {
+  .privacy-container {
+    padding: 1.5rem 1.25rem 2.5rem;
+  }
+
+  .privacy-table th,
+  .privacy-table td {
+    padding: 0.5rem 0.6rem;
+    font-size: 0.85rem;
+  }
+}
