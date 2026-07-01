@@ -47,9 +47,9 @@ const DecisionTopPick = ({ options, onSelectOption, boyfriendInfo, girlfriendInf
             }}
           >
             {/* 왼쪽: 이미지 (1:1 비율) */}
-            {option.image && (
+            {option.images?.[0] && (
               <div className="dtp-image">
-                <img src={option.image} alt={option.title} />
+                <img src={option.images[0]} alt={option.title} />
               </div>
             )}
 

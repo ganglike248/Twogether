@@ -5,8 +5,6 @@ import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import {
   createDecision,
   deleteDecision,
-  sortByUserScore,
-  getTopOptions,
 } from '../../../services/travelDecisionService';
 import DecisionCategoryList from './DecisionCategoryList';
 import DecisionModal from './DecisionModal';
@@ -27,14 +25,16 @@ const TravelDecisionsTab = ({ trip, tripDays, onAddToSchedule }) => {
     return d.status === filter;
   });
 
-  // 카테고리별 그룹화
-  const groupedByCategory = filteredDecisions.reduce((acc, decision) => {
-    if (!acc[decision.category]) {
-      acc[decision.category] = [];
-    }
-    acc[decision.category].push(decision);
+  const groupByCategory = (list) => list.reduce((acc, d) => {
+    if (!acc[d.category]) acc[d.category] = [];
+    acc[d.category].push(d);
     return acc;
   }, {});
+
+  const decidingDecisions = filteredDecisions.filter(d => d.status !== 'decided');
+  const decidedDecisions  = filteredDecisions.filter(d => d.status === 'decided');
+  const decidingByCategory = groupByCategory(decidingDecisions);
+  const decidedByCategory  = groupByCategory(decidedDecisions);
 
   const handleCreateDecision = async (decisionData) => {
     try {
@@ -114,9 +114,23 @@ const TravelDecisionsTab = ({ trip, tripDays, onAddToSchedule }) => {
         </div>
       ) : (
         <div className="tdt-content">
-          {Object.entries(groupedByCategory).map(([category, categoryDecisions]) => (
+          {Object.entries(decidingByCategory).map(([category, categoryDecisions]) => (
             <DecisionCategoryList
               key={category}
+              category={category}
+              decisions={categoryDecisions}
+              currentUserId={user?.uid}
+              tripId={trip.id}
+              onDelete={handleDeleteDecision}
+              onAddToSchedule={onAddToSchedule}
+            />
+          ))}
+          {decidedDecisions.length > 0 && decidingDecisions.length > 0 && (
+            <div className="tdt-decided-divider"><span>확정됨</span></div>
+          )}
+          {Object.entries(decidedByCategory).map(([category, categoryDecisions]) => (
+            <DecisionCategoryList
+              key={`decided-${category}`}
               category={category}
               decisions={categoryDecisions}
               currentUserId={user?.uid}

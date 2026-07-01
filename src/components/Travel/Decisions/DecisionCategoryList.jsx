@@ -1,7 +1,7 @@
 // src/components/Travel/DecisionCategoryList.jsx
 import React, { useState, useRef } from 'react';
-import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit } from 'react-icons/md';
-import { sortByUserScore, addOption, updateDecision } from '../../../services/travelDecisionService';
+import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit, MdCheckCircle } from 'react-icons/md';
+import { sortByUserScore, addOption, updateDecision, undecideDecision } from '../../../services/travelDecisionService';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import DecisionCard from './DecisionCard';
 import DecisionTopPick from './DecisionTopPick';
@@ -42,11 +42,27 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
     ? { uid: coupleDoc.members[1], name: getMemberName('girlfriend') }
     : null;
 
-  const toggleOptions = (decisionId) => {
+  // 확정된 주제는 기본 접힘, 검토 중은 기본 펼침
+  const getIsExpanded = (decision) => {
+    if (decision.id in expandedOptions) return expandedOptions[decision.id];
+    return decision.status !== 'decided';
+  };
+
+  const toggleOptions = (decision) => {
     setExpandedOptions(prev => ({
       ...prev,
-      [decisionId]: !prev[decisionId],
+      [decision.id]: !getIsExpanded(decision),
     }));
+  };
+
+  const handleUndecide = async (decision) => {
+    try {
+      await undecideDecision(tripId, decision.id);
+      toast.success('확정이 취소되었습니다.');
+    } catch (error) {
+      console.error('Error undeciding:', error);
+      toast.error('취소 중 오류가 발생했습니다.');
+    }
   };
 
   if (!decisions || decisions.length === 0) return null;
@@ -94,8 +110,9 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
   };
 
   const handleSelectTopPick = (optionId, decisionId) => {
+    const decision = sortedDecisions.find(d => d.id === decisionId);
     // 후보가 접혀있으면 먼저 펼치기
-    if (!expandedOptions[decisionId]) {
+    if (decision && !getIsExpanded(decision)) {
       setExpandedOptions(prev => ({
         ...prev,
         [decisionId]: true,
@@ -146,74 +163,141 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
 
       {/* 각 선택지 그룹 */}
       <div className="dcl-decisions-list">
-        {sortedDecisions.map(decision => (
-          <div key={decision.id} className="dcl-decision-group">
-            {/* 선택지 제목 */}
-            <div className="dcl-decision-header">
-              <div className="dcl-title-section">
-                <div className="dcl-title-view">
-                  <h4 className="dcl-decision-title">{decision.title}</h4>
+        {sortedDecisions.map(decision => {
+          const expanded = getIsExpanded(decision);
+          const decidedOpt = decision.decidedOption
+            ? decision.options?.find(o => o.id === decision.decidedOption)
+            : null;
+
+          return (
+            <div
+              key={decision.id}
+              className="dcl-decision-group"
+            >
+              <>
+                {/* 선택지 제목 */}
+                <div className="dcl-decision-header">
+                  <div className="dcl-title-section">
+                    <div className="dcl-title-view">
+                      <h4 className="dcl-decision-title">{decision.title}</h4>
+                      <button
+                        className="dcl-title-edit-btn"
+                        onClick={() => handleOpenEditModal(decision)}
+                        title="수정"
+                      >
+                        <MdEdit size={16} />
+                      </button>
+                    </div>
+                    {decision.description && (
+                      <p className="dcl-decision-description">{decision.description}</p>
+                    )}
+                  </div>
                   <button
-                    className="dcl-title-edit-btn"
-                    onClick={() => handleOpenEditModal(decision)}
-                    title="수정"
+                    className="dcl-delete-btn"
+                    onClick={() => onDelete(decision.id)}
+                    title="삭제"
                   >
-                    <MdEdit size={16} />
+                    <MdClose />
                   </button>
                 </div>
-                {decision.description && (
-                  <p className="dcl-decision-description">{decision.description}</p>
-                )}
-              </div>
-              <button
-                className="dcl-delete-btn"
-                onClick={() => onDelete(decision.id)}
-                title="삭제"
-              >
-                <MdClose />
-              </button>
-            </div>
 
-            {/* 최고 선택 (옵션이 있을 때만) */}
-            {decision.options && decision.options.length > 0 && (
-              <DecisionTopPick
-                options={decision.options}
-                onSelectOption={(optionId) => handleSelectTopPick(optionId, decision.id)}
-                boyfriendInfo={boyfriendInfo}
-                girlfriendInfo={girlfriendInfo}
-              />
-            )}
+                {/* 확정됨 배너 OR 최고 선택 */}
+                {decision.options && decision.options.length > 0 && (() => {
+                  if (decision.status === 'decided' && decidedOpt) {
+                    const bScore = boyfriendInfo
+                      ? decidedOpt.scores?.find(s => s.userId === boyfriendInfo.uid)?.score || 0
+                      : 0;
+                    const gScore = girlfriendInfo
+                      ? decidedOpt.scores?.find(s => s.userId === girlfriendInfo.uid)?.score || 0
+                      : 0;
+                    return (
+                      <div className="dcl-decided-banner">
+                        <div className="dcl-decided-banner-header">
+                          <span className="dcl-decided-label">
+                            <MdCheckCircle size={16} />
+                            확정됨
+                          </span>
+                          <button
+                            className="dcl-undecide-link"
+                            onClick={() => handleUndecide(decision)}
+                          >
+                            변경하기
+                          </button>
+                        </div>
+                        <div className="dcl-decided-content">
+                          {decidedOpt.images?.[0] && (
+                            <img
+                              src={decidedOpt.images[0]}
+                              alt={decidedOpt.title}
+                              className="dcl-decided-image"
+                            />
+                          )}
+                          <div className="dcl-decided-info">
+                            <p className="dcl-decided-title">{decidedOpt.title}</p>
+                            {decidedOpt.price && (
+                              <p className="dcl-decided-price">{decidedOpt.price}</p>
+                            )}
+                            <div className="dcl-decided-scores">
+                              {bScore > 0 && (
+                                <span className="dcl-decided-score-item">
+                                  {boyfriendInfo.name} {bScore}점
+                                </span>
+                              )}
+                              {gScore > 0 && (
+                                <span className="dcl-decided-score-item">
+                                  {girlfriendInfo.name} {gScore}점
+                                </span>
+                              )}
+                              {(bScore > 0 || gScore > 0) && (
+                                <span className="dcl-decided-total">
+                                  합계 {decidedOpt.totalScore || 0}/20
+                                </span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      </div>
+                    );
+                  }
+                  return (
+                    <DecisionTopPick
+                      options={decision.options}
+                      onSelectOption={(optionId) => handleSelectTopPick(optionId, decision.id)}
+                      boyfriendInfo={boyfriendInfo}
+                      girlfriendInfo={girlfriendInfo}
+                    />
+                  );
+                })()}
 
-            {/* 옵션 추가 버튼 - 항상 표시 (첫 후보 추가용) */}
-            <button
-              className="dcl-add-option-btn"
-              onClick={() => setShowAddModal(decision.id)}
-            >
-              <MdAdd size={18} />
-              후보 추가하기
-            </button>
+                {/* 액션 행: 후보 보기/숨기기(왼쪽) + 추가(오른쪽) */}
+                <div className="dcl-actions-row">
+                  {decision.options && decision.options.length > 0 ? (
+                    <button
+                      className={`dcl-toggle-btn${expanded ? ' expanded' : ''}`}
+                      onClick={() => toggleOptions(decision)}
+                    >
+                      <MdExpandMore size={14} />
+                      {expanded ? '후보 숨기기' : '후보 보기'} ({decision.options.length})
+                    </button>
+                  ) : (
+                    <span />
+                  )}
+                  <button
+                    className="dcl-add-option-btn"
+                    onClick={() => setShowAddModal(decision.id)}
+                  >
+                    <MdAdd size={13} />
+                    추가
+                  </button>
+                </div>
 
-            {/* 후보 카드 토글 + 옵션 카드 (옵션이 있을 때만) */}
-            {decision.options && decision.options.length > 0 && (
-              <>
-                {/* 후보 카드 토글 버튼 */}
-                <button
-                  className={`dcl-toggle-options-btn ${expandedOptions[decision.id] !== false ? 'expanded' : 'collapsed'}`}
-                  onClick={() => toggleOptions(decision.id)}
-                >
-                  <MdExpandMore size={18} />
-                  <span>{expandedOptions[decision.id] !== false ? '후보 숨기기' : '후보 보기'} ({decision.options.length})</span>
-                </button>
-
-                {/* 모든 옵션 카드 (접기/펼치기) */}
-                {expandedOptions[decision.id] !== false && (
+                {/* 후보 목록 */}
+                {expanded && decision.options && decision.options.length > 0 && (
                   <div className="dcl-options-list">
                     {decision.options.map(option => (
                       <div
                         key={option.id}
-                        ref={(el) => {
-                          if (el) cardRefs.current[option.id] = el;
-                        }}
+                        ref={(el) => { if (el) cardRefs.current[option.id] = el; }}
                       >
                         <DecisionCard
                           option={option}
@@ -226,19 +310,19 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                   </div>
                 )}
               </>
-            )}
 
-            {/* 옵션 추가 모달 */}
-            {showAddModal === decision.id && (
-              <AddOptionModal
-                isOpen={true}
-                onClose={() => setShowAddModal(null)}
-                onSave={(optionData) => handleAddOption(decision.id, optionData)}
-                loading={addingOption}
-              />
-            )}
-          </div>
-        ))}
+              {/* 옵션 추가 모달 */}
+              {showAddModal === decision.id && (
+                <AddOptionModal
+                  isOpen={true}
+                  onClose={() => setShowAddModal(null)}
+                  onSave={(optionData) => handleAddOption(decision.id, optionData)}
+                  loading={addingOption}
+                />
+              )}
+            </div>
+          );
+        })}
       </div>
 
       {/* 비교 주제 수정 모달 - DecisionModal 재사용 */}

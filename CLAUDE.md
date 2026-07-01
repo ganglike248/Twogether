@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.3.50 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.3 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -181,6 +181,13 @@ utils/
 - **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
 - **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
+- **TravelDecisionsTab** (`src/components/Travel/Decisions/`) — 여행 탭의 "선택 사항" 기능. 숙소/식당/액티비티 등 후보를 비교·평가·확정하는 플로우.
+  - `travelDecisions` subcollection (`trips/{tripId}/travelDecisions`): `status('deciding'|'decided')`, `decidedOption`, `options[{id,title,price,images[],url,scores[{userId,score}],totalScore}]`
+  - `DecisionCategoryList`: 카테고리별 그룹 렌더. `TravelDecisionsTab`에서 deciding/decided를 분리해 렌더링 — decided는 구분선(`tdt-decided-divider`) 아래 맨 하단에 표시
+  - `DecisionCard`: 개별 후보 카드. `decision.status === 'decided'`면 확정 섹션(확정하기/확정됨 배지) 숨김
+  - `DecisionTopPick`: 점수 합계 기준 상위 후보 미리보기 (검토 중 상태에서만 표시)
+  - 확정 시: 상단에 "확정됨" 배너(이미지·점수·합계 표시), 후보 목록은 기본 접힘. "변경하기"는 텍스트 링크
+  - `undecideDecision()` — `travelDecisionService.js`에 추가됨 (status→'deciding', decidedOption→null)
 
 ## 주요 서비스 패턴 주의사항
 

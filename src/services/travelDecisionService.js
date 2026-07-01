@@ -113,6 +113,20 @@ export const decideOption = async (tripId, decisionId, optionId, userId) => {
 };
 
 /**
+ * 선택지 확정 취소 (다시 검토 중으로)
+ */
+export const undecideDecision = async (tripId, decisionId) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  await updateDoc(decisionRef, {
+    status: 'deciding',
+    decidedOption: null,
+    decidedAt: null,
+    decidedBy: null,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+/**
  * 선택지 목록 실시간 구독
  */
 export const subscribeToDecisions = (tripId, callback) => {

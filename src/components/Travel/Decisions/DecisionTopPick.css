@@ -3,16 +3,15 @@
 .dtp-container {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 0.75rem;
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.1) 0%, rgba(255, 155, 172, 0.05) 100%);
-    border: 2px solid rgba(255, 182, 193, 0.3);
-    border-radius: 0.75rem;
-    margin-bottom: 0.5rem;
+    gap: 0.3rem;
+    padding: 0.5rem 0.6rem;
+    background: rgba(255, 182, 193, 0.07);
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    border-radius: 0.6rem;
 }
 
 .dtp-label {
-    font-size: 0.85rem;
+    font-size: 0.72rem;
     font-weight: 700;
     color: #ff6b9d;
     margin: 0;
@@ -21,41 +20,33 @@
 .dtp-options {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
+    gap: 0.3rem;
 }
 
-/* ===== 카드 (좌측 이미지 1:1, 우측 정보) ===== */
+/* ===== 카드 ===== */
 .dtp-card {
     display: flex;
-    gap: 0.6rem;
+    gap: 0.5rem;
     align-items: center;
-    padding: 0.6rem;
+    padding: 0.45rem 0.5rem;
     background: white;
-    border: 1.5px solid rgba(255, 182, 193, 0.3);
-    border-radius: 0.5rem;
+    border: 1px solid rgba(255, 182, 193, 0.3);
+    border-radius: 0.45rem;
     cursor: pointer;
-    transition: all 0.15s;
     position: relative;
 }
 
-.dtp-card:hover {
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.05) 0%, rgba(255, 155, 172, 0.02) 100%);
-    border-color: rgba(255, 182, 193, 0.5);
-    box-shadow: 0 2px 8px rgba(255, 182, 193, 0.1);
+.dtp-card:active {
+    opacity: 0.75;
 }
 
-.dtp-card:focus {
-    outline: 2px solid #ffb6c1;
-    outline-offset: 2px;
-}
-
-/* ===== 이미지 (왼쪽 1:1) ===== */
+/* ===== 이미지 ===== */
 .dtp-image {
-    width: 60px;
-    height: 60px;
-    min-width: 60px;
+    width: 44px;
+    height: 44px;
+    min-width: 44px;
     overflow: hidden;
-    border-radius: 0.4rem;
+    border-radius: 0.35rem;
     background: var(--main-bg);
 }
 
@@ -65,17 +56,17 @@
     object-fit: cover;
 }
 
-/* ===== 정보 (중앙) ===== */
+/* ===== 정보 ===== */
 .dtp-info {
     display: flex;
     flex-direction: column;
-    gap: 0.2rem;
+    gap: 0.15rem;
     flex: 1;
     min-width: 0;
 }
 
 .dtp-title {
-    font-size: 0.85rem;
+    font-size: 0.82rem;
     font-weight: 700;
     color: var(--color-gray-800);
     margin: 0;
@@ -85,7 +76,7 @@
 }
 
 .dtp-price {
-    font-size: 0.75rem;
+    font-size: 0.7rem;
     color: #e67e22;
     margin: 0;
     font-weight: 600;
@@ -93,62 +84,35 @@
 
 .dtp-scores {
     display: flex;
-    gap: 0.4rem;
+    gap: 0.3rem;
     align-items: center;
     flex-wrap: wrap;
 }
 
 .dtp-total-badge {
     display: inline-block;
-    padding: 0.25rem 0.6rem;
+    padding: 0.15rem 0.45rem;
     background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
     color: white;
-    font-size: 0.7rem;
+    font-size: 0.67rem;
     font-weight: 700;
     border-radius: 0.8rem;
     white-space: nowrap;
 }
 
 .dtp-member-scores {
-    font-size: 0.7rem;
-    color: var(--color-gray-700);
+    font-size: 0.67rem;
+    color: var(--color-gray-500);
     font-weight: 600;
     white-space: nowrap;
 }
 
-/* ===== 화살표 (우측) ===== */
+/* ===== 화살표 ===== */
 .dtp-arrow {
     display: flex;
     align-items: center;
     justify-content: center;
     color: #ffb6c1;
     flex-shrink: 0;
-    opacity: 0.6;
-}
-
-.dtp-card:hover .dtp-arrow {
-    opacity: 1;
-    transform: translateX(2px);
-    transition: all 0.15s;
-}
-
-/* ===== 모바일 ===== */
-@media (max-width: 640px) {
-    .dtp-image {
-        width: 50px;
-        height: 50px;
-    }
-
-    .dtp-title {
-        font-size: 0.8rem;
-    }
-
-    .dtp-price {
-        font-size: 0.7rem;
-    }
-
-    .dtp-score-badge {
-        font-size: 0.65rem;
-        padding: 0.2rem 0.5rem;
-    }
+    opacity: 0.7;
 }

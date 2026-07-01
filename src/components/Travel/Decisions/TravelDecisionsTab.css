@@ -25,22 +25,20 @@
 }
 
 .tdt-filter-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.9rem;
     border: 1px solid var(--card-border);
-    background: white;
+    background: var(--main-bg);
     border-radius: 1rem;
     cursor: pointer;
     font-size: 0.82rem;
     font-weight: 600;
     color: var(--color-gray-600);
     white-space: nowrap;
-    transition: all 0.15s;
     flex-shrink: 0;
 }
 
-.tdt-filter-btn:hover {
-    background: rgba(255, 182, 193, 0.1);
-    border-color: rgba(255, 182, 193, 0.3);
+.tdt-filter-btn:active {
+    opacity: 0.75;
 }
 
 .tdt-filter-btn.active {
@@ -50,7 +48,7 @@
 }
 
 .tdt-add-btn {
-    padding: 0.5rem 1rem;
+    padding: 0.45rem 0.9rem;
     background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
     color: white;
     border: none;
@@ -59,12 +57,11 @@
     font-size: 0.82rem;
     font-weight: 600;
     white-space: nowrap;
-    transition: opacity 0.15s;
     flex-shrink: 0;
 }
 
-.tdt-add-btn:hover {
-    opacity: 0.88;
+.tdt-add-btn:active {
+    opacity: 0.82;
 }
 
 /* 로딩 */
@@ -128,9 +125,32 @@
     margin: 0;
 }
 
+/* 확정됨 구분선 */
+.tdt-decided-divider {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin: 0.25rem 0;
+}
+
+.tdt-decided-divider::before,
+.tdt-decided-divider::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: rgba(46, 204, 113, 0.25);
+}
+
+.tdt-decided-divider span {
+    font-size: 0.68rem;
+    font-weight: 600;
+    color: rgba(46, 204, 113, 0.6);
+    white-space: nowrap;
+}
+
 /* 콘텐츠 */
 .tdt-content {
     display: flex;
     flex-direction: column;
-    gap: 1.5rem;
+    gap: 0.75rem;
 }

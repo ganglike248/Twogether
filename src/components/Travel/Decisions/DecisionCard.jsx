@@ -1,7 +1,7 @@
 // src/components/Travel/DecisionCard.jsx
 import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { addScore, getUserScore, deleteOption, updateOption } from '../../../services/travelDecisionService';
+import { addScore, getUserScore, deleteOption, updateOption, decideOption } from '../../../services/travelDecisionService';
 import { handleOpenLink } from '../../../utils/appLinkUtils';
 import EditOptionModal from './EditOptionModal';
 import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight } from 'react-icons/md';
@@ -13,6 +13,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [savingScore, setSavingScore] = useState(false);
   const [selectedScore, setSelectedScore] = useState(null);
+  const [deciding, setDeciding] = useState(false);
   const imageScrollRef = useRef(null);
 
   const myScore = getUserScore(option, currentUserId);
@@ -69,6 +70,20 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     } catch (error) {
       console.error('Error updating option:', error);
       toast.error('옵션 수정 중 오류가 발생했습니다.');
+    }
+  };
+
+  const handleDecide = async () => {
+    if (!window.confirm('이 후보로 확정하시겠습니까?')) return;
+    setDeciding(true);
+    try {
+      await decideOption(decision.tripId, decision.id, option.id, currentUserId);
+      toast.success('확정되었습니다!');
+    } catch (error) {
+      console.error('Error deciding option:', error);
+      toast.error('확정 중 오류가 발생했습니다.');
+    } finally {
+      setDeciding(false);
     }
   };
 
@@ -247,6 +262,19 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
           </div>
         )}
       </div>
+
+      {/* 확정 섹션: 이미 확정된 주제는 숨김 */}
+      {decision.status !== 'decided' && (
+        <div className="dc-decide-section">
+          <button
+            className="dc-decide-btn"
+            onClick={handleDecide}
+            disabled={deciding}
+          >
+            {deciding ? '처리 중...' : '확정하기'}
+          </button>
+        </div>
+      )}
 
       {/* 수정 모달 */}
       {showEditModal && (
