@@ -1,1 +1,36 @@
 0.4.4
+
+---
+
+## 앱 업데이트 절차 (Capacitor Android)
+
+### 매 업데이트마다 실행할 명령
+```
+npm run build
+npx cap sync
+```
+그 다음 Android Studio → Build → Generate Signed App Bundle → release
+
+### 버전 번호 올리는 곳
+android/app/build.gradle
+  versionCode 1        ← 정수, 매 업로드마다 반드시 +1 (1→2→3...)
+  versionName "1.0"    ← 표시용, package.json version과 맞추기 권장
+
+### 파일 위치
+- AAB 파일:     android/app/release/app-release.aab
+- Keystore:     빌드 시 지정한 경로의 .jks 파일 (분실 시 업데이트 영구 불가 — 반드시 백업)
+- 앱 설정:      capacitor.config.ts
+- Android 설정: android/app/build.gradle, android/app/src/main/AndroidManifest.xml
+- iOS 설정:     ios/App/App/Info.plist (Mac + Xcode 필요)
+
+### 배포 트랙 (Google Play Console)
+내부 테스트  → 심사 없이 즉시 배포, 팀원 테스트용
+프로덕션    → Google 심사 후 출시 (첫 출시 최대 7일, 이후 1~2일)
+
+### iOS 빌드 (Mac 확보 후)
+npx cap open ios    ← Xcode 프로젝트 열기
+Signing & Capabilities → Team 설정 (Apple Developer 계정 $99/년)
+Product → Archive → Distribute App → App Store Connect
+
+### 개인정보처리방침 URL (스토어 등록정보에 입력)
+https://twogether-206fb.web.app/privacy

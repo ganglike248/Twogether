@@ -269,6 +269,11 @@ npx cap open ios       # Xcode 프로젝트 열기
 - `NSCameraUsageDescription` — 카메라
 - `NSPhotoLibraryUsageDescription` — 갤러리
 
+### drawable/splash 충돌 주의
+`npx capacitor-assets generate` 실행 시 `drawable/splash.png`가 생성되는데, `drawable/splash.xml`과 이름이 충돌하여 빌드 오류 발생.  
+`android/app/src/main/res/drawable/splash.png`는 **삭제 상태 유지** — `npx capacitor-assets generate` 재실행 후 다시 생기면 삭제할 것.  
+density별 폴더(`drawable-port-*/splash.png`, `drawable-land-*/splash.png`)는 충돌하지 않으므로 그대로 유지.
+
 ### .gitignore 주의
 `android/` + `ios/` 폴더는 Git에 포함됨 — 네이티브 설정(colors.xml, Info.plist 등)이 여기에 있음.  
 `android/app/build/` 등 빌드 산출물은 `.gitignore`에서 자동 제외됨.
