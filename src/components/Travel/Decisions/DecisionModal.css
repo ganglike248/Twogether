@@ -38,6 +38,9 @@
     padding: 1rem;
     border-bottom: 1px solid var(--card-border);
     gap: 0.5rem;
+    position: relative;
+    z-index: 1001;
+    background: white;
 }
 
 .decision-modal-title {
