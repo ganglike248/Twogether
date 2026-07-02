@@ -8,6 +8,7 @@ import EditLogModal from '../EditLog/EditLogModal';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
 import CalendarSkeleton from './CalendarSkeleton';
+import FloatingActionMenu from '../Travel/FloatingActionMenu';
 import {
   createEvent, updateEvent, deleteEvent,
   createPersonalEvent, updatePersonalEvent, deletePersonalEvent,
@@ -130,6 +131,17 @@ const Calendar = () => {
   const handleAddEventFromDay = useCallback((date) => {
     setSelectedEvent({ start: date, end: date, allDay: true });
     setIsDayModalOpen(false);
+    setIsModalOpen(true);
+  }, []);
+
+  // FAB 콜백: 새 일정 추가
+  const handleFABAddEvent = useCallback(() => {
+    const today = new Date();
+    const year = today.getFullYear();
+    const month = String(today.getMonth() + 1).padStart(2, '0');
+    const date = String(today.getDate()).padStart(2, '0');
+    const dateStr = `${year}-${month}-${date}`;
+    setSelectedEvent({ start: dateStr, end: dateStr, allDay: true });
     setIsModalOpen(true);
   }, []);
 
@@ -349,6 +361,13 @@ const Calendar = () => {
         isOpen={showEditLog}
         onClose={() => setShowEditLog(false)}
         eventId={selectedEventForLog}
+      />
+
+      {/* FloatingActionMenu - 일정 추가 */}
+      <FloatingActionMenu
+        actions={[
+          { label: '일정 추가', onClick: handleFABAddEvent }
+        ]}
       />
     </div>
   );

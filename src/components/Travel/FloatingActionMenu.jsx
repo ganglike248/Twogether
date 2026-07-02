@@ -3,12 +3,34 @@ import React, { useState } from 'react';
 import { MdAdd, MdClose } from 'react-icons/md';
 import './FloatingActionMenu.css';
 
+/**
+ * FloatingActionMenu - 재사용 가능한 FAB 메뉴 컴포넌트
+ *
+ * 사용 예시:
+ * 1. 탭 기반 (TripDetail):
+ *    <FloatingActionMenu
+ *      activeTab={activeTab}
+ *      onScheduleAdd={...}
+ *      onDecisionMenu={...}
+ *      onChecklistAdd={...}
+ *    />
+ *
+ * 2. 액션 기반 (Calendar, 기타):
+ *    <FloatingActionMenu
+ *      actions={[
+ *        { label: '일정 추가', onClick: handleAddEvent }
+ *      ]}
+ *    />
+ */
 const FloatingActionMenu = ({
+  // Tab-based mode (TripDetail)
   activeTab,
   onScheduleAdd,
-  onDecisionAdd,
+  onDecisionMenu,
   onChecklistAdd,
-  onDecisionMenu
+
+  // Action-based mode (Calendar, etc)
+  actions
 }) => {
   const [isOpen, setIsOpen] = useState(false);
 
@@ -16,35 +38,36 @@ const FloatingActionMenu = ({
     setIsOpen(false);
   };
 
-  const handleScheduleClick = () => {
+  const handleActionClick = (onClick) => {
     handleClose();
-    onScheduleAdd?.();
-  };
-
-  const handleDecisionClick = () => {
-    handleClose();
-    onDecisionMenu?.();
-  };
-
-  const handleChecklistClick = () => {
-    handleClose();
-    onChecklistAdd?.();
+    onClick?.();
   };
 
   const getMenuItems = () => {
+    // 액션 기반 모드 (actions prop 사용)
+    if (actions && Array.isArray(actions)) {
+      return actions.map(action => ({
+        label: action.label,
+        onClick: () => handleActionClick(action.onClick)
+      }));
+    }
+
+    // 탭 기반 모드 (activeTab prop 사용)
+    if (!activeTab) return [];
+
     switch (activeTab) {
       case 'schedule':
         return [
-          { label: '일정 추가', onClick: handleScheduleClick }
+          { label: '일정 추가', onClick: () => handleActionClick(onScheduleAdd) }
         ];
       case 'decisions':
         return [
-          { label: '주제 추가', onClick: handleDecisionClick },
-          { label: '항목 추가', onClick: handleDecisionClick }
+          { label: '주제 추가', onClick: () => handleActionClick(onDecisionMenu) },
+          { label: '항목 추가', onClick: () => handleActionClick(onDecisionMenu) }
         ];
       case 'checklist':
         return [
-          { label: '항목 추가', onClick: handleChecklistClick }
+          { label: '항목 추가', onClick: () => handleActionClick(onChecklistAdd) }
         ];
       default:
         return [];
@@ -52,6 +75,11 @@ const FloatingActionMenu = ({
   };
 
   const menuItems = getMenuItems();
+
+  // 메뉴 항목이 없으면 렌더링하지 않음
+  if (!menuItems || menuItems.length === 0) {
+    return null;
+  }
 
   return (
     <>
