@@ -6,34 +6,29 @@
     left: 0;
     right: 0;
     bottom: 0;
-    background: rgba(0, 0, 0, 0.5);
+    background-color: rgba(0, 0, 0, 0.45);
     display: flex;
-    align-items: center;
+    align-items: flex-end;
     justify-content: center;
-    z-index: 999;
-    animation: fadeIn 0.2s ease-out;
-}
-
-@keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+    z-index: 1000;
 }
 
 .edit-option-modal-container {
+    background-color: white;
+    border-radius: 1.25rem 1.25rem 0 0;
+    box-shadow: var(--shadow-lg);
     width: 100%;
-    max-width: 450px;
-    background: white;
-    border-radius: var(--border-radius-lg);
+    max-width: 420px;
+    max-height: 88vh;
+    overflow-y: auto;
     display: flex;
     flex-direction: column;
-    overflow: hidden;
-    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.2);
-    animation: slideUp 0.3s ease-out;
+    animation: editOptionModalSlideUp 0.28s ease;
 }
 
-@keyframes slideUp {
-    from { transform: translateY(20px); opacity: 0; }
-    to { transform: translateY(0); opacity: 1; }
+@keyframes editOptionModalSlideUp {
+    from { transform: translateY(100%); }
+    to { transform: translateY(0); }
 }
 
 .eom-header {
