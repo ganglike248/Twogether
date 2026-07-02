@@ -13,8 +13,8 @@
 /* FAB 버튼 */
 .fam-fab {
   position: fixed;
-  bottom: 2rem;
-  right: 2rem;
+  bottom: 4.5rem;
+  right: 1.5rem;
   width: 56px;
   height: 56px;
   border-radius: 50%;
@@ -47,8 +47,8 @@
 /* 메뉴 */
 .fam-menu {
   position: fixed;
-  bottom: 76px;
-  right: 2rem;
+  bottom: 140px;
+  right: 1.5rem;
   background: white;
   border-radius: 1rem;
   box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
@@ -102,17 +102,4 @@
 
 .fam-menu-label {
   flex: 1;
-}
-
-/* 모바일 조정 */
-@media (max-width: 640px) {
-  .fam-fab {
-    bottom: 1.5rem;
-    right: 1.5rem;
-  }
-
-  .fam-menu {
-    bottom: 72px;
-    right: 1.5rem;
-  }
 }
