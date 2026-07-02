@@ -1,24 +1,27 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
 export const useCalendarData = (coupleId, userId) => {
-  const [events, setEvents] = useState([]);
+  // 각 데이터 타입별 독립적 상태 관리 (누락 버그 방지)
+  const [coupleEvents, setCoupleEvents] = useState([]);
+  const [tripEvents, setTripEvents] = useState([]);
   const [cycles, setCycles] = useState([]);
+  const [personalEvents, setPersonalEvents] = useState([]);
   const [trips, setTrips] = useState([]);
-  const [eventsLoaded, setEventsLoaded] = useState(false);
+
+  // 로딩 상태 (각 useEffect에서 개별 관리)
+  const [coupleLoaded, setCoupleLoaded] = useState(false);
   const [tripsLoaded, setTripsLoaded] = useState(false);
   const [cyclesLoaded, setCyclesLoaded] = useState(false);
   const [personalLoaded, setPersonalLoaded] = useState(false);
 
-  const isLoading = !eventsLoaded || !tripsLoaded || !cyclesLoaded || !personalLoaded;
+  const isLoading = !coupleLoaded || !tripsLoaded || !cyclesLoaded || !personalLoaded;
 
-  // 일정 구독
+  // ✅ 구독 #1: 공유 일정 (couple/boyfriend/girlfriend, travel 제외)
   useEffect(() => {
     if (!coupleId) {
-      setEventsLoaded(true);
-      setTripsLoaded(true);
-      setCyclesLoaded(true);
+      setCoupleLoaded(true);
       return;
     }
     const eventsRef = query(
@@ -51,27 +54,27 @@ export const useCalendarData = (coupleId, userId) => {
             }
           };
         });
-      // 커플 이벤트(couple/boyfriend/girlfriend) 업데이트: 기존 trip/personal 보존
-      setEvents(prev => [
-        ...prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal'),
-        ...eventsData
-      ]);
-      setEventsLoaded(true);
-    }, () => setEventsLoaded(true));
+      // ✅ 독립적 상태 업데이트 — 다른 useEffect 영향 없음
+      setCoupleEvents(eventsData);
+      setCoupleLoaded(true);
+    }, () => setCoupleLoaded(true));
     return () => unsubscribe();
   }, [coupleId]);
 
-  // 여행 구독
+  // ✅ 구독 #2: 여행 이벤트 (tripEvents) + 여행 원본 데이터 (trips)
   useEffect(() => {
-    if (!coupleId) return;
+    if (!coupleId) {
+      setTripsLoaded(true);
+      return;
+    }
     const tripsRef = query(
       collection(db, 'trips'),
       where('coupleId', '==', coupleId)
     );
     const unsubscribe = onSnapshot(tripsRef, (snapshot) => {
-      const tripsData = snapshot.docs.map(doc => {
-        const data = doc.data();
+      const tripsRawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
 
+      const tripsCalendarData = tripsRawData.map(data => {
         let startDate;
         if (data.startDate?.toDate) {
           startDate = data.startDate.toDate().toISOString().split('T')[0];
@@ -96,7 +99,7 @@ export const useCalendarData = (coupleId, userId) => {
         const adjustedEndDate = endDateObj.toISOString().split('T')[0];
 
         return {
-          id: doc.id,
+          id: data.id,
           title: data.title,
           start: `${startDate}T00:00:00`,
           end: `${adjustedEndDate}T00:00:00`,
@@ -106,23 +109,25 @@ export const useCalendarData = (coupleId, userId) => {
           extendedProps: {
             description: data.destination || '',
             isTrip: true,
-            tripId: doc.id
+            tripId: data.id
           }
         };
       });
-      // 여행 이벤트 업데이트: 기존 trip이 아닌 것들(couple/boyfriend/girlfriend/personal) 보존
-      setEvents(prev => [...prev.filter(e => !e.extendedProps.isTrip), ...tripsData]);
-      // trips 상태에 원본 데이터 저장 (Home.jsx에서 사용)
-      const tripsRawData = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
+
+      // ✅ 독립적 상태 업데이트
+      setTripEvents(tripsCalendarData);
       setTrips(tripsRawData);
       setTripsLoaded(true);
-    });
+    }, () => setTripsLoaded(true));
     return () => unsubscribe();
   }, [coupleId]);
 
-  // 생리 기록 구독
+  // ✅ 구독 #3: 생리 기록
   useEffect(() => {
-    if (!coupleId) return;
+    if (!coupleId) {
+      setCyclesLoaded(true);
+      return;
+    }
     const cyclesRef = query(
       collection(db, 'cycles'),
       where('coupleId', '==', coupleId)
@@ -131,11 +136,11 @@ export const useCalendarData = (coupleId, userId) => {
       const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
       setCycles(data);
       setCyclesLoaded(true);
-    });
+    }, () => setCyclesLoaded(true));
     return () => unsubscribe();
   }, [coupleId]);
 
-  // 개인 일정 구독
+  // ✅ 구독 #4: 개인 일정
   useEffect(() => {
     if (!userId) {
       setPersonalLoaded(true);
@@ -164,12 +169,19 @@ export const useCalendarData = (coupleId, userId) => {
           }
         };
       });
-      // 개인 이벤트 업데이트: 기존 personal이 아닌 것들(couple/boyfriend/girlfriend/trip) 보존
-      setEvents(prev => [...prev.filter(e => e.extendedProps.eventType !== 'personal'), ...personalData]);
+      // ✅ 독립적 상태 업데이트
+      setPersonalEvents(personalData);
       setPersonalLoaded(true);
     }, () => setPersonalLoaded(true));
     return () => unsubscribe();
   }, [userId]);
+
+  // 렌더링 시에만 4개 데이터 병합 (각 useEffect는 독립적)
+  const events = useMemo(() => [
+    ...coupleEvents,
+    ...tripEvents,
+    ...personalEvents
+  ], [coupleEvents, tripEvents, personalEvents]);
 
   return { events, cycles, trips, isLoading };
 };

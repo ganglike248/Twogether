@@ -169,7 +169,7 @@ const MemoryList = () => {
     setHasMore(true);
   }, []);
 
-  // 검색 결과 추가 로드 (페이지네이션)
+  // 검색 결과 추가 로드 (페이지네이션) — Firestore 단에서 필터링
   const fetchMoreSearchResults = useCallback(async () => {
     if (!coupleId || !searchTerm.trim() || searchIsLoadingMore || !searchHasMore) return;
 
@@ -180,35 +180,39 @@ const MemoryList = () => {
       const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
 
       const promises = [];
-      let hasSearchConstraints = false;
 
-      // 공유 일정 검색
+      // ✅ 공유 일정 검색 — Firestore에서 제목 범위 검색
       if (filter !== 'personal') {
         const constraints = [
           where('coupleId', '==', coupleId),
           where('start', '<=', todayStr),
+          where('title', '>=', searchLower),  // ← 제목 범위 검색 시작
+          where('title', '<', searchLower + ''),  // ← 범위 검색 끝
           orderBy('start', 'desc'),
         ];
         if (filter !== 'all') {
-          constraints.splice(2, 0, where('eventType', '==', filter));
+          constraints.splice(3, 0, where('eventType', '==', filter));
         }
         if (searchLastDoc) {
           constraints.push(startAfter(searchLastDoc));
         }
         constraints.push(limit(PAGE_SIZE));
 
-        hasSearchConstraints = true;
         promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
       } else {
         promises.push(Promise.resolve(null));
       }
 
-      // 개인 일정 검색
+      // ✅ 개인 일정 검색 — Firestore에서 제목 범위 검색
       if (userId && (filter === 'all' || filter === 'personal')) {
-        promises.push(getDocs(query(
-          collection(db, 'personal_events'),
-          where('userId', '==', userId)
-        )));
+        const constraints = [
+          where('userId', '==', userId),
+          where('start', '<=', todayStr),
+          where('title', '>=', searchLower),
+          where('title', '<', searchLower + ''),
+          orderBy('start', 'desc'),
+        ];
+        promises.push(getDocs(query(collection(db, 'personal_events'), ...constraints)));
       } else {
         promises.push(Promise.resolve(null));
       }
@@ -218,22 +222,14 @@ const MemoryList = () => {
 
       if (sharedSnapshot) {
         sharedSnapshot.forEach(doc => {
-          const data = normalizeMemory(doc.data());
-          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
-          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
-          if (titleMatch || descMatch) results.push({ id: doc.id, ...data });
+          results.push({ id: doc.id, ...normalizeMemory(doc.data()) });
         });
       }
 
       if (personalSnapshot) {
         personalSnapshot.forEach(doc => {
           const data = doc.data();
-          if (!data.start || data.start.split('T')[0] > todayStr) return;
-          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
-          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
-          if (titleMatch || descMatch) {
-            results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
-          }
+          results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
         });
       }
 
@@ -254,7 +250,7 @@ const MemoryList = () => {
     }
   }, [coupleId, searchTerm, filter, userId, searchLastDoc, searchHasMore, searchIsLoadingMore]);
 
-  // 검색 처리 (공유 + 개인 일정 통합) — 검색어 변경 시 결과 초기화
+  // 검색 처리 (공유 + 개인 일정 통합) — Firestore 단에서 필터링
   useEffect(() => {
     if (!coupleId) return;
     const searchLower = searchTerm.toLowerCase();
@@ -264,12 +260,12 @@ const MemoryList = () => {
       setSearchResults([]);
       setSearchLastDoc(null);
       setSearchHasMore(true);
-      return; // compute useEffect가 filteredMemories 갱신
+      return;
     }
 
     let cancelled = false;
     setIsSearching(true);
-    setSearchResults([]); // 검색어 변경 시 초기화
+    setSearchResults([]);
     setSearchLastDoc(null);
     setSearchHasMore(true);
 
@@ -278,28 +274,35 @@ const MemoryList = () => {
 
     const promises = [];
 
-    // 공유 일정 검색 (personal 필터 제외)
+    // ✅ 공유 일정 검색 — Firestore 제목 범위 검색
     if (filter !== 'personal') {
       const constraints = [
         where('coupleId', '==', coupleId),
         where('start', '<=', todayStr),
+        where('title', '>=', searchLower),
+        where('title', '<', searchLower + ''),
         orderBy('start', 'desc'),
         limit(PAGE_SIZE),
       ];
       if (filter !== 'all') {
-        constraints.splice(2, 0, where('eventType', '==', filter));
+        constraints.splice(3, 0, where('eventType', '==', filter));
       }
       promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
     } else {
       promises.push(Promise.resolve(null));
     }
 
-    // 개인 일정 검색 (all/personal 필터)
+    // ✅ 개인 일정 검색 — Firestore 제목 범위 검색
     if (userId && (filter === 'all' || filter === 'personal')) {
-      promises.push(getDocs(query(
-        collection(db, 'personal_events'),
-        where('userId', '==', userId)
-      )));
+      const constraints = [
+        where('userId', '==', userId),
+        where('start', '<=', todayStr),
+        where('title', '>=', searchLower),
+        where('title', '<', searchLower + ''),
+        orderBy('start', 'desc'),
+        limit(PAGE_SIZE),
+      ];
+      promises.push(getDocs(query(collection(db, 'personal_events'), ...constraints)));
     } else {
       promises.push(Promise.resolve(null));
     }
@@ -310,22 +313,14 @@ const MemoryList = () => {
 
       if (sharedSnapshot) {
         sharedSnapshot.forEach(doc => {
-          const data = normalizeMemory(doc.data());
-          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
-          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
-          if (titleMatch || descMatch) results.push({ id: doc.id, ...data });
+          results.push({ id: doc.id, ...normalizeMemory(doc.data()) });
         });
       }
 
       if (personalSnapshot) {
         personalSnapshot.forEach(doc => {
           const data = doc.data();
-          if (!data.start || data.start.split('T')[0] > todayStr) return;
-          const titleMatch = (data.title || '').toLowerCase().includes(searchLower);
-          const descMatch = (data.description || '').toLowerCase().includes(searchLower);
-          if (titleMatch || descMatch) {
-            results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
-          }
+          results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
         });
       }
 

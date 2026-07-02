@@ -12,7 +12,26 @@ const inferContentType = (file) => {
   return map[ext] || 'image/jpeg';
 };
 
-// 현재 사용자의 coupleId 검증
+// ✅ ID Token 갱신 + custom claims 검증
+// (Cloud Functions에서 설정한 coupleIds claim을 포함하도록 강제 갱신)
+const refreshAuthTokenWithClaims = async (coupleId) => {
+  const auth = getAuth();
+  const currentUser = auth.currentUser;
+
+  if (!currentUser) {
+    throw new Error('로그인이 필요합니다.');
+  }
+
+  // ID token 갱신 (force=true로 강제)
+  const tokenResult = await currentUser.getIdTokenResult(true);
+  const coupleIds = tokenResult.claims.coupleIds;
+
+  if (!coupleIds || !coupleIds.includes(coupleId)) {
+    throw new Error('이 커플에 접근할 권한이 없습니다. (custom claims 검증 실패)');
+  }
+};
+
+// 현재 사용자의 coupleId 검증 (클라이언트 단계)
 const validateCoupleIdAccess = async (coupleId) => {
   const auth = getAuth();
   const currentUser = auth.currentUser;
@@ -40,33 +59,53 @@ const validateCoupleIdAccess = async (coupleId) => {
 
 // 홈 hero 이미지 업로드 (같은 경로로 덮어씀)
 export const uploadHeroImage = async (coupleId, file) => {
-  // 1. 접근 권한 검증
+  // 1. 클라이언트 접근 권한 검증
   await validateCoupleIdAccess(coupleId);
 
-  // 2. 파일 검증
+  // 2. ✅ ID Token 갱신 및 custom claims 검증
+  await refreshAuthTokenWithClaims(coupleId);
+
+  // 3. 파일 검증
   const contentType = inferContentType(file);
   if (!contentType.startsWith('image/')) {
     throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
   }
 
-  // 3. 업로드
+  // 4. 업로드 (Storage Rules에서 custom claims 재검증)
   const storageRef = ref(storage, `couples/${coupleId}/hero`);
   const metadata = { contentType };
-  const snapshot = await uploadBytes(storageRef, file, metadata);
-  if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
-  return getDownloadURL(snapshot.ref);
+  try {
+    const snapshot = await uploadBytes(storageRef, file, metadata);
+    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
+    return getDownloadURL(snapshot.ref);
+  } catch (error) {
+    if (error.code === 'storage/unauthorized') {
+      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+    }
+    throw error;
+  }
 };
 
 // 홈 hero 이미지 삭제
 export const removeHeroImage = async (coupleId) => {
-  // 1. 접근 권한 검증
+  // 1. 클라이언트 접근 권한 검증
   await validateCoupleIdAccess(coupleId);
 
-  // 2. 삭제
+  // 2. ✅ ID Token 갱신 및 custom claims 검증
+  await refreshAuthTokenWithClaims(coupleId);
+
+  // 3. 삭제 (Storage Rules에서 custom claims 재검증)
   const storageRef = ref(storage, `couples/${coupleId}/hero`);
   try {
     await deleteObject(storageRef);
-  } catch {
-    // 파일이 없어도 무시 (이미 삭제됐거나 미존재)
+  } catch (error) {
+    if (error.code === 'storage/object-not-found') {
+      // 파일이 없어도 무시 (이미 삭제됐거나 미존재)
+      return;
+    }
+    if (error.code === 'storage/unauthorized') {
+      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+    }
+    throw error;
   }
 };
