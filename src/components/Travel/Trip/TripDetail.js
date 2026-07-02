@@ -17,6 +17,7 @@ import ScheduleModal from '../Schedule/ScheduleModal';
 import TravelTimeInput from '../Schedule/TravelTimeInput';
 import TravelDecisionsTab from '../Decisions/TravelDecisionsTab';
 import TravelChecklistTab from '../Checklist/TravelChecklistTab';
+import FloatingActionMenu from '../FloatingActionMenu';
 import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
@@ -31,6 +32,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);
     const [showDaySelector, setShowDaySelector] = useState(false);
     const [optionForSchedule, setOptionForSchedule] = useState(null);
+
+    const decisionsTabRef = React.useRef(null);
+    const checklistTabRef = React.useRef(null);
 
     const { schedules, loading } = useTripSchedules(trip.id);
     const { decisions } = useTravelDecisions(trip.id);
@@ -162,6 +166,20 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             console.error('Error saving travel time:', error);
             toast.error('이동 시간 저장 중 오류가 발생했습니다.');
         }
+    };
+
+    // FloatingActionMenu 콜백
+    const handleFABScheduleAdd = () => {
+        setSelectedSchedule(null);
+        setShowScheduleModal(true);
+    };
+
+    const handleFABDecisionMenu = () => {
+        decisionsTabRef.current?.showDecisionMenu?.();
+    };
+
+    const handleFABChecklistAdd = () => {
+        checklistTabRef.current?.showChecklistModal?.();
     };
 
     const statusMap = {
@@ -366,6 +384,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             {activeTab === 'decisions' && (
                 <div className="trip-detail-decisions-section">
                     <TravelDecisionsTab
+                        ref={decisionsTabRef}
                         trip={trip}
                         tripDays={tripDays}
                         onAddToSchedule={handleAddOptionToSchedule}
@@ -376,7 +395,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             {/* 준비 체크리스트 탭 */}
             {activeTab === 'checklist' && (
                 <div className="trip-detail-checklist-section">
-                    <TravelChecklistTab trip={trip} />
+                    <TravelChecklistTab ref={checklistTabRef} trip={trip} />
                 </div>
             )}
 
@@ -421,6 +440,14 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     onDelete={handleDeleteSchedule}
                 />
             )}
+
+            {/* FloatingActionMenu */}
+            <FloatingActionMenu
+                activeTab={activeTab}
+                onScheduleAdd={handleFABScheduleAdd}
+                onDecisionMenu={handleFABDecisionMenu}
+                onChecklistAdd={handleFABChecklistAdd}
+            />
         </div>
     );
 };

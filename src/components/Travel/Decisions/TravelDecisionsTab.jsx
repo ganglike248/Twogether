@@ -1,5 +1,5 @@
 // src/components/Travel/TravelDecisionsTab.jsx
-import React, { useState, useRef, useEffect } from 'react';
+import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import {
@@ -21,7 +21,7 @@ const categoryLabels = {
   custom: '기타',
 };
 
-const TravelDecisionsTab = ({ trip, tripDays, onAddToSchedule }) => {
+const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref) => {
   const { user } = useAuthContext();
   const { decisions, loading } = useTravelDecisions(trip.id);
   const [showModal, setShowModal] = useState(false);
@@ -114,6 +114,13 @@ const TravelDecisionsTab = ({ trip, tripDays, onAddToSchedule }) => {
       toast.error('선택지 삭제 중 오류가 발생했습니다.');
     }
   };
+
+  // FAB 메서드 노출
+  useImperativeHandle(ref, () => ({
+    showDecisionMenu: () => {
+      setShowModal(true);
+    }
+  }), []);
 
   if (loading) {
     return (
@@ -247,6 +254,8 @@ const TravelDecisionsTab = ({ trip, tripDays, onAddToSchedule }) => {
       )}
     </div>
   );
-};
+});
+
+TravelDecisionsTab.displayName = 'TravelDecisionsTab';
 
 export default TravelDecisionsTab;

@@ -1,0 +1,118 @@
+/* src/components/Travel/FloatingActionMenu.css */
+
+/* 오버레이 */
+.fam-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  z-index: 998;
+}
+
+/* FAB 버튼 */
+.fam-fab {
+  position: fixed;
+  bottom: 2rem;
+  right: 2rem;
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+  border: none;
+  color: white;
+  font-size: 1.5rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 4px 12px rgba(255, 182, 193, 0.4);
+  transition: all 0.3s ease;
+  z-index: 999;
+}
+
+.fam-fab:hover {
+  box-shadow: 0 6px 16px rgba(255, 182, 193, 0.5);
+  transform: scale(1.05);
+}
+
+.fam-fab:active {
+  transform: scale(0.95);
+}
+
+.fam-fab.open {
+  background: linear-gradient(135deg, #ff9bac 0%, #ff7a9a 100%);
+}
+
+/* 메뉴 */
+.fam-menu {
+  position: fixed;
+  bottom: 76px;
+  right: 2rem;
+  background: white;
+  border-radius: 1rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+  overflow: hidden;
+  z-index: 999;
+  min-width: 160px;
+  animation: slideUp 0.2s ease;
+}
+
+@keyframes slideUp {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* 메뉴 항목 */
+.fam-menu-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.875rem 1rem;
+  border: none;
+  background: none;
+  color: var(--color-gray-700);
+  font-size: 0.9rem;
+  font-weight: 500;
+  cursor: pointer;
+  width: 100%;
+  text-align: left;
+  transition: all 0.15s;
+  border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+}
+
+.fam-menu-item:last-child {
+  border-bottom: none;
+}
+
+.fam-menu-item:hover {
+  background: rgba(255, 182, 193, 0.08);
+  color: #ff6b9d;
+}
+
+.fam-menu-item:active {
+  background: rgba(255, 182, 193, 0.15);
+}
+
+.fam-menu-label {
+  flex: 1;
+}
+
+/* 모바일 조정 */
+@media (max-width: 640px) {
+  .fam-fab {
+    bottom: 1.5rem;
+    right: 1.5rem;
+  }
+
+  .fam-menu {
+    bottom: 72px;
+    right: 1.5rem;
+  }
+}

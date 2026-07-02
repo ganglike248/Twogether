@@ -1,5 +1,5 @@
 // src/components/Travel/TravelChecklistTab.jsx
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import {
@@ -16,7 +16,7 @@ import { MdCheckCircle } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './TravelChecklistTab.css';
 
-const TravelChecklistTab = ({ trip }) => {
+const TravelChecklistTab = forwardRef(({ trip }, ref) => {
   const { user } = useAuthContext();
   const { checklist, loading } = useTravelChecklist(trip.id);
   const [showModal, setShowModal] = useState(false);
@@ -77,6 +77,14 @@ const TravelChecklistTab = ({ trip }) => {
       toast.error('상태 변경 중 오류가 발생했습니다.');
     }
   };
+
+  // FAB 메서드 노출
+  useImperativeHandle(ref, () => ({
+    showChecklistModal: () => {
+      setEditingItem(null);
+      setShowModal(true);
+    }
+  }), []);
 
   const handleDelete = async (itemId) => {
     if (!window.confirm('이 항목을 삭제하시겠습니까?')) return;
@@ -170,6 +178,8 @@ const TravelChecklistTab = ({ trip }) => {
       )}
     </div>
   );
-};
+});
+
+TravelChecklistTab.displayName = 'TravelChecklistTab';
 
 export default TravelChecklistTab;
