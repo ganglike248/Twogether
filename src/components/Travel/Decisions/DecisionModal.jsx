@@ -1,5 +1,6 @@
 // src/components/Travel/DecisionModal.jsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionModal.css';
@@ -61,7 +62,7 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
     }
   };
 
-  return (
+  return createPortal(
     <div className="decision-modal-overlay">
       <div className="decision-modal-container">
         <div className="decision-modal-header">
@@ -119,7 +120,8 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

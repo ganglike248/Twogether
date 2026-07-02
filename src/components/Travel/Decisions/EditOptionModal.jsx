@@ -1,5 +1,6 @@
 // src/components/Travel/EditOptionModal.jsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import './EditOptionModal.css';
 
@@ -59,7 +60,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
     }
   };
 
-  return (
+  return createPortal(
     <div className="edit-option-modal-overlay">
       <div className="edit-option-modal-container">
         <div className="eom-header">
@@ -185,7 +186,8 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 
