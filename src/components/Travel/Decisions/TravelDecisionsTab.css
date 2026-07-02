@@ -53,6 +53,7 @@
     font-weight: 600;
     white-space: nowrap;
     flex-shrink: 0;
+    margin-left: auto;
 }
 
 .tdt-add-btn:active {

@@ -25,7 +25,7 @@ export const createDecision = async (tripId, decisionData) => {
   const newDecision = {
     tripId,
     coupleId: decisionData.coupleId,
-    category: decisionData.category,
+    category: decisionData.category || 'custom',
     title: decisionData.title,
     description: decisionData.description || '',
     options: decisionData.options || [],
@@ -265,9 +265,30 @@ export const getTopOptions = (options) => {
   if (!options || !Array.isArray(options) || options.length === 0) return [];
 
   const sorted = sortByTotalScore(options);
-  const maxScore = sorted[0].totalScore || 0;
 
-  return sorted.filter(opt => (opt.totalScore || 0) === maxScore);
+  // 동점을 고려하여 rank 할당 (top 3까지만 반환)
+  const withRank = [];
+  let rank = 1;
+
+  for (let i = 0; i < sorted.length; i++) {
+    // rank가 3을 초과하면 중단
+    if (rank > 3) break;
+
+    // 이전 항목과 점수가 다르면 rank 업데이트
+    if (i > 0 && sorted[i].totalScore < sorted[i - 1].totalScore) {
+      rank = i + 1;
+    }
+
+    // rank가 3 이하인 항목만 추가
+    if (rank <= 3) {
+      withRank.push({
+        ...sorted[i],
+        rank,
+      });
+    }
+  }
+
+  return withRank;
 };
 
 /**
@@ -368,6 +389,32 @@ export const reorderOptions = async (tripId, decisionId, optionIndex, direction)
 
   await updateDoc(decisionRef, {
     options,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+/**
+ * 옵션 즐겨찾기 토글
+ */
+export const toggleFavorite = async (tripId, decisionId, optionId) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  const decisionSnap = await getDoc(decisionRef);
+
+  if (!decisionSnap.exists()) {
+    throw new Error('Decision not found');
+  }
+
+  const updatedOptions = decisionSnap.data().options.map(opt => {
+    if (opt.id !== optionId) return opt;
+
+    return {
+      ...opt,
+      isFavorite: !opt.isFavorite,
+    };
+  });
+
+  await updateDoc(decisionRef, {
+    options: updatedOptions,
     updatedAt: serverTimestamp(),
   });
 };

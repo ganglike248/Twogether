@@ -1,20 +1,11 @@
 // src/components/Travel/DecisionModal.jsx
 import React, { useState } from 'react';
-import { MdClose, MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin } from 'react-icons/md';
+import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionModal.css';
 
-const categories = [
-  { value: 'accommodation', label: '숙소', icon: MdHotel },
-  { value: 'restaurant', label: '식당', icon: MdRestaurant },
-  { value: 'activity', label: '액티비티', icon: MdEmojiFlags },
-  { value: 'transport', label: '교통', icon: MdDirectionsCar },
-  { value: 'custom', label: '기타', icon: MdPushPin },
-];
-
 const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecision }) => {
   const [formData, setFormData] = useState({
-    category: 'accommodation',
     title: '',
     description: '',
   });
@@ -25,13 +16,11 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
   React.useEffect(() => {
     if (editingDecision) {
       setFormData({
-        category: editingDecision.category || 'accommodation',
         title: editingDecision.title || '',
         description: editingDecision.description || '',
       });
     } else {
       setFormData({
-        category: 'accommodation',
         title: '',
         description: '',
       });
@@ -39,10 +28,6 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
   }, [editingDecision, isOpen]);
 
   if (!isOpen) return null;
-
-  const handleCategoryChange = (e) => {
-    setFormData(prev => ({ ...prev, category: e.target.value }));
-  };
 
   const handleTitleChange = (e) => {
     setFormData(prev => ({ ...prev, title: e.target.value }));
@@ -64,7 +49,6 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
     try {
       await onSave({
         ...(editingDecision && { id: editingDecision.id }),
-        category: formData.category,
         title: formData.title,
         description: formData.description,
         ...(editingDecision ? {} : { options: [] }),
@@ -90,22 +74,6 @@ const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecis
         </div>
 
         <form onSubmit={handleSubmit} className="decision-modal-form">
-          {/* 카테고리 */}
-          <div className="dm-form-group">
-            <label className="dm-label">카테고리</label>
-            <select
-              value={formData.category}
-              onChange={handleCategoryChange}
-              className="dm-select"
-            >
-              {categories.map(cat => (
-                <option key={cat.value} value={cat.value}>
-                  {cat.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {/* 제목 */}
           <div className="dm-form-group">
             <label className="dm-label">주제 (예: 숙소 선택)</label>

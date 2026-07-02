@@ -4,7 +4,7 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    background: rgba(255, 182, 193, 0.08);
+    background: #fdf5f7;
     border: 1px solid #ffd9d9;
     border-radius: var(--border-radius-lg);
     padding: 0.6rem 0.65rem;
@@ -138,6 +138,7 @@
     flex-shrink: 0;
 }
 
+.dc-favorite-btn,
 .dc-add-schedule-btn,
 .dc-edit-btn,
 .dc-delete-btn {
@@ -150,6 +151,20 @@
     border: none;
     border-radius: 0.3rem;
     cursor: pointer;
+}
+
+.dc-favorite-btn {
+    background: rgba(255, 182, 193, 0.1);
+    color: #ffb6c1;
+}
+
+.dc-favorite-btn.active {
+    background: rgba(255, 193, 7, 0.15);
+    color: #ffc107;
+}
+
+.dc-favorite-btn:active {
+    opacity: 0.65;
 }
 
 .dc-add-schedule-btn {
