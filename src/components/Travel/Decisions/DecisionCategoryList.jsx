@@ -1,7 +1,7 @@
 // src/components/Travel/DecisionCategoryList.jsx
 import React, { useState, useRef } from 'react';
 import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit, MdCheckCircle } from 'react-icons/md';
-import { sortByUserScore, addOption, updateDecision, undecideDecision } from '../../../services/travelDecisionService';
+import { sortByUserScore, addOption, updateDecision, undecideDecision, hasUserScored } from '../../../services/travelDecisionService';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import DecisionCard from './DecisionCard';
 import DecisionTopPick from './DecisionTopPick';
@@ -26,7 +26,7 @@ const categoryIcons = {
   custom: MdPushPin,
 };
 
-const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tripId, onAddToSchedule }) => {
+const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tripId, onAddToSchedule, isDecisionItem }) => {
   const { coupleDoc, getMemberName } = useAuthContext();
   const [showAddModal, setShowAddModal] = useState(null); // decision ID or null
   const [addingOption, setAddingOption] = useState(false);
@@ -72,6 +72,11 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
     ...decision,
     options: sortByUserScore(decision.options, currentUserId),
   }));
+
+  // 카테고리 내 미평가 옵션 개수 계산
+  const unscorredCount = sortedDecisions.reduce((count, decision) => {
+    return count + (decision.options || []).filter(opt => !hasUserScored(opt, currentUserId)).length;
+  }, 0);
 
   const handleAddOption = async (decisionId, optionData) => {
     setAddingOption(true);
@@ -152,31 +157,66 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
   };
 
   return (
-    <div className="dcl-category-section">
+    <div className={`dcl-category-section ${isDecisionItem ? 'dcl-is-decision-item' : ''}`}>
       {/* 카테고리 제목 */}
-      <h3 className="dcl-category-title">
-        <span className="dcl-category-icon">
-          {React.createElement(categoryIcons[category] || MdPushPin, { size: 20 })}
-        </span>
-        {categoryLabels[category] || category}
-      </h3>
+      {!isDecisionItem && (
+        <h3 className="dcl-category-title">
+          <span className="dcl-category-icon">
+            {React.createElement(categoryIcons[category] || MdPushPin, { size: 20 })}
+          </span>
+          <span className="dcl-category-name">
+            {categoryLabels[category] || category}
+            {unscorredCount > 0 && <span className="dcl-unscored-count">{unscorredCount}</span>}
+          </span>
+        </h3>
+      )}
 
       {/* 각 선택지 그룹 */}
       <div className="dcl-decisions-list">
-        {sortedDecisions.map(decision => {
+        {sortedDecisions.map((decision, idx) => {
           const expanded = getIsExpanded(decision);
           const decidedOpt = decision.decidedOption
             ? decision.options?.find(o => o.id === decision.decidedOption)
             : null;
+          // 주제 표시 모드에서 첫 번째만 헤더 숨김
+          const showHeader = !isDecisionItem || idx > 0;
 
           return (
-            <div
-              key={decision.id}
-              className="dcl-decision-group"
-            >
-              <>
-                {/* 선택지 제목 */}
-                <div className="dcl-decision-header">
+            <div key={decision.id} className="dcl-decision-wrapper">
+              <div
+                className="dcl-decision-group"
+              >
+                {/* 주제 헤더 (주제 표시 모드의 첫 번째만) */}
+                {isDecisionItem && idx === 0 && decision && (
+                  <div className="dcl-decision-header-large">
+                    <div>
+                      <h2 className="dcl-decision-title-large">{decision.title}</h2>
+                      {decision.description && (
+                        <p className="dcl-decision-desc-large">{decision.description}</p>
+                      )}
+                    </div>
+                    <div className="dcl-decision-actions-large">
+                      <button
+                        className="dcl-title-edit-btn"
+                        onClick={() => handleOpenEditModal(decision)}
+                        title="수정"
+                      >
+                        <MdEdit size={16} />
+                      </button>
+                      <button
+                        className="dcl-delete-btn"
+                        onClick={() => onDelete(decision.id)}
+                        title="삭제"
+                      >
+                        <MdClose />
+                      </button>
+                    </div>
+                  </div>
+                )}
+                <>
+                  {/* 선택지 제목 (주제 표시 모드에서는 첫 번째만 숨김) */}
+                  {showHeader && (
+                  <div className="dcl-decision-header">
                   <div className="dcl-title-section">
                     <div className="dcl-title-view">
                       <h4 className="dcl-decision-title">{decision.title}</h4>
@@ -200,6 +240,7 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                     <MdClose />
                   </button>
                 </div>
+                )}
 
                 {/* 확정됨 배너 OR 최고 선택 */}
                 {decision.options && decision.options.length > 0 && (() => {
@@ -320,6 +361,7 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                   loading={addingOption}
                 />
               )}
+              </div>
             </div>
           );
         })}

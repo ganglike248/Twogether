@@ -32,7 +32,7 @@ const DecisionTopPick = ({ options, onSelectOption, boyfriendInfo, girlfriendInf
   };
 
   return (
-    <div className="dtp-container">
+    <>
       <div className="dtp-label">⭐ 최고 선택</div>
       <div className="dtp-options">
         {topOptions.map(option => (
@@ -79,7 +79,7 @@ const DecisionTopPick = ({ options, onSelectOption, boyfriendInfo, girlfriendInf
           </div>
         ))}
       </div>
-    </div>
+    </>
   );
 };
 

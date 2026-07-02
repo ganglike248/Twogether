@@ -4,11 +4,6 @@
     display: flex;
     flex-direction: column;
     gap: 0.75rem;
-    background: white;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-    padding: 1rem;
 }
 
 /* 필터 영역 */
@@ -27,7 +22,7 @@
 .tdt-filter-btn {
     padding: 0.45rem 0.9rem;
     border: 1px solid var(--card-border);
-    background: var(--main-bg);
+    background: white;
     border-radius: 1rem;
     cursor: pointer;
     font-size: 0.82rem;
@@ -62,6 +57,84 @@
 
 .tdt-add-btn:active {
     opacity: 0.82;
+}
+
+/* 주제 필터 (가로스크롤) */
+.tdt-decision-filters {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    padding-bottom: 0.25rem;
+    scrollbar-width: none;
+    margin: -0.5rem -1rem 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    -webkit-overflow-scrolling: touch;
+}
+
+.tdt-decision-filters::-webkit-scrollbar {
+    display: none;
+}
+
+.tdt-decision-filter-btn {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.4rem 0.75rem;
+    background: white;
+    border: 1px solid var(--card-border);
+    border-radius: 1rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.tdt-decision-filter-btn:active {
+    opacity: 0.75;
+}
+
+.tdt-decision-filter-btn.active {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border-color: #ff9bac;
+    box-shadow: 0 2px 6px rgba(255, 182, 193, 0.25);
+}
+
+/* 주제 필터 미평가 배지 */
+.tdt-decision-filter-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.0rem;
+    height: 1.0rem;
+    background: #ff6b6b;
+    color: white;
+    font-size: 0.5rem;
+    font-weight: 800;
+    border-radius: 50%;
+    white-space: nowrap;
+    flex-shrink: 0;
+}
+
+.tdt-decision-filter-btn.active .tdt-decision-filter-badge {
+    background: rgba(255, 255, 255, 0.35);
+}
+
+/* 확정된 주제 필터 - 초록색 */
+.tdt-decision-filter-btn.decided {
+    border-color: rgba(46, 204, 113, 0.5);
+    color: #27ae60;
+}
+
+.tdt-decision-filter-btn.decided.active {
+    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
+    border-color: #27ae60;
+    color: white;
 }
 
 /* 로딩 */
@@ -148,9 +221,53 @@
     white-space: nowrap;
 }
 
+/* TOC 네비게이션 */
+.tdt-toc-nav {
+    display: flex;
+    gap: 0.4rem;
+    overflow-x: auto;
+    padding: 0.5rem 0;
+    margin: -0.5rem -1rem 0 -1rem;
+    padding-left: 1rem;
+    padding-right: 1rem;
+    scrollbar-width: none;
+    background: white;
+    border-bottom: 1px solid var(--card-border);
+    -webkit-overflow-scrolling: touch;
+}
+
+.tdt-toc-nav::-webkit-scrollbar {
+    display: none;
+}
+
+.tdt-toc-btn {
+    padding: 0.35rem 0.7rem;
+    background: var(--main-bg);
+    border: 1px solid var(--card-border);
+    border-radius: 0.6rem;
+    cursor: pointer;
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--color-gray-600);
+    white-space: nowrap;
+    flex-shrink: 0;
+    transition: all 0.15s;
+}
+
+.tdt-toc-btn:active {
+    opacity: 0.75;
+}
+
+.tdt-toc-btn.active {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border-color: #ff9bac;
+    box-shadow: 0 2px 6px rgba(255, 182, 193, 0.25);
+}
+
 /* 콘텐츠 */
 .tdt-content {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 1rem;
 }

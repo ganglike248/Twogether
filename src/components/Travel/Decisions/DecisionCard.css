@@ -4,11 +4,11 @@
     display: flex;
     flex-direction: column;
     gap: 0.35rem;
-    background: white;
-    border: 1px solid var(--card-border);
+    background: rgba(255, 182, 193, 0.08);
+    border: 1px solid #ffd9d9;
     border-radius: var(--border-radius-lg);
     padding: 0.6rem 0.65rem;
-    box-shadow: var(--shadow-sm);
+    box-shadow: none;
 }
 
 .decision-card:active {
@@ -92,6 +92,28 @@
     min-width: 0;
 }
 
+.dc-title-with-badge {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+}
+
+.dc-unscored-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1.2rem;
+    height: 1.2rem;
+    background: #ff6b6b;
+    color: white;
+    font-size: 0.58rem;
+    font-weight: 800;
+    border-radius: 50%;
+    white-space: nowrap;
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
+}
+
 .dc-title {
     font-size: 0.85rem;
     font-weight: 700;
@@ -156,11 +178,6 @@
     font-size: 0.75rem;
     color: var(--color-gray-500);
     margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    display: -webkit-box;
-    -webkit-line-clamp: 3;
-    -webkit-box-orient: vertical;
     white-space: pre-line;
     line-height: 1.45;
 }
@@ -237,7 +254,6 @@
     flex-direction: column;
     gap: 0.3rem;
     padding-top: 0.35rem;
-    border-top: 1px solid var(--card-border);
 }
 
 .dc-score-btn {
@@ -329,7 +345,6 @@
     display: flex;
     justify-content: flex-end;
     padding-top: 0.35rem;
-    border-top: 1px solid var(--card-border);
 }
 
 /* 확정 버튼: 기본부터 녹색 */
@@ -363,4 +378,98 @@
     font-size: 0.72rem;
     font-weight: 700;
     border-radius: 0.35rem;
+}
+
+/* ===== 의견 표시 섹션 ===== */
+.dc-comments-display {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+    font-size: 0.72rem;
+    padding: 0.4rem 0.45rem;
+    background: rgba(255, 182, 193, 0.08);
+    border-radius: 0.3rem;
+    border-left: 2px solid #ffb6c1;
+}
+
+.dc-comment-item {
+    margin: 0;
+    color: var(--color-gray-600);
+    line-height: 1.4;
+    white-space: pre-line;
+}
+
+.dc-comment-item strong {
+    color: var(--color-gray-700);
+    font-weight: 600;
+}
+
+/* ===== 의견 입력 섹션 ===== */
+.dc-comment-input-section {
+    display: flex;
+    flex-direction: column;
+    gap: 0.2rem;
+}
+
+.dc-comment-textarea {
+    width: 100%;
+    min-height: 50px;
+    padding: 0.35rem 0.4rem;
+    font-size: 0.72rem;
+    font-family: inherit;
+    border: 1px solid #ffb6c1;
+    border-radius: 0.3rem;
+    resize: vertical;
+    color: var(--color-gray-700);
+}
+
+.dc-comment-textarea::placeholder {
+    color: var(--color-gray-300);
+}
+
+.dc-comment-textarea:focus {
+    outline: none;
+    border-color: #ff9bac;
+    box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
+}
+
+.dc-comment-textarea:disabled {
+    background: var(--main-bg);
+    cursor: not-allowed;
+    opacity: 0.6;
+}
+
+.dc-comment-count {
+    font-size: 0.65rem;
+    color: var(--color-gray-400);
+    margin: 0;
+    text-align: right;
+}
+
+/* ===== 평가 액션 버튼들 ===== */
+.dc-score-actions {
+    display: flex;
+    gap: 0.3rem;
+    justify-content: flex-end;
+}
+
+.dc-score-save {
+    padding: 0.3rem 0.65rem;
+    font-size: 0.72rem;
+    font-weight: 600;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: white;
+    border: none;
+    border-radius: 0.3rem;
+    cursor: pointer;
+    flex: 0 0 auto;
+}
+
+.dc-score-save:active:not(:disabled) {
+    opacity: 0.82;
+}
+
+.dc-score-save:disabled {
+    opacity: 0.55;
+    cursor: not-allowed;
 }

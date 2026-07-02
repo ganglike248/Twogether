@@ -58,9 +58,9 @@ export const deleteDecision = async (tripId, decisionId) => {
 };
 
 /**
- * 특정 옵션에 점수 추가/수정
+ * 특정 옵션에 점수 추가/수정 (의견은 선택사항)
  */
-export const addScore = async (tripId, decisionId, optionId, userId, score) => {
+export const addScore = async (tripId, decisionId, optionId, userId, score, comment = '') => {
   const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
   const decisionSnap = await getDoc(decisionRef);
 
@@ -80,6 +80,7 @@ export const addScore = async (tripId, decisionId, optionId, userId, score) => {
       updatedScores.push({
         userId,
         score,
+        comment: comment.trim() || '',  // 의견 추가 (선택사항)
       });
     }
 
@@ -284,5 +285,90 @@ export const getUserScore = (option, userId) => {
  */
 export const hasUserScored = (option, userId) => {
   return getUserScore(option, userId) !== null;
+};
+
+/**
+ * 사용자의 평가 의견 조회 (특정 옵션)
+ */
+export const getUserComment = (option, userId) => {
+  if (!option || !option.scores) return '';
+
+  const score = option.scores.find(s => s.userId === userId);
+  return score ? (score.comment || '') : '';
+};
+
+/**
+ * 옵션 내 이미지 순서 변경
+ */
+export const updateOptionImageOrder = async (tripId, decisionId, optionId, imageIndex, direction) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  const decisionSnap = await getDoc(decisionRef);
+
+  if (!decisionSnap.exists()) {
+    throw new Error('Decision not found');
+  }
+
+  const updatedOptions = decisionSnap.data().options.map(opt => {
+    if (opt.id !== optionId) return opt;
+
+    const images = [...(opt.images || [])];
+
+    // 방향에 따라 인덱스 계산
+    let newIndex = imageIndex;
+    if (direction === 'up' && imageIndex > 0) {
+      newIndex = imageIndex - 1;
+    } else if (direction === 'down' && imageIndex < images.length - 1) {
+      newIndex = imageIndex + 1;
+    } else {
+      // 순서 변경 불가
+      return opt;
+    }
+
+    // 이미지 교환
+    [images[imageIndex], images[newIndex]] = [images[newIndex], images[imageIndex]];
+
+    return {
+      ...opt,
+      images,
+    };
+  });
+
+  await updateDoc(decisionRef, {
+    options: updatedOptions,
+    updatedAt: serverTimestamp(),
+  });
+};
+
+/**
+ * 선택지 내 옵션 순서 변경
+ */
+export const reorderOptions = async (tripId, decisionId, optionIndex, direction) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  const decisionSnap = await getDoc(decisionRef);
+
+  if (!decisionSnap.exists()) {
+    throw new Error('Decision not found');
+  }
+
+  const options = [...(decisionSnap.data().options || [])];
+
+  // 방향에 따라 인덱스 계산
+  let newIndex = optionIndex;
+  if (direction === 'up' && optionIndex > 0) {
+    newIndex = optionIndex - 1;
+  } else if (direction === 'down' && optionIndex < options.length - 1) {
+    newIndex = optionIndex + 1;
+  } else {
+    // 순서 변경 불가
+    return;
+  }
+
+  // 옵션 교환
+  [options[optionIndex], options[newIndex]] = [options[newIndex], options[optionIndex]];
+
+  await updateDoc(decisionRef, {
+    options,
+    updatedAt: serverTimestamp(),
+  });
 };
 

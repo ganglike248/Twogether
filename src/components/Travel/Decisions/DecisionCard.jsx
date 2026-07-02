@@ -1,10 +1,10 @@
 // src/components/Travel/DecisionCard.jsx
 import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { addScore, getUserScore, deleteOption, updateOption, decideOption } from '../../../services/travelDecisionService';
+import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, updateOption, decideOption } from '../../../services/travelDecisionService';
 import { handleOpenLink } from '../../../utils/appLinkUtils';
 import EditOptionModal from './EditOptionModal';
-import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight } from 'react-icons/md';
+import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionCard.css';
 
@@ -13,10 +13,12 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const [showEditModal, setShowEditModal] = useState(false);
   const [savingScore, setSavingScore] = useState(false);
   const [selectedScore, setSelectedScore] = useState(null);
+  const [commentText, setCommentText] = useState('');
   const [deciding, setDeciding] = useState(false);
   const imageScrollRef = useRef(null);
 
   const myScore = getUserScore(option, currentUserId);
+  const myComment = getUserComment(option, currentUserId);
 
   // 커플 멤버 정보 가져오기
   const boyfriendInfo = coupleDoc?.members?.[0]
@@ -26,13 +28,19 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     ? { uid: coupleDoc.members[1], name: getMemberName('girlfriend') }
     : null;
 
-  // 각 멤버의 점수 가져오기
+  // 각 멤버의 점수 및 의견 가져오기
   const boyfriendScore = boyfriendInfo
     ? option.scores?.find(s => s.userId === boyfriendInfo.uid)?.score || 0
     : 0;
   const girlfriendScore = girlfriendInfo
     ? option.scores?.find(s => s.userId === girlfriendInfo.uid)?.score || 0
     : 0;
+  const boyfriendComment = boyfriendInfo
+    ? option.scores?.find(s => s.userId === boyfriendInfo.uid)?.comment || ''
+    : '';
+  const girlfriendComment = girlfriendInfo
+    ? option.scores?.find(s => s.userId === girlfriendInfo.uid)?.comment || ''
+    : '';
 
   // 자신의 닉네임 가져오기
   const myNickname = currentUserId === boyfriendInfo?.uid
@@ -51,8 +59,9 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
 
     setSavingScore(true);
     try {
-      await addScore(decision.tripId, decision.id, option.id, currentUserId, score);
+      await addScore(decision.tripId, decision.id, option.id, currentUserId, score, commentText);
       setSelectedScore(null);
+      setCommentText('');
       toast.success(`${score}점 평가했습니다!`);
     } catch (error) {
       console.error('Error saving score:', error);
@@ -151,7 +160,14 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
       {/* 헤더: 제목 + 액션 버튼 */}
       <div className="dc-header">
         <div className="dc-title-info">
-          <h4 className="dc-title">{option.title}</h4>
+          <div className="dc-title-with-badge">
+            {!hasUserScored(option, currentUserId) && (
+              <span className="dc-unscored-badge" title="미평가">
+                <MdPriorityHigh size={10} />
+              </span>
+            )}
+            <h4 className="dc-title">{option.title}</h4>
+          </div>
           {option.price && <p className="dc-price">{option.price}</p>}
         </div>
 
@@ -199,30 +215,51 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
         </button>
       )}
 
-      {/* 점수 표시 */}
+      {/* 점수 표시 + 의견 */}
       {(boyfriendScore > 0 || girlfriendScore > 0 || myScore) && (
-        <div className="dc-scores-display">
-          {boyfriendScore > 0 && (
-            <span className="dc-score-label">{boyfriendInfo.name}: {boyfriendScore}점</span>
-          )}
-          {girlfriendScore > 0 && (
-            <span className="dc-score-label">{girlfriendInfo.name}: {girlfriendScore}점</span>
-          )}
-          {myScore && !isMyScoreAlreadyShown && (
-            <span className="dc-score-label">{myNickname}: {myScore}점</span>
-          )}
-          <span className="dc-total-score">(총: {option.totalScore || 0}/20)</span>
-          {myScore && (
-            <button
-              className="dc-score-change-inline"
-              onClick={() => setSelectedScore(myScore)}
-              disabled={savingScore}
-              title="점수 변경"
-            >
-              변경
-            </button>
-          )}
-        </div>
+        <>
+          <div className="dc-scores-display">
+            {boyfriendScore > 0 && (
+              <span className="dc-score-label">{boyfriendInfo.name}: {boyfriendScore}점</span>
+            )}
+            {girlfriendScore > 0 && (
+              <span className="dc-score-label">{girlfriendInfo.name}: {girlfriendScore}점</span>
+            )}
+            {myScore && !isMyScoreAlreadyShown && (
+              <span className="dc-score-label">{myNickname}: {myScore}점</span>
+            )}
+            <span className="dc-total-score">(총: {option.totalScore || 0}/20)</span>
+            {myScore && (
+              <button
+                className="dc-score-change-inline"
+                onClick={() => setSelectedScore(myScore)}
+                disabled={savingScore}
+                title="점수 변경"
+              >
+                변경
+              </button>
+            )}
+          </div>
+
+          {/* 의견 표시 */}
+          <div className="dc-comments-display">
+            {boyfriendComment && (
+              <p className="dc-comment-item">
+                <strong>{boyfriendInfo.name}:</strong> {boyfriendComment}
+              </p>
+            )}
+            {girlfriendComment && (
+              <p className="dc-comment-item">
+                <strong>{girlfriendInfo.name}:</strong> {girlfriendComment}
+              </p>
+            )}
+            {myComment && !isMyScoreAlreadyShown && (
+              <p className="dc-comment-item">
+                <strong>{myNickname}:</strong> {myComment}
+              </p>
+            )}
+          </div>
+        </>
       )}
 
       {/* 평가 섹션 */}
@@ -244,21 +281,48 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
               {Array.from({ length: 10 }, (_, i) => i + 1).map(score => (
                 <button
                   key={score}
-                  className={`dc-score-option ${myScore === score ? 'active' : ''}`}
-                  onClick={() => handleScoreSelect(score)}
+                  className={`dc-score-option ${selectedScore === score ? 'active' : ''}`}
+                  onClick={() => setSelectedScore(score)}
                   disabled={savingScore}
                 >
                   {score}
                 </button>
               ))}
             </div>
-            <button
-              className="dc-score-cancel"
-              onClick={() => setSelectedScore(null)}
-              disabled={savingScore}
-            >
-              취소
-            </button>
+
+            {/* 의견 입력 (선택사항) */}
+            <div className="dc-comment-input-section">
+              <textarea
+                className="dc-comment-textarea"
+                placeholder="의견을 입력해주세요 (선택사항)"
+                value={commentText}
+                onChange={(e) => setCommentText(e.target.value)}
+                disabled={savingScore}
+                maxLength={200}
+              />
+              <p className="dc-comment-count">{commentText.length}/200</p>
+            </div>
+
+            {/* 저장/취소 버튼 */}
+            <div className="dc-score-actions">
+              <button
+                className="dc-score-save"
+                onClick={() => handleScoreSelect(selectedScore)}
+                disabled={savingScore || !selectedScore}
+              >
+                {savingScore ? '저장 중...' : '저장'}
+              </button>
+              <button
+                className="dc-score-cancel"
+                onClick={() => {
+                  setSelectedScore(null);
+                  setCommentText('');
+                }}
+                disabled={savingScore}
+              >
+                취소
+              </button>
+            </div>
           </div>
         )}
       </div>

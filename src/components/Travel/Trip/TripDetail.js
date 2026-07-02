@@ -6,7 +6,10 @@ import { toast } from 'react-toastify';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
 import { MdDateRange } from 'react-icons/md';
 import { useTripSchedules } from '../../../hooks/useTrip';
+import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
+import { useAuthContext } from '../../../contexts/AuthContext';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
+import { hasUserScored } from '../../../services/travelDecisionService';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
 import { useModalBackButton } from '../../../hooks/useModalBackButton';
 import ScheduleItem from '../Schedule/ScheduleItem';
@@ -17,6 +20,7 @@ import TravelChecklistTab from '../Checklist/TravelChecklistTab';
 import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
+    const { user } = useAuthContext();
     const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'decisions' | 'checklist'
     const [activeDay, setActiveDay] = useState(1);
     const [showScheduleModal, setShowScheduleModal] = useState(false);
@@ -29,6 +33,12 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const [optionForSchedule, setOptionForSchedule] = useState(null);
 
     const { schedules, loading } = useTripSchedules(trip.id);
+    const { decisions } = useTravelDecisions(trip.id);
+
+    // 미평가 개수 계산
+    const unscorredCount = decisions.reduce((count, decision) => {
+      return count + (decision.options || []).filter(opt => !hasUserScored(opt, user?.uid)).length;
+    }, 0);
 
     useModalBackButton(showScheduleModal, () => { setShowScheduleModal(false); setSelectedSchedule(null); });
 
@@ -272,7 +282,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     className={`td-main-tab ${activeTab === 'decisions' ? 'active' : ''}`}
                     onClick={() => setActiveTab('decisions')}
                 >
-                    선택 사항
+                    <span>선택 사항</span>
+                    {unscorredCount > 0 && <span className="td-main-tab-badge">{unscorredCount}</span>}
                 </button>
                 <button
                     className={`td-main-tab ${activeTab === 'checklist' ? 'active' : ''}`}
