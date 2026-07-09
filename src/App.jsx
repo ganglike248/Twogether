@@ -26,6 +26,7 @@ const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
 const HomeImageSettingsPage = lazy(() => import('./components/HomeImageSettings/HomeImageSettingsPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
+const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
 
 import './App.css';
 
@@ -72,6 +73,7 @@ const router = createBrowserRouter([
       { path: '/couple-setup', element: <CoupleSetupPage />, key: 'couple-setup' },
       { path: '/privacy', element: <PrivacyPage />, key: 'privacy' },
       { path: '/terms', element: <TermsPage />, key: 'terms' },
+      { path: '/account-deletion', element: <AccountDeletionPage />, key: 'account-deletion' },
       {
         path: '/',
         element: <ProtectedRoute key="home"><Layout><Home /></Layout></ProtectedRoute>,

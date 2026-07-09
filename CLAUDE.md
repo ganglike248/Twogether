@@ -111,6 +111,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /home-image-settings → HomeImageSettingsPage
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
 /terms             → TermsPage (로그인 불필요 — 이용약관, PrivacyPage와 동일 패턴)
+/account-deletion  → AccountDeletionPage (로그인 불필요 — 계정/데이터 삭제 요청 안내, Google Play 계정 삭제 URL 요건 충족용)
 ```
 
 ## Firestore 데이터 스키마
@@ -184,6 +185,7 @@ utils/
 - **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
 - **PrivacyPage** (`src/components/Privacy/PrivacyPage.jsx`) — 개인정보처리방침 페이지. 로그인 없이 접근 가능(`/privacy`). 앱스토어 심사 제출 URL: `https://twogether-206fb.web.app/privacy`
+- **AccountDeletionPage** (`src/components/Privacy/AccountDeletionPage.jsx`) — 계정/데이터 삭제 요청 안내 페이지. 로그인 없이 접근 가능(`/account-deletion`). 인앱 자동 탈퇴 기능이 없어 이메일(business9498@gmail.com) 요청 방식만 안내. Google Play Console "삭제된 계정 URL" 등록용: `https://twogether-206fb.web.app/account-deletion`
 - **TravelDecisionsTab** (`src/components/Travel/Decisions/`) — 여행 탭의 "선택 사항" 기능. 숙소/식당/액티비티 등 후보를 비교·평가·확정하는 플로우.
   - `travelDecisions` subcollection (`trips/{tripId}/travelDecisions`): `status('deciding'|'decided')`, `decidedOption`, `options[{id,title,price,images[],url,scores[{userId,score}],totalScore}]`
   - `DecisionCategoryList`: 카테고리별 그룹 렌더. `TravelDecisionsTab`에서 deciding/decided를 분리해 렌더링 — decided는 구분선(`tdt-decided-divider`) 아래 맨 하단에 표시
