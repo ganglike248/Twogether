@@ -25,6 +25,10 @@ custom claims(`coupleIds`)를 설정. `storage.rules`의 `hasCoupleIdAccess()`�
 rules 레벨 소유권 검증을 수행 (Firestore 직접 쿼리 없이도 가능).  
 `storageService.js`의 `validateCoupleIdAccess()`(클라이언트 사전 검증) + `refreshAuthTokenWithClaims()`
 (ID 토큰 강제 갱신 후 claim 확인)가 앞단 방어선이고, 최종 방어는 storage.rules.  
+⚠️ **이 함수들은 2026-07-09(v0.4.14)에 처음 배포됨** (`firebase-functions` v6 API 불일치로 그 전엔 배포 자체가
+실패하던 상태 — `require('firebase-functions/v1')`로 수정). 트리거는 커플 "생성"/"멤버 추가" 시점에만
+발동하므로 **이미 생성돼 있던 기존 커플들은 custom claims가 없어 Storage 접근이 막힐 수 있음** —
+기존 커플 전체에 claims를 채워주는 백필 스크립트/callable function 필요 (아직 미실행).  
 write에는 `size < 10MB && image/*` 조건 적용 중.
 
 ### Firebase Storage + Workbox
