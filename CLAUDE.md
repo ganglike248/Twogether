@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.17 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.18 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -55,20 +55,72 @@ FCM은 동일 토큰을 반환하므로, 예전 계정 문서에 다른 계정�
 `notificationService.enableNotifications()`는 직접 Firestore를 쓰지 않고 반드시 이 콜러블을 거침
 (`disableNotifications()`는 본인 문서 `arrayRemove`만 하므로 클라이언트 직접 처리 유지, 문제없음).
 
+**브라우저 알림 권한(`Notification.permission`)은 JS로 되돌릴 수 없음** (한번 'granted'면 영원히 'granted').
+그래서 설정 UI의 "알림 받기" 토글 표시는 권한이 아니라 `notificationService.shouldReceiveNotifications()`
+(권한 허용 + 사용자가 명시적으로 끈 적 없음, 로컬스토리지 `twogether_fcm_disabled` 플래그 기반)로 판단함 —
+**기본값은 켜짐**. 실제 FCM 토큰의 Firestore 등록 여부는 별개로 `isDeviceSubscribed(userDoc)`로 확인하며,
+`Home.jsx`가 진입 시마다 권한은 있는데 토큰이 등록 안 된 경우(기능 추가 전 가입한 기존 사용자 등) 조용히
+백필 등록함. `enableNotifications`/`disableNotifications`의 각 비동기 단계에는 타임아웃 가드가 걸려있음 —
+안 걸면 `navigator.serviceWorker.ready`가 응답 없이 멈춰 토글이 영구 로딩 상태로 고착되는 버그가 실제로 있었음.
+
+**`src/sw.js`에 `self.skipWaiting()` + `activate` 시 `self.clients.claim()` 필수.** 없으면 재배포를 반복하는
+동안 새 버전이 "대기" 상태로만 쌓이고 활성화가 안 돼 `navigator.serviceWorker.ready`가 멈추는 문제가 실제로
+있었음. 클라이언트도 `navigator.serviceWorker.getRegistration()`으로 이미 활성 등록이 있으면 그걸 우선 쓰고
+없을 때만 `.ready`를 기다리는 이중 안전장치(`getActiveServiceWorkerRegistration`)가 `notificationService.js`에 있음.
+
+**알림 종류별 on/off 설정**: `SettingsPage` → `NotificationSettingsModal`에서 전체 켜기/끄기 아래에
+종류별 토글(`NOTIFICATION_TYPES` 배열, `users/{uid}.notificationPrefs.<key>`)이 있음. 서버(`sendPushToUser`)가
+발송 직전 이 값을 확인하고, 필드가 없으면(한 번도 설정 안 만짐) 타입별 `defaultOn`을 따름 — **`eventCreate`
+기본 켜짐, `eventUpdate`는 기본 꺼짐**(변경마다 알림 오면 피로하다는 사용자 피드백으로 결정). **`coupleConnect`
+(커플 연결 알림)는 설정 목록 자체에 없음** — 최초 1회뿐이고 항상 필요해서 `sendPushToUser` 호출 시 `type` 인자를
+아예 안 넘겨 무조건 발송함. 새 알림 종류 추가 시 `NOTIFICATION_TYPES`에 항목만 추가하면 설정 UI에 자동 반영.
+
 VAPID 키는 `.env`의 `VITE_FIREBASE_VAPID_KEY` (Firebase Console → 프로젝트 설정 → Cloud Messaging →
 Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 보일 수 있어 직접 URL
 `https://console.firebase.google.com/project/{projectId}/settings/cloudmessaging`로 접근해야 할 수 있음).
 
-관련 파일: `src/sw.js`(신규), `src/services/notificationService.js`(신규),
-`src/firebase.js`(`app`/`functionsInstance` export 추가), `src/components/Settings/SettingsPage.jsx`(알림 켜기 토글),
-`src/components/common/Layout.jsx`(포그라운드 토스트 구독), `functions/index.js`(`onEventCreate`, `registerFcmToken`).
+관련 파일: `src/sw.js`, `src/services/notificationService.js`,
+`src/firebase.js`(`app`/`functionsInstance` export), `src/components/Settings/NotificationSettingsModal.jsx`(종류별 토글),
+`src/components/Home/Home.jsx` + `src/components/Auth/CoupleSetupPage.jsx`(권한 자동 요청/백필),
+`src/components/common/Layout.jsx`(포그라운드 토스트 구독),
+`functions/index.js`(`sendPushToUser`/`getPartnerUid` 공용 헬퍼, `onEventCreate`, `onEventUpdate`,
+`onCoupleUpdate` 확장, `registerFcmToken`).
 
 **알림 로드맵** (A/B 분류는 즉시성 트리거 vs 예약 함수):
-- ✅ A1 파트너 일정 추가 알림 — 완료 (v0.4.17)
-- 🔲 B2 기념일 D-day 마일스톤 알림 — 다음 우선순위, `koreanHolidays.js`의 커플기념일 계산 로직 재사용 가능
-- 🔲 B1 내일 일정 리마인드, A2/A3 여행 후보·버킷리스트 완료 알림
+- ✅ 커플 연결 완료, A1 파트너 일정 추가, 2 일정 날짜/시간 변경 — 완료 (v0.4.17~v0.4.18)
+- 🔲 3 여행 시작 D-day, B2 기념일 D-day, B1 내일 일정 리마인드 — 다음 우선순위. 셋 다 "매일 한 번 커플 순회 체크"라
+  스케줄 함수 3개로 나누지 말고 `sendDailyReminders` 하나로 묶어서 그 안에서 순차 체크하는 구조로 갈 계획
+  (`koreanHolidays.js`의 커플기념일 계산 로직 재사용 가능)
+- 🔲 A2/A3 여행 후보·버킷리스트 완료 알림, 7 버킷리스트 추가, 8 일정 삭제, 9 여행 체크리스트 완료, 10 홈 화면 사진 변경
 - 🔲 B4 생리 주기 예측 알림 — 민감 정보라 별도 논의 후 opt-in으로 신중히 진행 (사용자 요청으로 보류 중)
 - iOS 네이티브 푸시(APNs)는 Apple Developer Program 가입 전까지 보류 — Capacitor `@capacitor/push-notifications` 미설치 상태
+
+### Firebase Hosting 캐시 헤더 (v0.4.18~)
+`firebase.json`에 헤더 설정이 없으면 Firebase Hosting 기본값(`max-age=3600`)이 SPA 라우트(`/`, `/calendar` 등
+`**` 리라이트로 index.html을 서빙하는 모든 경로)에 그대로 적용됨. 서비스워커는 최신으로 갱신됐는데 `index.html`/JS
+번들만 최대 1시간 캐시된 예전 버전을 계속 서빙하는 불일치가 실제로 발생했음(재배포를 반복하는 세션에서 발견).  
+`hosting.headers`에 `source: "**"` → `Cache-Control: no-cache`를 **먼저** 두고, `source: "/assets/**"` →
+`max-age=31536000, immutable`을 뒤에 둬서 해시 파일만 오버라이드함. **주의**: `source: "/index.html"`처럼
+리터럴 경로만 지정하면 안 됨 — SPA 리라이트로 실제 요청은 `/`, `/calendar` 등으로 오기 때문에 매칭이 안 됨
+(처음엔 이렇게 잘못 설정했다가 다시 고침).
+
+### Firestore 오프라인 캐시 staleness — AuthContext 리다이렉트 가드 (v0.4.18~)
+`src/firebase.js`의 `persistentLocalCache`는 origin(localhost vs 배포 도메인)별로 IndexedDB에 독립 저장됨.
+같은 브라우저로 여러 계정을 번갈아 로그인하며 테스트하면 `users/{uid}.coupleId` 같은 캐시가 꼬여서, 실제로는
+멀쩡한 계정인데 `ProtectedRoute`가 `/couple-setup`으로 잘못 리다이렉트하는 문제가 실제로 있었음(서버 데이터는
+항상 정상이었음 — 순수 클라이언트 캐시 문제, 시크릿 모드로 접속하면 정상 동작하는 것으로 확인).  
+`AuthContext.jsx`의 `users`/`couples` 구독은 `onSnapshot` 시작 **전에** `getDocFromServer()`로 한 번 강제
+확인함 — 리다이렉트를 좌우하는 첫 값이 항상 서버 최신값이 되도록 함(오프라인이면 catch해서 기존처럼 캐시 폴백).
+트레이드오프로 로그인마다 서버 왕복 한 번이 늘어나 약간(수백 ms) 로딩이 느려짐 — 잘못된 리다이렉트를 막는 게
+더 중요하다고 판단해 감수함. **여러 계정을 같은 브라우저로 번갈아 테스트하지 말 것** — 시크릿 창을 계정별로
+쓰거나 브라우저를 나눠서 테스트할 것.
+
+### 로그아웃 리다이렉트 — history.back() 레이스 (v0.4.18~)
+`Sidebar.jsx`의 로그아웃 확인 모달은 `useModalBackButton`(뒤로가기 히스토리 pushState)을 쓰는데, 모달이
+닫히며 발생하는 `history.back()`과 로그아웃 후 `/login` 이동 타이밍이 겹치면 엉뚱한 이전 페이지로 튕기는
+문제가 있었음. `signOut()`을 **먼저 `await`한 뒤** `navigate('/login', { replace: true })`를 명시적으로
+호출하도록 수정 — `ProtectedRoute`의 리다이렉트에만 수동적으로 의존하지 않음. `CoupleSetupPage.jsx`의
+로그아웃 버튼도 동일 패턴으로 통일.
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -184,6 +236,9 @@ services/
   eventService.js        → 커플/여행 이벤트 CRUD + edit_log. convertEventType(writeBatch, 원자적 컬렉션 이동)
   tripService.js         → 여행 CRUD. createTrip은 writeBatch(trips + events 동시 커밋). calendarEventId로 연동
   authService.js         → 회원가입/로그인, createCouple(inviteCodes 동시 생성), joinCouple(inviteCodes 조회)
+  notificationService.js → 웹 푸시 알림 권한/토큰 관리 (enableNotifications/disableNotifications/
+                           shouldReceiveNotifications/isDeviceSubscribed/subscribeForegroundMessages). 상세는
+                           "웹 푸시 알림 (FCM)" 트랩 섹션 참고
 
 hooks/
   useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).

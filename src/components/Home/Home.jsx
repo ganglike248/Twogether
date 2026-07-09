@@ -1,5 +1,5 @@
 // src/components/Home/Home.jsx
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import {
@@ -16,13 +16,19 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { convertToDate } from '../../utils/dataUtils';
+import {
+  getNotificationPermission,
+  isDeviceSubscribed,
+  isExplicitlyDisabled,
+  enableNotifications,
+} from '../../services/notificationService';
 import TutorialSlides from '../Onboarding/TutorialSlides';
 import WheelModal from '../Wheel/WheelModal';
 import HomeSkeleton from './HomeSkeleton';
 import './Home.css';
 
 const Home = () => {
-  const { user, coupleId, coupleDoc, myRole } = useAuthContext();
+  const { user, userDoc, coupleId, coupleDoc, myRole } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -45,6 +51,19 @@ const Home = () => {
       setShowTutorial(true);
     }
   }, [location.state?.showTutorial]);
+
+  // 알림 기본값은 "켜짐" — 권한이 아직 없으면(default) 요청하고, 권한은 이미 있는데
+  // (이 기능이 생기기 전 가입 등) 이 기기 토큰이 서버에 등록 안 돼 있으면 조용히 백필 등록함.
+  // 사용자가 설정에서 명시적으로 껐다면(isExplicitlyDisabled) 자동 재등록하지 않음.
+  const notifAttemptedRef = useRef(false);
+  useEffect(() => {
+    if (!userDoc || notifAttemptedRef.current || isExplicitlyDisabled()) return;
+    const permission = getNotificationPermission();
+    if (permission === 'default' || (permission === 'granted' && !isDeviceSubscribed(userDoc))) {
+      notifAttemptedRef.current = true;
+      enableNotifications().catch(() => { notifAttemptedRef.current = false; });
+    }
+  }, [userDoc]);
 
   const heroImageUrl = coupleDoc?.heroImageUrl || null;
   const customCategories = coupleDoc?.customCategories || {};

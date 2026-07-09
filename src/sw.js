@@ -11,6 +11,14 @@ import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
 
 precacheAndRoute(self.__WB_MANIFEST);
 
+// 새 버전이 배포되면 기존 탭을 닫을 때까지 "대기" 상태로 남아있지 않고 즉시 활성화 + 모든 열린
+// 탭을 즉시 제어함. 이게 없으면 재배포를 반복하는 동안 activate가 안 된 채로 쌓여서
+// navigator.serviceWorker.ready가 응답 없이 멈추는 문제가 있었음(알림 켜기/끄기가 멈추는 원인).
+self.skipWaiting();
+self.addEventListener('activate', (event) => {
+  event.waitUntil(self.clients.claim());
+});
+
 registerRoute(
   ({ url }) => url.origin === 'https://firestore.googleapis.com',
   new NetworkFirst({

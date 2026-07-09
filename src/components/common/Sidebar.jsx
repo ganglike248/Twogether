@@ -23,9 +23,13 @@ const Sidebar = ({ isOpen, onClose }) => {
     onClose();
   };
 
-  const handleLogout = () => {
+  const handleLogout = async () => {
     setShowLogoutModal(false);
-    signOut();
+    // signOut을 먼저 기다린 뒤 이동해야 함 — 로그아웃 확인 모달이 닫히며 발생하는
+    // history.back()(useModalBackButton)과 순서가 겹치면 /login이 아닌 엉뚱한 이전 페이지로
+    // 튕기는 문제가 있었음. await로 그 back() 처리가 먼저 끝나게 한 뒤 명시적으로 이동.
+    await signOut();
+    navigate('/login', { replace: true });
   };
 
   return (
