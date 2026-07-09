@@ -59,6 +59,12 @@ const MemoryList = () => {
   const searchResultIdsRef = useRef(new Set());
   // 검색어가 바뀔 때마다 증가 — 이전(오래된) 검색 요청이 늦게 응답해도 결과에 반영되지 않도록 방지
   const searchGenerationRef = useRef(0);
+  // 검색 시작 시점에 매칭된 개인 일정 중 첫 PAGE_SIZE개를 넘는 나머지 — "더 보기" 때 이 큐를
+  // 먼저 소진한 뒤 부족한 만큼 공유 일정으로 채움 (개인 일정 매칭 결과가 10건을 넘어도 스크롤로 계속 볼 수 있도록)
+  const personalCarryoverRef = useRef([]);
+  // sharedTarget이 0이라 이번 호출에서 fetchSharedSearchPage를 건너뛴 경우 이전에 확인된
+  // 공유 일정 소진 여부를 그대로 유지하기 위한 참조
+  const sharedHasMoreRef = useRef(true);
 
   // 검색어 디바운스
   useEffect(() => {
@@ -261,15 +267,25 @@ const MemoryList = () => {
     setSearchIsLoadingMore(true);
     try {
       const existingIds = new Set(searchResultIdsRef.current);
-      const { results, last, hasMoreShared } = await fetchSharedSearchPage(searchLastDoc, existingIds, PAGE_SIZE);
+
+      // 이월된 개인 일정 매칭 결과를 먼저 소진하고, 부족한 만큼만 공유 일정을 스캔함
+      const personalMore = personalCarryoverRef.current.slice(0, PAGE_SIZE);
+      personalCarryoverRef.current = personalCarryoverRef.current.slice(PAGE_SIZE);
+      personalMore.forEach(memory => existingIds.add(memory.id));
+
+      const sharedTarget = PAGE_SIZE - personalMore.length;
+      const { results, last, hasMoreShared } = sharedTarget > 0
+        ? await fetchSharedSearchPage(searchLastDoc, existingIds, sharedTarget)
+        : { results: [], last: searchLastDoc, hasMoreShared: sharedHasMoreRef.current };
 
       if (myGeneration !== searchGenerationRef.current) return;
 
       setSearchResults(prev => (
-        [...prev, ...results].sort((a, b) => (a.start > b.start ? -1 : 1))
+        [...prev, ...personalMore, ...results].sort((a, b) => (a.start > b.start ? -1 : 1))
       ));
       setSearchLastDoc(last);
-      setSearchHasMore(hasMoreShared);
+      sharedHasMoreRef.current = hasMoreShared;
+      setSearchHasMore(hasMoreShared || personalCarryoverRef.current.length > 0);
     } catch (error) {
       console.error('Error fetching more search results:', error);
     } finally {
@@ -306,6 +322,7 @@ const MemoryList = () => {
       setSearchLastDoc(null);
       setSearchHasMore(false);
       setSearchIsLoadingMore(false);
+      personalCarryoverRef.current = [];
       return;
     }
 
@@ -315,14 +332,17 @@ const MemoryList = () => {
     setSearchHasMore(true);
     // 새 검색 시작 시 이전 검색의 "더 불러오기" 로딩 상태가 남아있지 않도록 방어적으로 초기화
     setSearchIsLoadingMore(false);
+    sharedHasMoreRef.current = true;
 
     const existingIds = new Set();
     // 개인 일정은 이미 클라이언트에 로드되어 있으므로 한 번에 매칭하되,
-    // 다른 검색 페이지와 크기 규칙을 맞추기 위해 첫 PAGE_SIZE개만 표시함
+    // 다른 검색 페이지와 크기 규칙을 맞추기 위해 첫 PAGE_SIZE개만 표시하고 나머지는
+    // personalCarryoverRef에 이월해 "더 보기" 스크롤 시 계속 노출되도록 함
     const personalMatches = (filter === 'all' || filter === 'personal')
       ? personalMemoriesRef.current.filter(memory => matchesSearchTerm(memory, debouncedSearchTerm))
       : [];
     const personalPage = personalMatches.slice(0, PAGE_SIZE);
+    personalCarryoverRef.current = personalMatches.slice(PAGE_SIZE);
     personalPage.forEach(memory => existingIds.add(memory.id));
 
     const sharedTarget = PAGE_SIZE - personalPage.length;
@@ -336,7 +356,8 @@ const MemoryList = () => {
         .sort((a, b) => (a.start > b.start ? -1 : 1));
       setSearchResults(combined);
       setSearchLastDoc(last);
-      setSearchHasMore(hasMoreShared);
+      sharedHasMoreRef.current = hasMoreShared;
+      setSearchHasMore(hasMoreShared || personalCarryoverRef.current.length > 0);
       setIsSearching(false);
     }).catch(err => {
       if (myGeneration !== searchGenerationRef.current) return;

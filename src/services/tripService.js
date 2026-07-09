@@ -2,6 +2,7 @@
 import {
   collection,
   addDoc,
+  setDoc,
   updateDoc,
   deleteDoc,
   doc,
@@ -166,7 +167,10 @@ export const saveTripSchedule = async (tripId, day, schedules) => {
   );
   const snap = await getDocs(q);
   if (snap.empty) {
-    await addDoc(collection(db, 'tripSchedules'), scheduleData);
+    // 결정론적 ID로 생성 — 동시에 두 번 호출돼도(둘 다 empty로 보고 생성 시도) 같은 문서로 수렴해
+    // 같은 tripId+day에 중복 문서가 생기는 경쟁 조건을 막음. 기존 자동생성 ID 문서는 위 쿼리로 계속 찾아
+    // updateDoc되므로 마이그레이션 없이 호환됨.
+    await setDoc(doc(db, 'tripSchedules', `${tripId}_${day}`), scheduleData);
   } else {
     await updateDoc(snap.docs[0].ref, scheduleData);
   }

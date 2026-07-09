@@ -18,6 +18,7 @@ import {
   serverTimestamp,
   arrayUnion,
   writeBatch,
+  runTransaction,
 } from 'firebase/firestore';
 import { auth, db } from '../firebase';
 
@@ -100,29 +101,33 @@ export const createCouple = async (uid, anniversaryDate) => {
 // 초대 코드로 커플 합류
 export const joinCouple = async (uid, inviteCode) => {
   const code = inviteCode.trim().toUpperCase();
+  const inviteRef = doc(db, 'inviteCodes', code);
 
-  // inviteCodes에서 coupleId 조회 (couples 컬렉션을 직접 쿼리하지 않음)
-  const inviteSnap = await getDoc(doc(db, 'inviteCodes', code));
+  // runTransaction으로 joined 체크와 쓰기를 원자적으로 묶음 — 두 사용자가 동시에 같은
+  // 코드로 합류를 시도해도 Firestore가 트랜잭션 충돌을 감지해 하나는 재시도 후
+  // joined:true를 다시 읽어 에러를 던지게 됨 (check-then-write 사이의 gap 제거).
+  const coupleId = await runTransaction(db, async (transaction) => {
+    const inviteSnap = await transaction.get(inviteRef);
 
-  if (!inviteSnap.exists()) {
-    throw new Error('유효하지 않은 초대 코드입니다.');
-  }
+    if (!inviteSnap.exists()) {
+      throw new Error('유효하지 않은 초대 코드입니다.');
+    }
 
-  const { coupleId, creatorUid, joined } = inviteSnap.data();
+    const { coupleId: targetCoupleId, creatorUid, joined } = inviteSnap.data();
 
-  if (joined) {
-    throw new Error('이미 커플이 연결된 코드입니다.');
-  }
-  if (creatorUid === uid) {
-    throw new Error('자신의 초대 코드는 사용할 수 없습니다.');
-  }
+    if (joined) {
+      throw new Error('이미 커플이 연결된 코드입니다.');
+    }
+    if (creatorUid === uid) {
+      throw new Error('자신의 초대 코드는 사용할 수 없습니다.');
+    }
 
-  const batch = writeBatch(db);
-  batch.update(doc(db, 'couples', coupleId), { members: arrayUnion(uid) });
-  batch.update(doc(db, 'inviteCodes', code), { joined: true });
-  // users/{uid} 업데이트를 batch에 포함 — 합류와 원자적으로 처리
-  batch.update(doc(db, 'users', uid), { coupleId });
-  await batch.commit();
+    transaction.update(doc(db, 'couples', targetCoupleId), { members: arrayUnion(uid) });
+    transaction.update(inviteRef, { joined: true });
+    transaction.update(doc(db, 'users', uid), { coupleId: targetCoupleId });
+
+    return targetCoupleId;
+  });
 
   return { coupleId };
 };

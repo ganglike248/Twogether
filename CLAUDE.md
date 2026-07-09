@@ -19,10 +19,13 @@
 `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` **명시 필수**.  
 미명시 시 rules가 기본 `*.appspot.com` 버킷에 배포되어 앱에서 403 에러 발생.
 
-### Firebase Storage rules 소유권 제한
-Storage Rules는 Firestore를 직접 쿼리할 수 없어 coupleId 소유권 검증 불가.  
-`storageService.js`의 `validateCoupleIdAccess()`가 유일한 소유권 방어선.  
-write에는 `size < 10MB && image/*` 조건 적용 중. (완전한 rules 검증은 Auth custom claims + Cloud Functions 필요)
+### Firebase Storage rules 소유권 검증 (Cloud Functions custom claims 적용됨)
+`functions/index.js`의 `onCoupleCreate`/`onCoupleUpdate`가 커플 생성·합류 시 멤버의 Firebase Auth
+custom claims(`coupleIds`)를 설정. `storage.rules`의 `hasCoupleIdAccess()`가 이 claim으로 실제
+rules 레벨 소유권 검증을 수행 (Firestore 직접 쿼리 없이도 가능).  
+`storageService.js`의 `validateCoupleIdAccess()`(클라이언트 사전 검증) + `refreshAuthTokenWithClaims()`
+(ID 토큰 강제 갱신 후 claim 확인)가 앞단 방어선이고, 최종 방어는 storage.rules.  
+write에는 `size < 10MB && image/*` 조건 적용 중.
 
 ### Firebase Storage + Workbox
 `firebasestorage.googleapis.com`을 Workbox runtimeCaching에 넣으면 서비스 워커가 CORS 없이 fetch → opaque 응답 → 이미지 로딩 실패 (특히 iOS). **현재 의도적으로 캐싱에서 제외**되어 있음.
@@ -103,6 +106,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /settings          → SettingsPage (이벤트 색상 설정 등)
 /home-image-settings → HomeImageSettingsPage
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
+/terms             → TermsPage (로그인 불필요 — 이용약관, PrivacyPage와 동일 패턴)
 ```
 
 ## Firestore 데이터 스키마
