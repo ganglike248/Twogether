@@ -1,7 +1,7 @@
 import type { CapacitorConfig } from '@capacitor/cli';
 
 const config: CapacitorConfig = {
-  appId: 'com.twogether.app',
+  appId: 'com.wooridoori.twogether',
   appName: '우리두리',
   webDir: 'dist',
 

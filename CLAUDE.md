@@ -239,7 +239,13 @@ capacitor.config.ts    → 양 플랫폼 공통 설정
 ```
 
 ### 앱 ID / 패키지명
-- `com.twogether.app` — Android `applicationId` + iOS `Bundle Identifier` 동일 사용
+- `com.wooridoori.twogether` — Android `applicationId` + iOS `Bundle Identifier` 동일 사용
+- 원래 `com.twogether.app`이었으나 Google Play에서 패키지명 중복으로 거부되어 변경됨 (2026-07-09).
+  변경 시 수정 필요한 파일: `android/app/build.gradle`(namespace, applicationId), `capacitor.config.ts`(appId),
+  `android/app/src/main/java/{package}/MainActivity.java`(디렉터리 구조 + package 선언 이동),
+  `android/app/src/main/res/values/strings.xml`(package_name, custom_url_scheme),
+  `ios/App/App.xcodeproj/project.pbxproj`(PRODUCT_BUNDLE_IDENTIFIER, Debug/Release 2곳).
+  패키지명은 Play Console에 앱을 만들고 최초 업로드하면 이후 변경 불가하므로 신중히 결정할 것.
 
 ### 매번 빌드할 때 순서
 ```
@@ -268,7 +274,7 @@ npx capacitor-assets generate --android --ios
 npx cap open ios       # Xcode 프로젝트 열기
 ```
 1. Xcode에서 Signing & Capabilities → Team 설정 (Apple Developer 계정)
-2. Bundle Identifier: `com.twogether.app`
+2. Bundle Identifier: `com.wooridoori.twogether`
 3. Product → Archive → Distribute App → App Store Connect
 
 ### 스플래시 스크린 동작 방식

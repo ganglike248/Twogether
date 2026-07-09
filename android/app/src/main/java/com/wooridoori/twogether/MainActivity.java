@@ -1,4 +1,4 @@
-package com.twogether.app;
+package com.wooridoori.twogether;
 
 import com.getcapacitor.BridgeActivity;
 
