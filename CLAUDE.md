@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.11 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.17 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -33,6 +33,42 @@ write에는 `size < 10MB && image/*` 조건 적용 중.
 
 ### Firebase Storage + Workbox
 `firebasestorage.googleapis.com`을 Workbox runtimeCaching에 넣으면 서비스 워커가 CORS 없이 fetch → opaque 응답 → 이미지 로딩 실패 (특히 iOS). **현재 의도적으로 캐싱에서 제외**되어 있음.
+
+### 웹 푸시 알림 (FCM) — 서비스워커 통합 필수 (v0.4.17~)
+`vite-plugin-pwa`를 **`injectManifest` 전략**으로 사용 중 (`vite.config.js`). `generateSW`로 되돌리면 안 됨 —
+FCM 웹 푸시는 보통 별도 `firebase-messaging-sw.js`를 등록하는데, Workbox SW와 scope(`/`)가 겹쳐 서로 덮어써서
+오프라인 캐싱이 깨지므로, `src/sw.js` 하나에 Workbox 프리캐싱 + FCM 백그라운드 처리를 **반드시 함께** 둔다.
+`package.json`의 `workbox-precaching/routing/strategies/expiration`은 `src/sw.js`가 직접 import하므로 devDependencies에 명시 필요.
+
+**Cloud Function은 `notification` 필드가 아니라 `data`-only로 발송** (`functions/index.js`의 `onEventCreate`).
+`notification` 필드를 쓰면 브라우저 자동 표시 + `src/sw.js`의 `onBackgroundMessage` 수동 표시가 겹쳐서
+**모바일에서 알림이 2번 뜨는 버그**가 실제로 발생했음 — data-only 유지 필수.
+
+**포그라운드(활성 탭) 상태에서는 시스템 알림이 자동으로 안 뜸** — `Layout.jsx`에서
+`notificationService.subscribeForegroundMessages()`를 구독해 `toast`로 대체 표시. 이 구독을 빼먹으면
+탭이 활성 상태일 때는 알림이 전혀 안 보임 (실제로 한 번 빠뜨렸던 버그 — 유틸 함수만 만들고 어디서도 안 부름).
+
+**FCM 토큰은 로그인 계정이 아니라 브라우저/기기 단위로 고정됨.** 같은 브라우저로 여러 계정을 번갈아 테스트하면
+FCM은 동일 토큰을 반환하므로, 예전 계정 문서에 다른 계정의 토큰이 남아있는 채로 두 계정 모두 알림을 받는
+버그가 실제로 발생했음(성공 2건으로 로그에 찍힘). `functions/index.js`의 `registerFcmToken`(callable)이
+등록 시 그 토큰을 가진 **다른 모든 계정 문서에서 먼저 제거**한 뒤 현재 로그인 계정에만 연결함 —
+`notificationService.enableNotifications()`는 직접 Firestore를 쓰지 않고 반드시 이 콜러블을 거침
+(`disableNotifications()`는 본인 문서 `arrayRemove`만 하므로 클라이언트 직접 처리 유지, 문제없음).
+
+VAPID 키는 `.env`의 `VITE_FIREBASE_VAPID_KEY` (Firebase Console → 프로젝트 설정 → Cloud Messaging →
+Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 보일 수 있어 직접 URL
+`https://console.firebase.google.com/project/{projectId}/settings/cloudmessaging`로 접근해야 할 수 있음).
+
+관련 파일: `src/sw.js`(신규), `src/services/notificationService.js`(신규),
+`src/firebase.js`(`app`/`functionsInstance` export 추가), `src/components/Settings/SettingsPage.jsx`(알림 켜기 토글),
+`src/components/common/Layout.jsx`(포그라운드 토스트 구독), `functions/index.js`(`onEventCreate`, `registerFcmToken`).
+
+**알림 로드맵** (A/B 분류는 즉시성 트리거 vs 예약 함수):
+- ✅ A1 파트너 일정 추가 알림 — 완료 (v0.4.17)
+- 🔲 B2 기념일 D-day 마일스톤 알림 — 다음 우선순위, `koreanHolidays.js`의 커플기념일 계산 로직 재사용 가능
+- 🔲 B1 내일 일정 리마인드, A2/A3 여행 후보·버킷리스트 완료 알림
+- 🔲 B4 생리 주기 예측 알림 — 민감 정보라 별도 논의 후 opt-in으로 신중히 진행 (사용자 요청으로 보류 중)
+- iOS 네이티브 푸시(APNs)는 Apple Developer Program 가입 전까지 보류 — Capacitor `@capacitor/push-notifications` 미설치 상태
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.

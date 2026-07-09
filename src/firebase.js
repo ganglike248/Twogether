@@ -9,6 +9,7 @@ import {
 import { getAuth } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 import { getStorage } from 'firebase/storage';
+import { getFunctions } from 'firebase/functions';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -35,7 +36,8 @@ try {
   db = getFirestore(app);
 }
 
-export { db };
+export { db, app };
 export const auth = getAuth(app);
 export const storage = getStorage(app);
+export const functionsInstance = getFunctions(app);
 export const analytics = getAnalytics(app);
