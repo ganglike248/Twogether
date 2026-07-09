@@ -34,7 +34,9 @@ const Home = () => {
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
-  const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
+  const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid, {
+    includeCycles: false,
+  });
   const navigate = useNavigate();
 
   // 프로필 또는 커플 연결 후 튜토리얼 표시

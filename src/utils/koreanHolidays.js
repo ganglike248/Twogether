@@ -1,6 +1,7 @@
 // src/utils/koreanHolidays.js
 // korean-lunar-calendar 패키지를 이용해 음력 → 양력 변환
 import KoreanLunarCalendar from 'korean-lunar-calendar';
+import { getLocalDateStr } from './dataUtils';
 
 const pad = (n) => String(n).padStart(2, '0');
 
@@ -40,8 +41,7 @@ const lunarToDate = (lunarYear, lunarMonth, lunarDay) => {
   return new Date(s.year, s.month - 1, s.day);
 };
 
-const dateToStr = (d) =>
-  `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`;
+const dateToStr = getLocalDateStr;
 
 const shiftDate = (date, days) => {
   const d = new Date(date);

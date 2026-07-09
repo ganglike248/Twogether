@@ -2,6 +2,11 @@
 import { format, isSameDay, isToday, parseISO, differenceInCalendarDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 
+// 로컬(KST) 기준 YYYY-MM-DD 문자열 — toISOString() 금지 (UTC 변환 시 KST에서 하루 밀리는 버그 방지)
+export const getLocalDateStr = (date = new Date()) => {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+};
+
 // Firestore Timestamp 또는 문자열을 Date 객체로 변환
 export const convertToDate = (dateField) => {
   if (!dateField) return null;

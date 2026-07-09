@@ -2,7 +2,7 @@
 
 > 캘린더 하나로 나의 일정, 파트너의 일정, 우리의 데이트를 함께 관리하는 커플 앱
 
-[![Version](https://img.shields.io/badge/version-v0.3.37-ff6b6b)](https://github.com/ganglike248/Twogether)
+[![Version](https://img.shields.io/badge/version-v0.4.11-ff6b6b)](https://github.com/ganglike248/Twogether)
 [![Firebase](https://img.shields.io/badge/Firebase-12-orange)](https://firebase.google.com/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
 [![PWA](https://img.shields.io/badge/PWA-ready-brightgreen)](#)

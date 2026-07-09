@@ -33,10 +33,9 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
     const settings = coupleDoc?.cycleSettings;
     if (!settings?.enabled) return [];
 
-    const cl = settings.cycleLength || 28;
-    const pl = settings.periodLength || 5;
+    const cycleLength = Number(settings.cycleLength) || 28;
+    const periodLength = Number(settings.periodLength) || 5;
     const icon = settings.icon || '🌸';
-    const label = settings.label || '생리';
     const color = settings.color || '#ffd6e0';
     const showFertile = settings.showFertile || false;
     const showOvulation = settings.showOvulation || false;
@@ -49,7 +48,7 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
         id: `period-actual-${cycle.id}`,
         title: icon,
         start: cycle.startDate,
-        end: addDaysToStr(cycle.startDate, cycle.periodLength || pl),
+        end: addDaysToStr(cycle.startDate, Number(cycle.periodLength) || periodLength),
         allDay: true,
         backgroundColor: color,
         borderColor: color,
@@ -68,12 +67,12 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
       const base = mostRecent.startDate;
 
       // 다음 예정일
-      const nextStart = addDaysToStr(base, cl);
+      const nextStart = addDaysToStr(base, cycleLength);
       result.push({
         id: 'period-predicted',
         title: icon,
         start: nextStart,
-        end: addDaysToStr(nextStart, pl),
+        end: addDaysToStr(nextStart, periodLength),
         allDay: true,
         backgroundColor: color,
         borderColor: color,
@@ -82,13 +81,17 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
         extendedProps: { isPeriodPredicted: true },
       });
 
-      // 가임기 (현재 사이클 기준)
-      if (showFertile && cl - 19 >= 0) {
+      const fertileStartOffset = cycleLength - 19;
+      const fertileEndOffset = cycleLength - 12;
+      const ovulationOffset = cycleLength - 14;
+
+      // 가임기 (현재 사이클 기준). 음수 날짜가 되면 표시하지 않는다.
+      if (showFertile && fertileStartOffset >= 0 && fertileEndOffset >= 0) {
         result.push({
           id: 'cycle-fertile',
           title: '가임기',
-          start: addDaysToStr(base, cl - 19),
-          end: addDaysToStr(base, cl - 12),
+          start: addDaysToStr(base, fertileStartOffset),
+          end: addDaysToStr(base, fertileEndOffset),
           allDay: true,
           backgroundColor: 'rgba(180, 153, 255, 0.25)',
           borderColor: '#9B59B6',
@@ -98,12 +101,12 @@ export const useCalendarEvents = (currentDate, events, cycles, coupleDoc) => {
         });
       }
 
-      // 배란일
-      if (showOvulation && cl - 14 >= 0) {
+      // 배란일. cycleLength < 14이면 시작일 이전으로 계산되므로 표시하지 않는다.
+      if (showOvulation && ovulationOffset >= 0) {
         result.push({
           id: 'cycle-ovulation',
           title: '배란일',
-          start: addDaysToStr(base, cl - 14),
+          start: addDaysToStr(base, ovulationOffset),
           allDay: true,
           backgroundColor: 'rgba(155, 89, 182, 0.2)',
           borderColor: '#9B59B6',

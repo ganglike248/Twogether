@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.4 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.11 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -47,15 +47,12 @@ trips 컬렉션에서만 여행 이벤트를 FullCalendar 형식으로 변환하
 소유자(userId)만 접근 가능한 비공개 일정. `coupleId` 없이 `userId` 기반으로 Firestore 규칙 적용.  
 캘린더에서 [전체] / [개인] / [커플] 탭으로 필터링.  
 MemoryList에도 [개인] 필터 탭으로 표시됨 (과거 일정만, start <= 오늘).
-MemoryList의 `todayStr` 계산: `toISOString()` 금지 — UTC 변환으로 KST에서 하루 밀리고, 이벤트 저장 형식(`'YYYY-MM-DDT00:00:00'`)과 문자열 비교 시 같은 날짜도 제외됨. 반드시 `getFullYear/getMonth/getDate()`로 로컬 날짜 포맷 사용.  
+오늘 날짜 문자열 계산: `toISOString()` 금지 — UTC 변환으로 KST에서 하루 밀리고, 이벤트 저장 형식(`'YYYY-MM-DDT00:00:00'`)과 문자열 비교 시 같은 날짜도 제외됨. `src/utils/dataUtils.js`의 `getLocalDateStr()` 공용 유틸 사용 (MemoryList, koreanHolidays 등에서 재사용).  
 Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.  
-Home.jsx도 `useCalendarData(coupleId, userId)` 사용 — Calendar.jsx와 동일한 훅. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
+Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅이지만 Home은 `{ includeCycles: false }` 옵션으로 호출해 불필요한 cycles 구독을 끔. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
 
-**useCalendarData.js 필터 패턴 주의**: 4개 `useEffect`가 각각 `setEvents`를 functional update로 호출.
-- 커플 이벤트 구독: `prev.filter(e => e.extendedProps?.isTrip || e.extendedProps?.eventType === 'personal')` → trip/personal 보존 + 커플 교체
-- 여행 구독: `prev.filter(e => !e.extendedProps.isTrip)` → 커플/personal 보존 + trip 교체
-- 개인 이벤트 구독: `prev.filter(e => e.extendedProps.eventType !== 'personal')` → 커플/trip 보존 + personal 교체
-필터 방향을 반대로 쓰면 한쪽 이벤트가 손실되므로 주의.
+**useCalendarData.js 구독 구조 주의**: 커플 이벤트, 여행, 생리 기록, 개인 이벤트를 각각 독립 상태(`coupleEvents`, `tripEvents`, `cycles`, `personalEvents`)로 관리하고 렌더링 시 `useMemo`로 병합함. 예전 functional update 기반 `setEvents(prev => ...)` 패턴으로 되돌리지 말 것.
+세 번째 인자로 구독 옵션을 받을 수 있음. 예: Home은 생리 기록이 필요 없으므로 `useCalendarData(coupleId, userId, { includeCycles: false })`로 불필요한 `cycles` 구독을 줄임.
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
@@ -146,7 +143,8 @@ services/
 hooks/
   useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
                            여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함.
-                           isLoading: 4개 구독(events/trips/cycles/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false. 커플 이벤트 snapshot 교체 시 functional update로 trips/personal 보존.
+                           isLoading: 활성화된 구독(events/trips/cycles/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false.
+                           옵션으로 필요 없는 구독을 끌 수 있음(includeCoupleEvents/includeTrips/includeCycles/includePersonalEvents).
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
   useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
   useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
@@ -205,10 +203,20 @@ utils/
 `getTravelTimes` (getDocs 일회성) 대신 `subscribeTravelTimes` (onSnapshot) 사용.  
 의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
 
+### 생리 주기 배란일/가임기 계산 가드
+`useCalendarEvents.js`에서 `cycleLength`/`periodLength`는 숫자로 정규화해서 사용.
+`cycleLength < 14`이면 배란일 오프셋이 음수가 되므로 배란일 이벤트를 만들지 않음. 가임기도 시작/종료 오프셋이 음수이면 표시하지 않음.
+
+### MemoryList 검색 페이지네이션 (디바운스 + 경쟁 조건 가드)
+검색은 Firestore `title` 접두사 매칭 대신, 날짜순 페이지를 읽어 클라이언트에서 제목/내용 부분 문자열 매칭(`matchesSearchTerm`)함.
+- 입력 300ms 디바운스(`debouncedSearchTerm`) — 매 키 입력마다 스캔이 실행되지 않도록 함. 디바운스로 "검색 1회당 최대 1번"이 보장되므로, `fetchSharedSearchPage`는 매칭될 때까지 계속 스캔함 (인위적으로 낮은 상한을 걸지 않음 — 사용자가 "더 찾아보기"를 몇 번 눌러야 할지 모르는 UX가 되는 것을 피함). `MAX_RAW_PAGES_PER_SCAN`(500페이지)은 평소엔 닿지 않는 안전장치일 뿐.
+- `searchGenerationRef`로 검색어가 바뀐 뒤 늦게 도착한 이전 요청의 응답을 무시함 (경쟁 조건 방지) — 특히 `fetchMoreSearchResults`가 스크롤로 트리거된 상태에서 검색어가 바뀌는 경우 대비.
+  **주의**: `fetchMoreSearchResults`의 `finally`에서 `searchIsLoadingMore`를 리셋할 때 generation 체크로 조건부 리셋하면 안 됨 — `finally`는 `try` 안의 `return`에도 항상 실행되므로, generation이 안 맞는(오래된) 요청이 조건부로 리셋을 건너뛰면 그 뒤로 `searchIsLoadingMore`가 영원히 true로 남아 "더 불러오는 중" 스피너가 모든 후속 검색에서 멈추지 않음. 항상 무조건 리셋할 것.
+- 개인 일정은 이미 실시간 구독(`personalMemories`)되어 있어 한 번에 필터링하되, 첫 PAGE_SIZE(10)개만 표시 (공유 일정 페이지와 크기 규칙 통일). `personalMemoriesRef`로 참조해서 개인 일정이 변경돼도 검색이 재실행/리셋되지 않도록 함.
+
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
 - 소셜 로그인 (Google/Kakao, 장기)
-- MemoryList 검색 시 페이지네이션 미동작: 검색어 입력 중 `fetchMoreMemories` 스킵 → 전체 로드 후 클라이언트 필터 방식 (대량 데이터 시 성능 이슈)
 
 ### EventModal 개인 일정 localStorage 동작 (의도적 설계)
 `localStorage('twogether_personal_default')`: 저장 시(`handleSubmit`) 마지막으로 선택한 개인/공유 여부를 저장하고, 새 일정 생성 시(`event=null`) 해당 값으로 초기화함.

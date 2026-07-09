@@ -2,7 +2,14 @@ import { useState, useEffect, useMemo } from 'react';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
-export const useCalendarData = (coupleId, userId) => {
+export const useCalendarData = (coupleId, userId, options = {}) => {
+  const {
+    includeCoupleEvents = true,
+    includeTrips = true,
+    includeCycles = true,
+    includePersonalEvents = true,
+  } = options;
+
   // 각 데이터 타입별 독립적 상태 관리 (누락 버그 방지)
   const [coupleEvents, setCoupleEvents] = useState([]);
   const [tripEvents, setTripEvents] = useState([]);
@@ -20,10 +27,17 @@ export const useCalendarData = (coupleId, userId) => {
 
   // ✅ 구독 #1: 공유 일정 (couple/boyfriend/girlfriend, travel 제외)
   useEffect(() => {
-    if (!coupleId) {
+    if (!includeCoupleEvents) {
+      setCoupleEvents([]);
       setCoupleLoaded(true);
       return;
     }
+    if (!coupleId) {
+      setCoupleEvents([]);
+      setCoupleLoaded(true);
+      return;
+    }
+    setCoupleLoaded(false);
     const eventsRef = query(
       collection(db, 'events'),
       where('coupleId', '==', coupleId)
@@ -59,14 +73,23 @@ export const useCalendarData = (coupleId, userId) => {
       setCoupleLoaded(true);
     }, () => setCoupleLoaded(true));
     return () => unsubscribe();
-  }, [coupleId]);
+  }, [coupleId, includeCoupleEvents]);
 
   // ✅ 구독 #2: 여행 이벤트 (tripEvents) + 여행 원본 데이터 (trips)
   useEffect(() => {
-    if (!coupleId) {
+    if (!includeTrips) {
+      setTripEvents([]);
+      setTrips([]);
       setTripsLoaded(true);
       return;
     }
+    if (!coupleId) {
+      setTripEvents([]);
+      setTrips([]);
+      setTripsLoaded(true);
+      return;
+    }
+    setTripsLoaded(false);
     const tripsRef = query(
       collection(db, 'trips'),
       where('coupleId', '==', coupleId)
@@ -120,14 +143,21 @@ export const useCalendarData = (coupleId, userId) => {
       setTripsLoaded(true);
     }, () => setTripsLoaded(true));
     return () => unsubscribe();
-  }, [coupleId]);
+  }, [coupleId, includeTrips]);
 
   // ✅ 구독 #3: 생리 기록
   useEffect(() => {
-    if (!coupleId) {
+    if (!includeCycles) {
+      setCycles([]);
       setCyclesLoaded(true);
       return;
     }
+    if (!coupleId) {
+      setCycles([]);
+      setCyclesLoaded(true);
+      return;
+    }
+    setCyclesLoaded(false);
     const cyclesRef = query(
       collection(db, 'cycles'),
       where('coupleId', '==', coupleId)
@@ -138,14 +168,21 @@ export const useCalendarData = (coupleId, userId) => {
       setCyclesLoaded(true);
     }, () => setCyclesLoaded(true));
     return () => unsubscribe();
-  }, [coupleId]);
+  }, [coupleId, includeCycles]);
 
   // ✅ 구독 #4: 개인 일정
   useEffect(() => {
-    if (!userId) {
+    if (!includePersonalEvents) {
+      setPersonalEvents([]);
       setPersonalLoaded(true);
       return;
     }
+    if (!userId) {
+      setPersonalEvents([]);
+      setPersonalLoaded(true);
+      return;
+    }
+    setPersonalLoaded(false);
     const personalRef = query(
       collection(db, 'personal_events'),
       where('userId', '==', userId)
@@ -174,7 +211,7 @@ export const useCalendarData = (coupleId, userId) => {
       setPersonalLoaded(true);
     }, () => setPersonalLoaded(true));
     return () => unsubscribe();
-  }, [userId]);
+  }, [userId, includePersonalEvents]);
 
   // 렌더링 시에만 4개 데이터 병합 (각 useEffect는 독립적)
   const events = useMemo(() => [

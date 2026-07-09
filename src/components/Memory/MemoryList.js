@@ -1,8 +1,9 @@
 // src/components/Memory/MemoryList.js
-import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { collection, query, orderBy, where, getDocs, startAfter, limit, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { getLocalDateStr } from '../../utils/dataUtils';
 import MemoryCard from './MemoryCard';
 import EmptyState from '../common/EmptyState';
 import { MemoryListSkeleton } from './MemoryCardSkeleton';
@@ -10,6 +11,23 @@ import { MdPhotoCamera } from 'react-icons/md';
 import './MemoryList.css';
 
 const PAGE_SIZE = 10;
+// 검색 스캔 안전장치 — 디바운스로 "검색 1회당 최대 1번" 실행되는 게 보장된 상태에서,
+// 극단적으로 방대한 기록 + 존재하지 않는 검색어 조합에도 무한 루프로 빠지지 않도록 하는 상한.
+// 평소 사용량에서는 절대 도달하지 않는 값(500페이지 = 5,000건)으로 넉넉히 잡음 — UX에 영향 주지 않는 안전망 용도.
+const MAX_RAW_PAGES_PER_SCAN = 500;
+// 검색어 입력 디바운스 — 매 키 입력마다 Firestore 스캔이 실행되는 것을 방지
+const SEARCH_DEBOUNCE_MS = 300;
+
+const normalizeSearchText = (value) => String(value || '').toLowerCase();
+
+const matchesSearchTerm = (memory, term) => {
+  const needle = normalizeSearchText(term).trim();
+  if (!needle) return true;
+  return (
+    normalizeSearchText(memory.title).includes(needle) ||
+    normalizeSearchText(memory.description).includes(needle)
+  );
+};
 
 const MemoryList = () => {
   const { coupleId, getMemberName, user } = useAuthContext();
@@ -22,6 +40,7 @@ const MemoryList = () => {
   const [loadingMore, setLoadingMore] = useState(false);
   const [filter, setFilter] = useState('all');
   const [searchTerm, setSearchTerm] = useState('');
+  const [debouncedSearchTerm, setDebouncedSearchTerm] = useState('');
   const [isSearching, setIsSearching] = useState(false);
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
@@ -33,6 +52,21 @@ const MemoryList = () => {
   const [searchIsLoadingMore, setSearchIsLoadingMore] = useState(false);
 
   const containerRef = useRef(null);
+  // 검색 중 personalMemories(실시간 구독) 변경으로 검색 effect가 재실행되지 않도록
+  // 최신 값을 ref로만 참조 — 검색은 검색어/필터가 바뀔 때만 다시 실행됨
+  const personalMemoriesRef = useRef([]);
+  // fetchMoreSearchResults가 searchResults state에 의존하지 않도록 최신 id 목록을 ref로 추적
+  const searchResultIdsRef = useRef(new Set());
+  // 검색어가 바뀔 때마다 증가 — 이전(오래된) 검색 요청이 늦게 응답해도 결과에 반영되지 않도록 방지
+  const searchGenerationRef = useRef(0);
+
+  // 검색어 디바운스
+  useEffect(() => {
+    const handle = setTimeout(() => {
+      setDebouncedSearchTerm(searchTerm.trim());
+    }, SEARCH_DEBOUNCE_MS);
+    return () => clearTimeout(handle);
+  }, [searchTerm]);
 
   const normalizeMemory = (data) => {
     if (data.eventType === undefined) {
@@ -70,8 +104,7 @@ const MemoryList = () => {
       where('userId', '==', userId)
     );
     const unsubscribe = onSnapshot(q, (snapshot) => {
-      const today = new Date();
-      const todayStr = `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+      const todayStr = getLocalDateStr();
       const data = snapshot.docs
         .map(doc => ({ id: doc.id, ...doc.data(), eventType: 'personal', isPersonal: true }))
         .filter(m => m.start && m.start.split('T')[0] <= todayStr)
@@ -80,6 +113,11 @@ const MemoryList = () => {
     });
     return () => unsubscribe();
   }, [userId]);
+
+  // 검색 effect가 personalMemories 변경(실시간 구독)에 반응해 재실행되지 않도록 최신 값만 ref로 동기화
+  useEffect(() => {
+    personalMemoriesRef.current = personalMemories;
+  }, [personalMemories]);
 
   // 공유 일정 구독 (개인 필터 선택 시 스킵)
   useEffect(() => {
@@ -94,8 +132,7 @@ const MemoryList = () => {
     }
 
     setIsLoading(true);
-    const _d = new Date();
-    const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
+    const todayStr = getLocalDateStr();
 
     const constraints = [
       where('coupleId', '==', coupleId),
@@ -132,8 +169,7 @@ const MemoryList = () => {
     setLoadingMore(true);
 
     try {
-      const _d = new Date();
-      const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
+      const todayStr = getLocalDateStr();
 
       const constraints = [
         where('coupleId', '==', coupleId),
@@ -169,174 +205,145 @@ const MemoryList = () => {
     setHasMore(true);
   }, []);
 
-  // 검색 결과 추가 로드 (페이지네이션) — Firestore 단에서 필터링
-  const fetchMoreSearchResults = useCallback(async () => {
-    if (!coupleId || !searchTerm.trim() || searchIsLoadingMore || !searchHasMore) return;
+  // 원본 문서를 날짜순으로 스캔하며 검색어에 매칭되는 공유 일정을 targetCount개만큼 모음.
+  // 디바운스 덕분에 실제 검색당 1회만 호출되므로 매칭될 때까지 계속 스캔함 —
+  // MAX_RAW_PAGES_PER_SCAN은 평소엔 닿지 않는 안전장치일 뿐, UX에 영향을 주는 상한이 아님.
+  const fetchSharedSearchPage = useCallback(async (afterDoc = null, existingIds = new Set(), targetCount = PAGE_SIZE) => {
+    if (!coupleId || filter === 'personal' || targetCount <= 0) {
+      return { results: [], last: afterDoc, hasMoreShared: false };
+    }
 
+    const todayStr = getLocalDateStr();
+    const results = [];
+    let cursor = afterDoc;
+    let hasMoreShared = true;
+    let rawPagesFetched = 0;
+
+    while (results.length < targetCount && hasMoreShared && rawPagesFetched < MAX_RAW_PAGES_PER_SCAN) {
+      const constraints = [
+        where('coupleId', '==', coupleId),
+        where('start', '<=', todayStr),
+        orderBy('start', 'desc'),
+      ];
+
+      if (filter !== 'all') {
+        constraints.splice(2, 0, where('eventType', '==', filter));
+      }
+      if (cursor) {
+        constraints.push(startAfter(cursor));
+      }
+      constraints.push(limit(PAGE_SIZE));
+
+      const snapshot = await getDocs(query(collection(db, 'events'), ...constraints));
+      const docs = snapshot.docs;
+      rawPagesFetched += 1;
+      cursor = docs[docs.length - 1] || null;
+      hasMoreShared = docs.length === PAGE_SIZE;
+
+      docs.forEach(doc => {
+        const memory = { id: doc.id, ...normalizeMemory(doc.data()) };
+        if (!existingIds.has(memory.id) && matchesSearchTerm(memory, debouncedSearchTerm)) {
+          existingIds.add(memory.id);
+          results.push(memory);
+        }
+      });
+    }
+
+    return { results, last: cursor, hasMoreShared };
+  }, [coupleId, filter, debouncedSearchTerm]);
+
+  // 검색 결과 추가 로드 (페이지네이션) — 날짜순 페이지를 읽고 클라이언트에서 제목/내용 필터링.
+  // searchGenerationRef로 검색어가 바뀐 뒤 늦게 도착한 응답을 무시함 (경쟁 조건 방지).
+  const fetchMoreSearchResults = useCallback(async () => {
+    if (!coupleId || !debouncedSearchTerm || searchIsLoadingMore || !searchHasMore) return;
+
+    const myGeneration = searchGenerationRef.current;
     setSearchIsLoadingMore(true);
     try {
-      const searchLower = searchTerm.toLowerCase();
-      const _d = new Date();
-      const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
+      const existingIds = new Set(searchResultIdsRef.current);
+      const { results, last, hasMoreShared } = await fetchSharedSearchPage(searchLastDoc, existingIds, PAGE_SIZE);
 
-      const promises = [];
+      if (myGeneration !== searchGenerationRef.current) return;
 
-      // ✅ 공유 일정 검색 — Firestore에서 제목 범위 검색
-      if (filter !== 'personal') {
-        const constraints = [
-          where('coupleId', '==', coupleId),
-          where('start', '<=', todayStr),
-          where('title', '>=', searchLower),  // ← 제목 범위 검색 시작
-          where('title', '<', searchLower + ''),  // ← 범위 검색 끝
-          orderBy('start', 'desc'),
-        ];
-        if (filter !== 'all') {
-          constraints.splice(3, 0, where('eventType', '==', filter));
-        }
-        if (searchLastDoc) {
-          constraints.push(startAfter(searchLastDoc));
-        }
-        constraints.push(limit(PAGE_SIZE));
-
-        promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      // ✅ 개인 일정 검색 — Firestore에서 제목 범위 검색
-      if (userId && (filter === 'all' || filter === 'personal')) {
-        const constraints = [
-          where('userId', '==', userId),
-          where('start', '<=', todayStr),
-          where('title', '>=', searchLower),
-          where('title', '<', searchLower + ''),
-          orderBy('start', 'desc'),
-        ];
-        promises.push(getDocs(query(collection(db, 'personal_events'), ...constraints)));
-      } else {
-        promises.push(Promise.resolve(null));
-      }
-
-      const [sharedSnapshot, personalSnapshot] = await Promise.all(promises);
-      const results = [];
-
-      if (sharedSnapshot) {
-        sharedSnapshot.forEach(doc => {
-          results.push({ id: doc.id, ...normalizeMemory(doc.data()) });
-        });
-      }
-
-      if (personalSnapshot) {
-        personalSnapshot.forEach(doc => {
-          const data = doc.data();
-          results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
-        });
-      }
-
-      // 이미 표시된 결과 제외하고 추가
-      setSearchResults(prev => {
-        const existingIds = new Set(prev.map(m => m.id));
-        const newResults = results.filter(r => !existingIds.has(r.id));
-        const combined = [...prev, ...newResults].sort((a, b) => (a.start > b.start ? -1 : 1));
-        return combined;
-      });
-
-      setSearchLastDoc(sharedSnapshot?.docs[sharedSnapshot.docs.length - 1] || null);
-      setSearchHasMore(results.length === PAGE_SIZE);
+      setSearchResults(prev => (
+        [...prev, ...results].sort((a, b) => (a.start > b.start ? -1 : 1))
+      ));
+      setSearchLastDoc(last);
+      setSearchHasMore(hasMoreShared);
     } catch (error) {
       console.error('Error fetching more search results:', error);
     } finally {
+      // generation이 바뀐(오래된) 요청이어도 이 요청 자체의 로딩 상태는 항상 풀어줘야 함 —
+      // 아니면 검색어를 바꾼 뒤 다음 검색들이 계속 로딩 중 상태로 멈춰버림
       setSearchIsLoadingMore(false);
     }
-  }, [coupleId, searchTerm, filter, userId, searchLastDoc, searchHasMore, searchIsLoadingMore]);
+  }, [
+    coupleId,
+    debouncedSearchTerm,
+    searchIsLoadingMore,
+    searchHasMore,
+    fetchSharedSearchPage,
+    searchLastDoc
+  ]);
 
-  // 검색 처리 (공유 + 개인 일정 통합) — Firestore 단에서 필터링
+  // searchResults가 바뀔 때마다 id 목록을 ref로 동기화 — fetchMoreSearchResults가
+  // searchResults 자체에 의존하지 않도록 해서 페이지를 불러올 때마다 스크롤 리스너가 재등록되는 것을 방지
+  useEffect(() => {
+    searchResultIdsRef.current = new Set(searchResults.map(m => m.id));
+  }, [searchResults]);
+
+  // 검색 처리 (공유 + 개인 일정 통합). debouncedSearchTerm에만 반응 —
+  // personalMemories(실시간 구독)가 바뀌어도 재검색되지 않도록 personalMemoriesRef를 읽음.
   useEffect(() => {
     if (!coupleId) return;
-    const searchLower = searchTerm.toLowerCase();
 
-    if (!searchLower.trim()) {
+    searchGenerationRef.current += 1;
+    const myGeneration = searchGenerationRef.current;
+
+    if (!debouncedSearchTerm) {
       setIsSearching(false);
       setSearchResults([]);
       setSearchLastDoc(null);
-      setSearchHasMore(true);
+      setSearchHasMore(false);
+      setSearchIsLoadingMore(false);
       return;
     }
 
-    let cancelled = false;
     setIsSearching(true);
     setSearchResults([]);
     setSearchLastDoc(null);
     setSearchHasMore(true);
+    // 새 검색 시작 시 이전 검색의 "더 불러오기" 로딩 상태가 남아있지 않도록 방어적으로 초기화
+    setSearchIsLoadingMore(false);
 
-    const _d = new Date();
-    const todayStr = `${_d.getFullYear()}-${String(_d.getMonth() + 1).padStart(2, '0')}-${String(_d.getDate()).padStart(2, '0')}`;
+    const existingIds = new Set();
+    // 개인 일정은 이미 클라이언트에 로드되어 있으므로 한 번에 매칭하되,
+    // 다른 검색 페이지와 크기 규칙을 맞추기 위해 첫 PAGE_SIZE개만 표시함
+    const personalMatches = (filter === 'all' || filter === 'personal')
+      ? personalMemoriesRef.current.filter(memory => matchesSearchTerm(memory, debouncedSearchTerm))
+      : [];
+    const personalPage = personalMatches.slice(0, PAGE_SIZE);
+    personalPage.forEach(memory => existingIds.add(memory.id));
 
-    const promises = [];
+    const sharedTarget = PAGE_SIZE - personalPage.length;
+    const sharedPromise = sharedTarget > 0
+      ? fetchSharedSearchPage(null, existingIds, sharedTarget)
+      : Promise.resolve({ results: [], last: null, hasMoreShared: true });
 
-    // ✅ 공유 일정 검색 — Firestore 제목 범위 검색
-    if (filter !== 'personal') {
-      const constraints = [
-        where('coupleId', '==', coupleId),
-        where('start', '<=', todayStr),
-        where('title', '>=', searchLower),
-        where('title', '<', searchLower + ''),
-        orderBy('start', 'desc'),
-        limit(PAGE_SIZE),
-      ];
-      if (filter !== 'all') {
-        constraints.splice(3, 0, where('eventType', '==', filter));
-      }
-      promises.push(getDocs(query(collection(db, 'events'), ...constraints)));
-    } else {
-      promises.push(Promise.resolve(null));
-    }
-
-    // ✅ 개인 일정 검색 — Firestore 제목 범위 검색
-    if (userId && (filter === 'all' || filter === 'personal')) {
-      const constraints = [
-        where('userId', '==', userId),
-        where('start', '<=', todayStr),
-        where('title', '>=', searchLower),
-        where('title', '<', searchLower + ''),
-        orderBy('start', 'desc'),
-        limit(PAGE_SIZE),
-      ];
-      promises.push(getDocs(query(collection(db, 'personal_events'), ...constraints)));
-    } else {
-      promises.push(Promise.resolve(null));
-    }
-
-    Promise.all(promises).then(([sharedSnapshot, personalSnapshot]) => {
-      if (cancelled) return;
-      const results = [];
-
-      if (sharedSnapshot) {
-        sharedSnapshot.forEach(doc => {
-          results.push({ id: doc.id, ...normalizeMemory(doc.data()) });
-        });
-      }
-
-      if (personalSnapshot) {
-        personalSnapshot.forEach(doc => {
-          const data = doc.data();
-          results.push({ id: doc.id, ...data, eventType: 'personal', isPersonal: true });
-        });
-      }
-
-      results.sort((a, b) => (a.start > b.start ? -1 : 1));
-      setSearchResults(results);
-      setSearchLastDoc(sharedSnapshot?.docs[sharedSnapshot.docs.length - 1] || null);
-      setSearchHasMore(results.length === PAGE_SIZE);
+    sharedPromise.then(({ results, last, hasMoreShared }) => {
+      if (myGeneration !== searchGenerationRef.current) return;
+      const combined = [...personalPage, ...results]
+        .sort((a, b) => (a.start > b.start ? -1 : 1));
+      setSearchResults(combined);
+      setSearchLastDoc(last);
+      setSearchHasMore(hasMoreShared);
       setIsSearching(false);
     }).catch(err => {
-      if (cancelled) return;
+      if (myGeneration !== searchGenerationRef.current) return;
       console.error('Error searching memories:', err);
       setIsSearching(false);
     });
-
-    return () => { cancelled = true; };
-  }, [searchTerm, coupleId, userId, filter]);
+  }, [debouncedSearchTerm, coupleId, filter, fetchSharedSearchPage]);
 
   const handleScroll = useCallback(() => {
     if (!containerRef.current || isLoading) return;
@@ -418,7 +425,7 @@ const MemoryList = () => {
 
       {isLoading ? (
         <MemoryListSkeleton />
-      ) : isSearching ? (
+      ) : isSearching || searchTerm.trim() !== debouncedSearchTerm ? (
         <div className="loading-container">
           <div className="loading-spinner"></div>
           <p className="loading-text">검색 중...</p>
@@ -440,7 +447,7 @@ const MemoryList = () => {
         </div>
       )}
 
-      {(loadingMore || searchIsLoadingMore) && (
+      {(loadingMore || (searchIsLoadingMore && filteredMemories.length > 0)) && (
         <div className="loading-more">
           <div className="loading-spinner small"></div>
           <p>{searchTerm.trim() ? '더 많은 검색 결과를 불러오는 중...' : '더 많은 추억을 불러오는 중...'}</p>
