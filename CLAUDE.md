@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.18 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.19 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -84,13 +84,23 @@ Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 
 `src/components/Home/Home.jsx` + `src/components/Auth/CoupleSetupPage.jsx`(권한 자동 요청/백필),
 `src/components/common/Layout.jsx`(포그라운드 토스트 구독),
 `functions/index.js`(`sendPushToUser`/`getPartnerUid` 공용 헬퍼, `onEventCreate`, `onEventUpdate`,
-`onCoupleUpdate` 확장, `registerFcmToken`).
+`onCoupleUpdate` 확장, `registerFcmToken`, `sendMorningReminders`, `sendEveningReminders`).
+
+**예약 알림 (v0.4.19~)**: 발송 시각은 전체 사용자 공통 고정(개인화 없음) — `sendMorningReminders`(매일
+09:00 KST, `functions.pubsub.schedule('0 9 * * *').timeZone('Asia/Seoul')`)가 여행 시작 D-3/D-1 +
+기념일(100일 단위/매년 기념일/`COUPLE_DAYS` 이벤트데이)을 **당일 + 하루 전(D-1)** 두 번 체크,
+`sendEveningReminders`(매일 21:00 KST)가 내일 일정(커플 공유 + 개인 일정 합산, 1건으로 발송)을 체크함.
+**`functions/index.js`의 `COUPLE_DAYS`는 `src/utils/koreanHolidays.js`의 것과 별도로 복사된 목록** —
+Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 import 못 해서 그렇고, 캘린더 쪽 이벤트데이
+목록을 바꾸면 **여기도 수동으로 같이 갱신해야 함**(자동 동기화 없음). 이벤트데이별로 어울리는 문구
+(`suggestion` 필드, 예: 발렌타인데이 → "연인에게 초콜릿을 전해보는 건 어때요?")를 본문에 사용하고,
+100일/매년 기념일은 공통 문구("축하해요, 오늘 하루도 예쁘게 보내요")를 씀. 기념일 계산은 커플 전체
+컬렉션을 매번 스캔해야 함(각 커플의 `anniversaryDate` 기준 개별 계산이라 쿼리로 필터링 불가) — 현재
+규모에서는 문제없지만 커플 수가 매우 커지면 최적화 필요.
 
 **알림 로드맵** (A/B 분류는 즉시성 트리거 vs 예약 함수):
-- ✅ 커플 연결 완료, A1 파트너 일정 추가, 2 일정 날짜/시간 변경 — 완료 (v0.4.17~v0.4.18)
-- 🔲 3 여행 시작 D-day, B2 기념일 D-day, B1 내일 일정 리마인드 — 다음 우선순위. 셋 다 "매일 한 번 커플 순회 체크"라
-  스케줄 함수 3개로 나누지 말고 `sendDailyReminders` 하나로 묶어서 그 안에서 순차 체크하는 구조로 갈 계획
-  (`koreanHolidays.js`의 커플기념일 계산 로직 재사용 가능)
+- ✅ 커플 연결 완료, A1 파트너 일정 추가, 2 일정 날짜/시간 변경, 3 여행 D-day, B2 기념일 D-day(+이벤트데이),
+  B1 내일 일정 리마인드 — 전부 완료 (v0.4.17~v0.4.19)
 - 🔲 A2/A3 여행 후보·버킷리스트 완료 알림, 7 버킷리스트 추가, 8 일정 삭제, 9 여행 체크리스트 완료, 10 홈 화면 사진 변경
 - 🔲 B4 생리 주기 예측 알림 — 민감 정보라 별도 논의 후 opt-in으로 신중히 진행 (사용자 요청으로 보류 중)
 - iOS 네이티브 푸시(APNs)는 Apple Developer Program 가입 전까지 보류 — Capacitor `@capacitor/push-notifications` 미설치 상태

@@ -20,6 +20,9 @@ import './NotificationSettingsModal.css';
 export const NOTIFICATION_TYPES = [
   { key: 'eventCreate', label: '일정 추가', desc: '파트너가 새 일정을 추가했을 때', defaultOn: true },
   { key: 'eventUpdate', label: '일정 날짜/시간 변경', desc: '파트너가 일정 날짜나 시간을 바꿨을 때', defaultOn: false },
+  { key: 'tripDday', label: '여행 시작 D-day', desc: '여행 시작 3일 전 / 하루 전, 매일 오전 9시', defaultOn: true },
+  { key: 'anniversaryDday', label: '기념일 D-day', desc: '100일 단위·매년 기념일 당일, 매일 오전 9시', defaultOn: true },
+  { key: 'tomorrowReminder', label: '내일 일정 리마인드', desc: '내일 일정이 있으면 전날 저녁 9시', defaultOn: true },
 ];
 
 const NotificationSettingsModal = ({ isOpen, onClose }) => {
