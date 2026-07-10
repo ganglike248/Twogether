@@ -1,0 +1,107 @@
+/* src/components/common/NotificationPrimingModal.css */
+
+.npm-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.48);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 400;
+  padding: 0;
+}
+
+.npm-card {
+  background: white;
+  border-radius: 1.2rem 1.2rem 0 0;
+  width: 100%;
+  max-width: 480px;
+  padding: 1.75rem 1.5rem 1.5rem;
+  box-shadow: 0 -4px 32px rgba(0, 0, 0, 0.14);
+  text-align: center;
+}
+
+.npm-icon {
+  width: 40px;
+  height: 40px;
+  color: #ff9bac;
+  margin-bottom: 0.5rem;
+}
+
+.npm-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  color: #444;
+  margin: 0 0 0.9rem;
+}
+
+.npm-list {
+  list-style: none;
+  margin: 0 0 0.85rem;
+  padding: 0;
+  text-align: left;
+  display: inline-flex;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+.npm-list li {
+  font-size: 0.85rem;
+  color: #555;
+  padding-left: 1.3rem;
+  position: relative;
+}
+
+.npm-list li::before {
+  content: '🔔';
+  position: absolute;
+  left: 0;
+  font-size: 0.8rem;
+}
+
+.npm-desc {
+  font-size: 0.72rem;
+  color: #aaa;
+  margin: 0 0 1.25rem;
+}
+
+.npm-actions {
+  display: flex;
+  gap: 0.6rem;
+}
+
+.npm-btn-skip {
+  flex: 1;
+  padding: 0.75rem;
+  border: 1.5px solid #ececec;
+  border-radius: 0.75rem;
+  background: white;
+  color: #888;
+  font-size: 0.88rem;
+  font-weight: 600;
+  font-family: inherit;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.npm-btn-skip:hover {
+  background: #f5f5f5;
+}
+
+.npm-btn-enable {
+  flex: 2;
+  padding: 0.75rem;
+  border: none;
+  border-radius: 0.75rem;
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  color: white;
+  font-size: 0.88rem;
+  font-weight: 700;
+  font-family: inherit;
+  cursor: pointer;
+  transition: opacity 0.15s;
+}
+
+.npm-btn-enable:hover {
+  opacity: 0.9;
+}

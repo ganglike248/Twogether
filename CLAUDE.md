@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.19 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.20 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -79,9 +79,17 @@ VAPID 키는 `.env`의 `VITE_FIREBASE_VAPID_KEY` (Firebase Console → 프로젝
 Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 보일 수 있어 직접 URL
 `https://console.firebase.google.com/project/{projectId}/settings/cloudmessaging`로 접근해야 할 수 있음).
 
-관련 파일: `src/sw.js`, `src/services/notificationService.js`,
+**알림 권한 "프라이밍" 화면 (v0.4.20~)**: 브라우저 알림 팝업은 설명 없이 뜨고 한 번 차단하면 영구히
+되돌릴 수 없어서, 실제 팝업 전에 `NotificationPrimingModal`이 알림 종류를 먼저 설명하고 "알림 받기"를
+눌러야 그때 `Notification.requestPermission()`을 호출함. `CoupleSetupPage.jsx`(신규 가입) + `Home.jsx`
+(기존 가입자) 양쪽에 마운트하되, 로컬스토리지 `twogether_notification_priming_shown` 플래그로 앱 전체에서
+**딱 한 번만** 표시(둘 중 먼저 도달하는 화면에서 뜸). `Home.jsx`의 기존 "권한 있는데 토큰만 미등록" 백필
+로직과는 분리됨 — 그건 이미 브라우저 팝업을 거친 뒤라 재설명 없이 조용히 처리, 권한 자체가 없는 경우만
+이 모달이 담당.
+
+관련 파일: `src/sw.js`, `src/services/notificationService.js`, `src/components/common/NotificationPrimingModal.jsx`(권한 프라이밍),
 `src/firebase.js`(`app`/`functionsInstance` export), `src/components/Settings/NotificationSettingsModal.jsx`(종류별 토글),
-`src/components/Home/Home.jsx` + `src/components/Auth/CoupleSetupPage.jsx`(권한 자동 요청/백필),
+`src/components/Home/Home.jsx` + `src/components/Auth/CoupleSetupPage.jsx`(프라이밍 모달 마운트/백필),
 `src/components/common/Layout.jsx`(포그라운드 토스트 구독),
 `functions/index.js`(`sendPushToUser`/`getPartnerUid` 공용 헬퍼, `onEventCreate`, `onEventUpdate`,
 `onCoupleUpdate` 확장, `registerFcmToken`, `sendMorningReminders`, `sendEveningReminders`).
@@ -101,9 +109,10 @@ Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 imp
 **알림 로드맵** (A/B 분류는 즉시성 트리거 vs 예약 함수):
 - ✅ 커플 연결 완료, A1 파트너 일정 추가, 2 일정 날짜/시간 변경, 3 여행 D-day, B2 기념일 D-day(+이벤트데이),
   B1 내일 일정 리마인드 — 전부 완료 (v0.4.17~v0.4.19)
-- 🔲 A2/A3 여행 후보·버킷리스트 완료 알림, 7 버킷리스트 추가, 8 일정 삭제, 9 여행 체크리스트 완료, 10 홈 화면 사진 변경
 - 🔲 B4 생리 주기 예측 알림 — 민감 정보라 별도 논의 후 opt-in으로 신중히 진행 (사용자 요청으로 보류 중)
 - iOS 네이티브 푸시(APNs)는 Apple Developer Program 가입 전까지 보류 — Capacitor `@capacitor/push-notifications` 미설치 상태
+- 여행 후보/버킷리스트 완료 알림, 버킷리스트 추가, 일정 삭제, 여행 체크리스트 완료, 홈 화면 사진 변경 알림은
+  **구현 안 하기로 결정** (2026-07-10)
 
 ### Firebase Hosting 캐시 헤더 (v0.4.18~)
 `firebase.json`에 헤더 설정이 없으면 Firebase Hosting 기본값(`max-age=3600`)이 SPA 라우트(`/`, `/calendar` 등

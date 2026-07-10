@@ -4,7 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { HiHeart, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
 import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { getNotificationPermission, enableNotifications } from '../../services/notificationService';
+import NotificationPrimingModal from '../common/NotificationPrimingModal';
 import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
@@ -18,14 +18,6 @@ const CoupleSetupPage = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [connected, setConnected] = useState(false);
-
-  // 앱 사용을 시작하는 첫 화면(가입 직후, 커플 연결 전)에서 알림 권한을 바로 요청
-  // — 커플 연결 알림(onCoupleUpdate)이 의미 있으려면 연결되기 전에 권한이 켜져 있어야 함
-  useEffect(() => {
-    if (getNotificationPermission() === 'default') {
-      enableNotifications().catch(() => {});
-    }
-  }, []);
 
   // 새로고침 복구: coupleDoc이 1명이면 초대 코드를 state에 복원하여 파트너 연결 감지 유지
   useEffect(() => {
@@ -209,6 +201,7 @@ const CoupleSetupPage = () => {
           </>
         )}
       </div>
+      <NotificationPrimingModal />
     </div>
   );
 };
