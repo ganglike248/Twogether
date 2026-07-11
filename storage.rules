@@ -32,6 +32,22 @@ service firebase.storage {
         request.resource.contentType.matches('image/.*');
     }
 
+    // 봉인 편지 첨부 이미지: 경로 sealedMessages/{coupleId}/{messageId}
+    // ✅ coupleId custom claim 검증 필수 — 편지 내용의 열람 제한(봉인 여부)은 Firestore 쪽에서 처리하고,
+    // 이미지 파일 자체는 같은 커플이면 읽을 수 있음(URL을 안다는 전제하에 — 클라이언트는 Firestore에서
+    // 잠긴 편지의 imageUrl을 애초에 받아오지 못하므로 실질적으로 노출되지 않음)
+    match /sealedMessages/{coupleId}/{messageId} {
+      allow read: if request.auth != null &&
+        hasCoupleIdAccess(coupleId);
+      allow create, update: if request.auth != null &&
+        hasCoupleIdAccess(coupleId) &&
+        request.resource.size < 10 * 1024 * 1024 &&
+        request.resource.contentType.matches('image/.*');
+      // 삭제는 request.resource가 없어(null) size/contentType 검증이 불가능 — 별도 규칙으로 분리
+      allow delete: if request.auth != null &&
+        hasCoupleIdAccess(coupleId);
+    }
+
     // 기본: 차단
     match /{allPaths=**} {
       allow read, write: if false;

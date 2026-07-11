@@ -5,7 +5,6 @@ import { MdPalette, MdCheck, MdNotifications } from 'react-icons/md';
 import { useAuthContext } from '../../contexts/AuthContext';
 import CycleSettingsModal from '../Profile/CycleSettingsModal';
 import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
-import NotificationSettingsModal from './NotificationSettingsModal';
 import './SettingsPage.css';
 
 const SettingsPage = () => {
@@ -13,7 +12,6 @@ const SettingsPage = () => {
   const { coupleDoc } = useAuthContext();
   const [showCycleModal, setShowCycleModal] = useState(false);
   const [showColorModal, setShowColorModal] = useState(false);
-  const [showNotificationModal, setShowNotificationModal] = useState(false);
 
   return (
     <div className="settings-page">
@@ -46,7 +44,7 @@ const SettingsPage = () => {
       {/* 알림 설정 */}
       <button
         className="profile-cycle-btn"
-        onClick={() => setShowNotificationModal(true)}
+        onClick={() => navigate('/notification-settings')}
       >
         <MdNotifications className="profile-cycle-btn-icon" color="#ff8787" />
         <span className="profile-cycle-btn-text">알림 설정</span>
@@ -70,11 +68,6 @@ const SettingsPage = () => {
       <EventTypeColorSettingsModal
         isOpen={showColorModal}
         onClose={() => setShowColorModal(false)}
-      />
-
-      <NotificationSettingsModal
-        isOpen={showNotificationModal}
-        onClose={() => setShowNotificationModal(false)}
       />
     </div>
   );

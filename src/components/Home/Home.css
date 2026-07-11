@@ -325,6 +325,16 @@
   color: #4a90d9;
 }
 
+.trip-section-badge.sealed {
+  background: rgba(180, 174, 232, 0.2);
+  color: #7c6fd6;
+}
+
+.sealed-accent-text {
+  color: var(--color-primary);
+  font-weight: 800;
+}
+
 /* 여행 섹션 빈 상태 */
 .trip-empty-state {
   display: flex;

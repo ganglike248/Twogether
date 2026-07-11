@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.21 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.22 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -27,8 +27,13 @@ rules 레벨 소유권 검증을 수행 (Firestore 직접 쿼리 없이도 가�
 (ID 토큰 강제 갱신 후 claim 확인)가 앞단 방어선이고, 최종 방어는 storage.rules.  
 ⚠️ **이 함수들은 2026-07-09(v0.4.14)에 처음 배포됨** (`firebase-functions` v6 API 불일치로 그 전엔 배포 자체가
 실패하던 상태 — `require('firebase-functions/v1')`로 수정). 트리거는 커플 "생성"/"멤버 추가" 시점에만
-발동하므로 **이미 생성돼 있던 기존 커플들은 custom claims가 없어 Storage 접근이 막힐 수 있음** —
-기존 커플 전체에 claims를 채워주는 백필 스크립트/callable function 필요 (아직 미실행).  
+발동하므로 **이미 생성돼 있던 기존 커플들은 custom claims가 없어 Storage 접근이 막힐 수 있음** — 실제로
+v0.4.22에서 사진 첨부 봉인 편지 작성 중 `이 커플에 접근할 권한이 없습니다 (custom claims 검증 실패)` 에러로
+재현됨. **백필용 콜러블 `functions/index.js`의 `ensureCoupleClaims`로 해결** — 로그인 계정의
+`users/{uid}.coupleId` 기준으로 custom claims를 다시 채움. 관리자가 전체 커플을 순회하는 배치 스크립트
+대신, `storageService.js`의 `refreshAuthTokenWithClaims()`가 1차 claim 검증 실패 시 이 콜러블을 자동
+호출해 자가 복구 후 재검증하는 방식(접근한 사용자 단위로 그때그때 해결, 아직 접근 안 한 기존 커플은
+여전히 claim이 없는 상태로 남아있다가 다음에 Storage를 쓸 때 복구됨 — 문제없음).  
 write에는 `size < 10MB && image/*` 조건 적용 중.
 
 ### Firebase Storage + Workbox
@@ -68,12 +73,15 @@ FCM은 동일 토큰을 반환하므로, 예전 계정 문서에 다른 계정�
 있었음. 클라이언트도 `navigator.serviceWorker.getRegistration()`으로 이미 활성 등록이 있으면 그걸 우선 쓰고
 없을 때만 `.ready`를 기다리는 이중 안전장치(`getActiveServiceWorkerRegistration`)가 `notificationService.js`에 있음.
 
-**알림 종류별 on/off 설정**: `SettingsPage` → `NotificationSettingsModal`에서 전체 켜기/끄기 아래에
-종류별 토글(`NOTIFICATION_TYPES` 배열, `users/{uid}.notificationPrefs.<key>`)이 있음. 서버(`sendPushToUser`)가
-발송 직전 이 값을 확인하고, 필드가 없으면(한 번도 설정 안 만짐) 타입별 `defaultOn`을 따름 — **`eventCreate`
-기본 켜짐, `eventUpdate`는 기본 꺼짐**(변경마다 알림 오면 피로하다는 사용자 피드백으로 결정). **`coupleConnect`
-(커플 연결 알림)는 설정 목록 자체에 없음** — 최초 1회뿐이고 항상 필요해서 `sendPushToUser` 호출 시 `type` 인자를
-아예 안 넘겨 무조건 발송함. 새 알림 종류 추가 시 `NOTIFICATION_TYPES`에 항목만 추가하면 설정 UI에 자동 반영.
+**알림 종류별 on/off 설정**: `SettingsPage` → `/notification-settings`(`NotificationSettingsPage.jsx`, v0.4.22부터
+모달이 아니라 전용 페이지 — 알림 종류가 계속 늘어날 걸 대비해 소제목(카테고리)별로 섹션을 나눔)에서
+전체 켜기/끄기 아래에 종류별 토글(`NOTIFICATION_TYPES` 배열, `users/{uid}.notificationPrefs.<key>`)이 있음.
+서버(`sendPushToUser`)가 발송 직전 이 값을 확인하고, 필드가 없으면(한 번도 설정 안 만짐) 타입별 `defaultOn`을
+따름 — **`eventCreate` 기본 켜짐, `eventUpdate`는 기본 꺼짐**(변경마다 알림 오면 피로하다는 사용자 피드백으로
+결정). **`coupleConnect`(커플 연결 알림)는 설정 목록 자체에 없음** — 최초 1회뿐이고 항상 필요해서
+`sendPushToUser` 호출 시 `type` 인자를 아예 안 넘겨 무조건 발송함. 새 알림 종류 추가 시 `NOTIFICATION_TYPES`에
+`category`(소제목 그룹명, 예: `'일정'`/`'D-day'`/`'봉인 편지'`) 포함해서 항목만 추가하면 설정 UI에 자동 반영
+(같은 `category` 문자열끼리 자동으로 같은 섹션에 묶임 — `groupByCategory()` 참고).
 
 VAPID 키는 `.env`의 `VITE_FIREBASE_VAPID_KEY` (Firebase Console → 프로젝트 설정 → Cloud Messaging →
 Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 보일 수 있어 직접 URL
@@ -88,11 +96,19 @@ Web Push certificates에서 발급 — 콘솔 UI 개편으로 좌측 탭에 안 
 이 모달이 담당.
 
 관련 파일: `src/sw.js`, `src/services/notificationService.js`, `src/components/common/NotificationPrimingModal.jsx`(권한 프라이밍),
-`src/firebase.js`(`app`/`functionsInstance` export), `src/components/Settings/NotificationSettingsModal.jsx`(종류별 토글),
+`src/firebase.js`(`app`/`functionsInstance` export), `src/components/Settings/NotificationSettingsPage.jsx`(종류별 토글, v0.4.22부터 페이지),
 `src/components/Home/Home.jsx` + `src/components/Auth/CoupleSetupPage.jsx`(프라이밍 모달 마운트/백필),
 `src/components/common/Layout.jsx`(포그라운드 토스트 구독),
 `functions/index.js`(`sendPushToUser`/`getPartnerUid` 공용 헬퍼, `onEventCreate`, `onEventUpdate`,
-`onCoupleUpdate` 확장, `registerFcmToken`, `sendMorningReminders`, `sendEveningReminders`).
+`onCoupleUpdate` 확장, `registerFcmToken`, `ensureCoupleClaims`, `sendMorningReminders`, `sendEveningReminders`,
+`onSealedMessageCreate`, `onSealedMessageUpdate`, `checkSealedMessages`).
+
+**Android 웹 푸시 상태바 아이콘이 색칠된 네모로만 보이는 문제 (v0.4.22 발견)**: Android는 웹 푸시
+`badge` 옵션을 알파 채널만 보고 단색으로 마스킹해서 상태바에 그림 — `sw.js`에서 `badge`로 불투명 배경의
+`app-icon.png`를 그대로 쓰면 실루엣 없이 색칠된 네모만 보임. `public/badge-icon.png`(투명 배경 + 흰색
+로고 실루엣, `favicon.svg`의 메인 path를 sharp로 래스터라이즈해서 생성)를 별도로 만들어 `badge`는 이걸,
+`icon`(알림 본문에 표시되는 큰 아이콘)은 기존 `app-icon.png`를 유지하도록 분리함. 새 알림 관련 아이콘을
+추가할 때는 반드시 투명 배경 단색 실루엣으로 준비할 것 — 불투명 PNG를 `badge`에 쓰면 같은 문제 재발.
 
 **예약 알림 (v0.4.19~)**: 발송 시각은 전체 사용자 공통 고정(개인화 없음) — `sendMorningReminders`(매일
 09:00 KST, `functions.pubsub.schedule('0 9 * * *').timeZone('Asia/Seoul')`)가 여행 시작 D-3/D-1 +
@@ -109,6 +125,7 @@ Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 imp
 **알림 로드맵** (A/B 분류는 즉시성 트리거 vs 예약 함수):
 - ✅ 커플 연결 완료, A1 파트너 일정 추가, 2 일정 날짜/시간 변경, 3 여행 D-day, B2 기념일 D-day(+이벤트데이),
   B1 내일 일정 리마인드 — 전부 완료 (v0.4.17~v0.4.19)
+- ✅ 봉인 편지 도착(`sealedMessageArrived`)/공개(`sealedMessageUnlocked`) — 완료 (v0.4.22, 아래 "봉인 편지함" 섹션 참고)
 - iOS 네이티브 푸시(APNs)는 Apple Developer Program 가입 전까지 보류 — Capacitor `@capacitor/push-notifications` 미설치 상태
 - 생리 주기 예측 알림, 여행 후보/버킷리스트 완료 알림, 버킷리스트 추가, 일정 삭제, 여행 체크리스트 완료,
   홈 화면 사진 변경 알림은 **구현 안 하기로 결정** (2026-07-10~11)
@@ -139,6 +156,71 @@ Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 imp
 문제가 있었음. `signOut()`을 **먼저 `await`한 뒤** `navigate('/login', { replace: true })`를 명시적으로
 호출하도록 수정 — `ProtectedRoute`의 리다이렉트에만 수동적으로 의존하지 않음. `CoupleSetupPage.jsx`의
 로그아웃 버튼도 동일 패턴으로 통일.
+
+### 봉인 편지함 (Sealed Messages, v0.4.22~)
+로드맵 1번 항목 완료. 파트너에게 편지를 써서 봉인해두는 기능 — 예약 공개(정해진 시각에 자동)와
+즉시 공개(작성자가 언제든 "지금 공개")가 배타적이지 않고 하나로 합쳐져 있음. 진입점은 하단 네비게이션이
+아니라 **Home 화면 카드**(`/letters`로 이동) — 다른 로드맵 항목들과 동일한 원칙.
+
+**데이터 모델 — 내용 숨김은 반드시 서브문서 분리로**: Firestore 규칙은 문서 단위로만 read를 막을 수 있어서,
+같은 문서에 `content`와 `isUnlocked`를 같이 두면 클라이언트가 "봉인 중"이어도 문서 자체는 읽을 수 있어
+내용이 새는 허점이 생김. 그래서 `sealedMessages/{id}`(제목/예정시각/봉인상태 — 커플 둘 다 항상 읽기 가능)와
+`sealedMessages/{id}/private/content`(실제 내용+이미지 URL — `isUnlocked==true` 이거나 `authorUid==본인`일 때만
+read 허용)로 분리함. `firestore.rules` 참고. 편지 삭제 시 이 순서를 반드시 지킬 것: **`private/content`
+서브문서 → Storage 이미지 → 상위 문서** 순으로 지워야 함(`sealedMessageService.js`의 `deleteSealedMessage`) —
+`private/content`의 delete 규칙이 `get()`으로 상위 문서를 조회해 작성자를 확인하는 구조라, 상위 문서를 먼저
+지우면 그 뒤엔 권한 검증 자체가 불가능해짐.
+
+**사진 첨부는 이 기능만을 위한 스코프 한정 구현** — 범용 "이벤트 이미지 업로드"(남은 작업 참고, 아직 미구현)를
+기다리지 않고 `storageService.js`에 `uploadSealedMessageImage`/`deleteSealedMessageImage`를 별도로 추가함
+(경로: `sealedMessages/{coupleId}/{messageId}`). `storage.rules`에서 이 경로는 `create/update`와 `delete`를
+분리된 규칙으로 씀 — Storage 규칙에서 `request.resource`는 delete 요청엔 `null`이라, `size`/`contentType`을
+검증하는 조건을 `delete`에도 걸면(예: 기존 `couples/{coupleId}/hero`처럼 `allow write` 하나로 합쳐두면)
+삭제 자체가 막혀버림. 새 Storage 업로드 경로를 추가할 때 참고할 것.
+
+**예약 시각은 자유 입력이 아니라 15분 단위(0/15/30/45분)로만 선택 가능** — `UnlockTimePicker.jsx`(날짜 +
+시 + 분 select, 분은 4개 옵션만). 이유: 자동 공개 스케줄 함수가 15분 간격으로만 돌기 때문에, 그 외의
+분(예: 34분)으로 예약해도 최대 14분까지 밀려서 열림 — 애초에 스케줄과 맞는 시각만 고를 수 있게 선택지
+자체를 제한함. 작성 모달(`SealedMessageComposeModal`)과 상세 모달의 "예약 시각 수정"(`SealedMessageDetailModal`,
+작성자·미공개 상태에서만) 양쪽에서 공용으로 씀. 과거 시각을 고르면 버튼이 비활성화되고 경고 문구로 바뀜.
+
+**자동 공개 스케줄 + 지연 보정 (`checkSealedMessages`)**: 처리 체인(스케줄러 dispatch → 함수 콜드스타트 →
+Firestore 조회/쓰기 → `onSealedMessageUpdate` 트리거(별도 함수, 또 콜드스타트 가능) → FCM 발송 → 기기 전달)이
+실측상 2분 안팎 걸림. 그래서 스케줄 자체를 정각(0/15/30/45분)이 아니라 **2분 앞(58/13/28/43분,
+`'58,13,28,43 * * * *'` — Firebase는 `every 15 minutes` 같은 AppEngine 문법 대신 raw unix-cron 문자열도
+그대로 받음)**으로 당기고, 조회 조건도 `unlockAt <= now`가 아니라 `unlockAt <= now + 2분`(lookahead)으로
+미리 내다봄 — `SEALED_MESSAGE_LOOKAHEAD_MINUTES` 상수. **완벽한 정각 보장은 아님**: 처리 체인이 평소보다
+빨리 끝나면(웜 상태 등) 반대로 실제 사용자가 고른 시각보다 살짝 일찍 열릴 수 있음 — 평균 지연을 줄이는
+근사 보정이라는 점을 사용자에게 이미 안내함(작성 모달의 "최대 5분 정도 오차" 문구). 수동 공개(`unlockSealedMessageNow`)는
+이 스케줄과 무관 — 클라이언트가 직접 `isUnlocked`를 바꾸고 `onSealedMessageUpdate` 트리거가 바로 알림 발송.
+
+**알림 2종**: `onSealedMessageCreate`(도착 — 수신자에게 "봉인했어요")와 `onSealedMessageUpdate`(공개 — `isUnlocked`가
+false→true로 바뀔 때만, 수동/자동 공개 둘 다 이 트리거 하나로 처리)로 분리. `NOTIFICATION_TYPES`에
+`sealedMessageArrived`/`sealedMessageUnlocked` 둘 다 `category: '봉인 편지'`, 기본 켜짐으로 등록됨.
+
+**목록 정렬(`SealedMessagesPage`)**: 봉인 중인 편지가 항상 위, 공개된 편지는 항상 아래. 봉인 중인 것끼리는
+늦게 열리는 순(예약 시각 없는 무기한 봉인은 맨 위 — "가장 오래 기다려야 하는" 것으로 취급), 공개된 것끼리는
+최근 공개순. 작성자 구분은 새 색상 체계를 만들지 않고 **기존 커플 색상 시스템(`--color-boyfriend`/
+`--color-girlfriend`)을 재사용** — 카드 왼쪽 테두리 + 이름 옆 배지 색으로 표시, 대비를 위해 `useColorSync`가
+미리 계산해둔 `--color-{role}-font` 대비색 변수를 배지 글자색에 사용함. 본인이 쓴 편지는 이름 대신 "나"만
+표시(자기 닉네임을 다시 보여줄 필요 없음).
+
+**사진 표시 비율 고정**: 상세 모달의 `sm-detail-image`는 `width:100%` + `max-height` 고정(px) 조합을 쓰면
+기기 화면 너비에 따라 실제 잘리는 가로세로 비율이 달라짐(넓은 화면일수록 파노라마처럼, 좁은 화면일수록
+정사각형에 가깝게) — `aspect-ratio: 4/3`로 고정해서 화면 크기와 무관하게 항상 같은 비율로 잘리도록 함.
+
+**Home 카드 요약**: `Home.jsx`가 `sealedMessages`를 구독해서(`subscribeSealedMessages`) 카드에 표시.
+"다음 여행" 카드와 동일한 구조(`trip-section-row`/`trip-section-info`/`trip-section-title`/`trip-section-sub`/
+`trip-section-badge`)를 그대로 재사용 — 처음엔 별도 스타일(`stat-icon`+큰 숫자)로 만들었다가 다른 홈 카드들과
+톤이 안 맞는다는 피드백을 받고 기존 패턴 재사용으로 교체함(새 UI 패턴을 만들기 전에 같은 컨텍스트의 기존
+패턴을 먼저 찾아볼 것). 카운트/날짜 숫자는 `--color-primary`로 포인트를 주되, "통"처럼 숫자가 아닌 조사/단위
+글자는 강조에서 제외(숫자만 `<span>`으로 감쌀 것). 표시 대상은 `recipientUid===나 && !isUnlocked`인 것만
+(본인이 쓴 편지는 이미 내용을 알아서 "기대감" 요소가 아니므로 카운트에서 제외).
+
+관련 파일: `src/services/sealedMessageService.js`(CRUD), `src/components/SealedMessages/`(`SealedMessagesPage.jsx`,
+`SealedMessageComposeModal.jsx`, `SealedMessageDetailModal.jsx`, `UnlockTimePicker.jsx`,
+`sealed-message-modal.css`, `SealedMessagesPage.css`), `firestore.rules`/`storage.rules`/`firestore.indexes.json`
+(`sealedMessages` 관련 블록), `functions/index.js`(`onSealedMessageCreate`/`onSealedMessageUpdate`/`checkSealedMessages`).
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -215,6 +297,8 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /couple-info       → CoupleInfoPage
 /settings          → SettingsPage (이벤트 색상 설정 등)
 /home-image-settings → HomeImageSettingsPage
+/letters           → SealedMessagesPage (봉인 편지함)
+/notification-settings → NotificationSettingsPage (알림 설정, v0.4.22부터 모달 아닌 별도 페이지)
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
 /terms             → TermsPage (로그인 불필요 — 이용약관, PrivacyPage와 동일 패턴)
 /account-deletion  → AccountDeletionPage (로그인 불필요 — 계정/데이터 삭제 요청 안내, Google Play 계정 삭제 URL 요건 충족용)
@@ -241,6 +325,10 @@ travelTimes             → tripId, day, fromScheduleId, toScheduleId, travelTim
 bucketlists             → coupleId, title, category, completed, completedAt
 cycles                  → coupleId, createdBy, startDate, periodLength  (생리 주기 기록)
 edit_logs               → eventId, coupleId, action, changes, userId, timestamp  (eventId 기반 조회)
+sealedMessages           → coupleId, authorUid, recipientUid, title, unlockAt(Timestamp|null),
+                          isUnlocked, unlockedAt, createdAt
+                          ※ 내용은 이 문서에 없음 — sealedMessages/{id}/private/content 서브문서에
+                          {content, imageUrl} 분리 저장 (봉인 중엔 서버 규칙으로 실제로 읽기 차단됨)
 ```
 
 ## 주요 서비스 & 훅
@@ -250,13 +338,15 @@ services/
   categoryColorService.js→ 버킷리스트 카테고리 색상 & 기본값
   cycleService.js        → 생리 주기 Firestore CRUD
   analyticsService.js    → Google Analytics 커스텀 이벤트 로깅
-  storageService.js      → Firebase Storage (hero 이미지 업로드/삭제; 이벤트 이미지는 미구현)
+  storageService.js      → Firebase Storage (hero 이미지, 봉인 편지 첨부 이미지 업로드/삭제; 범용 이벤트 이미지는 미구현)
   eventService.js        → 커플/여행 이벤트 CRUD + edit_log. convertEventType(writeBatch, 원자적 컬렉션 이동)
   tripService.js         → 여행 CRUD. createTrip은 writeBatch(trips + events 동시 커밋). calendarEventId로 연동
   authService.js         → 회원가입/로그인, createCouple(inviteCodes 동시 생성), joinCouple(inviteCodes 조회)
   notificationService.js → 웹 푸시 알림 권한/토큰 관리 (enableNotifications/disableNotifications/
                            shouldReceiveNotifications/isDeviceSubscribed/subscribeForegroundMessages). 상세는
                            "웹 푸시 알림 (FCM)" 트랩 섹션 참고
+  sealedMessageService.js→ 봉인 편지함 CRUD (createSealedMessage/subscribeSealedMessages/getSealedMessageContent/
+                           updateUnlockAt/unlockSealedMessageNow/deleteSealedMessage). 상세는 "봉인 편지함" 섹션 참고
 
 hooks/
   useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
@@ -295,6 +385,8 @@ utils/
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
 - **PrivacyPage** (`src/components/Privacy/PrivacyPage.jsx`) — 개인정보처리방침 페이지. 로그인 없이 접근 가능(`/privacy`). 앱스토어 심사 제출 URL: `https://twogether-206fb.web.app/privacy`
 - **AccountDeletionPage** (`src/components/Privacy/AccountDeletionPage.jsx`) — 계정/데이터 삭제 요청 안내 페이지. 로그인 없이 접근 가능(`/account-deletion`). 인앱 자동 탈퇴 기능이 없어 이메일(business9498@gmail.com) 요청 방식만 안내. Google Play Console "삭제된 계정 URL" 등록용: `https://twogether-206fb.web.app/account-deletion`
+- **SealedMessagesPage** (`src/components/SealedMessages/`) — 봉인 편지함(`/letters`). 로드맵 1번 항목, v0.4.22 완료. 상세는 "봉인 편지함" 트랩 섹션 참고
+- **NotificationSettingsPage** (`src/components/Settings/NotificationSettingsPage.jsx`) — 알림 설정(`/notification-settings`). v0.4.22부터 모달 아닌 별도 페이지로 전환, 카테고리별 소제목 섹션
 - **TravelDecisionsTab** (`src/components/Travel/Decisions/`) — 여행 탭의 "선택 사항" 기능. 숙소/식당/액티비티 등 후보를 비교·평가·확정하는 플로우.
   - `travelDecisions` subcollection (`trips/{tripId}/travelDecisions`): `status('deciding'|'decided')`, `decidedOption`, `options[{id,title,price,images[],url,scores[{userId,score}],totalScore}]`
   - `DecisionCategoryList`: 카테고리별 그룹 렌더. `TravelDecisionsTab`에서 deciding/decided를 분리해 렌더링 — decided는 구분선(`tdt-decided-divider`) 아래 맨 하단에 표시
@@ -335,6 +427,7 @@ utils/
 
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
+  ※ 봉인 편지함(v0.4.22)은 이 기능을 기다리지 않고 `uploadSealedMessageImage`로 스코프 한정 구현함 — 이 범용 기능이 나중에 추가돼도 봉인 편지 쪽은 그대로 유지, 통합 불필요
 - 소셜 로그인 (Google/Kakao, 장기)
 
 ## 향후 기능 로드맵 (2026-07-11 논의, 아직 구현 시작 안 함)
@@ -342,18 +435,11 @@ utils/
 착수 전 이 섹션을 먼저 읽고 시작할 것 — 각 항목의 설계 결정은 이미 논의를 거쳐 확정된 것이므로 재논의 없이
 그대로 구현하면 됨(사용자가 명시적으로 바꾸자고 하지 않는 한).
 
-### 1. 봉인 편지함 (타임캡슐 + 깜짝 이벤트 통합)
-파트너에게 편지를 써서 봉인해두는 기능. 두 공개 방식이 배타적이지 않고 하나로 합쳐짐:
-- **예약 공개**: `unlockAt`(날짜+시각, 시각까지 정밀해야 함) 도달 시 자동 공개 + 알림
-- **즉시 공개**: 작성자가 언제든 "지금 공개" 버튼으로 예약 시각 전에도 바로 열 수 있음. 예약해둔 시각도
-  작성자가 공개 전까지 자유롭게 수정 가능. **한번 공개되면 되돌릴 수 없음**(재봉인 불가)
-- 봉인 상태(제목, 예정 시각, "봉인됨" 표시)는 **양쪽 다 항상 볼 수 있음** — 내용(content)만 `isUnlocked===true`
-  이거나 `authorUid===자신`일 때만 노출. "편지가 와있다"는 사실 자체가 설렘 포인트
-- 사진 1장 첨부 가능 (Storage 이미지 업로드 — 아래 "이벤트 이미지 업로드" 미구현 기능과 함께 재사용 검토)
-- 데이터: 신규 컬렉션 `sealedMessages` — `{coupleId, authorUid, recipientUid, title, content, imageUrl?, unlockAt, isUnlocked, unlockedAt, createdAt}`
-- 알림 인프라: 시각 정밀도가 필요해서 `sendMorningReminders`(하루 1번)로는 부족 — **15~30분 간격의 별도
-  스케줄 함수**(예: `checkSealedMessages`) 신설 필요. `unlockAt <= now && isUnlocked === false` 조회 →
-  공개 처리 + 알림
+### 1. 봉인 편지함 (타임캡슐 + 깜짝 이벤트 통합) — ✅ 완료 (v0.4.22)
+파트너에게 편지를 써서 봉인해두는 기능. 실제 구현 상세(데이터 모델, 규칙, 스케줄 보정, UI 패턴 등)는
+위쪽 "### 봉인 편지함 (Sealed Messages, v0.4.22~)" 트랩 섹션 참고 — 착수 전 설계로 여기 남겨뒀던 항목들
+(예약/즉시 공개 병행, 봉인 상태는 항상 공개·내용만 숨김, 사진 첨부, 정밀 알림 스케줄)은 설계한 그대로
+전부 구현됨.
 
 ### 2. 디데이 다중 관리
 별도 관리 화면을 만들지 않고 **기존 일정 생성 폼(EventModal)에 "디데이로 표시" 체크박스**만 추가하는 방식으로
@@ -421,6 +507,7 @@ GPS 상시 추적이 필요하고, 여행이 아니면 같은 지역을 재방�
 1(봉인 편지함) → 2(디데이) → 3(그날의 우리 확장) → 4(일상 결정) → 5(우리 지도) → 7(랩업+월간 요약).
 1~4는 기존 인프라(알림 스케줄, Decisions UI, 이벤트 생성 폼) 재사용 위주라 상대적으로 가볍고, 5는 새 지도
 리소스 소싱 + 지역 데이터 구조화가 필요한 첫 무거운 작업, 7은 마지막.
+**1번(봉인 편지함) 완료 (v0.4.22) — 다음은 2번(디데이 다중 관리)부터 시작.**
 
 ### EventModal 개인 일정 localStorage 동작 (의도적 설계)
 `localStorage('twogether_personal_default')`: 저장 시(`handleSubmit`) 마지막으로 선택한 개인/공유 여부를 저장하고, 새 일정 생성 시(`event=null`) 해당 값으로 초기화함.

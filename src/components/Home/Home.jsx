@@ -8,7 +8,7 @@ import {
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import {
-  HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart
+  HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiLockClosed
 } from 'react-icons/hi2';
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useTripSchedules } from '../../hooks/useTrip';
@@ -16,6 +16,7 @@ import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { convertToDate } from '../../utils/dataUtils';
+import { subscribeSealedMessages } from '../../services/sealedMessageService';
 import {
   getNotificationPermission,
   isDeviceSubscribed,
@@ -37,6 +38,7 @@ const Home = () => {
   const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
   const [bucketList, setBucketList] = useState([]);
   const [bucketLoading, setBucketLoading] = useState(true);
+  const [sealedMessages, setSealedMessages] = useState([]);
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
   );
@@ -90,6 +92,13 @@ const Home = () => {
       setBucketLoading(false);
     }, () => setBucketLoading(false));
     return () => unsubscribe();
+  }, [coupleId]);
+
+  // 봉인 편지함 구독 (진입 카드에 도착/보유 상태 표시용)
+  useEffect(() => {
+    if (!coupleId) return;
+    const unsubscribe = subscribeSealedMessages(coupleId, setSealedMessages);
+    return unsubscribe;
   }, [coupleId]);
 
   const today = new Date();
@@ -197,6 +206,16 @@ const Home = () => {
     if (type === 'girlfriend') return 'var(--color-girlfriend)';
     return '#adb5bd';
   };
+
+  const lockedForMe = sealedMessages.filter(
+    (m) => m.recipientUid === user?.uid && !m.isUnlocked
+  );
+  const nextUnlockMsg = lockedForMe
+    .filter((m) => m.unlockAt)
+    .sort((a, b) => a.unlockAt.toMillis() - b.unlockAt.toMillis())[0] || null;
+  const nextUnlockDays = nextUnlockMsg
+    ? differenceInCalendarDays(nextUnlockMsg.unlockAt.toDate(), today)
+    : null;
 
   const isLoading = calendarLoading || bucketLoading;
 
@@ -394,6 +413,48 @@ const Home = () => {
           <span className="memory-link-text">우리의 소중한 순간들</span>
           <span className="card-arrow">›</span>
         </div>
+      </Link>
+
+      {/* 봉인 편지함 바로가기 */}
+      <Link to="/letters" className="home-card home-memory-link">
+        <div className="card-label">
+          <HiLockClosed className="card-label-icon" />
+          봉인 편지함
+        </div>
+        {lockedForMe.length > 0 ? (
+          <div className="trip-section-row">
+            <div className="trip-section-info">
+              <div className="trip-section-title">
+                봉인된 편지 <span className="sealed-accent-text">{lockedForMe.length}</span>통
+              </div>
+              <div className="trip-section-sub">
+                {nextUnlockMsg ? (
+                  <>
+                    가장 빠른 편지{' '}
+                    <span className="sealed-accent-text">
+                      {format(nextUnlockMsg.unlockAt.toDate(), 'M월 d일 (E) HH:mm', { locale: ko })}
+                    </span>{' '}
+                    공개
+                  </>
+                ) : (
+                  '작성자가 직접 공개할 때까지 봉인'
+                )}
+              </div>
+            </div>
+            {nextUnlockMsg && (
+              <span className="trip-section-badge sealed">
+                {nextUnlockDays > 0 ? `D-${nextUnlockDays}` : '오늘'}
+              </span>
+            )}
+          </div>
+        ) : (
+          <div className="memory-link-content">
+            <span className="memory-link-text">
+              {sealedMessages.length > 0 ? `${sealedMessages.length}통의 편지` : '파트너에게 편지를 남겨보세요'}
+            </span>
+            <span className="card-arrow">›</span>
+          </div>
+        )}
       </Link>
 
       {/* 100일 기념 마일스톤 */}

@@ -49,6 +49,22 @@
         { "fieldPath": "coupleId", "order": "ASCENDING" },
         { "fieldPath": "timestamp", "order": "DESCENDING" }
       ]
+    },
+    {
+      "collectionGroup": "sealedMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "coupleId", "order": "ASCENDING" },
+        { "fieldPath": "createdAt", "order": "DESCENDING" }
+      ]
+    },
+    {
+      "collectionGroup": "sealedMessages",
+      "queryScope": "COLLECTION",
+      "fields": [
+        { "fieldPath": "isUnlocked", "order": "ASCENDING" },
+        { "fieldPath": "unlockAt", "order": "ASCENDING" }
+      ]
     }
   ],
   "fieldOverrides": []

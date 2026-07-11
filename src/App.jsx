@@ -24,6 +24,8 @@ const ProfilePage = lazy(() => import('./components/Profile/ProfilePage'));
 const CoupleInfoPage = lazy(() => import('./components/CoupleInfo/CoupleInfoPage'));
 const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
 const HomeImageSettingsPage = lazy(() => import('./components/HomeImageSettings/HomeImageSettingsPage'));
+const SealedMessagesPage = lazy(() => import('./components/SealedMessages/SealedMessagesPage'));
+const NotificationSettingsPage = lazy(() => import('./components/Settings/NotificationSettingsPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
@@ -123,6 +125,16 @@ const router = createBrowserRouter([
         path: '/home-image-settings',
         element: <ProtectedRoute key="home-image-settings"><Layout><HomeImageSettingsPage /></Layout></ProtectedRoute>,
         key: 'home-image-settings',
+      },
+      {
+        path: '/letters',
+        element: <ProtectedRoute key="letters"><Layout><SealedMessagesPage /></Layout></ProtectedRoute>,
+        key: 'letters',
+      },
+      {
+        path: '/notification-settings',
+        element: <ProtectedRoute key="notification-settings"><Layout><NotificationSettingsPage /></Layout></ProtectedRoute>,
+        key: 'notification-settings',
       },
       { path: '*', element: <NotFoundPage />, key: 'not-found' },
     ],

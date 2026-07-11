@@ -51,7 +51,9 @@ onBackgroundMessage(messaging, (payload) => {
   self.registration.showNotification(title, {
     body,
     icon: '/app-icon.png',
-    badge: '/app-icon.png',
+    // Android는 badge를 알파 채널만 보고 단색으로 마스킹해서 상태바에 그림 — app-icon.png는
+    // 불투명 배경이라 그대로 쓰면 색이 칠해진 네모만 보임. 투명 배경 흰색 실루엣 전용 에셋 사용.
+    badge: '/badge-icon.png',
     data: payload.data,
   });
 });

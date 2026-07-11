@@ -8,7 +8,7 @@ const auth = admin.auth();
 
 // 특정 유저에게 웹 푸시 발송 — notification 필드를 쓰면 브라우저 자동 표시 + onBackgroundMessage
 // 수동 표시가 겹쳐 모바일에서 알림이 2번 뜨는 문제가 있어 data-only로 보내고 클라이언트(sw.js)에서만 표시함.
-// type: NotificationSettingsModal.jsx의 NOTIFICATION_TYPES key와 일치해야 함(defaultOn도 그쪽과 동일하게
+// type: NotificationSettingsPage.jsx의 NOTIFICATION_TYPES key와 일치해야 함(defaultOn도 그쪽과 동일하게
 // 맞출 것). type을 안 넘기면(예: 커플 연결) 설정과 무관하게 무조건 발송함.
 async function sendPushToUser(uid, { title, body, link }, logTag, type, defaultOn = true) {
   const userSnap = await db.collection('users').doc(uid).get();
@@ -204,6 +204,32 @@ exports.onEventUpdate = functions.firestore
     }
   });
 
+// ✅ 현재 로그인 계정의 coupleIds custom claim을 users/{uid}.coupleId 기준으로 다시 채워줌.
+// onCoupleCreate/onCoupleUpdate는 "생성/멤버 추가" 시점에만 발동하는데, 그 트리거가 배포되기
+// 전(v0.4.14 이전)에 이미 만들어진 커플은 claim이 없어 Storage 업로드가 permission-denied로 막힘
+// (storageService.js의 refreshAuthTokenWithClaims 참고). 클라이언트가 그 에러를 잡으면 이걸 호출해
+// 자가 복구하도록 함 — 관리자가 전체 커플을 순회하는 별도 백필 스크립트 없이도 접근한 사용자 단위로 해결됨.
+exports.ensureCoupleClaims = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+  }
+  const uid = context.auth.uid;
+  const userSnap = await db.collection('users').doc(uid).get();
+  const coupleId = userSnap.data()?.coupleId;
+  if (!coupleId) {
+    throw new functions.https.HttpsError('failed-precondition', '연결된 커플이 없습니다.');
+  }
+
+  const existingClaims = (await auth.getUser(uid)).customClaims || {};
+  const existingCoupleIds = existingClaims.coupleIds || [];
+  await auth.setCustomUserClaims(uid, {
+    coupleIds: [...new Set([...existingCoupleIds, coupleId])],
+  });
+  console.log(`[ensureCoupleClaims] uid=${uid} coupleId=${coupleId} custom claims 복구`);
+
+  return { success: true, coupleId };
+});
+
 // ✅ FCM 토큰을 현재 로그인 계정에만 등록 — 같은 브라우저로 예전에 다른 계정을 테스트했다면
 // FCM 토큰 자체는 계정이 아니라 브라우저 단위라 이전 계정 문서에 토큰이 남아있을 수 있음.
 // 등록 전 다른 모든 계정 문서에서 이 토큰을 제거해 "토큰 1개 = 계정 1개"를 강제함.
@@ -231,6 +257,89 @@ exports.registerFcmToken = functions.https.onCall(async (data, context) => {
 
   return { success: true };
 });
+
+// ✅ 봉인 편지 생성 시 수신자에게 "도착" 알림 — 내용은 아직 안 보여주고 봉인됐다는 사실만 알림
+exports.onSealedMessageCreate = functions.firestore
+  .document('sealedMessages/{messageId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const { authorUid, recipientUid, title } = snap.data();
+      if (!recipientUid) {
+        console.log(`[onSealedMessageCreate] skip: recipientUid 없음 (messageId=${context.params.messageId})`);
+        return;
+      }
+
+      const authorSnap = await db.collection('users').doc(authorUid).get();
+      const authorName = authorSnap.data()?.displayName || '상대방';
+
+      await sendPushToUser(recipientUid, {
+        title: `${authorName}님이 편지를 봉인했어요`,
+        body: title || '봉인 편지함에서 확인해보세요',
+        link: '/letters',
+      }, 'onSealedMessageCreate', 'sealedMessageArrived');
+    } catch (error) {
+      console.error('[onSealedMessageCreate] Error:', error);
+    }
+  });
+
+// ✅ 봉인 편지 공개 시(수동 공개든 예약 시각 도달이든) 수신자에게 "공개" 알림
+exports.onSealedMessageUpdate = functions.firestore
+  .document('sealedMessages/{messageId}')
+  .onUpdate(async (change, context) => {
+    try {
+      const before = change.before.data();
+      const after = change.after.data();
+      if (before.isUnlocked || !after.isUnlocked) return; // false → true 전환만 대상
+
+      const { recipientUid, title } = after;
+      if (!recipientUid) return;
+
+      await sendPushToUser(recipientUid, {
+        title: '봉인 편지가 공개됐어요',
+        body: title || '지금 바로 확인해보세요',
+        link: '/letters',
+      }, 'onSealedMessageUpdate', 'sealedMessageUnlocked');
+    } catch (error) {
+      console.error('[onSealedMessageUpdate] Error:', error);
+    }
+  });
+
+// ✅ 예약 시각(unlockAt)이 지난 봉인 편지를 자동 공개 처리
+// (수동 공개는 클라이언트가 직접 isUnlocked를 true로 바꾸므로 여기서는 예약분만 다룸)
+// 처리 체인(함수 콜드스타트 → Firestore 쓰기 → onSealedMessageUpdate 트리거 → FCM 발송 → 기기 전달)이
+// 실측상 약 2분 안팎 걸려서, 스케줄 자체를 매 15분 정각(0/15/30/45)보다 2분 앞(58/13/28/43분)으로
+// 당기고 조회 시에도 2분 뒤까지 미리 내다봄 — 그 시간만큼 일찍 처리를 시작해서 실제 알림 도착이
+// 사용자가 고른 시각에 더 가까워지도록 보정함. 체인이 그보다 빨리 끝나면(웜 상태 등) 반대로 살짝
+// 일찍 열릴 수 있음 — 완벽한 정각 보장은 아니고 평균적인 지연을 줄이는 근사 보정.
+const SEALED_MESSAGE_LOOKAHEAD_MINUTES = 2;
+
+exports.checkSealedMessages = functions.pubsub
+  .schedule('58,13,28,43 * * * *')
+  .onRun(async () => {
+    try {
+      const lookahead = admin.firestore.Timestamp.fromMillis(
+        Date.now() + SEALED_MESSAGE_LOOKAHEAD_MINUTES * 60 * 1000
+      );
+      const dueSnap = await db.collection('sealedMessages')
+        .where('isUnlocked', '==', false)
+        .where('unlockAt', '<=', lookahead)
+        .get();
+
+      if (dueSnap.empty) return;
+
+      const batch = db.batch();
+      dueSnap.forEach((doc) => {
+        batch.update(doc.ref, {
+          isUnlocked: true,
+          unlockedAt: admin.firestore.FieldValue.serverTimestamp(),
+        });
+      });
+      await batch.commit();
+      console.log(`[checkSealedMessages] ${dueSnap.size}건 자동 공개 처리`);
+    } catch (error) {
+      console.error('[checkSealedMessages] Error:', error);
+    }
+  });
 
 // KST 기준 'YYYY-MM-DD' 문자열 — 서버는 UTC로 도는데 스케줄은 Asia/Seoul 기준이라 날짜 계산도 KST로 맞춤
 function getKstDateStr(offsetDays = 0) {

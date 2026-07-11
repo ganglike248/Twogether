@@ -2,7 +2,8 @@
 import { ref, uploadBytes, getDownloadURL, deleteObject } from 'firebase/storage';
 import { getAuth } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
-import { storage, db } from '../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { storage, db, functionsInstance } from '../firebase';
 
 // file.type이 비어 있을 경우 파일명으로 content type 추론
 const inferContentType = (file) => {
@@ -14,6 +15,8 @@ const inferContentType = (file) => {
 
 // ✅ ID Token 갱신 + custom claims 검증
 // (Cloud Functions에서 설정한 coupleIds claim을 포함하도록 강제 갱신)
+// onCoupleCreate/onCoupleUpdate 트리거가 배포되기 전(v0.4.14 이전)에 이미 만들어진 커플은 claim이
+// 아예 없을 수 있음 — 1차 검증에 실패하면 ensureCoupleClaims로 자가 복구를 한 번 시도한 뒤 재검증함.
 const refreshAuthTokenWithClaims = async (coupleId) => {
   const auth = getAuth();
   const currentUser = auth.currentUser;
@@ -23,8 +26,19 @@ const refreshAuthTokenWithClaims = async (coupleId) => {
   }
 
   // ID token 갱신 (force=true로 강제)
-  const tokenResult = await currentUser.getIdTokenResult(true);
-  const coupleIds = tokenResult.claims.coupleIds;
+  let tokenResult = await currentUser.getIdTokenResult(true);
+  let coupleIds = tokenResult.claims.coupleIds;
+
+  if (!coupleIds || !coupleIds.includes(coupleId)) {
+    try {
+      await httpsCallable(functionsInstance, 'ensureCoupleClaims')();
+    } catch (error) {
+      console.error('[storageService] custom claims 복구 실패:', error);
+      throw new Error('이 커플에 접근할 권한이 없습니다. (custom claims 검증 실패)');
+    }
+    tokenResult = await currentUser.getIdTokenResult(true);
+    coupleIds = tokenResult.claims.coupleIds;
+  }
 
   if (!coupleIds || !coupleIds.includes(coupleId)) {
     throw new Error('이 커플에 접근할 권한이 없습니다. (custom claims 검증 실패)');
@@ -81,6 +95,47 @@ export const uploadHeroImage = async (coupleId, file) => {
   } catch (error) {
     if (error.code === 'storage/unauthorized') {
       throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+    }
+    throw error;
+  }
+};
+
+// 봉인 편지 첨부 이미지 업로드
+export const uploadSealedMessageImage = async (coupleId, messageId, file) => {
+  await validateCoupleIdAccess(coupleId);
+  await refreshAuthTokenWithClaims(coupleId);
+
+  const contentType = inferContentType(file);
+  if (!contentType.startsWith('image/')) {
+    throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
+  }
+
+  const storageRef = ref(storage, `sealedMessages/${coupleId}/${messageId}`);
+  const metadata = { contentType };
+  try {
+    const snapshot = await uploadBytes(storageRef, file, metadata);
+    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
+    return getDownloadURL(snapshot.ref);
+  } catch (error) {
+    if (error.code === 'storage/unauthorized') {
+      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+    }
+    throw error;
+  }
+};
+
+// 봉인 편지 첨부 이미지 삭제 (편지 자체를 삭제할 때 함께 정리)
+export const deleteSealedMessageImage = async (coupleId, messageId) => {
+  await validateCoupleIdAccess(coupleId);
+  await refreshAuthTokenWithClaims(coupleId);
+
+  const storageRef = ref(storage, `sealedMessages/${coupleId}/${messageId}`);
+  try {
+    await deleteObject(storageRef);
+  } catch (error) {
+    if (error.code === 'storage/object-not-found') {
+      // 사진 없이 작성된 편지일 수 있음 — 무시
+      return;
     }
     throw error;
   }

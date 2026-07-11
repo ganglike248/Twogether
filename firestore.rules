@@ -191,5 +191,38 @@ service cloud.firestore {
         exists(/databases/$(database)/documents/trips/$(tripId)) &&
         isCoupleMe(get(/databases/$(database)/documents/trips/$(tripId)).data.coupleId);
     }
+
+    // 봉인 편지함 (v0.4.22): 존재 여부(제목/예정시각/봉인상태)는 커플 둘 다 항상 읽기 가능하지만,
+    // 실제 내용(content/imageUrl)은 private 서브컬렉션으로 분리해서 봉인 중엔 진짜로 안 보이게 함
+    // (문서 단위로만 read를 막을 수 있는 Firestore 규칙 특성상, 같은 문서에 두면 봉인 중에도
+    // 클라이언트가 직접 조회 시 다 보이는 허점이 생김).
+    match /sealedMessages/{messageId} {
+      allow read: if isAuthenticated() && isCoupleMe(resource.data.coupleId);
+      allow create: if isAuthenticated() &&
+        isCoupleMe(request.resource.data.coupleId) &&
+        request.resource.data.authorUid == request.auth.uid &&
+        request.resource.data.isUnlocked == false;
+      // 작성자만, 아직 안 열린 편지만 수정 가능 (예약시각 변경 또는 직접 공개 처리)
+      allow update: if isAuthenticated() &&
+        resource.data.authorUid == request.auth.uid &&
+        resource.data.isUnlocked == false;
+      // 작성자는 언제든(봉인 중이든 공개됐든) 삭제 가능 — private/content를 먼저 지운 뒤 이 문서를 지울 것
+      // (content 삭제 규칙이 이 문서를 get()으로 조회해 작성자를 확인하므로 순서가 바뀌면 실패함)
+      allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
+
+      match /private/content {
+        allow read: if isAuthenticated() &&
+          isCoupleMe(get(/databases/$(database)/documents/sealedMessages/$(messageId)).data.coupleId) &&
+          (
+            get(/databases/$(database)/documents/sealedMessages/$(messageId)).data.isUnlocked == true ||
+            get(/databases/$(database)/documents/sealedMessages/$(messageId)).data.authorUid == request.auth.uid
+          );
+        allow create: if isAuthenticated() &&
+          get(/databases/$(database)/documents/sealedMessages/$(messageId)).data.authorUid == request.auth.uid;
+        allow update: if false;
+        allow delete: if isAuthenticated() &&
+          get(/databases/$(database)/documents/sealedMessages/$(messageId)).data.authorUid == request.auth.uid;
+      }
+    }
   }
 }
