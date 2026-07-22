@@ -52,6 +52,10 @@ const MemoryList = () => {
   const [searchIsLoadingMore, setSearchIsLoadingMore] = useState(false);
 
   const containerRef = useRef(null);
+  // 스크롤 이벤트는 한 제스처에도 여러 번 연속 발생하는데, handleScroll의 loadingMore 체크는
+  // state라 리렌더 전까지 갱신되지 않아 그 사이 fetchMoreMemories가 같은 lastDoc으로 중복 호출될 수 있음
+  // (같은 페이지를 두 번 append해서 MemoryCard key 중복 발생) — ref는 즉시 갱신되므로 이걸로 재진입을 막음.
+  const isFetchingMoreRef = useRef(false);
   // 검색 중 personalMemories(실시간 구독) 변경으로 검색 effect가 재실행되지 않도록
   // 최신 값을 ref로만 참조 — 검색은 검색어/필터가 바뀔 때만 다시 실행됨
   const personalMemoriesRef = useRef([]);
@@ -172,6 +176,8 @@ const MemoryList = () => {
   // 추가 공유 일정 로드 (스크롤)
   const fetchMoreMemories = useCallback(async () => {
     if (!coupleId || !lastDoc || !hasMore || searchTerm.trim() || filter === 'personal') return;
+    if (isFetchingMoreRef.current) return; // 연속 스크롤 이벤트로 인한 중복 호출 방지 (state 지연 대신 ref로 즉시 체크)
+    isFetchingMoreRef.current = true;
     setLoadingMore(true);
 
     try {
@@ -202,6 +208,7 @@ const MemoryList = () => {
     } catch (error) {
       console.error('Error fetching more memories:', error);
     } finally {
+      isFetchingMoreRef.current = false;
       setLoadingMore(false);
     }
   }, [coupleId, lastDoc, hasMore, filter, searchTerm]);

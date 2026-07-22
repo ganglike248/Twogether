@@ -30,3 +30,9 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# firebase 관리자 키
+twogether-206fb-firebase-adminsdk-fbsvc-7c15822ba5.json
+
+# 테스트 계정 데이터 시드용 1회성 스크립트 (재사용 안 함)
+scripts/
