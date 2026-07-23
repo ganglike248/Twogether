@@ -11,7 +11,7 @@
 **🔗 Live Demo:** https://twogether-206fb.web.app
 
 <p align="center">
-  <img src="docs/screenshots/hero.png" width="360" alt="우리두리 홈 화면" />
+  <img src="docs/screenshots/hero.png" width="720" alt="우리두리 소개" />
 </p>
 
 ---
@@ -34,6 +34,10 @@
 ---
 
 # ✨ 함께하는 모든 순간을 하나로
+
+<p align="center">
+  <img src="docs/screenshots/home.png" width="320" alt="홈 화면" />
+</p>
 
 ## 📅 함께 보는 공유 캘린더
 
