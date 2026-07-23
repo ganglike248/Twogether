@@ -1,0 +1,108 @@
+<안드로이드 실행>
+
+[앱 업데이트]
+1. 코드 수정 후 버전 올리기
+
+android/app/build.gradle 에서 버전 변경:
+  versionCode 4        // 1씩 올려야 함 (무조건 이전보다 커야 함)
+  versionName "0.4.24" // 사용자에게 표시되는 버전, package.json 버전과 맞추면 편함
+
+2. 웹 빌드 + AAB 다시 빌드
+
+npm run build
+npx cap sync android
+cd android
+./gradlew bundleRelease
+
+※ 반드시 위 순서(npm run build → cap sync → bundleRelease)를 지킬 것
+  이유: 이 프로젝트는 Capacitor라서 gradlew가 웹(JS) 코드를 자동으로 새로
+  빌드해주지 않음. npm run build를 안 하고 넘어가면 이전 dist/ 내용 그대로,
+  npx cap sync를 빼먹으면 android/app/src/main/assets/public 이 갱신 안 돼서
+  옛날 화면 그대로 배포됨. .env 값을 수정했을 때도 동일 — 반드시 npm run
+  build부터 다시 실행해야 새 값이 번들에 반영됨.
+
+3. 플레이 콘솔에 업로드
+
+android/app/build/outputs/bundle/release/app-release.aab
+
+내부 테스트 또는 비공개 테스트 → 새 버전 만들기 → 업로드
+
++ 실기기에 스토어(정식/테스트) 버전이 깔려있으면, 로컬에서 debug 키로 만든
+  빌드는 서명이 달라서 설치 시 에러남 (기존 앱 먼저 삭제하고 설치할 것)
+
+
+[개발 빌드] PC 없이 그냥 웹처럼 빠르게 확인
+  npm run dev
+  → http://localhost:5173 브라우저에서 확인 (네이티브 플러그인 없는 화면 위주 작업 시 충분)
+
+  실기기/에뮬레이터에서 라이브 리로드로 보고 싶을 때:
+  1. capacitor.config.ts 에서 server.url 주석 해제 후 PC IP:5173 입력
+  2. npm run dev (켜둔 채로 유지)
+  3. npx cap run android (USB 연결 실기기 또는 에뮬레이터 선택)
+  → 코드 수정하면 앱에도 자동 반영됨
+  ⚠ 배포 빌드 전에 capacitor.config.ts의 server 설정 반드시 다시 주석 처리할 것
+
+
+[릴리즈 빌드] PC 연결 없이 완전 독립 실행되는 버전 확인
+  npm run build
+  npx cap sync android
+  → Android Studio에서 Run 버튼으로 기기에 직접 설치
+  (또는 cd android && ./gradlew installRelease, 서명 설정 필요)
+
+
+[캐시 지운 후 시작]
+  rm -rf node_modules/.vite
+  npm run dev
+
+
+[요소 확인 툴 켜기]
+  Capacitor 앱은 WebView 기반이라 Metro 방식 react-devtools 연결은 안 됨
+  1. 실기기 USB 디버깅 켜기
+  2. 크롬 주소창에 chrome://inspect 입력
+  3. 연결된 기기의 WebView 선택 → inspect
+  → 크롬 개발자도구 Elements/Console 그대로 사용 가능
+
+  순수 웹 버전(npm run dev)만 볼 때는 브라우저의 React Developer Tools
+  확장 프로그램 쓰면 됨
+
+
+[캐시 충돌 시 해결법 - Gradle 데몬]
+1. Gradle 데몬 중지
+  cd android
+  ./gradlew --stop
+2. node_modules 완전 재설치
+  npm install
+3. 웹 재빌드 + 동기화
+  npm run build
+  npx cap sync android
+4. Android Studio에서 Build → Clean Project → Rebuild Project
+
+
+[인앱 업데이트 (Google Play In-App Update)]
+플러그인: @capawesome/capacitor-app-update (Android 전용, iOS는 API 자체 없음)
+훅 위치: src/hooks/useInAppUpdate.js
+연결 위치: src/App.jsx → <InAppUpdatePrompt /> (RootLayout에서 항상 마운트)
+
+업데이트 방식 변경은 useInAppUpdate.js 상단의 UPDATE_TYPE 값만 바꾸면 됨:
+
+  const UPDATE_TYPE = 'FLEXIBLE';   // 현재 설정
+  const UPDATE_TYPE = 'IMMEDIATE';
+
+  FLEXIBLE (유연) — 현재 설정
+    다운로드가 백그라운드에서 진행되고 앱을 계속 쓸 수 있음
+    다운로드 완료되면 toast로 재시작 안내 (누르면 재시작)
+    일반적인 기능 업데이트에 적합
+
+  IMMEDIATE (즉시)
+    전체 화면을 덮는 업데이트 UI가 뜨고 완료 전까지 앱 사용 불가
+    Google Play가 UI/재시작을 전부 알아서 처리
+    보안 패치, 서버 호환성 필수 업데이트에 적합
+
+※ Play Core In-App Update API는 Play Store를 통해 설치된 앱에서만 동작함.
+  로컬 debug 빌드나 사이드로드 설치에서는 getAppUpdateInfo()가 업데이트
+  없음으로 나오거나 동작하지 않음 — 반드시 내부/비공개 테스트 트랙에 올려서
+  스토어로 설치한 뒤 테스트할 것.
+
+※ 버전 올려서 새 AAB를 스토어에 올려야만 "업데이트 가능" 상태가 뜸.
+  즉, 위 [앱 업데이트] 절차(versionCode/versionName 올리고 재빌드+업로드)를
+  먼저 해야 인앱 업데이트 동작을 확인할 수 있음.
