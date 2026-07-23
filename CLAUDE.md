@@ -543,10 +543,24 @@ npx cap sync           # 2. dist/ → android/ + ios/ 복사 + 플러그인 동�
 
 ### 아이콘/스플래시 재생성
 ```
-npx capacitor-assets generate --android --ios
+npx capacitor-assets generate --android --ios --iconBackgroundColor '#fce4ec' --iconBackgroundColorDark '#fce4ec' --splashBackgroundColor '#fce4ec' --splashBackgroundColorDark '#2d1a1f'
 ```
-소스: `assets/icon-only.png`, `assets/splash-icon-only.png`  
-출력: `android/app/src/main/res/mipmap-*` + `ios/App/App/Assets.xcassets/`
+소스: `assets/logo.png` (단일 소스 — Easy Mode)  
+출력: `android/app/src/main/res/mipmap-*`(adaptive icon 포함) + `drawable-*/splash.png` + `ios/App/App/Assets.xcassets/`
+
+⚠ 색상 플래그를 빼먹으면 안 됨 — Easy Mode는 CLI 플래그로만 배경색을 받고
+capacitor.config.ts의 `assets` 설정값을 자동으로 읽지 않음. 빼먹으면 기본값
+(흰색)으로 생성됨.
+
+⚠ `assets/icon-only.png` + `icon-foreground.png` + `icon-background.png` +
+`splash.png`/`splash-dark.png` 조합(Custom Mode)으로 되돌리지 말 것 —
+과거 `icon-only.png` 하나만 있는 상태로 이 모드가 걸려서 legacy 아이콘만
+생성되고 adaptive icon foreground/background와 스플래시는 Capacitor 기본
+placeholder(파란 X, 흰 배경)로 방치된 적 있음 (2026-07-23 발견/수정).
+
+sharp 네이티브 모듈이 빌드 안 돼 있으면 위 명령이 에러남 — 이 저장소를
+새로 세팅했다면 먼저 `npm rebuild sharp` 실행 (샌드박스 환경에서는
+`npm install-scripts approve sharp` 먼저 필요할 수 있음).
 
 ### Android 빌드 (Windows 가능)
 1. Android Studio에서 `android/` 폴더 열기
