@@ -27,6 +27,15 @@
             android:grantUriPermissions="true">
             <meta-data android:name="android.support.FILE_PROVIDER_PATHS" android:resource="@xml/file_paths" />
         </provider>
+
+        <!-- 푸시 알림 상태바 아이콘 — 앱 아이콘을 그대로 쓰면 안드로이드가 단색 실루엣으로 뭉개서
+             네모/원으로 보임. 투명 배경 흰색 실루엣 전용 에셋(badge-icon 계열과 동일 소스) 사용 -->
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_icon"
+            android:resource="@drawable/ic_stat_notify" />
+        <meta-data
+            android:name="com.google.firebase.messaging.default_notification_color"
+            android:resource="@color/colorAccent" />
     </application>
 
     <!-- Permissions -->
