@@ -10,6 +10,10 @@
 
 **🔗 Live Demo:** https://twogether-206fb.web.app
 
+<p align="center">
+  <img src="docs/screenshots/hero.png" width="360" alt="우리두리 홈 화면" />
+</p>
+
 ---
 
 # 💑 연애가 더 편해지는 방법
@@ -27,7 +31,7 @@
 **우리두리(Twogether)**는 커플의 **일정, 추억, 여행**을 하나로 연결하여
 **더 편하고, 더 즐거운 연애**를 만들어 주는 커플 라이프 앱입니다.
 
-------------------------------------------------------------------------
+---
 
 # ✨ 함께하는 모든 순간을 하나로
 
@@ -35,10 +39,10 @@
 
 이제 서로의 일정을 일일이 물어보지 않아도 됩니다.
 
--   🙋 나의 일정
--   👫 파트너의 일정
--   💑 함께하는 데이트 일정
--   🔒 나만 볼 수 있는 개인 일정
+- 🙋 나의 일정
+- 👫 파트너의 일정
+- 💑 함께하는 데이트 일정
+- 🔒 나만 볼 수 있는 개인 일정
 
 하나의 캘린더에서 모두 확인할 수 있어 약속을 잡는 시간이 훨씬
 줄어듭니다.
@@ -46,7 +50,11 @@
 개인 일정은 상대에게 보이지 않아 사생활은 지키면서 필요한 정보만 공유할
 수 있습니다.
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="docs/screenshots/calendar.png" width="320" alt="공유 캘린더" />
+</p>
+
+---
 
 ## ❤️ 기념일을 잊지 않는 연애
 
@@ -56,7 +64,7 @@
 
 소중한 날을 놓치지 않고, 매일의 시간을 더욱 특별하게 만들어 줍니다.
 
-------------------------------------------------------------------------
+---
 
 ## 📸 추억을 차곡차곡 기록하세요
 
@@ -71,21 +79,29 @@
 
 **둘만의 추억 타임라인**이 완성됩니다.
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="docs/screenshots/memories.png" width="320" alt="추억 갤러리" />
+</p>
+
+---
 
 ## ✈️ 여행 준비도 함께
 
 여행 계획을 세우기 위해 메신저와 메모장을 오갈 필요가 없습니다.
 
--   여행 후보 비교
--   각 장소 점수 매기기
--   Day별 일정 관리
--   여행 일정 자동 연동
+- 여행 후보 비교
+- 각 장소 점수 매기기
+- Day별 일정 관리
+- 여행 일정 자동 연동
 
 여행 전부터 여행이 끝나는 순간까지 둘의 여행을 더욱 편리하게 만들어
 줍니다.
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="docs/screenshots/travel.png" width="320" alt="여행 플래너" />
+</p>
+
+---
 
 ## 🎯 함께 이루는 버킷리스트
 
@@ -95,7 +111,11 @@
 
 작은 목표를 함께 이루는 과정이 더 큰 추억으로 이어집니다.
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="docs/screenshots/bucket.png" width="320" alt="버킷리스트" />
+</p>
+
+---
 
 ## 🎲 오늘 데이트는 뭘 할까?
 
@@ -105,7 +125,7 @@
 
 사소한 선택도 즐거운 추억이 됩니다.
 
-------------------------------------------------------------------------
+---
 
 ## ⚡ 빠르고 간편하게
 
@@ -114,19 +134,19 @@
 
 홈 화면에 추가하면 일반 앱처럼 더욱 편리하게 이용할 수 있습니다.
 
-------------------------------------------------------------------------
+---
 
 # 💑 우리두리가 필요한 이유
 
--   ✔ 서로의 일정을 한눈에 확인하고 싶다면
--   ✔ 기념일을 잊지 않고 챙기고 싶다면
--   ✔ 여행 계획을 함께 세우고 싶다면
--   ✔ 추억을 오래도록 기록하고 싶다면
--   ✔ 더 편하고 즐거운 연애를 하고 싶다면
+- ✔ 서로의 일정을 한눈에 확인하고 싶다면
+- ✔ 기념일을 잊지 않고 챙기고 싶다면
+- ✔ 여행 계획을 함께 세우고 싶다면
+- ✔ 추억을 오래도록 기록하고 싶다면
+- ✔ 더 편하고 즐거운 연애를 하고 싶다면
 
 **우리두리(Twogether)**가 함께합니다.
 
-------------------------------------------------------------------------
+---
 
 # 💛 둘이 함께하는 모든 순간을 하나의 공간에.
 
@@ -136,7 +156,11 @@
 
 **우리두리(Twogether)**
 
-------------------------------------------------------------------------
+<p align="center">
+  <img src="docs/screenshots/closing.png" width="480" alt="우리두리로 하나가 되는 일정, 여행, 추억" />
+</p>
+
+---
 
 ## 설치 없이 바로 사용하기
 
@@ -151,56 +175,40 @@
 
 ---
 
-## 스크린샷
-
-| 홈 | 캘린더 |
-|:---:|:---:|
-| ![홈 화면](docs/screenshots/home.png) | ![캘린더](docs/screenshots/calendar.png) |
-
-| 추억 갤러리 | 버킷리스트 |
-|:---:|:---:|
-| ![추억 갤러리](docs/screenshots/memories.png) | ![버킷리스트](docs/screenshots/bucket.png) |
-
-| 여행 플래너 | 돌림판 |
-|:---:|:---:|
-| ![여행 플래너](docs/screenshots/travel.png) | ![돌림판](docs/screenshots/wheel.png) |
-
----
-
 ## 기술 스택
 
 ### Frontend
 
-| 기술 | 버전 | 선택 이유 |
-|---|---|---|
-| **React** | 19 | Concurrent Features + `React.lazy()` 코드 스플리팅으로 초기 번들 93% 감소 |
-| **Vite** | 5.4.21 | esbuild 기반 빠른 HMR, `manualChunks`로 vendor 청크 분리. Node.js 20 호환 버전으로 고정 |
-| **React Router** | 7 | `createBrowserRouter` + SPA 라우팅. `/travel/:tripId` 동적 라우트 |
-| **Framer Motion** | 12 | 100일 기념 마일스톤 등 의미있는 순간에 절제하여 사용 |
-| **FullCalendar** | 6 | 커스텀 그리드 렌더링·터치 스와이프 네비게이션을 지원하는 검증된 달력 라이브러리 |
-| **date-fns** | 4 | Tree-shakeable, moment.js 대비 번들 크기 대폭 절감 |
-| **react-icons** | 5 | SVG 아이콘 Tree-shaking 지원 |
-| **react-toastify** | 11 | 비침투적 알림 UX |
+| 기술               | 버전   | 선택 이유                                                                               |
+| ------------------ | ------ | --------------------------------------------------------------------------------------- |
+| **React**          | 19     | Concurrent Features + `React.lazy()` 코드 스플리팅으로 초기 번들 93% 감소               |
+| **Vite**           | 5.4.21 | esbuild 기반 빠른 HMR, `manualChunks`로 vendor 청크 분리. Node.js 20 호환 버전으로 고정 |
+| **React Router**   | 7      | `createBrowserRouter` + SPA 라우팅. `/travel/:tripId` 동적 라우트                       |
+| **Framer Motion**  | 12     | 100일 기념 마일스톤 등 의미있는 순간에 절제하여 사용                                    |
+| **FullCalendar**   | 6      | 커스텀 그리드 렌더링·터치 스와이프 네비게이션을 지원하는 검증된 달력 라이브러리         |
+| **date-fns**       | 4      | Tree-shakeable, moment.js 대비 번들 크기 대폭 절감                                      |
+| **react-icons**    | 5      | SVG 아이콘 Tree-shaking 지원                                                            |
+| **react-toastify** | 11     | 비침투적 알림 UX                                                                        |
 
 ### Backend / 인프라
 
-| 기술 | 선택 이유 |
-|---|---|
-| **Firebase Auth** | 이메일 인증 + 추후 소셜 로그인 확장 대비. 별도 서버 없이 인증 플로우 완성 |
-| **Cloud Firestore** | `onSnapshot` 실시간 구독으로 파트너 변경사항 즉시 반영. `writeBatch`로 원자적 다중 문서 처리 |
-| **Firebase Storage** | 커플 대표 이미지 저장. 10MB 제한·`image/*` MIME 필터를 Storage Rules로 적용 |
-| **Firebase Hosting** | SPA rewrites + CDN 엣지 배포. `firebase deploy` 단일 명령으로 전체 배포 |
-| **Firebase Analytics** | `bucket_created`, `event_created` 등 커스텀 이벤트로 행동 추적 |
-| **Sentry** | 프로덕션 에러 자동 캡처. React ErrorBoundary + `browserTracingIntegration` 연동 |
+| 기술                   | 선택 이유                                                                                    |
+| ---------------------- | -------------------------------------------------------------------------------------------- |
+| **Firebase Auth**      | 이메일 인증 + 추후 소셜 로그인 확장 대비. 별도 서버 없이 인증 플로우 완성                    |
+| **Cloud Firestore**    | `onSnapshot` 실시간 구독으로 파트너 변경사항 즉시 반영. `writeBatch`로 원자적 다중 문서 처리 |
+| **Firebase Storage**   | 커플 대표 이미지 저장. 10MB 제한·`image/*` MIME 필터를 Storage Rules로 적용                  |
+| **Firebase Hosting**   | SPA rewrites + CDN 엣지 배포. `firebase deploy` 단일 명령으로 전체 배포                      |
+| **Firebase Analytics** | `bucket_created`, `event_created` 등 커스텀 이벤트로 행동 추적                               |
+| **Sentry**             | 프로덕션 에러 자동 캡처. React ErrorBoundary + `browserTracingIntegration` 연동              |
 
 ### PWA
 
-| 기능 | 구현 방식 |
-|---|---|
-| 오프라인 정적 에셋 | `vite-plugin-pwa` Workbox — JS/CSS/HTML 사전 캐싱 |
+| 기능               | 구현 방식                                                                                     |
+| ------------------ | --------------------------------------------------------------------------------------------- |
+| 오프라인 정적 에셋 | `vite-plugin-pwa` Workbox — JS/CSS/HTML 사전 캐싱                                             |
 | Firestore 오프라인 | `persistentLocalCache` + `persistentMultipleTabManager` — IndexedDB 기반, 재방문 시 즉시 렌더 |
-| 홈 화면 추가 | Web App Manifest (`display: standalone`, 아이콘 192·512px) |
-| 자동 업데이트 | `registerType: 'autoUpdate'` — 새 버전 배포 시 백그라운드 업데이트 후 사용자에게 안내 |
+| 홈 화면 추가       | Web App Manifest (`display: standalone`, 아이콘 192·512px)                                    |
+| 자동 업데이트      | `registerType: 'autoUpdate'` — 새 버전 배포 시 백그라운드 업데이트 후 사용자에게 안내         |
 
 ---
 
@@ -423,7 +431,6 @@ edit_logs/{id}               // 일정 편집 이력
 - [ ] 소셜 로그인 (Google / Kakao)
 - [ ] useCalendar + useCalendarData 중복 구독 통합 (Firestore 비용 절감)
 - [ ] MemoryDetail 이미지 표시
-- [ ] 배란일 음수 가드 (`cycleLength < 14` 엣지 케이스)
 
 ---
 
