@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "645572622912",
+    "project_id": "twogether-206fb",
+    "storage_bucket": "twogether-206fb.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:645572622912:android:424312b3de959e01cffda5",
+        "android_client_info": {
+          "package_name": "com.wooridoori.twogether"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyDayT5mlIlLykGn5hDvG4bympWmTFKvbaM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

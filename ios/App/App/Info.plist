@@ -49,5 +49,10 @@
 	<string>프로필 사진 및 추억 사진 촬영에 사용됩니다.</string>
 	<key>NSPhotoLibraryUsageDescription</key>
 	<string>갤러리에서 사진을 선택하여 업로드하는 데 사용됩니다.</string>
+	<!-- 푸시 알림(원격 알림) 수신 — Xcode Signing & Capabilities에서 Push Notifications도 별도로 켜야 함 -->
+	<key>UIBackgroundModes</key>
+	<array>
+		<string>remote-notification</string>
+	</array>
 </dict>
 </plist>

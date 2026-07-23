@@ -6,7 +6,7 @@ import AppHeader from './AppHeader';
 import Navigation from './Navigation';
 import useColorSync from '../../hooks/useColorSync';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { subscribeForegroundMessages } from '../../services/notificationService';
+import { subscribeForegroundMessages, subscribeNotificationTaps } from '../../services/notificationService';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -26,6 +26,12 @@ const Layout = ({ children }) => {
       });
     });
     return unsubscribe;
+  }, [user, navigate]);
+
+  // 네이티브 앱에서 알림을 탭해 앱이 열렸을 때(백그라운드/종료 상태) 해당 화면으로 바로 이동
+  useEffect(() => {
+    if (!user) return;
+    return subscribeNotificationTaps((link) => navigate(link));
   }, [user, navigate]);
 
   return (

@@ -106,3 +106,51 @@ android/app/build/outputs/bundle/release/app-release.aab
 ※ 버전 올려서 새 AAB를 스토어에 올려야만 "업데이트 가능" 상태가 뜸.
   즉, 위 [앱 업데이트] 절차(versionCode/versionName 올리고 재빌드+업로드)를
   먼저 해야 인앱 업데이트 동작을 확인할 수 있음.
+
+
+[푸시 알림 — 웹(PWA) + 네이티브(Android/iOS) 공존]
+구조: notificationService.js 안에서 Capacitor.isNativePlatform()으로 분기.
+  웹: 기존 firebase/messaging 웹 SDK + VAPID 그대로 (안 건드림)
+  네이티브: @capacitor-firebase/messaging 플러그인 (Android/iOS 동일 API,
+    둘 다 FCM 토큰을 직접 줘서 서버 코드 공유 가능)
+
+호출부(NotificationSettingsPage.jsx, Home.jsx, NotificationPrimingModal.jsx,
+Layout.jsx)는 전혀 안 바뀜 — enableNotifications() 등 기존 함수 인터페이스가
+내부에서만 플랫폼별로 다르게 동작함.
+
+서버(functions/index.js):
+  - users 문서에 토큰을 두 필드로 분리: fcmTokens(웹, data-only 발송) /
+    nativeFcmTokens(네이티브, notification 필드 포함 발송)
+  - 이유: 네이티브 앱은 완전 종료 상태에서 JS가 안 돌아서 data-only로는
+    알림이 안 뜸. notification 필드가 있어야 OS가 백그라운드/종료 상태에서
+    알아서 표시해줌. (포그라운드는 클라이언트가 토스트로 직접 표시)
+  - registerFcmToken 콜러블에 platform 인자 추가 ('web'(기본값) | 'android' | 'ios')
+
+★★★ 아래 항목들은 코드가 아니라 콘솔/계정 설정이라 직접 해야 동작함 ★★★
+
+1. Android: google-services.json 없음 (현재 프로젝트에 파일 자체가 없음)
+   Firebase 콘솔 → 프로젝트 설정 → Android 앱 추가(패키지명
+   com.wooridoori.twogether, 이미 등록돼 있으면 재사용) → google-services.json
+   다운로드 → android/app/google-services.json 에 저장
+   (build.gradle에 이미 조건부 적용 코드 있음 — 파일만 넣으면 자동 인식됨)
+
+2. iOS: GoogleService-Info.plist 없음
+   Firebase 콘솔 → iOS 앱 추가(번들 ID com.wooridoori.twogether) →
+   GoogleService-Info.plist 다운로드 → ios/App/App/GoogleService-Info.plist 에 저장
+   → Xcode에서 이 파일을 App 타겟에 포함시켜야 함(파일 추가 시 타겟 체크박스 확인)
+
+3. iOS: APNs 인증키 업로드 (Apple Developer 계정 필요, $99/년)
+   Apple Developer 사이트 → Certificates, Identifiers & Profiles → Keys →
+   APNs 인증키(.p8) 생성 → Firebase 콘솔 → 프로젝트 설정 → Cloud Messaging →
+   Apple 앱 구성에 업로드
+   (이거 없으면 토큰은 받아도 실제 푸시가 안 감)
+
+4. iOS: Xcode capability 설정
+   Xcode에서 App 타겟 → Signing & Capabilities → + Capability →
+   "Push Notifications" 추가 (entitlements 파일 자동 생성됨)
+   Background Modes capability도 추가 → "Remote notifications" 체크
+   (Info.plist에는 이미 UIBackgroundModes 추가해둠, Xcode capability는 별도로 켜야 함)
+
+1번(Android) 없이는 네이티브 알림 테스트 자체가 안 되고, 2~4번(iOS)은 Mac +
+Apple Developer 계정 있어야 진행 가능. 순서상 Android 먼저 끝내고 테스트한
+뒤 iOS로 넘어가는 걸 추천.

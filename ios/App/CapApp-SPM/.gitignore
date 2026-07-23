@@ -7,3 +7,7 @@ DerivedData/
 .swiftpm/config/registries.json
 .swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
+
+# capacitor.config.ts의 spm.packageOptions symlink:true 로 생성됨 — 로컬 node_modules 절대경로를
+# 가리키는 심볼릭 링크라 다른 기기/CI에서는 깨짐. npx cap sync 실행 시 자동 재생성됨.
+symlinks/

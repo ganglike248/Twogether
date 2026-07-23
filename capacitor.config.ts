@@ -40,6 +40,24 @@ const config: CapacitorConfig = {
       androidSplashResourceName: 'splash',
       showSpinner: false,
     },
+    // iOS 포그라운드 알림 표시를 끔 — notificationService.js가 토스트로 직접 표시하므로
+    // 여기서도 자동으로 배너를 띄우면 알림이 2번 뜸 (sw.js의 data-only 처리와 같은 이유)
+    FirebaseMessaging: {
+      presentationOptions: [],
+    },
+  },
+
+  // @capacitor-firebase/messaging의 SwiftPM 패키지 식별자 충돌 방지 (Capacitor CLI 8.4+ 필요)
+  experimental: {
+    ios: {
+      spm: {
+        packageOptions: {
+          '@capacitor-firebase/messaging': {
+            symlink: true,
+          },
+        },
+      },
+    },
   },
 };
 

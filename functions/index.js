@@ -6,8 +6,32 @@ admin.initializeApp();
 const db = admin.firestore();
 const auth = admin.auth();
 
-// 특정 유저에게 웹 푸시 발송 — notification 필드를 쓰면 브라우저 자동 표시 + onBackgroundMessage
-// 수동 표시가 겹쳐 모바일에서 알림이 2번 뜨는 문제가 있어 data-only로 보내고 클라이언트(sw.js)에서만 표시함.
+// 만료/등록 취소된 토큰 정리 + 발송 결과 로깅 공통 처리
+async function sendAndCleanup(uid, field, tokens, message, logTag) {
+  const response = await admin.messaging().sendEachForMulticast({ tokens, ...message });
+
+  console.log(`[${logTag}] (${field}) 발송 완료: 성공 ${response.successCount} / 실패 ${response.failureCount}`);
+  response.responses.forEach((r, i) => {
+    if (!r.success) console.log(`[${logTag}] (${field}) 토큰 발송 실패 [${i}]: ${r.error?.code} - ${r.error?.message}`);
+  });
+
+  const staleTokens = response.responses
+    .map((r, i) => (!r.success && r.error?.code === 'messaging/registration-token-not-registered' ? tokens[i] : null))
+    .filter(Boolean);
+
+  if (staleTokens.length > 0) {
+    await db.collection('users').doc(uid).update({
+      [field]: admin.firestore.FieldValue.arrayRemove(...staleTokens),
+    });
+  }
+}
+
+// 특정 유저에게 푸시 발송.
+// 웹(fcmTokens): notification 필드를 쓰면 브라우저 자동 표시 + onBackgroundMessage 수동 표시가 겹쳐
+//   모바일에서 알림이 2번 뜨는 문제가 있어 data-only로 보내고 클라이언트(sw.js)에서만 표시함.
+// 네이티브 앱(nativeFcmTokens): 앱이 완전히 종료된 상태에서는 JS가 실행되지 않아 data-only로는
+//   알림이 아예 표시되지 않음 — notification 필드를 함께 보내 OS가 백그라운드/종료 상태에서 자동
+//   표시하도록 함(포그라운드는 클라이언트 notificationReceived 리스너가 토스트로 직접 표시).
 // type: NotificationSettingsPage.jsx의 NOTIFICATION_TYPES key와 일치해야 함(defaultOn도 그쪽과 동일하게
 // 맞출 것). type을 안 넘기면(예: 커플 연결) 설정과 무관하게 무조건 발송함.
 async function sendPushToUser(uid, { title, body, link }, logTag, type, defaultOn = true) {
@@ -23,32 +47,30 @@ async function sendPushToUser(uid, { title, body, link }, logTag, type, defaultO
     }
   }
 
-  const tokens = userData.fcmTokens || [];
-  if (tokens.length === 0) {
-    console.log(`[${logTag}] skip: uid=${uid}에게 저장된 fcmTokens 없음`);
-    return;
+  const webTokens = userData.fcmTokens || [];
+  if (webTokens.length > 0) {
+    await sendAndCleanup(
+      uid,
+      'fcmTokens',
+      webTokens,
+      { data: { title, body, link: link || '/' }, webpush: { headers: { Urgency: 'high' } } },
+      logTag
+    );
   }
 
-  const response = await admin.messaging().sendEachForMulticast({
-    tokens,
-    data: { title, body, link: link || '/' },
-    webpush: { headers: { Urgency: 'high' } },
-  });
+  const nativeTokens = userData.nativeFcmTokens || [];
+  if (nativeTokens.length > 0) {
+    await sendAndCleanup(
+      uid,
+      'nativeFcmTokens',
+      nativeTokens,
+      { notification: { title, body }, data: { title, body, link: link || '/' } },
+      logTag
+    );
+  }
 
-  console.log(`[${logTag}] 발송 완료: 성공 ${response.successCount} / 실패 ${response.failureCount}`);
-  response.responses.forEach((r, i) => {
-    if (!r.success) console.log(`[${logTag}] 토큰 발송 실패 [${i}]: ${r.error?.code} - ${r.error?.message}`);
-  });
-
-  // 만료/등록 취소된 토큰은 정리
-  const staleTokens = response.responses
-    .map((r, i) => (!r.success && r.error?.code === 'messaging/registration-token-not-registered' ? tokens[i] : null))
-    .filter(Boolean);
-
-  if (staleTokens.length > 0) {
-    await db.collection('users').doc(uid).update({
-      fcmTokens: admin.firestore.FieldValue.arrayRemove(...staleTokens),
-    });
+  if (webTokens.length === 0 && nativeTokens.length === 0) {
+    console.log(`[${logTag}] skip: uid=${uid}에게 저장된 토큰 없음`);
   }
 }
 
@@ -230,29 +252,32 @@ exports.ensureCoupleClaims = functions.https.onCall(async (data, context) => {
   return { success: true, coupleId };
 });
 
-// ✅ FCM 토큰을 현재 로그인 계정에만 등록 — 같은 브라우저로 예전에 다른 계정을 테스트했다면
-// FCM 토큰 자체는 계정이 아니라 브라우저 단위라 이전 계정 문서에 토큰이 남아있을 수 있음.
+// ✅ FCM 토큰을 현재 로그인 계정에만 등록 — 같은 브라우저/기기로 예전에 다른 계정을 테스트했다면
+// FCM 토큰 자체는 계정이 아니라 브라우저/기기 단위라 이전 계정 문서에 토큰이 남아있을 수 있음.
 // 등록 전 다른 모든 계정 문서에서 이 토큰을 제거해 "토큰 1개 = 계정 1개"를 강제함.
+// platform: 'web'(기본값, 기존 웹 클라이언트 호환) | 'android' | 'ios'
+// — web은 fcmTokens(data-only 발송용), android/ios는 nativeFcmTokens(notification 포함 발송용)에 저장.
 exports.registerFcmToken = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
     throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
   }
-  const { token } = data;
+  const { token, platform } = data;
   if (!token || typeof token !== 'string') {
     throw new functions.https.HttpsError('invalid-argument', 'token이 필요합니다.');
   }
+  const field = platform === 'android' || platform === 'ios' ? 'nativeFcmTokens' : 'fcmTokens';
 
   const uid = context.auth.uid;
-  const holders = await db.collection('users').where('fcmTokens', 'array-contains', token).get();
+  const holders = await db.collection('users').where(field, 'array-contains', token).get();
 
   const batch = db.batch();
   holders.forEach((docSnap) => {
     if (docSnap.id !== uid) {
-      console.log(`[registerFcmToken] uid=${docSnap.id} 문서에서 다른 계정(${uid}) 소유 토큰 제거`);
-      batch.update(docSnap.ref, { fcmTokens: admin.firestore.FieldValue.arrayRemove(token) });
+      console.log(`[registerFcmToken] uid=${docSnap.id} 문서에서 다른 계정(${uid}) 소유 토큰(${field}) 제거`);
+      batch.update(docSnap.ref, { [field]: admin.firestore.FieldValue.arrayRemove(token) });
     }
   });
-  batch.update(db.collection('users').doc(uid), { fcmTokens: admin.firestore.FieldValue.arrayUnion(token) });
+  batch.update(db.collection('users').doc(uid), { [field]: admin.firestore.FieldValue.arrayUnion(token) });
   await batch.commit();
 
   return { success: true };
