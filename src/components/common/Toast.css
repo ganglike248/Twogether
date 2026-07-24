@@ -16,14 +16,14 @@
 .Toastify__toast-container--bottom-center {
   bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
   width: fit-content;
-  max-width: 90vw;
+  max-width: 94vw;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .Toastify__toast {
   width: fit-content;
-  max-width: 90vw;
+  max-width: 94vw;
   min-height: unset;
   margin: 0 auto 0.5rem;
   padding: 0.7rem 0.9rem 0.7rem 0.85rem;
@@ -45,7 +45,7 @@
   padding: 0;
   margin: 0;
   color: #333;
-  font-size: 0.68rem;
+  font-size: 0.62rem;
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;
@@ -59,14 +59,14 @@
   .Toastify__toast-container--bottom-center {
     bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
     width: fit-content;
-    max-width: 90vw;
+    max-width: 94vw;
     left: 50%;
     transform: translateX(-50%);
   }
 
   .Toastify__toast {
     width: fit-content;
-    max-width: 90vw;
+    max-width: 94vw;
     margin-bottom: 0.5rem;
     border-radius: 16px;
   }

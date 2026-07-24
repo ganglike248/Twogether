@@ -110,6 +110,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             setShowScheduleModal(false);
             setSelectedSchedule(null);
             setOptionForSchedule(null);
+            toast.success(scheduleData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
         } catch (error) {
             console.error('Error saving schedule:', error);
             toast.error('일정 저장 중 오류가 발생했습니다.');
@@ -143,6 +144,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         try {
             const updated = (daySchedules[activeDay] || []).filter(s => s.id !== scheduleId);
             await saveTripSchedule(trip.id, activeDay, updated);
+            toast.success('일정을 삭제했습니다.');
         } catch (error) {
             console.error('Error deleting schedule:', error);
             toast.error('일정 삭제 중 오류가 발생했습니다.');
@@ -162,6 +164,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 ...prev,
                 [activeDay]: { ...prev[activeDay], [key]: travelTime.trim() || undefined }
             }));
+            toast.success(travelTime.trim() ? '이동 시간을 저장했습니다.' : '이동 시간을 삭제했습니다.');
         } catch (error) {
             console.error('Error saving travel time:', error);
             toast.error('이동 시간 저장 중 오류가 발생했습니다.');

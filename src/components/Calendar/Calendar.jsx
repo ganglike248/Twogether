@@ -209,6 +209,7 @@ const Calendar = () => {
         }
       }
       setIsModalOpen(false);
+      toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
     } catch (error) {
       toast.error('일정 저장 중 오류가 발생했습니다.');
     }
@@ -224,6 +225,7 @@ const Calendar = () => {
         await deleteEvent(eventId, user?.uid, coupleId);
       }
       setIsModalOpen(false);
+      toast.success('일정을 삭제했습니다.');
     } catch {
       toast.error('일정 삭제 중 오류가 발생했습니다.');
     }
@@ -232,6 +234,7 @@ const Calendar = () => {
   const handleAddPeriod = useCallback(async (startDate, periodLength) => {
     try {
       await createCycle({ startDate, periodLength }, user?.uid, coupleId);
+      toast.success('생리 기록을 저장했습니다.');
     } catch {
       toast.error('생리 기록 중 오류가 발생했습니다.');
     }
@@ -240,6 +243,7 @@ const Calendar = () => {
   const handleDeletePeriod = useCallback(async (cycleId) => {
     try {
       await deleteCycle(cycleId);
+      toast.success('생리 기록을 삭제했습니다.');
     } catch {
       toast.error('생리 기록 삭제 중 오류가 발생했습니다.');
     }
