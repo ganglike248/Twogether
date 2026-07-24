@@ -2,51 +2,55 @@
    react-toastify 기본 스타일 재정의.
    라이브러리 자체 CSS(ReactToastify.css)가 480px 이하 화면에서 토스트를
    화면 전체 너비 + 각진 모서리로 강제 전환해서(하단 내비바를 가리는 원인),
-   안드로이드 네이티브 토스트처럼 작고 둥근 모양으로 재정의하되, 색상은 무채색
-   대신 앱 브랜드 컬러(코랄-핑크 그라디언트, FAB·사이드바 타이틀과 동일 계열)를
-   사용함. 이 파일이 App.jsx에서 ReactToastify.css보다 나중에 import돼야
+   안드로이드 네이티브 토스트처럼 작고 둥근 모양으로 재정의함.
+   색상은 이 앱의 다른 카드/모달(sidebar-modal-box 등)과 같은 흰 배경 +
+   포인트 컬러 방식 — 진한 색 배경에 흰 글씨는 대비가 부족해서 채도 높은
+   그라디언트 배경 대신 흰 카드 + 왼쪽 포인트 라인으로 변경함.
+   이 파일이 App.jsx에서 ReactToastify.css보다 나중에 import돼야
    동일 우선순위 셀렉터에서 이 파일이 이김(CSS 로드 순서).
 
    border-radius는 999px(완전 알약)로 하지 않음 — 메시지가 길어서 2줄로
    줄바꿈되면 알약 모양의 둥근 양끝이 텍스트 영역을 파고들어 보이는 문제가
-   있어서, 1~2줄 어느 쪽이든 자연스러운 고정값(18px)으로 둠. */
+   있어서, 1~2줄 어느 쪽이든 자연스러운 고정값(16px)으로 둠. */
 
 .Toastify__toast-container--bottom-center {
   bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
   width: fit-content;
-  max-width: 78vw;
+  max-width: 90vw;
   left: 50%;
   transform: translateX(-50%);
 }
 
 .Toastify__toast {
   width: fit-content;
-  max-width: 78vw;
+  max-width: 90vw;
   min-height: unset;
   margin: 0 auto 0.5rem;
-  padding: 0.8rem 1.3rem;
-  border-radius: 18px;
-  /* 기본(default/info/success) — 앱 전체에서 쓰는 브랜드 코랄-핑크 그라디언트 */
-  background: linear-gradient(135deg, #ff9bac 0%, #ff6b6b 100%);
-  box-shadow: 0 4px 14px rgba(255, 107, 107, 0.35);
+  padding: 0.7rem 0.9rem 0.7rem 0.85rem;
+  border-radius: 16px;
+  background: #fff;
+  border-left: 4px solid #ff6b6b;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
 }
 
 .Toastify__toast--warning {
-  background: linear-gradient(135deg, #ffbf6b 0%, #ff9a56 100%);
-  box-shadow: 0 4px 14px rgba(255, 154, 86, 0.35);
+  border-left-color: #ff9a56;
 }
 
 .Toastify__toast--error {
-  background: linear-gradient(135deg, #e05555 0%, #c94444 100%);
-  box-shadow: 0 4px 14px rgba(201, 68, 68, 0.35);
+  border-left-color: #e05555;
 }
 
 .Toastify__toast-body {
   padding: 0;
   margin: 0;
-  color: #fff;
-  font-size: 0.82rem;
-  line-height: 1.5;
+  color: #333;
+  font-size: 0.68rem;
+  font-weight: 600;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
   text-align: center;
   justify-content: center;
 }
@@ -55,15 +59,15 @@
   .Toastify__toast-container--bottom-center {
     bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
     width: fit-content;
-    max-width: 78vw;
+    max-width: 90vw;
     left: 50%;
     transform: translateX(-50%);
   }
 
   .Toastify__toast {
     width: fit-content;
-    max-width: 78vw;
+    max-width: 90vw;
     margin-bottom: 0.5rem;
-    border-radius: 18px;
+    border-radius: 16px;
   }
 }
