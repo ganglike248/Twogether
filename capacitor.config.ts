@@ -18,7 +18,12 @@ const config: CapacitorConfig = {
 
   ios: {
     backgroundColor: '#fce4ec',
-    contentInset: 'always',
+    // 'always'였을 때 iOS 네이티브가 safe-area만큼 웹뷰 콘텐츠를 자체적으로 한 번
+    // 밀어주는데, CSS(AppHeader/Navigation 등의 env(safe-area-inset-*))에서도
+    // 똑같은 여백을 또 계산해서 이중으로 밀리는 문제가 있었음(상단 헤더 위/하단
+    // 탭바 아래에 여백 발생, 당겼을 때 헤더가 밀려 내려감). 'never'로 바꿔서
+    // 웹뷰가 화면 끝까지 채우고, safe-area 처리는 CSS에서만 하도록 함.
+    contentInset: 'never',
     // Mac에서 npx cap run ios 실행 전 별도 설정 불필요
   },
 

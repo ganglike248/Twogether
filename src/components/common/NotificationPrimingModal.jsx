@@ -4,6 +4,7 @@
 // CoupleSetupPage(신규 가입)와 Home(기존 가입자) 양쪽에 마운트하되, 로컬스토리지 플래그로 앱 전체에서
 // 딱 한 번만 뜨도록 함(둘 중 먼저 도달하는 화면에서 뜨고 이후로는 다시 안 뜸).
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { HiBell } from 'react-icons/hi2';
 import {
   getNotificationPermission,
@@ -36,7 +37,10 @@ const NotificationPrimingModal = () => {
 
   if (!visible) return null;
 
-  return (
+  // main-content(스크롤 컨테이너) 안에서 렌더링되면, iOS에서 position:fixed 오버레이가
+  // 스크롤 가능한 조상 안에 있을 때 화면에 보이는 위치와 실제 터치 판정 위치가 어긋나서
+  // 버튼이 안 눌리는 문제가 있어 document.body로 포탈 렌더링함.
+  return createPortal(
     <div className="npm-overlay">
       <div className="npm-card" onClick={(e) => e.stopPropagation()}>
         <HiBell className="npm-icon" />
@@ -52,7 +56,8 @@ const NotificationPrimingModal = () => {
           <button className="npm-btn-enable" onClick={handleEnable}>알림 받기</button>
         </div>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

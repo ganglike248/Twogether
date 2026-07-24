@@ -105,6 +105,14 @@
   font-family: 'Gowun Dodum', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
 }
 
+html {
+  /* iOS에서 최상단/최하단으로 당겼을 때 튕기는 효과(elastic bounce) 자체를 끔.
+     기존 구조(body가 스크롤, 헤더·탭바는 position:fixed)를 그대로 유지하면서
+     이 한 줄로 해결 — 스크롤을 별도 컨테이너에 가두는 방식은 그 안의 모달들이
+     iOS에서 position:fixed 오조준(터치 위치 어긋남) 문제를 일으켜서 안 씀. */
+  overscroll-behavior-y: none;
+}
+
 body {
   margin: 0;
   font-family: 'Gowun Dodum', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
@@ -113,6 +121,7 @@ body {
   -moz-osx-font-smoothing: grayscale;
   background-color: #fdf5f7;
   color: var(--color-gray-800);
+  overscroll-behavior-y: none;
 }
 
 #root {
@@ -215,7 +224,11 @@ select {
   border-radius: var(--border-radius);
   width: 100%;
   box-sizing: border-box;
-  font-size: 1rem; /* iOS Safari zoom 방지: 16px 미만 시 포커스 시 자동 확대됨 */
+  /* iOS Safari/WKWebView zoom 방지: 16px 미만 입력창 포커스 시 자동 확대됨.
+     페이지별 CSS(.xxx-field input 등)가 더 높은 특이도로 이 값을 개별적으로
+     0.8~0.9rem 등으로 덮어써서 여러 화면에서 이 버그가 재발했던 적 있어서
+     !important로 고정 — 입력창 글자 크기는 항상 여기서만 통제함. */
+  font-size: 1rem !important;
   font-family: inherit;
   transition: border-color 0.15s ease, box-shadow 0.15s ease;
   background-color: white;
