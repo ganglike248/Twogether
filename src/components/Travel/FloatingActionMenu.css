@@ -13,7 +13,9 @@
 /* FAB 버튼 */
 .fam-fab {
   position: fixed;
-  bottom: 4.5rem;
+  /* 안드로이드 제스처 내비바 높이(env(safe-area-inset-bottom))만큼 앱 하단 내비바(Navigation.css)가
+     더 높아지는데 FAB는 그만큼 안 올라오면 겹쳐서, 여유값(0.5rem) 포함해서 같이 밀어올림 */
+  bottom: calc(4.5rem + env(safe-area-inset-bottom) + 0.5rem);
   right: 1.5rem;
   width: 56px;
   height: 56px;
@@ -47,7 +49,7 @@
 /* 메뉴 */
 .fam-menu {
   position: fixed;
-  bottom: 140px;
+  bottom: calc(140px + env(safe-area-inset-bottom) + 0.5rem);
   right: 1.5rem;
   background: white;
   border-radius: 1rem;

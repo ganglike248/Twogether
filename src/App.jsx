@@ -11,6 +11,7 @@ import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
 import PWAUpdatePrompt from './components/common/PWAUpdatePrompt';
 import InAppUpdatePrompt from './components/common/InAppUpdatePrompt';
+import AndroidBackButtonHandler from './components/common/AndroidBackButtonHandler';
 import NotFoundPage from './components/common/NotFoundPage';
 
 // 페이지 컴포넌트 lazy loading — 방문 시점에만 해당 청크 로드
@@ -62,6 +63,7 @@ const RootLayout = () => (
       <ToastContainer position="bottom-right" />
       <PWAUpdatePrompt />
       <InAppUpdatePrompt />
+      <AndroidBackButtonHandler />
       <Suspense fallback={<PageLoader />}>
         <Outlet />
       </Suspense>
