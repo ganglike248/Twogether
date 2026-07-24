@@ -3,6 +3,7 @@ import React, { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider, Outlet } from 'react-router-dom';
 import { ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import './components/common/Toast.css';
 
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
@@ -60,7 +61,7 @@ const RootLayout = () => (
   <ErrorBoundary>
     <AuthProvider>
       <ScrollToTop />
-      <ToastContainer position="bottom-right" />
+      <ToastContainer position="bottom-center" hideProgressBar closeButton={false} icon={false} />
       <PWAUpdatePrompt />
       <InAppUpdatePrompt />
       <AndroidBackButtonHandler />

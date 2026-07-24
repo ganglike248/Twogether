@@ -1,0 +1,53 @@
+/* src/components/common/Toast.css
+   react-toastify 기본 스타일 재정의.
+   라이브러리 자체 CSS(ReactToastify.css)가 480px 이하 화면에서 토스트를
+   화면 전체 너비 + 각진 모서리로 강제 전환해서(하단 내비바를 가리는 원인),
+   안드로이드 네이티브 토스트처럼 좁고 둥근 반투명 알약 모양으로 재정의함.
+   이 파일이 App.jsx에서 ReactToastify.css보다 나중에 import돼야
+   동일 우선순위 셀렉터에서 이 파일이 이김(CSS 로드 순서). */
+
+.Toastify__toast-container--bottom-center {
+  bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
+  width: fit-content;
+  max-width: 85vw;
+  left: 50%;
+  transform: translateX(-50%);
+}
+
+.Toastify__toast {
+  width: fit-content;
+  max-width: 85vw;
+  min-height: unset;
+  margin: 0 auto 0.5rem;
+  padding: 0.7rem 1.1rem;
+  border-radius: 999px;
+  background: rgba(20, 20, 20, 0.82);
+  box-shadow: none;
+}
+
+.Toastify__toast-body {
+  padding: 0;
+  margin: 0;
+  color: #fff;
+  font-size: 0.85rem;
+  line-height: 1.4;
+  text-align: center;
+  justify-content: center;
+}
+
+@media only screen and (max-width: 480px) {
+  .Toastify__toast-container--bottom-center {
+    bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
+    width: fit-content;
+    max-width: 85vw;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+
+  .Toastify__toast {
+    width: fit-content;
+    max-width: 85vw;
+    margin-bottom: 0.5rem;
+    border-radius: 999px;
+  }
+}
