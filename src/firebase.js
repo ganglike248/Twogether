@@ -6,10 +6,11 @@ import {
   persistentMultipleTabManager,
   getFirestore,
 } from 'firebase/firestore';
-import { getAuth } from 'firebase/auth';
+import { getAuth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
 import { getStorage } from 'firebase/storage';
 import { getFunctions } from 'firebase/functions';
+import { Capacitor } from '@capacitor/core';
 
 const firebaseConfig = {
   apiKey: import.meta.env.VITE_FIREBASE_API_KEY,
@@ -37,7 +38,13 @@ try {
 }
 
 export { db, app };
-export const auth = getAuth(app);
+// iOS(WKWebView)에서 Auth 기본 퍼시스턴스(IndexedDB)가 onAuthStateChanged 콜백을
+// 응답 없이 멈추게 하는 문제가 있어서(Safari 웹 인스펙터로 firebaseLocalStorageDb만
+// 생성되고 이후 진행이 안 되는 것 확인) iOS만 localStorage 기반으로 명시 지정.
+// 안드로이드/웹은 이미 정상 동작 중이라 기존 기본 동작(getAuth) 그대로 둠.
+export const auth = Capacitor.getPlatform() === 'ios'
+  ? initializeAuth(app, { persistence: browserLocalPersistence })
+  : getAuth(app);
 export const storage = getStorage(app);
 export const functionsInstance = getFunctions(app);
 export const analytics = getAnalytics(app);
