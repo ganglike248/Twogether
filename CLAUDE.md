@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.25 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.26 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -605,3 +605,10 @@ density별 폴더(`drawable-port-*/splash.png`, `drawable-land-*/splash.png`)는
 5. 내가 제시한 문제가 실제로 그렇게 동작하는지 확인 후 수정(내가 문제가 있다고 말해서 무작정 수정 금지)
 6. 커밋할 때에는 항상 모든 파일을 포함(add .)
 7. 내가 "마무리"라고 하면, 메모리 업데이트 + 빌드 + 배포 + 커밋 + 푸시까지 실행
+8. 내가 "배포해줘"(또는 "배포"만 언급)라고 하면 확인 없이 바로 웹 빌드(`npm run build`) +
+   `npx cap sync` + Firebase Hosting 배포(`npx firebase-tools deploy --only hosting`) +
+   버전 파일(package.json/version.txt) 확인 + 커밋 + 푸시까지 실행.
+   ⚠ Android AAB(Play Console)/iOS Archive(App Store Connect) 업로드는 이 자동 실행 범위에
+   포함 안 됨 — keystore 서명 파일·Apple Developer 계정 접근 권한이 없어 애초에 대신 할 수
+   없는 수동 단계(Android Studio/Xcode 필요). 네이티브 빌드가 필요한 변경이면
+   `android/app/build.gradle`의 versionCode/versionName만 올려두고, 나머지는 안내만 함.
