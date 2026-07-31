@@ -59,6 +59,17 @@ android/app/build/outputs/bundle/release/app-release.aab
   npm run dev
 
 
+[안드로이드 에뮬레이터에서 코드 수정이 반영 안 될 때]
+  npm run build → npx cap sync android → gradlew installDebug 를 다 해도
+  WebView가 이전 화면을 계속 보여주는 경우가 실제로 있었음(force-stop 후
+  재실행해도 동일). 원인 불명(WebView 자체 리소스 캐시로 추정) — 확실한
+  해결법은 완전 삭제 후 재설치뿐:
+    adb uninstall com.wooridoori.twogether
+    cd android && ./gradlew installDebug
+  재설치하면 로그인 세션도 초기화되니 테스트 계정으로 다시 로그인 필요
+  (test1@gmail.com / test2@gmail.com, 비밀번호 123456 — scripts/seedTestData.js 참고)
+
+
 [요소 확인 툴 켜기]
   Capacitor 앱은 WebView 기반이라 Metro 방식 react-devtools 연결은 안 됨
   1. 실기기 USB 디버깅 켜기

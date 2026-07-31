@@ -1,4 +1,4 @@
-0.4.26
+0.4.27
 
 ---
 
@@ -13,12 +13,12 @@ npx cap sync
 
 ### 버전 번호 올리는 곳
 android/app/build.gradle
-  versionCode 5        ← 정수, 매 업로드마다 반드시 +1 (1→2→3...)
-  versionName "0.4.26" ← 표시용, package.json version과 맞추기 권장
+  versionCode 6        ← 정수, 매 업로드마다 반드시 +1 (1→2→3...)
+  versionName "0.4.27" ← 표시용, package.json version과 맞추기 권장
 
 ios/App/App.xcodeproj/project.pbxproj (Debug/Release 2곳 모두)
-  CURRENT_PROJECT_VERSION = 5;     ← Android versionCode와 동일하게 맞춤
-  MARKETING_VERSION = 0.4.26;     ← Android versionName과 동일하게 맞춤
+  CURRENT_PROJECT_VERSION = 6;     ← Android versionCode와 동일하게 맞춤
+  MARKETING_VERSION = 0.4.27;     ← Android versionName과 동일하게 맞춤
 
 ### 파일 위치
 - AAB 파일:     android/app/release/app-release.aab
