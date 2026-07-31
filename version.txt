@@ -13,15 +13,20 @@ npx cap sync
 
 ### 버전 번호 올리는 곳
 android/app/build.gradle
-  versionCode 1        ← 정수, 매 업로드마다 반드시 +1 (1→2→3...)
-  versionName "1.0"    ← 표시용, package.json version과 맞추기 권장
+  versionCode 5        ← 정수, 매 업로드마다 반드시 +1 (1→2→3...)
+  versionName "0.4.26" ← 표시용, package.json version과 맞추기 권장
+
+ios/App/App.xcodeproj/project.pbxproj (Debug/Release 2곳 모두)
+  CURRENT_PROJECT_VERSION = 5;     ← Android versionCode와 동일하게 맞춤
+  MARKETING_VERSION = 0.4.26;     ← Android versionName과 동일하게 맞춤
 
 ### 파일 위치
 - AAB 파일:     android/app/release/app-release.aab
 - Keystore:     빌드 시 지정한 경로의 .jks 파일 (분실 시 업데이트 영구 불가 — 반드시 백업)
 - 앱 설정:      capacitor.config.ts
 - Android 설정: android/app/build.gradle, android/app/src/main/AndroidManifest.xml
-- iOS 설정:     ios/App/App/Info.plist (Mac + Xcode 필요)
+- iOS 설정:     ios/App/App.xcodeproj/project.pbxproj (버전 필드), ios/App/App/Info.plist는
+                위 값을 $(MARKETING_VERSION)/$(CURRENT_PROJECT_VERSION)로 참조만 함 (Mac + Xcode 필요)
 
 ### 배포 트랙 (Google Play Console)
 내부 테스트  → 심사 없이 즉시 배포, 팀원 테스트용

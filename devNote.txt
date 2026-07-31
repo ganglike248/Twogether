@@ -4,8 +4,12 @@
 1. 코드 수정 후 버전 올리기
 
 android/app/build.gradle 에서 버전 변경:
-  versionCode 4        // 1씩 올려야 함 (무조건 이전보다 커야 함)
-  versionName "0.4.24" // 사용자에게 표시되는 버전, package.json 버전과 맞추면 편함
+  versionCode 5        // 1씩 올려야 함 (무조건 이전보다 커야 함)
+  versionName "0.4.26" // 사용자에게 표시되는 버전, package.json 버전과 맞추면 편함
+
+iOS도 같이 맞출 것: ios/App/App.xcodeproj/project.pbxproj 의 MARKETING_VERSION/
+CURRENT_PROJECT_VERSION (Debug/Release 2곳 모두) — Info.plist는 이 값을 참조만 하므로
+직접 수정 대상 아님.
 
 2. 웹 빌드 + AAB 다시 빌드
 

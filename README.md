@@ -2,7 +2,7 @@
 
 > **우리 둘의 일상을 하나로, 연애는 더 편하게.**
 
-[![Version](https://img.shields.io/badge/version-v0.4.11-ff6b6b)](https://github.com/ganglike248/Twogether)
+[![Version](https://img.shields.io/badge/version-v0.4.26-ff6b6b)](https://github.com/ganglike248/Twogether)
 [![Firebase](https://img.shields.io/badge/Firebase-12-orange)](https://firebase.google.com/)
 [![React](https://img.shields.io/badge/React-19-blue)](https://react.dev/)
 [![PWA](https://img.shields.io/badge/PWA-ready-brightgreen)](#)

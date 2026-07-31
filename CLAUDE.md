@@ -12,6 +12,15 @@
 ### Vite 버전 고정
 **Vite 5.4.21 고정** — Node.js 20.15.1이 Vite 8과 호환 안 됨. 절대 업그레이드 금지.
 
+### eslint 스캔 범위 (v0.4.26~)
+`eslint.config.js`의 `globalIgnores`에 `dist` 외에 `android`/`ios`/`scripts`도 반드시 포함되어야 함 —
+`android/app/src/main/assets/public`, `ios/App/App/public`(둘 다 `npx cap sync`가 만드는 `dist` 복사본)과
+`android/app/build/**`는 git에는 없지만(각 플랫폼 자체 `.gitignore`로 제외) 로컬 디스크엔 남아있어서,
+이 제외 설정이 없으면 네이티브 빌드를 한 번만 해도 `npm run lint`가 번들된 vendor JS까지 스캔해 수천 개
+가짜 문제를 쏟아냄(실측: 1885~3121개 → 93개로 감소). `scripts/`(1회성 시드 스크립트, 그 자체도 gitignore
+대상)도 같은 이유로 제외. `functions/**/*.js`는 별도 override로 `globals.node` + `sourceType: 'commonjs'`
+지정 — 루트 설정의 `globals.browser`만 쓰면 `require`/`exports`가 전부 `no-undef`로 잡힘.
+
 ### .js 파일에 JSX 포함
 `Navigation.js`, `DayModal.js`, `EventModal.js`, `TravelPlanPage.js`, `MemoryList.js` 등이 `.js` 확장자지만 JSX를 사용함. `vite.config.js`의 esbuild 설정으로 처리 중 — 새 `.js` JSX 파일 추가 시 별도 설정 불필요하나, 이 설정을 지우면 전체 빌드 깨짐.
 
@@ -221,6 +230,48 @@ false→true로 바뀔 때만, 수동/자동 공개 둘 다 이 트리거 하나
 `SealedMessageComposeModal.jsx`, `SealedMessageDetailModal.jsx`, `UnlockTimePicker.jsx`,
 `sealed-message-modal.css`, `SealedMessagesPage.css`), `firestore.rules`/`storage.rules`/`firestore.indexes.json`
 (`sealedMessages` 관련 블록), `functions/index.js`(`onSealedMessageCreate`/`onSealedMessageUpdate`/`checkSealedMessages`).
+
+### 안드로이드/iOS 네이티브 안정화 (v0.4.23~v0.4.26)
+Play Store/App Store 실기기 테스트 중 발견된 Capacitor 네이티브 레이어 특유의 버그들. 웹(PWA)에서는
+재현 안 되고 네이티브 빌드에서만 나타나므로, 재현/검증은 브라우저가 아니라 실기기·에뮬레이터·시뮬레이터로
+할 것. 빌드/배포 핸즈온 절차는 이 문서와 별개로 루트 `devNote.txt`에 따로 정리돼 있음(버전 올리기, AAB
+빌드, 인앱 업데이트 방식 전환, 네이티브 푸시 콘솔 설정 체크리스트 등) — 네이티브 빌드 착수 전 참고할 것.
+
+**하드웨어/제스처 뒤로가기 시 앱이 그냥 종료되던 문제**: 탭 전환·사이드바 메뉴 이동이 대부분
+`navigate(..., { replace: true })`라 웹뷰 히스토리에 갈 곳이 없어서, 안드로이드 하드웨어/제스처
+뒤로가기가 기본 동작(앱 종료)으로 빠졌음. `@capacitor/app` 설치 + `useAndroidBackButton.js`
+(+`AndroidBackButtonHandler.jsx`)로 직접 처리: 갈 히스토리 있으면 그쪽으로(모달 닫기 포함) → 없고
+홈이 아니면 홈으로 → 이미 홈이면 한 번 더 눌러야 종료(토스트 안내).
+
+**iOS safe-area 이중 계산 + elastic bounce**: `capacitor.config.ts`의 `ios.contentInset`이 `'always'`였을
+때 iOS 네이티브가 safe-area만큼 웹뷰를 한 번 밀고, CSS의 `env(safe-area-inset-*)`가 또 밀어서 상단
+헤더 위/하단 탭바 아래에 이중 여백이 생김 — `'never'`로 바꿔 safe-area 처리를 CSS 쪽에만 맡김.
+최상단/최하단으로 당겼을 때 헤더·탭바 뒤로 여백이 드러나는 elastic bounce는 스크롤을 `.main-content`
+안에 가두는 방식으로 먼저 시도했으나 중첩 모달의 `position:fixed` 터치 판정이 어긋나는 부작용이 있어
+롤백 — 대신 `html`/`body`에 `overscroll-behavior-y: none`으로 bounce 자체를 끔.
+
+**Firebase Auth `onAuthStateChanged`가 iOS(WKWebView)에서 무응답으로 멈추던 문제**: 기본 퍼시스턴스
+(IndexedDB)가 콜백을 영영 안 불러서 로그인 확인 화면에서 무한 로딩되던 버그. iOS만
+`browserLocalPersistence`(localStorage 기반)로 명시 지정해서 해결, 안드로이드/웹은 기존 `getAuth()`
+기본 동작 유지. `firebase.js` 참고.
+
+**바닥에 붙는 모달(bottom-sheet)들이 안드로이드 제스처 내비바와 겹치던 문제 (v0.4.26~)**: 하단
+내비게이션바(`Navigation.css`)는 처음부터 `env(safe-area-inset-bottom)`을 반영했지만, `align-items:
+flex-end`로 화면 바닥에 붙는 모달 13개(DayModal/BucketList/ChecklistModal/ScheduleModal/WheelModal/
+SealedMessage/TripModal/DecisionModal/AddOptionModal/EditOptionModal/CycleSettingsModal/
+EventTypeColorSettingsModal/NotificationPrimingModal)의 footer/actions 요소는 이 처리가 빠져 있어서
+버튼이 제스처 내비바 뒤로 깔렸음. 각 footer 요소에 `padding-bottom`(또는 `padding` calc)으로 safe-area
+여백을 추가해 해결. `EventModal`/`ChangePasswordModal` 등 화면 중앙에 뜨는 모달은 애초에 바닥에 안 붙어서
+대상 아님 — 새 바닥-고정 모달 추가 시 이 패턴 그대로 적용할 것.
+
+**안드로이드 스플래시 배경색이 기기별로 다르게 보이던 문제 (v0.4.26~)**: `targetSdkVersion 36`(Android
+12+)부터는 OS 자체 SplashScreen API가 있는데, 실제로 요구하는 속성은 `windowSplashScreenBackground`이고
+기존에 쓰던 `android:background`는 이 API가 읽지 않음. 이 속성이 프로젝트 최초 생성 시점(2026-07-01)부터
+계속 미설정 상태였고, Android는 이럴 때 제조사 스킨(삼성 One UI 다이나믹 컬러 등)이 자체 기본값으로
+폴백하기 때문에 기기에 따라 의도한 핑크(`#fce4ec`)가 아니라 다른 색(라벤더 등 시스템 테마색)으로 보일 수
+있었음 — 실제로 실기기에서 재현 보고됨. `styles.xml`의 `AppTheme.NoActionBarLaunch`에
+`windowSplashScreenBackground` 명시로 해결. legacy `android:background`만으로는 API 31+ 네이티브
+스플래시가 인식 못한다는 점 기억할 것.
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -508,6 +559,10 @@ GPS 상시 추적이 필요하고, 여행이 아니면 같은 지역을 재방�
 1~4는 기존 인프라(알림 스케줄, Decisions UI, 이벤트 생성 폼) 재사용 위주라 상대적으로 가볍고, 5는 새 지도
 리소스 소싱 + 지역 데이터 구조화가 필요한 첫 무거운 작업, 7은 마지막.
 **1번(봉인 편지함) 완료 (v0.4.22) — 다음은 2번(디데이 다중 관리)부터 시작.**
+※ v0.4.23~v0.4.26 사이 실작업은 이 로드맵 항목이 아니라 Play Store/App Store 출시 준비 과정에서 발견된
+네이티브 앱 안정화(웹+네이티브 푸시 통합, 인앱 업데이트, 안드로이드 뒤로가기/제스처 내비바 대응, iOS
+safe-area 등 — 위 "안드로이드/iOS 네이티브 안정화" 섹션 참고)에 우선순위가 밀려 진행됨. 2번(디데이)은
+아직 착수 전 상태 그대로.
 
 ### EventModal 개인 일정 localStorage 동작 (의도적 설계)
 `localStorage('twogether_personal_default')`: 저장 시(`handleSubmit`) 마지막으로 선택한 개인/공유 여부를 저장하고, 새 일정 생성 시(`event=null`) 해당 값으로 초기화함.
@@ -604,11 +659,23 @@ density별 폴더(`drawable-port-*/splash.png`, `drawable-land-*/splash.png`)는
 4. 요청이 불명확할 때 추론해서 실행하지 말고 선택지 제시 후 확인
 5. 내가 제시한 문제가 실제로 그렇게 동작하는지 확인 후 수정(내가 문제가 있다고 말해서 무작정 수정 금지)
 6. 커밋할 때에는 항상 모든 파일을 포함(add .)
-7. 내가 "마무리"라고 하면, 메모리 업데이트 + 빌드 + 배포 + 커밋 + 푸시까지 실행
+7. 내가 "마무리"라고 하면, 아래 순서로 확인 없이 바로 실행:
+   - 메모리 업데이트
+   - **버전 올리기** — `package.json`/`version.txt` 동시 업데이트에 더해, **플랫폼별 누락 없이**
+     `android/app/build.gradle`의 `versionCode`(+1)/`versionName`과 `ios/App/App.xcodeproj/project.pbxproj`의
+     `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION`(+1, Debug/Release 2곳 모두)까지 전부 같은 버전으로 동시에
+     맞춤 — 웹만 배포하고 네이티브 버전 번호는 그대로 방치되는 일이 없도록 항상 세 플랫폼 버전을 동기화함
+   - 웹 빌드(`npm run build`) + `npx cap sync`
+   - Firebase Hosting 배포
+   - 커밋 + 푸시
+   ⚠ 이 버전 동기화는 "번호"만 맞추는 것 — Android AAB(Play Console)/iOS Archive(App Store Connect) 실제
+   빌드·업로드는 아래 8번과 동일하게 keystore·Apple 계정 접근 권한이 없어 항상 수동 단계로 남음.
 8. 내가 "배포해줘"(또는 "배포"만 언급)라고 하면 확인 없이 바로 웹 빌드(`npm run build`) +
    `npx cap sync` + Firebase Hosting 배포(`npx firebase-tools deploy --only hosting`) +
    버전 파일(package.json/version.txt) 확인 + 커밋 + 푸시까지 실행.
    ⚠ Android AAB(Play Console)/iOS Archive(App Store Connect) 업로드는 이 자동 실행 범위에
    포함 안 됨 — keystore 서명 파일·Apple Developer 계정 접근 권한이 없어 애초에 대신 할 수
    없는 수동 단계(Android Studio/Xcode 필요). 네이티브 빌드가 필요한 변경이면
-   `android/app/build.gradle`의 versionCode/versionName만 올려두고, 나머지는 안내만 함.
+   `android/app/build.gradle`의 versionCode/versionName + `ios/App/App.xcodeproj/project.pbxproj`의
+   MARKETING_VERSION/CURRENT_PROJECT_VERSION까지 플랫폼별 누락 없이 올려두고, 나머지(AAB/Archive
+   빌드·업로드)는 안내만 함.
