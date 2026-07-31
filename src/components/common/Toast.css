@@ -9,9 +9,11 @@
    이 파일이 App.jsx에서 ReactToastify.css보다 나중에 import돼야
    동일 우선순위 셀렉터에서 이 파일이 이김(CSS 로드 순서).
 
-   border-radius는 999px(완전 알약)로 하지 않음 — 메시지가 길어서 2줄로
-   줄바꿈되면 알약 모양의 둥근 양끝이 텍스트 영역을 파고들어 보이는 문제가
-   있어서, 1~2줄 어느 쪽이든 자연스러운 고정값(16px)으로 둠. */
+   border-radius는 999px(완전 알약)로 하지 않음 — 고정값(16px)으로 둠.
+
+   메시지는 줄바꿈 없이 항상 한 줄(white-space: nowrap)로 표시하고 넘치면
+   말줄임표(...)로 자름 — 폰트 크기를 작게 유지해서 대부분의 메시지가 실제로
+   잘리는 일 없이 한 줄에 들어가도록 함. */
 
 .Toastify__toast-container--bottom-center {
   bottom: calc(60px + env(safe-area-inset-bottom) + 1rem);
@@ -45,7 +47,7 @@
   padding: 0;
   margin: 0;
   color: #333;
-  font-size: 0.62rem;
+  font-size: 0.54rem;
   font-weight: 600;
   line-height: 1.4;
   white-space: nowrap;

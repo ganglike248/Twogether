@@ -521,38 +521,3 @@
   color: var(--color-gray-600);
 }
 
-/* 100일 마일스톤 배지 */
-.home-milestone {
-  background: linear-gradient(135deg, #fff0f5 0%, #ffe3ef 100%);
-  border-radius: var(--border-radius-lg);
-  padding: 1.5rem 1rem;
-  border: 1px solid rgba(255, 107, 107, 0.2);
-  text-align: center;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  gap: 0.4rem;
-  min-height: 140px;
-}
-
-.milestone-label {
-  justify-content: center;
-}
-
-.milestone-badge {
-  font-size: 2.75rem;
-  font-weight: 900;
-  background: linear-gradient(135deg, #ff6b91 0%, #ff9bac 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
-  letter-spacing: -2px;
-  filter: drop-shadow(0 2px 4px rgba(255, 107, 145, 0.15));
-}
-
-.milestone-sub {
-  font-size: 0.8rem;
-  color: var(--text-sub);
-  margin: 0;
-}

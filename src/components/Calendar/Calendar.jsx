@@ -115,6 +115,8 @@ const Calendar = () => {
 
   useEffect(() => {
     if (!isLoading && pendingDateRef.current) {
+      const [year, month] = pendingDateRef.current.split('-').map(Number);
+      setCurrentDate(new Date(year, month - 1, 1));
       setSelectedDate(pendingDateRef.current);
       setIsDayModalOpen(true);
       pendingDateRef.current = null;

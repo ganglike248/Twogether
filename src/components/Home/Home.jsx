@@ -1,7 +1,6 @@
 // src/components/Home/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useLocation } from 'react-router-dom';
-import { motion } from 'framer-motion';
 import {
   differenceInCalendarDays, differenceInMonths, addMonths,
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
@@ -102,7 +101,6 @@ const Home = () => {
   }, [coupleId]);
 
   const today = new Date();
-  const isSpecialDay = dday % 100 === 0 && dday > 0;
 
   // 연애 기간 계산
   const loveStartDate = anniversaryDate ? new Date(anniversaryDate) : null;
@@ -267,7 +265,7 @@ const Home = () => {
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
                 <span className="stat-value">
-                  {daysToMilestone > 0 ? `D-${daysToMilestone}` : `${nextMilestone}일 축하합니다!`}
+                  {daysToMilestone > 0 ? `D-${daysToMilestone}` : `❤️${nextMilestone}일❤️`}
                 </span>
                 <span className="stat-label">D+{nextMilestone} 기념일</span>
               </div>
@@ -458,29 +456,6 @@ const Home = () => {
           </div>
         )}
       </Link>
-
-      {/* 100일 기념 마일스톤 */}
-      {isSpecialDay && (
-        <motion.div
-          className="home-milestone"
-          initial={{ opacity: 0, scale: 0.8, filter: 'blur(10px)' }}
-          animate={{ opacity: 1, scale: 1, filter: 'blur(0px)' }}
-          transition={{
-            duration: 0.8,
-            ease: 'easeOut',
-            type: 'spring',
-            stiffness: 120,
-            damping: 15,
-          }}
-        >
-          <div className="card-label milestone-label">
-            <HiSparkles className="card-label-icon" />
-            D+{dday} 기념일
-          </div>
-          <div className="milestone-badge">D+{dday}</div>
-          <p className="milestone-sub">축하해요, 오늘 하루도 예쁘게 보내요</p>
-        </motion.div>
-      )}
 
       {/* 돌림판 모달 */}
       <WheelModal

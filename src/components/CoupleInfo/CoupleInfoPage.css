@@ -145,20 +145,39 @@
   cursor: default;
 }
 
-.couple-info-code {
-  font-size: 1.05rem !important;
+.couple-info-code-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.couple-info-code-text {
+  font-size: 1.05rem;
   letter-spacing: 0.2em;
   font-weight: 600;
-}
-
-.couple-info-code-clickable {
-  cursor: pointer;
+  color: var(--color-gray-800);
   user-select: all;
-  transition: color 0.2s;
 }
 
-.couple-info-code-clickable:hover {
-  color: var(--color-primary) !important;
+.couple-info-code-copy-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--color-hover-light);
+  color: var(--color-primary);
+  border: none;
+  border-radius: 50%;
+  width: 32px;
+  height: 32px;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+}
+
+.couple-info-code-row:hover .couple-info-code-text {
+  color: var(--color-primary);
 }
 
 .couple-info-hint {

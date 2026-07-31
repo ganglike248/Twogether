@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
-import { HiUser, HiHeart, HiEnvelope } from 'react-icons/hi2';
+import { HiUser, HiHeart, HiEnvelope, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -14,6 +14,7 @@ const CoupleInfoPage = () => {
   const [origDate, setOrigDate] = useState('');
   const [loading, setLoading] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
+  const [copied, setCopied] = useState(false);
 
   const isConnected = coupleDoc?.members?.length === 2;
 
@@ -60,6 +61,8 @@ const CoupleInfoPage = () => {
     if (coupleDoc?.inviteCode) {
       navigator.clipboard.writeText(coupleDoc.inviteCode);
       toast.success('초대 코드가 복사되었습니다.');
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
     }
   };
 
@@ -214,16 +217,16 @@ const CoupleInfoPage = () => {
           <div className="couple-info-section">
             <div className="couple-info-field">
               <label className="couple-info-label">
-                <HiEnvelope className="couple-info-label-icon" />
+                <HiClipboardDocument className="couple-info-label-icon" />
                 코드
               </label>
-              <input
-                type="text"
-                value={coupleDoc.inviteCode}
-                disabled
-                className="couple-info-disabled couple-info-code couple-info-code-clickable"
-                onClick={handleCopyInviteCode}
-              />
+              <div className="couple-info-code-row" onClick={handleCopyInviteCode}>
+                <span className="couple-info-code-text">{coupleDoc.inviteCode}</span>
+                <button type="button" className="couple-info-code-copy-btn" aria-label="초대 코드 복사">
+                  {copied ? <HiCheck /> : <HiClipboardDocument />}
+                </button>
+              </div>
+              <span className="couple-info-hint">탭하여 복사하기</span>
             </div>
           </div>
         </>
