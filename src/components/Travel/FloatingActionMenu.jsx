@@ -62,8 +62,7 @@ const FloatingActionMenu = ({
         ];
       case 'decisions':
         return [
-          { label: '주제 추가', onClick: () => handleActionClick(onDecisionMenu) },
-          { label: '항목 추가', onClick: () => handleActionClick(onDecisionMenu) }
+          { label: '비교 주제 추가', onClick: () => handleActionClick(onDecisionMenu) }
         ];
       case 'checklist':
         return [
@@ -80,6 +79,15 @@ const FloatingActionMenu = ({
   if (!menuItems || menuItems.length === 0) {
     return null;
   }
+
+  // 선택지가 하나뿐이면 메뉴를 띄우지 않고 바로 실행 — 굳이 한 번 더 선택하게 하지 않음
+  const handleFabClick = () => {
+    if (menuItems.length === 1) {
+      menuItems[0].onClick();
+      return;
+    }
+    setIsOpen(!isOpen);
+  };
 
   return (
     <>
@@ -106,7 +114,7 @@ const FloatingActionMenu = ({
       {/* FAB 버튼 */}
       <button
         className={`fam-fab ${isOpen ? 'open' : ''}`}
-        onClick={() => setIsOpen(!isOpen)}
+        onClick={handleFabClick}
         title="추가"
       >
         {isOpen ? <MdClose size={24} /> : <MdAdd size={24} />}

@@ -266,7 +266,9 @@ const Home = () => {
             >
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
-                <span className="stat-value">D-{daysToMilestone}</span>
+                <span className="stat-value">
+                  {daysToMilestone > 0 ? `D-${daysToMilestone}` : `${nextMilestone}일 축하합니다!`}
+                </span>
                 <span className="stat-label">D+{nextMilestone} 기념일</span>
               </div>
               <span className="stat-arrow">›</span>
@@ -471,7 +473,12 @@ const Home = () => {
             damping: 15,
           }}
         >
+          <div className="card-label milestone-label">
+            <HiSparkles className="card-label-icon" />
+            D+{dday} 기념일
+          </div>
           <div className="milestone-badge">D+{dday}</div>
+          <p className="milestone-sub">축하해요, 오늘 하루도 예쁘게 보내요</p>
         </motion.div>
       )}
 

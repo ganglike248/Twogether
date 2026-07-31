@@ -3,7 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiPlus, HiDocumentText } from 'react-icons/hi2';
+import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiDocumentText } from 'react-icons/hi2';
 import { MdDateRange } from 'react-icons/md';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
@@ -335,12 +335,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     <div className="trip-detail-schedule-section">
                 <div className="td-schedule-header">
                     <span className="td-schedule-title">Day {activeDay} 일정</span>
-                    <button
-                        className="td-add-btn"
-                        onClick={() => { setSelectedSchedule(null); setShowScheduleModal(true); }}
-                    >
-                        <HiPlus className="td-add-icon" /> 추가
-                    </button>
                 </div>
 
                 {loading ? (

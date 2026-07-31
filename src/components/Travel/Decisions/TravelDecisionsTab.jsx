@@ -153,9 +153,6 @@ const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref)
         >
           확정
         </button>
-        <button className="tdt-add-btn" onClick={() => setShowModal(true)}>
-          + 새 비교 주제
-        </button>
       </div>
 
       {/* 주제 필터 (가로스크롤) */}

@@ -134,13 +134,6 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
         </div>
       </div>
 
-      {/* 버튼 */}
-      <div className="tct-actions">
-        <button className="tct-add-btn" onClick={() => setShowModal(true)}>
-          + 항목 추가
-        </button>
-      </div>
-
       {/* 항목 리스트 */}
       {items.length === 0 ? (
         <div className="tct-empty">

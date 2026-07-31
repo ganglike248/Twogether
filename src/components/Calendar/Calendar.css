@@ -269,6 +269,12 @@
   pointer-events: none !important;
 }
 
+.fc-event .fc-event-title {
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
 .fc-event.couple-event {
   background: #ffd6e0;
   color: #d16ba5;
