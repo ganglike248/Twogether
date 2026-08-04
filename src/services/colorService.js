@@ -16,11 +16,6 @@ export const DEFAULT_COLOR_PALETTE = [
   '#F5F5F5', '#EDE8F0', '#E8EEEE', '#EEE8E0', '#F5EBE0',
 ];
 
-export const DEFAULT_EVENT_TYPE_COLORS = {
-  boyfriend: '#c7ceea',
-  girlfriend: '#b5ead7',
-  personal: '#4ECDC4',
-};
 
 // 색상이 밝은지 어두운지 판단
 export const isLightColor = (hexColor) => {

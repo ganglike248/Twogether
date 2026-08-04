@@ -1,22 +1,30 @@
-import React, { useState, useEffect, useRef } from 'react';
-import { format, subDays } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { toast } from 'react-toastify';
-import './DayModal.css';
-import { useAuthContext } from '../../contexts/AuthContext';
-import EmptyState from '../common/EmptyState';
-import { MdCalendarToday } from 'react-icons/md';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
+import React, { useState, useEffect, useRef } from "react";
+import { format, subDays } from "date-fns";
+import { ko } from "date-fns/locale";
+import { toast } from "react-toastify";
+import "./DayModal.css";
+import { useAuthContext } from "../../contexts/AuthContext";
+import EmptyState from "../common/EmptyState";
+import { MdCalendarToday } from "react-icons/md";
+import { useModalBackButton } from "../../hooks/useModalBackButton";
 
 const DayModal = ({
-  isOpen, onClose, selectedDate, dayEvents, specialDays = [],
-  onAddEvent, onEditEvent,
-  dayPeriods = [], cycleSettings, onAddPeriod, onDeletePeriod,
+  isOpen,
+  onClose,
+  selectedDate,
+  dayEvents,
+  specialDays = [],
+  onAddEvent,
+  onEditEvent,
+  dayPeriods = [],
+  cycleSettings,
+  onAddPeriod,
+  onDeletePeriod,
 }) => {
   const { getMemberName } = useAuthContext();
   useModalBackButton(isOpen, onClose);
   const [showPeriodForm, setShowPeriodForm] = useState(false);
-  const [periodFormLength, setPeriodFormLength] = useState('');
+  const [periodFormLength, setPeriodFormLength] = useState("");
   const [periodSubmitting, setPeriodSubmitting] = useState(false);
   const [showMoreMenu, setShowMoreMenu] = useState(false);
   const [showDeletePeriodModal, setShowDeletePeriodModal] = useState(false);
@@ -30,8 +38,8 @@ const DayModal = ({
         setShowMoreMenu(false);
       }
     };
-    document.addEventListener('mousedown', handleOutsideClick);
-    return () => document.removeEventListener('mousedown', handleOutsideClick);
+    document.addEventListener("mousedown", handleOutsideClick);
+    return () => document.removeEventListener("mousedown", handleOutsideClick);
   }, [showMoreMenu]);
 
   if (!isOpen || !selectedDate) return null;
@@ -41,16 +49,16 @@ const DayModal = ({
 
   const formatDate = (dateString) => {
     try {
-      return format(new Date(dateString), 'M월 d일 EEEE', { locale: ko });
+      return format(new Date(dateString), "M월 d일 EEEE", { locale: ko });
     } catch {
       return dateString;
     }
   };
 
   const getDateString = (dateValue) => {
-    if (typeof dateValue === 'string') return dateValue.split('T')[0];
-    if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
-    return '';
+    if (typeof dateValue === "string") return dateValue.split("T")[0];
+    if (dateValue instanceof Date) return dateValue.toISOString().split("T")[0];
+    return "";
   };
 
   const formatDateRange = (startDate, endDate) => {
@@ -58,40 +66,50 @@ const DayModal = ({
       const start = getDateString(startDate);
       const end = getDateString(endDate);
       if (!end || start === end) {
-        return format(new Date(start), 'M월 d일', { locale: ko });
+        return format(new Date(start), "M월 d일", { locale: ko });
       }
       const startObj = new Date(start);
       let endObj = subDays(new Date(end), 1);
       if (startObj.getTime() === endObj.getTime()) {
-        return format(startObj, 'M월 d일', { locale: ko });
+        return format(startObj, "M월 d일", { locale: ko });
       }
-      return `${format(startObj, 'M월 d일', { locale: ko })} ~ ${format(endObj, 'M월 d일', { locale: ko })}`;
+      return `${format(startObj, "M월 d일", { locale: ko })} ~ ${format(
+        endObj,
+        "M월 d일",
+        { locale: ko },
+      )}`;
     } catch {
       return `${startDate} ~ ${endDate}`;
     }
   };
 
   const getEventTypeIcon = (eventType, isTrip) => {
-    if (isTrip) return '✈️';
+    if (isTrip) return "✈️";
     switch (eventType) {
-      case 'boyfriend': return '🐶';
-      case 'girlfriend': return '🐹';
-      case 'couple': return '🥰';
-      case 'personal': return '🔒';
-      default: return <MdCalendarToday size={18} color="#4dabf7" />;
+      case "boyfriend":
+        return "🐶";
+      case "girlfriend":
+        return "🐹";
+      case "couple":
+        return "🥰";
+      case "personal":
+        return "🔒";
+      default:
+        return <MdCalendarToday size={18} color="#4dabf7" />;
     }
   };
 
   const getEventTypeName = (eventType, isTrip) => {
-    if (isTrip) return '여행';
-    if (eventType === 'couple') return '데이트';
-    if (eventType === 'boyfriend' || eventType === 'girlfriend') return getMemberName(eventType);
-    if (eventType === 'personal') return '개인';
-    return '일정';
+    if (isTrip) return "여행";
+    if (eventType === "couple") return "데이트";
+    if (eventType === "boyfriend" || eventType === "girlfriend")
+      return getMemberName(eventType);
+    if (eventType === "personal") return "개인";
+    return "일정";
   };
 
-  const sortedEvents = [...dayEvents].sort((a, b) =>
-    new Date(a.start) - new Date(b.start)
+  const sortedEvents = [...dayEvents].sort(
+    (a, b) => new Date(a.start) - new Date(b.start),
   );
 
   const handleOpenPeriodForm = () => {
@@ -101,20 +119,20 @@ const DayModal = ({
 
   const handlePeriodFormCancel = () => {
     setShowPeriodForm(false);
-    setPeriodFormLength('');
+    setPeriodFormLength("");
   };
 
   const handlePeriodSubmit = async () => {
     const length = Number(periodFormLength) || defaultPeriodLength;
     if (length < 1 || length > 14) {
-      toast.warning('기간은 1~14일 사이로 입력해주세요.');
+      toast.warning("기간은 1~14일 사이로 입력해주세요.");
       return;
     }
     setPeriodSubmitting(true);
     try {
       await onAddPeriod(selectedDate, length);
       setShowPeriodForm(false);
-      setPeriodFormLength('');
+      setPeriodFormLength("");
     } finally {
       setPeriodSubmitting(false);
     }
@@ -134,12 +152,14 @@ const DayModal = ({
 
   return (
     <div className="day-modal-overlay" onClick={onClose}>
-      <div className="day-modal-container" onClick={e => e.stopPropagation()}>
+      <div className="day-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="day-modal-header">
           <div className="day-modal-date">
             <h2 className="day-modal-title">{formatDate(selectedDate)}</h2>
             <p className="day-modal-subtitle">
-              {dayEvents.length > 0 ? `총 ${dayEvents.length}개의 일정` : '일정이 없습니다'}
+              {dayEvents.length > 0
+                ? `총 ${dayEvents.length}개의 일정`
+                : "일정이 없습니다"}
             </p>
           </div>
           <button className="day-modal-close" onClick={onClose}>
@@ -163,12 +183,15 @@ const DayModal = ({
           {/* 생리 기록 카드 */}
           {cycleEnabled && dayPeriods.length > 0 && (
             <div className="period-records-list">
-              {dayPeriods.map(period => (
+              {dayPeriods.map((period) => (
                 <div key={period.id} className="period-record-card">
-                  <span className="period-record-icon">{cycleSettings.icon || '🌸'}</span>
+                  <span className="period-record-icon">
+                    {cycleSettings.icon || "🌸"}
+                  </span>
                   <div className="period-record-info">
                     <span className="period-record-detail">
-                      {period.startDate} · {period.periodLength || defaultPeriodLength}일
+                      {period.startDate} ·{" "}
+                      {period.periodLength || defaultPeriodLength}일
                     </span>
                   </div>
                   <button
@@ -183,7 +206,8 @@ const DayModal = ({
           )}
 
           {/* 일반 일정 */}
-          {dayEvents.length === 0 && !(cycleEnabled && dayPeriods.length > 0) ? (
+          {dayEvents.length === 0 &&
+          !(cycleEnabled && dayPeriods.length > 0) ? (
             <EmptyState
               icon={<MdCalendarToday size={56} color="#4dabf7" />}
               title="이 날에는 일정이 없습니다"
@@ -192,36 +216,56 @@ const DayModal = ({
           ) : (
             <div className="day-events-list">
               {sortedEvents
-                .filter(event => {
+                .filter((event) => {
                   const eventStart = getDateString(event.start);
-                  let eventEnd = event.end ? getDateString(event.end) : eventStart;
+                  let eventEnd = event.end
+                    ? getDateString(event.end)
+                    : eventStart;
                   if (eventEnd !== eventStart) {
-                    eventEnd = format(subDays(new Date(eventEnd), 1), 'yyyy-MM-dd');
+                    eventEnd = format(
+                      subDays(new Date(eventEnd), 1),
+                      "yyyy-MM-dd",
+                    );
                   }
                   return selectedDate >= eventStart && selectedDate <= eventEnd;
                 })
-                .map(event => {
+                .map((event) => {
                   const eventStart = getDateString(event.start);
-                  const eventEnd = event.end ? getDateString(event.end) : eventStart;
+                  const eventEnd = event.end
+                    ? getDateString(event.end)
+                    : eventStart;
                   const isTrip = event.extendedProps?.isTrip;
-                  const eventTypeClass = isTrip ? 'trip' : event.extendedProps?.eventType;
+                  const eventTypeClass = isTrip
+                    ? "trip"
+                    : event.extendedProps?.eventType;
                   return (
                     <div
                       key={event.id}
                       className={`day-event-item ${eventTypeClass}`}
                       onClick={() => onEditEvent(event)}
                     >
-                      <div className="event-icon">
-                        {getEventTypeIcon(event.extendedProps?.eventType, isTrip)}
+                      <div className="event-icon-section">
+                        <div className="event-icon">
+                          {getEventTypeIcon(
+                            event.extendedProps?.eventType,
+                            isTrip,
+                          )}
+                        </div>
+                        <div className="event-type-name">
+                          {getEventTypeName(
+                            event.extendedProps?.eventType,
+                            isTrip,
+                          )}
+                        </div>
                       </div>
                       <div className="event-details">
                         <div className="event-title">{event.title}</div>
                         <div className="event-meta">
                           <span className={`event-type ${eventTypeClass}`}>
-                            {getEventTypeName(event.extendedProps?.eventType, isTrip)}
-                          </span>
-                          <span className="event-date-range">
-                            {formatDateRange(eventStart, eventEnd)}
+                            {getEventTypeName(
+                              event.extendedProps?.eventType,
+                              isTrip,
+                            )}
                           </span>
                         </div>
                         {event.extendedProps.description && (
@@ -243,7 +287,7 @@ const DayModal = ({
           {cycleEnabled && dayPeriods.length === 0 && showPeriodForm && (
             <div className="period-inline-form">
               <div className="period-form-header">
-                {cycleSettings?.icon || '🌸'} 생리 시작 기록
+                {cycleSettings?.icon || "🌸"} 생리 시작 기록
               </div>
               <div className="period-form-row">
                 <span className="period-form-label">기간</span>
@@ -252,7 +296,7 @@ const DayModal = ({
                     type="number"
                     className="period-form-input"
                     value={periodFormLength}
-                    onChange={e => setPeriodFormLength(e.target.value)}
+                    onChange={(e) => setPeriodFormLength(e.target.value)}
                     min={1}
                     max={14}
                     autoFocus
@@ -273,7 +317,7 @@ const DayModal = ({
                   onClick={handlePeriodSubmit}
                   disabled={periodSubmitting}
                 >
-                  {periodSubmitting ? '기록 중...' : '기록'}
+                  {periodSubmitting ? "기록 중..." : "기록"}
                 </button>
               </div>
             </div>
@@ -281,14 +325,6 @@ const DayModal = ({
 
           {/* 일정 추가 + 더보기 메뉴 */}
           <div className="day-modal-footer-buttons">
-            <button
-              className="add-event-btn"
-              onClick={() => onAddEvent(selectedDate)}
-            >
-              <span className="add-icon">+</span>
-              {formatDate(selectedDate)}에 일정 추가
-            </button>
-
             {cycleEnabled && (
               <div className="more-menu-wrapper" ref={moreMenuRef}>
                 <button
@@ -309,34 +345,68 @@ const DayModal = ({
                       }}
                       disabled={dayPeriods.length > 0}
                     >
-                      <span className="menu-item-icon">{cycleSettings?.icon || '🌸'}</span>
+                      <span className="menu-item-icon">
+                        {cycleSettings?.icon || "🌸"}
+                      </span>
                       생리 시작 기록
                     </button>
                   </div>
                 )}
               </div>
             )}
+            <button
+              className="add-event-btn"
+              onClick={() => onAddEvent(selectedDate)}
+            >
+              <span className="add-icon">+</span>
+              일정 추가
+            </button>
           </div>
         </div>
       </div>
 
       {/* 생리 기록 삭제 확인 모달 */}
       {showDeletePeriodModal && (
-        <div className="day-modal-overlay" onClick={() => { setShowDeletePeriodModal(false); setPeriodToDelete(null); }}>
-          <div className="day-modal-container" style={{ maxWidth: '300px' }} onClick={e => e.stopPropagation()}>
-            <p className="day-modal-title" style={{ marginBottom: '8px' }}>생리 기록 삭제</p>
-            <p style={{ marginBottom: '20px', fontSize: '14px', color: '#666' }}>이 생리 기록을 삭제하시겠습니까?</p>
-            <div style={{ display: 'flex', gap: '8px', justifyContent: 'flex-end' }}>
+        <div
+          className="day-modal-overlay"
+          onClick={() => {
+            setShowDeletePeriodModal(false);
+            setPeriodToDelete(null);
+          }}
+        >
+          <div
+            className="day-modal-container"
+            style={{ maxWidth: "300px" }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <p className="day-modal-title" style={{ marginBottom: "8px" }}>
+              생리 기록 삭제
+            </p>
+            <p
+              style={{ marginBottom: "20px", fontSize: "14px", color: "#666" }}
+            >
+              이 생리 기록을 삭제하시겠습니까?
+            </p>
+            <div
+              style={{
+                display: "flex",
+                gap: "8px",
+                justifyContent: "flex-end",
+              }}
+            >
               <button
                 className="period-form-cancel"
-                onClick={() => { setShowDeletePeriodModal(false); setPeriodToDelete(null); }}
+                onClick={() => {
+                  setShowDeletePeriodModal(false);
+                  setPeriodToDelete(null);
+                }}
               >
                 취소
               </button>
               <button
                 className="period-form-submit"
                 onClick={confirmDeletePeriod}
-                style={{ backgroundColor: '#ef4444', color: 'white' }}
+                style={{ backgroundColor: "#ef4444", color: "white" }}
               >
                 삭제
               </button>

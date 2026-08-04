@@ -174,15 +174,6 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     });
   };
 
-  const getActionColor = (action) => {
-    switch (action) {
-      case 'created': return '#4CAF50';
-      case 'updated': return '#FF9800';
-      case 'deleted': return '#F44336';
-      case 'converted_to_personal': return '#9C27B0';
-      default: return '#757575';
-    }
-  };
 
   const getActionText = (action) => {
     switch (action) {
@@ -255,9 +246,8 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                 return (
                   <div key={log.id} className="log-item">
                     <div className="log-header">
-                      <span 
-                        className="log-action"
-                        style={{ backgroundColor: getActionColor(log.action) }}
+                      <span
+                        className={`log-action log-action-${log.action}`}
                       >
                         {getActionText(log.action)}
                       </span>

@@ -77,10 +77,19 @@ export const createCouple = async (uid, anniversaryDate) => {
   const coupleRef = doc(collection(db, 'couples'));
   const batch = writeBatch(db);
 
+  // 기본 이벤트 타입 색상 (DB에만 저장)
+  const defaultEventTypeColors = {
+    couple: '#ffbaba',
+    boyfriend: '#c7ceea',
+    girlfriend: '#b5ead7',
+    personal: '#4ECDC4',
+  };
+
   batch.set(coupleRef, {
     members: [uid],
     inviteCode,
     anniversaryDate,
+    eventTypeColors: defaultEventTypeColors,
     createdAt: serverTimestamp(),
     createdBy: uid,
   });

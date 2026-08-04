@@ -4,14 +4,14 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { MdColorLens } from 'react-icons/md';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { DEFAULT_EVENT_TYPE_COLORS, DEFAULT_COLOR_PALETTE } from '../../services/colorService';
+import { DEFAULT_COLOR_PALETTE } from '../../services/colorService';
 import './EventTypeColorSettingsModal.css';
 import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
   const { user, userDoc, myRole } = useAuthContext();
   useModalBackButton(isOpen, onClose);
-  const [eventTypeColors, setEventTypeColors] = useState({ ...DEFAULT_EVENT_TYPE_COLORS });
+  const [eventTypeColors, setEventTypeColors] = useState(userDoc?.eventTypeColors || {});
   const [selectedKey, setSelectedKey] = useState(myRole || 'personal');
   const [customInput, setCustomInput] = useState('');
   const [saving, setSaving] = useState(false);
@@ -19,11 +19,7 @@ const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
 
   useEffect(() => {
     if (!isOpen) return;
-    setEventTypeColors(
-      userDoc?.eventTypeColors
-        ? { ...DEFAULT_EVENT_TYPE_COLORS, ...userDoc.eventTypeColors }
-        : { ...DEFAULT_EVENT_TYPE_COLORS }
-    );
+    setEventTypeColors(userDoc?.eventTypeColors || {});
     setSelectedKey(myRole || 'personal');
     setCustomInput('');
   }, [userDoc, isOpen, myRole]);

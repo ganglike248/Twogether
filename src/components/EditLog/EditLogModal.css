@@ -114,6 +114,22 @@
   font-weight: 500;
 }
 
+.log-action-created {
+  background-color: var(--color-action-created);
+}
+
+.log-action-updated {
+  background-color: var(--color-action-updated);
+}
+
+.log-action-deleted {
+  background-color: var(--color-action-deleted);
+}
+
+.log-action-converted_to_personal {
+  background-color: var(--color-action-converted);
+}
+
 .log-timestamp {
   font-size: 0.75rem;
   color: #888;

@@ -44,11 +44,11 @@ const Calendar = () => {
       let color = event.color;
 
       if (event.extendedProps?.isPersonal) {
-        color = userColors.personal || '#4ECDC4';
+        color = userColors.personal;
       } else if (eventType === 'boyfriend') {
-        color = (myRole === 'boyfriend' ? userColors.boyfriend : partnerColors.boyfriend) || '#c7ceea';
+        color = myRole === 'boyfriend' ? userColors.boyfriend : partnerColors.boyfriend;
       } else if (eventType === 'girlfriend') {
-        color = (myRole === 'girlfriend' ? userColors.girlfriend : partnerColors.girlfriend) || '#b5ead7';
+        color = myRole === 'girlfriend' ? userColors.girlfriend : partnerColors.girlfriend;
       }
 
       return { ...event, color };
