@@ -50,14 +50,29 @@ const config: CapacitorConfig = {
     FirebaseMessaging: {
       presentationOptions: [],
     },
+    // 구글 로그인(v0.4.30~) — 안드로이드/iOS WebView 안에서는 구글 정책상 OAuth 팝업이
+    // 막혀 있어서 네이티브 SDK로 계정 선택 화면만 띄우고, 실제 로그인 세션은 항상
+    // firebase/auth(JS SDK) 하나로 통일함. skipNativeAuth:true — 이 플러그인이 자체
+    // 관리하는 "네이티브 레이어 로그인"은 Firestore/Storage/Functions 등 앱 전체가 보는
+    // JS SDK auth 세션과 별개라서, 이걸 켜두면 로그인은 됐는데 정작 데이터 접근에 쓰는
+    // auth.currentUser는 null인 상태가 될 수 있음(authService.js에서 idToken만 뽑아
+    // signInWithCredential로 JS SDK에 직접 로그인시킴).
+    FirebaseAuthentication: {
+      skipNativeAuth: true,
+      providers: ['google.com'],
+    },
   },
 
-  // @capacitor-firebase/messaging의 SwiftPM 패키지 식별자 충돌 방지 (Capacitor CLI 8.4+ 필요)
+  // @capacitor-firebase/messaging, @capacitor-firebase/authentication의 SwiftPM 패키지
+  // 식별자 충돌 방지 (Capacitor CLI 8.4+ 필요)
   experimental: {
     ios: {
       spm: {
         packageOptions: {
           '@capacitor-firebase/messaging': {
+            symlink: true,
+          },
+          '@capacitor-firebase/authentication': {
             symlink: true,
           },
         },

@@ -12,7 +12,20 @@
           "package_name": "com.wooridoori.twogether"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "645572622912-ndhnoi4s2jpnasc1a90km3848qc3bsga.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wooridoori.twogether",
+            "certificate_hash": "1f89aedee8c08a7c934d151fa11c7e51169da02c"
+          }
+        },
+        {
+          "client_id": "645572622912-ess58np9i94m43eobovskh5jdb3jr7u0.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyDayT5mlIlLykGn5hDvG4bympWmTFKvbaM"
@@ -20,7 +33,19 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "645572622912-ess58np9i94m43eobovskh5jdb3jr7u0.apps.googleusercontent.com",
+              "client_type": 3
+            },
+            {
+              "client_id": "645572622912-oufsaubdl3t4pg4ceu3o7raqt6vhhna9.apps.googleusercontent.com",
+              "client_type": 2,
+              "ios_info": {
+                "bundle_id": "com.wooridoori.twogether"
+              }
+            }
+          ]
         }
       }
     }

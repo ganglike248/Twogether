@@ -1,5 +1,6 @@
 import UIKit
 import Capacitor
+import FirebaseAuth
 
 @UIApplicationMain
 class AppDelegate: UIResponder, UIApplicationDelegate {
@@ -34,6 +35,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     }
 
     func application(_ app: UIApplication, open url: URL, options: [UIApplication.OpenURLOptionsKey: Any] = [:]) -> Bool {
+        // 구글 로그인(@capacitor-firebase/authentication, v0.4.30~) 콜백 URL을 먼저
+        // Firebase Auth에 넘김 — @capacitor-firebase/messaging과 같이 쓸 때 공식 문서가
+        // 요구하는 처리(안 하면 네이티브 구글 로그인 콜백이 씹혀서 로그인이 멈춤).
+        if Auth.auth().canHandle(url) {
+            return true
+        }
         // Called when the app was launched with a url. Feel free to add additional processing here,
         // but if you want the App API to support tracking app url opens, make sure to keep this call
         return ApplicationDelegateProxy.shared.application(app, open: url, options: options)

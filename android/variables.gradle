@@ -13,4 +13,8 @@ ext {
     androidxJunitVersion = '1.3.0'
     androidxEspressoCoreVersion = '3.7.0'
     cordovaAndroidVersion = '14.0.1'
+    // 구글 로그인(@capacitor-firebase/authentication, v0.4.30~) — 안드로이드 네이티브
+    // Google Sign-In 코드를 이 플러그인이 포함하도록 켜는 플래그. 공식 setup-google.md 기준.
+    rgcfaIncludeGoogle = true
+    androidxCredentialsVersion = '1.3.0'
 }

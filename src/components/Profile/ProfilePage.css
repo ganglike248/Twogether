@@ -321,6 +321,74 @@
   font-size: 0.9rem;
 }
 
+/* 연결된 계정 (구글 로그인) */
+.profile-linked-account {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border: 1.5px solid var(--color-gray-200, #e9ecef);
+  border-radius: var(--border-radius);
+}
+
+.profile-linked-account-info {
+  display: flex;
+  align-items: center;
+  gap: 0.65rem;
+  min-width: 0;
+}
+
+.profile-linked-account-icon {
+  font-size: 1.4rem;
+  flex-shrink: 0;
+}
+
+.profile-linked-account-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  margin: 0;
+  color: var(--color-gray-700, #495057);
+}
+
+.profile-linked-account-status {
+  font-size: 0.75rem;
+  margin: 0.1rem 0 0;
+  color: var(--color-gray-500, #adb5bd);
+}
+
+.profile-linked-account-btn {
+  flex-shrink: 0;
+  display: flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.45rem 0.7rem;
+  background: white;
+  border: 1.5px solid var(--color-primary);
+  color: var(--color-primary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  border-radius: 8px;
+  cursor: pointer;
+  font-family: inherit;
+  white-space: nowrap;
+  transition: background 0.15s;
+}
+
+.profile-linked-account-btn:hover:not(:disabled) {
+  background: rgba(255, 107, 107, 0.08);
+}
+
+.profile-linked-account-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+.profile-linked-account-btn.unlink {
+  border-color: var(--color-gray-300, #dee2e6);
+  color: var(--color-gray-500, #adb5bd);
+}
+
 .profile-code {
   font-size: 1.05rem !important;
   letter-spacing: 0.2em;
@@ -469,6 +537,37 @@
 .profile-modal-btn.save:disabled {
   opacity: 0.6;
   cursor: default;
+}
+
+.profile-modal-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+/* 구글 계정 충돌 정리 — 계정 선택형(둘 다 빈 계정이라 사용자가 골라야 하는 경우) */
+.profile-modal-actions.vertical {
+  flex-direction: column;
+}
+
+.profile-modal-actions.vertical .profile-modal-btn {
+  text-align: left;
+  padding: 0.75rem 0.9rem;
+  line-height: 1.35;
+}
+
+.profile-google-conflict-cancel {
+  display: block;
+  margin: 0.75rem auto 0;
+  background: none;
+  border: none;
+  color: var(--color-gray-500, #adb5bd);
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+}
+
+.profile-google-conflict-cancel:hover {
+  color: var(--color-gray-700, #495057);
 }
 
 /* 생리주기 사용하기 버튼 */

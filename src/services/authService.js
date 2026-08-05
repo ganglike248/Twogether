@@ -4,12 +4,21 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
+  GoogleAuthProvider,
+  signInWithCredential,
+  signInWithPopup,
+  linkWithCredential,
+  linkWithPopup,
+  unlink,
+  deleteUser,
+  getAuth,
 } from 'firebase/auth';
 import {
   doc,
   setDoc,
   updateDoc,
   getDoc,
+  deleteDoc,
   addDoc,
   collection,
   query,
@@ -20,7 +29,10 @@ import {
   writeBatch,
   runTransaction,
 } from 'firebase/firestore';
-import { auth, db } from '../firebase';
+import { initializeApp, deleteApp } from 'firebase/app';
+import { Capacitor } from '@capacitor/core';
+import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
+import { auth, db, app } from '../firebase';
 
 // 랜덤 6자리 대문자+숫자 초대 코드 생성
 const generateInviteCode = () => {
@@ -61,6 +73,149 @@ export const signInWithEmail = async (email, password) => {
 // 로그아웃
 export const signOut = async () => {
   await firebaseSignOut(auth);
+};
+
+// ─── 구글 로그인 (v0.4.30~) ─────────────────────────────────────
+
+// users/{uid} 문서가 없으면 생성 — 구글 로그인은 이메일 회원가입 폼을 거치지 않고
+// 바로 Firebase 계정이 만들어지므로, 최초 로그인 시 이 문서 생성을 직접 해줘야 함
+const ensureUserDoc = async (user) => {
+  const userRef = doc(db, 'users', user.uid);
+  const snap = await getDoc(userRef);
+  if (!snap.exists()) {
+    await setDoc(userRef, {
+      uid: user.uid,
+      email: user.email || null,
+      displayName: user.displayName || '',
+      coupleId: null,
+      createdAt: serverTimestamp(),
+    });
+  }
+};
+
+// 안드로이드/iOS 네이티브 앱에서 구글 계정 선택 화면을 띄우고 idToken을 뽑아
+// firebase/auth(JS SDK)용 credential로 변환. capacitor.config.ts의 skipNativeAuth:true와
+// 짝을 이룸 — 네이티브 SDK는 계정 선택 UI만 담당하고, 실제 로그인 세션은 항상 JS SDK 하나로 유지.
+const getNativeGoogleCredential = async () => {
+  const result = await FirebaseAuthentication.signInWithGoogle();
+  const idToken = result.credential?.idToken;
+  if (!idToken) throw new Error('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+  return GoogleAuthProvider.credential(idToken);
+};
+
+// 구글로 로그인/가입 — 처음이면 신규 계정 생성, 이미 구글로 가입된 계정이면 그대로 로그인
+export const signInWithGoogle = async () => {
+  try {
+    const userCredential = Capacitor.isNativePlatform()
+      ? await signInWithCredential(auth, await getNativeGoogleCredential())
+      : await signInWithPopup(auth, new GoogleAuthProvider());
+    await ensureUserDoc(userCredential.user);
+    return userCredential.user;
+  } catch (error) {
+    // 이미 이메일/비밀번호로 가입된 이메일로 구글 로그인을 시도한 경우 — Firebase가 계정을
+    // 자동으로 합쳐주지 않으므로, 기존 비밀번호로 로그인시킨 뒤 구글 자격 증명을 연동할 수
+    // 있게 정보를 담아 던짐 (LoginPage에서 비밀번호 재확인 UI로 처리)
+    if (error.code === 'auth/account-exists-with-different-credential') {
+      const pendingCredential = GoogleAuthProvider.credentialFromError(error);
+      const linkError = new Error('이미 이 이메일로 가입된 계정이 있습니다.');
+      linkError.code = 'account-exists-with-different-credential';
+      linkError.email = error.customData?.email;
+      linkError.pendingCredential = pendingCredential;
+      throw linkError;
+    }
+    throw error;
+  }
+};
+
+// 이메일/비밀번호로 로그인한 뒤, 구글 로그인 시도 중 충돌했던 자격 증명을 그 계정에 연동
+// (signInWithGoogle이 'account-exists-with-different-credential' 에러로 넘겨준 정보 사용)
+export const linkPendingGoogleCredential = async (email, password, pendingCredential) => {
+  const userCredential = await signInWithEmailAndPassword(auth, email, password);
+  await linkWithCredential(userCredential.user, pendingCredential);
+  return userCredential.user;
+};
+
+// 로그인된 상태에서 현재 계정에 구글 계정을 추가로 연동 (ProfilePage용)
+export const linkGoogleAccount = async () => {
+  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  if (Capacitor.isNativePlatform()) {
+    return linkWithCredential(auth.currentUser, await getNativeGoogleCredential());
+  }
+  return linkWithPopup(auth.currentUser, new GoogleAuthProvider());
+};
+
+// 구글 계정 연동 해제 — Firebase는 마지막 남은 로그인 수단을 해제하는 것도 에러 없이
+// 그대로 허용함(로그아웃 전까지는 계속 쓸 수 있고, 이후엔 이 계정으로 재로그인이 불가능해질
+// 뿐 서버가 막아주지 않음). "마지막 수단인지" 경고는 ProfilePage.jsx의 확인 모달이 담당.
+export const unlinkGoogleAccount = async () => {
+  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  await unlink(auth.currentUser, GoogleAuthProvider.PROVIDER_ID);
+};
+
+// ─── 구글 연동 충돌(다른 계정에 이미 연동된 credential) 정리 ──────────
+
+// 충돌 상대 계정을 잠깐 들여다보기 위한 임시 Firebase 앱. 메인 auth(로그인 세션)로 그대로
+// signInWithCredential 해버리면 AuthContext가 전역으로 구독 중인 auth.currentUser가 그
+// 계정으로 바뀌어서 화면 전체가 잘못된 계정 기준으로 렌더링되는 부작용이 생김 — 완전히
+// 별도의 앱 인스턴스를 매번 새로 만들고 끝나면 지워서 메인 세션에 영향이 안 가게 함.
+const withTempAuthSession = async (pendingCredential, work) => {
+  const tempApp = initializeApp(app.options, `google-conflict-${Date.now()}`);
+  try {
+    const tempAuth = getAuth(tempApp);
+    const { user } = await signInWithCredential(tempAuth, pendingCredential);
+    return await work(user);
+  } finally {
+    await deleteApp(tempApp).catch(() => {});
+  }
+};
+
+// 구글 로그인 연동 충돌 상대 계정 정보 조회 (메인 로그인 세션은 그대로 유지됨).
+// coupleId 존재 여부로 "실제 데이터가 있는 계정인지"를 판단 — 삭제 가능 여부 결정에 사용.
+export const inspectConflictingGoogleAccount = async (pendingCredential) => {
+  return withTempAuthSession(pendingCredential, async (user) => {
+    const snap = await getDoc(doc(db, 'users', user.uid));
+    return {
+      uid: user.uid,
+      email: user.email,
+      displayName: (snap.exists() && snap.data().displayName) || user.displayName || '',
+      hasCoupleData: !!(snap.exists() && snap.data().coupleId),
+    };
+  });
+};
+
+// 커플이 연결되지 않은(비어있는) 상대 계정을 완전히 삭제 — 구글 credential을 자유롭게 만들어서
+// 현재 계정에 다시 연동할 수 있게 함. coupleId가 있으면(실제 데이터 존재) 안전을 위해 거부.
+export const deleteEmptyConflictingAccount = async (pendingCredential, expectedUid) => {
+  await withTempAuthSession(pendingCredential, async (user) => {
+    if (user.uid !== expectedUid) {
+      throw new Error('계정 정보가 일치하지 않습니다. 처음부터 다시 시도해주세요.');
+    }
+    const userRef = doc(db, 'users', user.uid);
+    const snap = await getDoc(userRef);
+    if (snap.exists() && snap.data().coupleId) {
+      throw new Error('이 계정은 커플이 연결되어 있어서 삭제할 수 없습니다.');
+    }
+    if (snap.exists()) await deleteDoc(userRef);
+    await deleteUser(user);
+  });
+};
+
+// 현재(메인 세션) 계정이 비어있을 때만 삭제하고, 대신 구글 credential 소유 계정으로 전환해서
+// 로그인. coupleId가 있으면(실제 데이터 존재) 안전을 위해 거부 — 현재 계정을 지우는 쪽이라
+// 되돌릴 수 없는 작업인 만큼 deleteEmptyConflictingAccount보다 더 신중하게 다뤄야 함.
+export const deleteCurrentAccountAndSwitchToGoogle = async (pendingCredential) => {
+  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  const userRef = doc(db, 'users', auth.currentUser.uid);
+  const snap = await getDoc(userRef);
+  if (snap.exists() && snap.data().coupleId) {
+    throw new Error('현재 계정은 커플이 연결되어 있어서 삭제할 수 없습니다.');
+  }
+  if (snap.exists()) await deleteDoc(userRef);
+  await deleteUser(auth.currentUser);
+  // 삭제 직후 메인 세션이 로그아웃 상태가 되므로, 구글 계정으로 이어서 로그인시킴
+  const userCredential = await signInWithCredential(auth, pendingCredential);
+  await ensureUserDoc(userCredential.user);
+  return userCredential.user;
 };
 
 // 새 커플 생성 (초대 코드 생성)

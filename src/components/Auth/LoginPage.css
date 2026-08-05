@@ -180,3 +180,84 @@
   font-size: 1rem;
   flex-shrink: 0;
 }
+
+/* 구글 로그인 */
+.login-google-btn {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  padding: 0.75rem;
+  background: white;
+  border: 1.5px solid #e9ecef;
+  border-radius: 12px;
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: #495057;
+  cursor: pointer;
+  font-family: inherit;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.login-google-btn:hover:not(:disabled) {
+  background: #f8f9fa;
+  border-color: #dee2e6;
+}
+
+.login-google-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.login-google-icon {
+  font-size: 1.15rem;
+  flex-shrink: 0;
+}
+
+.login-divider {
+  display: flex;
+  align-items: center;
+  text-align: center;
+  color: #adb5bd;
+  font-size: 0.75rem;
+  margin: 1.25rem 0;
+}
+
+.login-divider::before,
+.login-divider::after {
+  content: '';
+  flex: 1;
+  border-bottom: 1px solid #e9ecef;
+}
+
+.login-divider span {
+  padding: 0 0.75rem;
+}
+
+/* 구글 로그인 계정 충돌(이미 이메일로 가입됨) 시 비밀번호 재확인 */
+.login-google-conflict-msg {
+  font-size: 0.82rem;
+  color: #6d6875;
+  line-height: 1.5;
+  margin: 0 0 0.25rem;
+}
+
+.login-google-conflict-msg strong {
+  color: #c9184a;
+}
+
+.login-google-conflict-cancel {
+  background: none;
+  border: none;
+  color: #adb5bd;
+  font-size: 0.8rem;
+  font-family: inherit;
+  cursor: pointer;
+  padding: 0.4rem;
+  text-align: center;
+}
+
+.login-google-conflict-cancel:hover {
+  color: #6d6875;
+}

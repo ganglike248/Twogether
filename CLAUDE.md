@@ -490,10 +490,94 @@ utils/
   **주의**: `fetchMoreSearchResults`의 `finally`에서 `searchIsLoadingMore`를 리셋할 때 generation 체크로 조건부 리셋하면 안 됨 — `finally`는 `try` 안의 `return`에도 항상 실행되므로, generation이 안 맞는(오래된) 요청이 조건부로 리셋을 건너뛰면 그 뒤로 `searchIsLoadingMore`가 영원히 true로 남아 "더 불러오는 중" 스피너가 모든 후속 검색에서 멈추지 않음. 항상 무조건 리셋할 것.
 - 개인 일정은 이미 실시간 구독(`personalMemories`)되어 있어 한 번에 필터링하되, 첫 PAGE_SIZE(10)개만 표시 (공유 일정 페이지와 크기 규칙 통일). `personalMemoriesRef`로 참조해서 개인 일정이 변경돼도 검색이 재실행/리셋되지 않도록 함.
 
+### 구글 로그인 (v0.4.30~)
+이메일/비밀번호에 이어 두 번째 로그인 수단. 웹(PWA) + 안드로이드 + iOS 네이티브 앱 전부 지원.
+
+**왜 플러그인이 필요한가**: 안드로이드/iOS WebView 안에서는 구글 정책상 OAuth 팝업(`signInWithPopup`)이
+막혀 있어서 (임베디드 웹뷰에서의 OAuth를 구글이 보안상 차단), 네이티브 앱에서는 `@capacitor-firebase/authentication`
+플러그인으로 각 플랫폼 네이티브 Google Sign-In SDK를 띄워야 함. 웹(PWA)은 그대로 `firebase/auth`의
+`signInWithPopup`/`GoogleAuthProvider` 사용.
+
+**세션은 항상 JS SDK 하나로 통일 (`skipNativeAuth: true`)**: 이 플러그인은 기본값(`skipNativeAuth: false`)이면
+네이티브 레이어에도 별도로 로그인시키는데, Firestore/Storage/Functions 등 앱 전체가 참조하는 `auth.currentUser`는
+`firebase/auth`(JS SDK) 세션뿐이라 그 "네이티브 레이어 로그인"은 쓸모가 없고 오히려 이중 로그인/이중 충돌
+가능성만 생김. `capacitor.config.ts`에서 전역 `skipNativeAuth: true`로 고정 — 네이티브 SDK는 계정 선택
+UI(idToken 발급)만 담당하고, `authService.js`가 그 idToken을 `GoogleAuthProvider.credential()` +
+`signInWithCredential(auth, ...)`로 JS SDK에 수동으로 로그인시킴 (공식 문서
+[firebase-js-sdk.md](https://github.com/capawesome-team/capacitor-firebase/blob/main/packages/authentication/docs/firebase-js-sdk.md) 패턴).
+
+**기존 이메일 가입자와의 연동 (자동 병합 아님, 명시적 액션 필요)**:
+- **로그인 화면에서 충돌 시**: 이미 이메일/비밀번호로 가입된 이메일로 구글 로그인을 시도하면 Firebase가
+  `auth/account-exists-with-different-credential`을 던짐(계정을 자동으로 합쳐주지 않음) — `signInWithGoogle()`이
+  이 에러에서 `GoogleAuthProvider.credentialFromError()`로 보류 중인 credential을 추출해 커스텀 에러로
+  다시 던지고, `LoginPage.jsx`가 "비밀번호 입력하면 연동해드릴게요" 인라인 폼을 띄움 → 비밀번호 확인되면
+  `linkPendingGoogleCredential()`이 이메일 로그인 + `linkWithCredential()`을 한 번에 처리. 새 계정이
+  따로 생기지 않고 기존 uid/coupleId/데이터 그대로 유지됨.
+- **설정 화면에서 미리 연동**: `ProfilePage.jsx`의 "연결된 계정" 섹션에서 로그인된 상태로 "연동하기" 누르면
+  `linkGoogleAccount()`(웹은 `linkWithPopup`, 네이티브는 `linkWithCredential`)로 현재 계정에 구글을 추가.
+
+**"실수로 새 계정이 생기는" 케이스와 자동 정리 (`ProfilePage.jsx`의 구글 충돌 모달)**: 로그인 화면의 충돌
+감지는 구글 계정 이메일이 기존 가입 이메일과 **완전히 같을 때만** 작동함 — 가입할 때 쓴 이메일과 평소
+쓰는 구글 계정 이메일이 다르면(흔한 경우) 충돌이 감지되지 않고 조용히 새 orphan 계정이 생겨버림. 이
+상태에서 원래(진짜) 계정에 그 구글 계정을 연동하려 하면 Firebase가 `auth/credential-already-in-use`를
+던짐(다른 uid에 이미 연동돼 있어서) — `ProfilePage.jsx`의 `handleLinkGoogle`이 이 코드를 잡아 충돌 정리
+모달을 띄움:
+- `inspectConflictingGoogleAccount()`가 **메인 로그인 세션은 건드리지 않고** 별도의 임시 Firebase 앱
+  인스턴스(`initializeApp(app.options, 'google-conflict-...')`)로 상대 계정에 잠깐 로그인해 정보(이메일,
+  `coupleId` 존재 여부)만 조회하고 즉시 `deleteApp()`으로 폐기함. 메인 `auth`로 직접 로그인해버리면
+  `AuthContext`가 전역 구독 중인 `auth.currentUser`가 바뀌어 화면 전체가 엉뚱한 계정 기준으로 렌더링되는
+  부작용이 생기기 때문 — 반드시 분리된 앱 인스턴스를 써야 함.
+- 현재 계정의 `coupleId`와 상대 계정의 `coupleId` 유무 조합으로 자동 판정(`conflictResolution`):
+  둘 중 하나만 비어있으면(가장 흔한 케이스) 그 계정만 삭제 대상으로 자동 지정 — 사용자는 확인만 하면 됨.
+  **둘 다 커플 데이터가 있으면 이 화면에서 삭제 자체를 차단**하고 문의 안내만 표시(사용자 명시적 결정,
+  2026-08-05 — orphan 여부를 소프트웨어가 확신할 수 없는 상황에서 실수로 진짜 데이터를 지우는 것을
+  원천 차단). 둘 다 비어있으면(진짜 tie) 사용자에게 "구글 계정 유지" / "이메일 계정 유지" 선택지를 보여줌.
+  ⚠ 이 판정은 `coupleId` 유무만 봄 — `personal_events`처럼 coupleId 없이도 존재 가능한 개인 데이터는
+  검사하지 않는 단순화된 기준(사용자와 합의된 범위).
+- 실제 삭제는 항상 "정말 진행하시겠습니까? 되돌릴 수 없습니다" 재확인 단계를 한 번 더 거침.
+  `deleteEmptyConflictingAccount()`(상대 계정 삭제, 위와 같은 임시 앱 패턴 재사용 + 삭제 직전 `coupleId`
+  재확인)와 `deleteCurrentAccountAndSwitchToGoogle()`(현재 계정 삭제 후 메인 세션에서 구글 계정으로
+  전환 로그인) 두 함수로 나뉨 — 후자는 지금 로그인 중인 계정 자체를 지우는 쪽이라 더 신중하게 다룸.
+- **Firebase는 마지막 남은 로그인 수단 해제(unlink)도 서버에서 막지 않음** — 해제 자체는 항상 성공하고,
+  그 세션이 끝난 뒤부터 그 계정 재로그인이 안 될 뿐. "연동 해제" 버튼도 이걸 막지 않고 확인 모달만 띄움
+  (처음엔 "Firebase가 막아준다"고 잘못 가정해서 버튼 자체를 비활성화했었는데, 검증 후 수정 — orphan
+  계정 정리에는 오히려 이 동작이 정확히 필요함).
+
+**네이티브 빌드 시 반드시 필요한 수동 단계**: twogether-206fb 프로젝트는 이미 완료됨(2026-08-05) — 아래는
+재현/신규 프로젝트용 체크리스트로 남겨둠.
+1. Firebase Console → Authentication → Sign-in method → **Google 제공자 켜기** (콘솔 토글, 코드로 불가)
+2. 안드로이드: Firebase Console 프로젝트 설정에 **SHA-1 인증서 지문 등록** 필요 — 디버그 키스토어와
+   릴리즈 키스토어(Play Console 서명 키) 둘 다. 등록 안 하면 로그인 시도 시 `DEVELOPER_ERROR`.
+   ⚠ **릴리즈 SHA-1은 아직 미등록** — 지금은 디버그 빌드 테스트만 가능. 스토어 배포용 빌드로 구글
+   로그인을 테스트하려면 그때 릴리즈 키스토어 SHA-1을 추가로 등록하고 아래 4번을 다시 해야 함.
+3. 위 두 단계 완료 후 **`google-services.json`(android/app/)과 `GoogleService-Info.plist`(ios/App/App/)를
+   다시 받아서 교체** — 재발급 전 파일은 `oauth_client` 항목이 비어있어서 그대로 두면 로그인 자체가 실패함.
+4. iOS: 새로 받은 `GoogleService-Info.plist`의 `REVERSED_CLIENT_ID` 값을 `Info.plist`의
+   `CFBundleURLTypes` → `CFBundleURLSchemes`에 URL Scheme으로 추가해야 함(공식 setup-google.md 필수 단계,
+   Xcode GUI로 하는 게 보통이지만 값을 알면 `Info.plist` 직접 편집도 가능 — 이 프로젝트는 이렇게 처리함).
+   OAuth 클라이언트가 재발급되어 이 값이 바뀌면 여기도 같이 갱신해야 함.
+5. iOS는 Mac+Xcode에서 실제 기기/시뮬레이터로 최종 확인 필요(이 프로젝트의 다른 iOS 네이티브 기능과 동일한 제약).
+
+**검증 방식**: 이 환경엔 안드로이드 에뮬레이터/iOS 시뮬레이터가 없어서(devNote.txt 참고), 코드 정확성은
+`./gradlew :app:compileDebugJavaWithJavac`(안드로이드 전체 컴파일)와
+`xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/platform=iOS Simulator' build`
+(iOS 전체 빌드, GoogleSignIn 프레임워크 링크 포함)로 검증함 — 둘 다 성공 확인. 실제 로그인 동작 자체는
+위 수동 단계(SHA-1 등록 등) 완료 후 실기기 테스트가 필요.
+
+관련 파일: `src/services/authService.js`(`signInWithGoogle`/`linkPendingGoogleCredential`/`linkGoogleAccount`/
+`unlinkGoogleAccount`/`inspectConflictingGoogleAccount`/`deleteEmptyConflictingAccount`/
+`deleteCurrentAccountAndSwitchToGoogle`), `src/components/Auth/LoginPage.jsx`(구글 버튼 + 계정 충돌 인라인 폼),
+`src/components/Profile/ProfilePage.jsx`("연결된 계정" 섹션 + 구글 충돌 정리 모달), `capacitor.config.ts`
+(`FirebaseAuthentication` 플러그인 설정, iOS SPM symlink), `android/variables.gradle`(`rgcfaIncludeGoogle`),
+`ios/App/App/AppDelegate.swift`(`Auth.auth().canHandle(url)` — `@capacitor-firebase/messaging`과 같이
+쓸 때 공식 문서가 요구하는 처리, 없으면 네이티브 구글 로그인 콜백이 씹혀서 로그인이 멈춤).
+
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
   ※ 봉인 편지함(v0.4.22)은 이 기능을 기다리지 않고 `uploadSealedMessageImage`로 스코프 한정 구현함 — 이 범용 기능이 나중에 추가돼도 봉인 편지 쪽은 그대로 유지, 통합 불필요
-- 소셜 로그인 (Google/Kakao, 장기)
+- 소셜 로그인 — 구글은 완료(v0.4.30, 아래 "구글 로그인" 트랩 섹션 참고). 카카오는 Firebase Auth
+  기본 제공자가 아니라 별도 백엔드(Custom Token 발급용 Cloud Function 또는 Identity Platform
+  OIDC) 구축이 필요해 범위가 훨씬 큼 — 아직 미착수, 장기 과제로 유지
 
 ## 향후 기능 로드맵 (2026-07-11 논의, 아직 구현 시작 안 함)
 사용자와 여러 라운드에 걸쳐 브레인스토밍 후 확정한 6개 기능. 구현 순서는 아래 번호 순(의존성 고려해 정렬됨).

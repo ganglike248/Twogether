@@ -1,11 +1,28 @@
 // src/components/Auth/LoginPage.jsx
 import React, { useState } from 'react';
 import { Navigate } from 'react-router-dom';
-import { signUpWithEmail, signInWithEmail } from '../../services/authService';
+import {
+  signUpWithEmail,
+  signInWithEmail,
+  signInWithGoogle,
+  linkPendingGoogleCredential,
+} from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { HiHeart, HiInformationCircle } from 'react-icons/hi2';
+import { FcGoogle } from 'react-icons/fc';
 import OnboardingSlides from '../Onboarding/OnboardingSlides';
 import './LoginPage.css';
+
+// 사용자가 팝업/계정 선택창을 스스로 닫은 경우 — 에러로 취급하지 않고 조용히 무시
+const isUserCancelledGoogleSignIn = (error) => {
+  const code = error?.code || '';
+  const message = (error?.message || '').toLowerCase();
+  return (
+    code === 'auth/popup-closed-by-user' ||
+    code === 'auth/cancelled-popup-request' ||
+    message.includes('cancel')
+  );
+};
 
 const LoginPage = () => {
   const { user, loading: authLoading } = useAuthContext();
@@ -17,6 +34,13 @@ const LoginPage = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
   const [showIntro, setShowIntro] = useState(true);
+  const [googleLoading, setGoogleLoading] = useState(false);
+  // 이메일/비밀번호로 이미 가입된 이메일로 구글 로그인을 시도한 경우 — 비밀번호를 다시
+  // 확인받아 그 계정에 구글 로그인을 연동해줌 (신규 계정이 따로 생기는 걸 방지)
+  const [googleConflict, setGoogleConflict] = useState(null); // { email, pendingCredential } | null
+  const [conflictPassword, setConflictPassword] = useState('');
+  const [conflictLoading, setConflictLoading] = useState(false);
+  const [conflictError, setConflictError] = useState('');
 
   const resetForm = () => {
     setEmail('');
@@ -82,6 +106,40 @@ const LoginPage = () => {
     }
   };
 
+  const handleGoogleSignIn = async () => {
+    setError('');
+    setGoogleLoading(true);
+    try {
+      await signInWithGoogle();
+    } catch (err) {
+      if (err.code === 'account-exists-with-different-credential') {
+        setGoogleConflict({ email: err.email, pendingCredential: err.pendingCredential });
+      } else if (!isUserCancelledGoogleSignIn(err)) {
+        setError(getErrorMessage(err.code));
+      }
+    } finally {
+      setGoogleLoading(false);
+    }
+  };
+
+  const handleResolveGoogleConflict = async (e) => {
+    e.preventDefault();
+    setConflictError('');
+    setConflictLoading(true);
+    try {
+      await linkPendingGoogleCredential(
+        googleConflict.email,
+        conflictPassword,
+        googleConflict.pendingCredential
+      );
+      // 로그인 + 연동 성공 — AuthContext가 상태를 감지해 자동으로 홈으로 이동함
+    } catch (err) {
+      setConflictError(getErrorMessage(err.code));
+    } finally {
+      setConflictLoading(false);
+    }
+  };
+
   // 이미 로그인된 경우 홈으로 리다이렉트
   if (!authLoading && user) return <Navigate to="/" replace />;
 
@@ -94,6 +152,50 @@ const LoginPage = () => {
           <h1 className="login-title">우리두리</h1>
           <p className="login-subtitle">우리만의 특별한 순간을 기록해요</p>
         </div>
+
+        {googleConflict ? (
+          <form className="login-form login-google-conflict" onSubmit={handleResolveGoogleConflict}>
+            <p className="login-google-conflict-msg">
+              <strong>{googleConflict.email}</strong>(으)로 이미 가입된 계정이 있어요.
+              비밀번호를 입력하면 이 계정에 구글 로그인을 연결해드릴게요.
+            </p>
+            <div className="login-field">
+              <label>비밀번호</label>
+              <input
+                type="password"
+                value={conflictPassword}
+                onChange={e => setConflictPassword(e.target.value)}
+                placeholder="기존 계정 비밀번호"
+                required
+                autoComplete="current-password"
+                autoFocus
+              />
+            </div>
+            {conflictError && <p className="login-error">{conflictError}</p>}
+            <button type="submit" className="login-btn" disabled={conflictLoading}>
+              {conflictLoading ? '연동 중...' : '연동하고 로그인'}
+            </button>
+            <button
+              type="button"
+              className="login-google-conflict-cancel"
+              onClick={() => { setGoogleConflict(null); setConflictPassword(''); setConflictError(''); }}
+            >
+              취소
+            </button>
+          </form>
+        ) : (
+        <>
+        <button
+          type="button"
+          className="login-google-btn"
+          onClick={handleGoogleSignIn}
+          disabled={googleLoading || loading}
+        >
+          <FcGoogle className="login-google-icon" />
+          {googleLoading ? '연결하는 중...' : '구글로 계속하기'}
+        </button>
+
+        <div className="login-divider"><span>또는</span></div>
 
         <div className="login-tabs">
           <button
@@ -190,6 +292,8 @@ const LoginPage = () => {
               {loading ? '가입 중...' : '회원가입'}
             </button>
           </form>
+        )}
+        </>
         )}
         <button
           type="button"

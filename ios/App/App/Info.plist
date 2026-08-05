@@ -54,5 +54,16 @@
 	<array>
 		<string>remote-notification</string>
 	</array>
+	<!-- 구글 로그인(v0.4.30~) 콜백 수신용 URL 스킴 — GoogleService-Info.plist의 REVERSED_CLIENT_ID.
+	     이 파일이 재발급되어 값이 바뀌면(예: OAuth 클라이언트 재생성) 여기도 같이 갱신해야 함. -->
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>com.googleusercontent.apps.645572622912-oufsaubdl3t4pg4ceu3o7raqt6vhhna9</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>
