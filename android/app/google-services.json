@@ -14,6 +14,14 @@
       },
       "oauth_client": [
         {
+          "client_id": "645572622912-l3jmb5692g7jmca7oaqq4fdkspfvabdi.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.wooridoori.twogether",
+            "certificate_hash": "0dacb83153dfe6a35e29811cb90a3ca41247e536"
+          }
+        },
+        {
           "client_id": "645572622912-ndhnoi4s2jpnasc1a90km3848qc3bsga.apps.googleusercontent.com",
           "client_type": 1,
           "android_info": {
