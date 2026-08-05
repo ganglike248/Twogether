@@ -1,5 +1,6 @@
 // src/components/Travel/ScheduleItem.js
 import React from 'react';
+import { Capacitor } from '@capacitor/core';
 import { MdCheck, MdLocationOn, MdAttachMoney } from 'react-icons/md';
 import { HiChevronRight } from 'react-icons/hi2';
 import './ScheduleItem.css';
@@ -21,14 +22,15 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
         const isAndroid = /android/i.test(ua);
         const isIOS = /iphone|ipad|ipod/i.test(ua);
         const mobileWebUrl = `https://m.map.naver.com/search.naver?query=${encodedQuery}`;
+        // 안드로이드 네이티브 앱(Capacitor WebView)은 intent:// 문법(브라우저 전용 Intent-URI 파싱)을
+        // 이해하지 못함 — Capacitor의 Bridge.launchIntent()가 이걸 통째로 리터럴 URI로 취급해
+        // startActivity에 넘기고, scheme "intent"를 처리하는 앱이 없어 ActivityNotFoundException이
+        // 조용히 무시됨(폴백조차 안 일어남). 반면 커스텀 스킴(nmap://) 직접 호출은 Capacitor가 표준
+        // 암시적 인텐트로 정상 처리하므로, iOS와 동일하게 커스텀 스킴 + visibilitychange 폴백 방식을 씀.
+        const isNativeAndroid = isAndroid && Capacitor.isNativePlatform();
 
-        if (isAndroid) {
-            // Android Intent URL: 앱 있으면 앱, 없으면 fallbackUrl로 자동 이동 (setTimeout 불필요)
-            const fallbackUrl = encodeURIComponent(mobileWebUrl);
-            window.location.href =
-                `intent://search?query=${encodedQuery}#Intent;scheme=naver;package=com.nhn.android.nmap;S.browser_fallback_url=${fallbackUrl};end`;
-        } else if (isIOS) {
-            // iOS: nmap:// 딥링크 시도 → visibilitychange로 앱 열림 감지 → 미열림 시 웹 폴백
+        if (isIOS || isNativeAndroid) {
+            // nmap:// 딥링크 시도 → visibilitychange로 앱 열림 감지 → 미열림 시 웹 폴백
             const appUrl = `nmap://search?query=${encodedQuery}&appname=twogether-206fb.web.app`;
             let appOpened = false;
             const onVisibilityChange = () => {
@@ -41,6 +43,13 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
                 document.removeEventListener('visibilitychange', onVisibilityChange);
                 if (!appOpened) window.open(mobileWebUrl, '_blank');
             }, 1500);
+        } else if (isAndroid) {
+            // 안드로이드 브라우저(PWA): Chrome이 intent:// 문법을 파싱해 앱 실행 + 폴백을 처리해줌.
+            // scheme은 네이버 공식 문서 기준 반드시 "nmap"이어야 앱 인텐트 필터와 매칭됨
+            // (예전 "naver"는 오타 — 매칭 안 돼 매번 fallbackUrl로만 열렸을 가능성 있음)
+            const fallbackUrl = encodeURIComponent(mobileWebUrl);
+            window.location.href =
+                `intent://search?query=${encodedQuery}#Intent;scheme=nmap;package=com.nhn.android.nmap;S.browser_fallback_url=${fallbackUrl};end`;
         } else {
             // PC: 네이버 지도 웹 검색
             window.open(`https://map.naver.com/?query=${encodedQuery}`, '_blank');

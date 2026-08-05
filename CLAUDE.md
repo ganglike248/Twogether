@@ -452,9 +452,23 @@ utils/
 `trips/{tripId}/checklists/main` 문서의 `items[]` 배열 안에 `serverTimestamp()`를 사용하면 Firestore가 쓰기를 거부함.  
 배열 항목 내부 타임스탬프는 반드시 `Date.now()` 사용. 문서 최상위 `updatedAt`은 `serverTimestamp()` 유지.
 
-### ScheduleItem 위치 딥링크 패턴 (v0.4.4~)
-- Android: `intent://search?query=...#Intent;scheme=naver;package=com.nhn.android.nmap;S.browser_fallback_url=...;end` — 앱/폴백 브라우저 자동 처리
-- iOS: `nmap://search?query=...&appname=twogether-206fb.web.app` + `visibilitychange` 이벤트로 앱 열림 감지, 1.5초 후 미열림 시 웹 폴백
+### ScheduleItem 위치 딥링크 패턴 (v0.4.4~, 안드로이드 네이티브 앱 분기 v0.4.29~)
+- **PWA(안드로이드 브라우저)**: `intent://search?query=...#Intent;scheme=nmap;package=com.nhn.android.nmap;S.browser_fallback_url=...;end` —
+  Chrome이 `Intent.parseUri(url, URI_INTENT_SCHEME)`로 이 문법을 직접 해석해 앱 실행/폴백을 처리해줌.
+  `scheme` 값은 네이버 공식 문서 기준 `nmap`이어야 함 — 예전엔 `naver`로 오타가 있었고, 이러면 앱 인텐트
+  필터와 안 맞아 항상 `browser_fallback_url`(웹)로만 열렸을 가능성이 있음 (v0.4.29에서 수정).
+- **iOS / 안드로이드 네이티브 앱(Capacitor) 둘 다**: `nmap://search?query=...&appname=twogether-206fb.web.app`
+  커스텀 스킴 직접 호출 + `visibilitychange` 이벤트로 앱 열림 감지, 1.5초 후 미열림 시 웹 폴백.
+  ⚠ **안드로이드 네이티브 앱에서는 `intent://` 문법을 쓰면 안 됨** — PWA에서는 동작해도 네이티브 앱에서는
+  조용히 아무 반응도 없는 버그였음(실제로 재현/발견됨, v0.4.29에서 수정). 원인: Capacitor Android WebView는
+  순수 `android.webkit.WebView`라 `intent://` 문법(Chrome 전용 파싱)을 모르고, `BridgeWebViewClient`가
+  `shouldOverrideUrlLoading`에서 이 문자열을 그대로 `bridge.launchIntent()`에 넘기면
+  (`node_modules/@capacitor/android/.../Bridge.java`의 `launchIntent()`) scheme이 `"intent"`인 리터럴 URI로
+  취급해 `new Intent(ACTION_VIEW, uri)`를 실행 → 매칭되는 앱이 없어 `ActivityNotFoundException` → 빈
+  catch 블록으로 조용히 무시됨(폴백조차 안 일어남). 반면 일반 커스텀 스킴(`nmap://...`)은 Capacitor가
+  표준 암시적 인텐트로 정상 처리하므로(iOS도 `UIApplication.shared.open()`이 동일하게 처리), 안드로이드
+  네이티브 앱은 `Capacitor.isNativePlatform()`으로 감지해 iOS와 같은 커스텀 스킴 경로를 타도록 분기함.
+  **새로운 딥링크(카카오맵 등)를 추가할 때도 네이티브 앱 대상이면 `intent://` 대신 이 패턴을 따를 것.**
 - `setTimeout` + `window.location.href` 조합 금지 — 앱 설치 여부와 무관하게 항상 웹 탭이 추가로 열림
 
 ### BucketListPage 구독 구조 (v0.3.35~)
