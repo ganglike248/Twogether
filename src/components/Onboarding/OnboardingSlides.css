@@ -154,3 +154,16 @@
 }
 
 .onboarding-next-btn:active { opacity: 0.85; }
+
+/* ── 다음부터 보지 않기 ── */
+.onboarding-dont-show-again {
+  margin-top: 0.7rem;
+  background: none;
+  border: none;
+  font-size: 0.8rem;
+  color: #adb5bd;
+  cursor: pointer;
+  font-family: inherit;
+  padding: 0.3rem;
+}
+.onboarding-dont-show-again:hover { color: #6d6875; }

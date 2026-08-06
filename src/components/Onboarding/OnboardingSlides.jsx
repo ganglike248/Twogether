@@ -37,7 +37,7 @@ const SLIDES = [
   },
 ];
 
-const OnboardingSlides = ({ onClose }) => {
+const OnboardingSlides = ({ onClose, onDontShowAgain }) => {
   const [current, setCurrent] = useState(0);
   const touchStartX = useRef(null);
 
@@ -112,6 +112,11 @@ const OnboardingSlides = ({ onClose }) => {
         {/* 다음 / 시작하기 */}
         <button className="onboarding-next-btn" onClick={goNext}>
           {isLast ? '알겠어요!' : current === 0 ? '기능 둘러보기 →' : '다음'}
+        </button>
+
+        {/* 다음부터 보지 않기 — 로그인 화면 하단 '앱 소개 보기' 버튼으로 언제든 다시 볼 수 있음 */}
+        <button className="onboarding-dont-show-again" onClick={onDontShowAgain}>
+          다음부터 보지 않기
         </button>
       </div>
     </div>

@@ -257,12 +257,18 @@ Play Store/App Store 실기기 테스트 중 발견된 Capacitor 네이티브 �
 
 **바닥에 붙는 모달(bottom-sheet)들이 안드로이드 제스처 내비바와 겹치던 문제 (v0.4.26~)**: 하단
 내비게이션바(`Navigation.css`)는 처음부터 `env(safe-area-inset-bottom)`을 반영했지만, `align-items:
-flex-end`로 화면 바닥에 붙는 모달 13개(DayModal/BucketList/ChecklistModal/ScheduleModal/WheelModal/
+flex-end`로 화면 바닥에 붙는 모달 12개(BucketList/ChecklistModal/ScheduleModal/WheelModal/
 SealedMessage/TripModal/DecisionModal/AddOptionModal/EditOptionModal/CycleSettingsModal/
 EventTypeColorSettingsModal/NotificationPrimingModal)의 footer/actions 요소는 이 처리가 빠져 있어서
 버튼이 제스처 내비바 뒤로 깔렸음. 각 footer 요소에 `padding-bottom`(또는 `padding` calc)으로 safe-area
 여백을 추가해 해결. `EventModal`/`ChangePasswordModal` 등 화면 중앙에 뜨는 모달은 애초에 바닥에 안 붙어서
-대상 아님 — 새 바닥-고정 모달 추가 시 이 패턴 그대로 적용할 것.
+대상 아님 — 새 바닥-고정 모달 추가 시 이 패턴 그대로 적용할 것.  
+⚠ **DayModal은 원래 이 13개에 포함돼 있었으나 v0.4.28(`4f2d532`, 색상 리팩터링)에서 bottom-sheet →
+화면 중앙 카드(`align-items: center`)로 바뀌면서 대상에서 빠짐.** 그때 footer의 safe-area 패딩을 같이
+지웠어야 했는데 남겨둬서, 화면 바닥에 안 붙는 카드인데도 제스처 내비바 여백만큼 패딩이 계속 붙어 "일정
+추가" 버튼 아래에 불필요한 빈 공간이 생기는 버그가 실기기에서만(웹은 대부분 inset=0) 재현됨 — v0.4.31에서
+수정. **모달의 위치(`align-items: flex-end` ↔ `center`)를 바꿀 때는 이 safe-area 패딩도 같이
+추가/제거할 것** — 잊으면 이런 종류의 버그가 재발함.
 
 **안드로이드 스플래시 배경색이 기기별로 다르게 보이던 문제 (v0.4.26~)**: `targetSdkVersion 36`(Android
 12+)부터는 OS 자체 SplashScreen API가 있는데, 실제로 요구하는 속성은 `windowSplashScreenBackground`이고

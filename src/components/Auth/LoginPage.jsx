@@ -13,6 +13,10 @@ import { FcGoogle } from 'react-icons/fc';
 import OnboardingSlides from '../Onboarding/OnboardingSlides';
 import './LoginPage.css';
 
+// 로그인 화면 진입 시 자동으로 뜨는 앱 소개 슬라이드를 '다음부터 보지 않기'로 껐는지 여부.
+// 꺼도 하단 '앱 소개 보기' 버튼으로는 언제든 다시 볼 수 있음(그쪽은 이 플래그를 건드리지 않음).
+const ONBOARDING_INTRO_DISMISSED_KEY = 'twogether_onboarding_intro_dismissed';
+
 // 사용자가 팝업/계정 선택창을 스스로 닫은 경우 — 에러로 취급하지 않고 조용히 무시
 const isUserCancelledGoogleSignIn = (error) => {
   const code = error?.code || '';
@@ -33,7 +37,9 @@ const LoginPage = () => {
   const [passwordConfirm, setPasswordConfirm] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
-  const [showIntro, setShowIntro] = useState(true);
+  const [showIntro, setShowIntro] = useState(
+    () => localStorage.getItem(ONBOARDING_INTRO_DISMISSED_KEY) !== 'true'
+  );
   const [googleLoading, setGoogleLoading] = useState(false);
   // 이메일/비밀번호로 이미 가입된 이메일로 구글 로그인을 시도한 경우 — 비밀번호를 다시
   // 확인받아 그 계정에 구글 로그인을 연동해줌 (신규 계정이 따로 생기는 걸 방지)
@@ -145,7 +151,15 @@ const LoginPage = () => {
 
   return (
     <div className="login-page">
-      {showIntro && <OnboardingSlides onClose={() => setShowIntro(false)} />}
+      {showIntro && (
+        <OnboardingSlides
+          onClose={() => setShowIntro(false)}
+          onDontShowAgain={() => {
+            localStorage.setItem(ONBOARDING_INTRO_DISMISSED_KEY, 'true');
+            setShowIntro(false);
+          }}
+        />
+      )}
       <div className="login-container">
         <div className="login-logo">
           <HiHeart className="login-heart" />

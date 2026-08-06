@@ -359,7 +359,9 @@
 }
 
 .day-modal-footer {
-  padding: 0.65rem 0.9rem calc(0.65rem + env(safe-area-inset-bottom)) 0.9rem;
+  /* 화면 중앙에 뜨는 카드형 모달(바닥에 안 붙음) — safe-area-inset-bottom 여백 불필요.
+     4f2d532에서 bottom-sheet → 중앙 카드로 바뀌었는데 이전 여백이 남아있던 걸 제거함. */
+  padding: 0.65rem 0.9rem;
   background-color: white;
   display: flex;
   flex-direction: column;
