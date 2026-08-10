@@ -102,6 +102,11 @@ const Calendar = () => {
   // Search params handling
   const [searchParams, setSearchParams] = useSearchParams();
   const pendingDateRef = useRef(null);
+  // EventModal(일정 추가/수정)의 'X'를 닫을 때, 실기기에서 손가락이 살짝 밀리거나
+  // 습관성으로 한 번 더 탭하면 모달 오버레이가 걷히며 드러나는 CalendarHeader의
+  // '수정기록' 버튼까지 같이 눌리는 문제가 있었음 — EventModal이 닫힌 직후 짧은 시간
+  // (0.5초) 안의 수정기록 클릭은 그 여파로 보고 무시해서 방지 (2026-08-10).
+  const eventModalClosedAtRef = useRef(0);
 
 
   useEffect(() => {
@@ -301,7 +306,11 @@ const Calendar = () => {
         onPrevMonth={() => navigate('prev')}
         onNextMonth={() => navigate('next')}
         onGoToday={goToday}
-        onShowEditLog={() => { setSelectedEventForLog(null); setShowEditLog(true); }}
+        onShowEditLog={() => {
+          if (Date.now() - eventModalClosedAtRef.current < 500) return;
+          setSelectedEventForLog(null);
+          setShowEditLog(true);
+        }}
       />
 
       {/* 캘린더 탭 필터 */}
@@ -345,7 +354,7 @@ const Calendar = () => {
 
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => setIsModalOpen(false)}
+        onClose={() => { eventModalClosedAtRef.current = Date.now(); setIsModalOpen(false); }}
         event={selectedEvent}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}

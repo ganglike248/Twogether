@@ -279,6 +279,16 @@ EventTypeColorSettingsModal/NotificationPrimingModal)의 footer/actions 요소�
 `windowSplashScreenBackground` 명시로 해결. legacy `android:background`만으로는 API 31+ 네이티브
 스플래시가 인식 못한다는 점 기억할 것.
 
+### EventModal 'X' 닫기 → CalendarHeader '수정기록' 오클릭 (v0.4.32~)
+`EventModal`(일정 추가/수정)의 'X'를 실기기에서 탭하면, 모달이 닫히며 드러나는 `CalendarHeader`의
+'수정기록' 버튼까지 같이 눌리는 문제가 실제로 재현됨. 코드상 두 요소가 겹칠 수 없는 구조(`.modal-overlay`가
+`position:fixed`+`z-index:1000`으로 전체를 덮고, `CalendarHeader`는 z-index 없음, `.modal-close`의
+onClick도 `onClose()` 한 번만 호출 — 중복 호출 경로 없음)라 JS 로직 버그는 아니고, 실기기에서의 터치
+드리프트/습관성 더블탭으로 추정(에뮬레이터에서는 재현 안 됨, 둘 다 화면 우상단이라 위치가 가까움).
+원인과 무관하게 증상을 막도록 `Calendar.jsx`에서 `EventModal`이 닫힌 시각을 `eventModalClosedAtRef`에
+기록하고, `onShowEditLog`가 그로부터 0.5초 이내면 클릭을 무시하도록 방어적으로 처리함. 비슷하게 모달
+위/아래로 겹치는 다른 버튼(예: FloatingActionMenu, 캘린더 탭)에서도 같은 증상이 보고되면 동일 패턴 적용할 것.
+
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
 
@@ -554,8 +564,10 @@ UI(idToken 발급)만 담당하고, `authService.js`가 그 idToken을 `GoogleAu
 1. Firebase Console → Authentication → Sign-in method → **Google 제공자 켜기** (콘솔 토글, 코드로 불가)
 2. 안드로이드: Firebase Console 프로젝트 설정에 **SHA-1 인증서 지문 등록** 필요 — 디버그 키스토어와
    릴리즈 키스토어(Play Console 서명 키) 둘 다. 등록 안 하면 로그인 시도 시 `DEVELOPER_ERROR`.
-   ⚠ **릴리즈 SHA-1은 아직 미등록** — 지금은 디버그 빌드 테스트만 가능. 스토어 배포용 빌드로 구글
-   로그인을 테스트하려면 그때 릴리즈 키스토어 SHA-1을 추가로 등록하고 아래 4번을 다시 해야 함.
+   디버그/릴리즈 SHA-1 모두 등록 완료(2026-08-06, v0.4.31). Google Play App Signing을 쓰는 경우
+   **로컬 업로드 키스토어 SHA-1과 별개로, Play Console → 설정 → 앱 무결성의 "앱 서명 키 인증서" SHA-1도
+   반드시 같이 등록**해야 함 — 스토어에서 실제로 다운로드되는 빌드는 이 키로 재서명되기 때문(둘 다
+   등록해두면 로컬 릴리즈 빌드/스토어 배포 빌드 모두 커버됨).
 3. 위 두 단계 완료 후 **`google-services.json`(android/app/)과 `GoogleService-Info.plist`(ios/App/App/)를
    다시 받아서 교체** — 재발급 전 파일은 `oauth_client` 항목이 비어있어서 그대로 두면 로그인 자체가 실패함.
 4. iOS: 새로 받은 `GoogleService-Info.plist`의 `REVERSED_CLIENT_ID` 값을 `Info.plist`의
@@ -564,11 +576,24 @@ UI(idToken 발급)만 담당하고, `authService.js`가 그 idToken을 `GoogleAu
    OAuth 클라이언트가 재발급되어 이 값이 바뀌면 여기도 같이 갱신해야 함.
 5. iOS는 Mac+Xcode에서 실제 기기/시뮬레이터로 최종 확인 필요(이 프로젝트의 다른 iOS 네이티브 기능과 동일한 제약).
 
-**검증 방식**: 이 환경엔 안드로이드 에뮬레이터/iOS 시뮬레이터가 없어서(devNote.txt 참고), 코드 정확성은
-`./gradlew :app:compileDebugJavaWithJavac`(안드로이드 전체 컴파일)와
-`xcodebuild -project ios/App/App.xcodeproj -scheme App -destination 'generic/platform=iOS Simulator' build`
-(iOS 전체 빌드, GoogleSignIn 프레임워크 링크 포함)로 검증함 — 둘 다 성공 확인. 실제 로그인 동작 자체는
-위 수동 단계(SHA-1 등록 등) 완료 후 실기기 테스트가 필요.
+**검증 방식**: 안드로이드 에뮬레이터는 여전히 이 환경에 없어서(devNote.txt 참고) 코드 정확성만
+`./gradlew :app:compileDebugJavaWithJavac`(안드로이드 전체 컴파일)로 검증. **iOS 시뮬레이터는 이
+Mac에 Xcode(26.6)와 함께 있어서 실제 실행 가능** — `npm run build && npx cap sync ios && npx cap run ios`로
+부팅된 시뮬레이터에 바로 설치/실행됨(시뮬레이터는 코드 서명이 필요 없어 Apple Developer Team 설정 없이도
+됨, Archive/App Store 배포 시에만 Team 서명 필요). `xcodebuild -project ios/App/App.xcodeproj -scheme App
+-destination 'generic/platform=iOS Simulator' build`(빌드만, GoogleSignIn 프레임워크 링크 포함)도 여전히
+빠른 컴파일 검증용으로 유효.
+
+**⚠ Android 실기기(특히 Play Store에서 받은 배포 빌드)에서 로그인 버튼이 "연결하는 중..."에 멈춰
+무응답인 버그 (2026-08-10 재발견, v0.4.32에서 수정)**: SHA-1/OAuth 클라이언트 설정이 전부 정상이어도
+발생함 — `@capacitor-firebase/authentication`의 Android 구현이 기본값(`useCredentialManager: true`)으로
+최신 `androidx.credentials.CredentialManager` API를 쓰는데, 일부 실기기(제조사 스킨, Credential Manager
+백엔드가 제대로 안 붙은 기기 등)에서 성공/실패 콜백이 아예 안 오고 그대로 멈추는 문제가 실제로 재현됨.
+에뮬레이터는 Play services/계정 설정이 항상 깔끔해서 재현 안 됨. `authService.js`의
+`getNativeGoogleCredential()`에서 `signInWithGoogle({ useCredentialManager: false })`로 레거시
+`GoogleSignInClient`(표준 `startActivityForResult` 팝업) 플로우를 강제해 회피 + 20초 타임아웃 가드
+(`withTimeout`) 추가로 혹시 모를 무응답에도 버튼이 영구히 멈추지 않도록 방어. `linkGoogleAccount()`도
+같은 함수를 재사용하므로 동일하게 적용됨.
 
 관련 파일: `src/services/authService.js`(`signInWithGoogle`/`linkPendingGoogleCredential`/`linkGoogleAccount`/
 `unlinkGoogleAccount`/`inspectConflictingGoogleAccount`/`deleteEmptyConflictingAccount`/
