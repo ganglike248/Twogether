@@ -96,8 +96,28 @@ const ensureUserDoc = async (user) => {
 // 안드로이드/iOS 네이티브 앱에서 구글 계정 선택 화면을 띄우고 idToken을 뽑아
 // firebase/auth(JS SDK)용 credential로 변환. capacitor.config.ts의 skipNativeAuth:true와
 // 짝을 이룸 — 네이티브 SDK는 계정 선택 UI만 담당하고, 실제 로그인 세션은 항상 JS SDK 하나로 유지.
+//
+// useCredentialManager: false — 플러그인 기본값(true)은 최신 androidx.credentials
+// CredentialManager API를 쓰는데, 이게 일부 실기기(제조사 스킨, Credential Manager 백엔드가
+// 제대로 안 붙은 기기 등)에서 성공/실패 콜백이 아예 안 오고 무한정 멈추는 문제가 실제로
+// 발생함(SHA-1/OAuth 클라이언트 설정은 전부 정상이었는데도 재현됨, 2026-08-10). 에뮬레이터는
+// Play services/계정 설정이 항상 깔끔해서 이 문제가 잘 안 드러남. 검증된 레거시
+// GoogleSignInClient 플로우(표준 startActivityForResult 팝업)로 강제 전환해 회피.
+// 그래도 혹시 모를 무응답에 대비해 아래 타임아웃으로 한 번 더 방어.
+const NATIVE_GOOGLE_SIGN_IN_TIMEOUT_MS = 20000;
+
+const withTimeout = (promise, ms, message) =>
+  Promise.race([
+    promise,
+    new Promise((_, reject) => setTimeout(() => reject(new Error(message)), ms)),
+  ]);
+
 const getNativeGoogleCredential = async () => {
-  const result = await FirebaseAuthentication.signInWithGoogle();
+  const result = await withTimeout(
+    FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false }),
+    NATIVE_GOOGLE_SIGN_IN_TIMEOUT_MS,
+    '구글 로그인 응답이 없습니다. 네트워크 상태를 확인하고 다시 시도해주세요.'
+  );
   const idToken = result.credential?.idToken;
   if (!idToken) throw new Error('구글 로그인에 실패했습니다. 다시 시도해주세요.');
   return GoogleAuthProvider.credential(idToken);
