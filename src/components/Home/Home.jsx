@@ -166,6 +166,14 @@ const Home = () => {
     })
     .sort((a, b) => parseISO(a.start) - parseISO(b.start))[0] || null;
 
+  // 디데이로 표시된 일정 (미래만, 임박한 순)
+  const ddayEvents = events
+    .filter(e => e?.extendedProps?.isDday)
+    .filter(e => {
+      try { return parseISO(e.start) >= startOfDay(today); } catch { return false; }
+    })
+    .sort((a, b) => parseISO(a.start) - parseISO(b.start));
+
   // 1년 전 오늘 ±3일 이벤트
   const oneYearAgo = subYears(today, 1);
   const yearAgoEvents = events.filter(e => {
@@ -343,6 +351,36 @@ const Home = () => {
               <div className="next-event-date">{formatEventDate(nextEvent.start)}</div>
             </div>
             <span className="card-arrow">›</span>
+          </div>
+        </div>
+      )}
+
+      {/* 디데이 */}
+      {ddayEvents.length > 0 && (
+        <div className="home-card home-dday-section">
+          <div className="card-label">
+            <HiSparkles className="card-label-icon" />
+            디데이
+          </div>
+          <div className="dday-list">
+            {ddayEvents.slice(0, 3).map((e) => {
+              const daysLeft = differenceInCalendarDays(parseISO(e.start), today);
+              return (
+                <div
+                  key={e.id}
+                  className="trip-section-row clickable"
+                  onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
+                >
+                  <div className="trip-section-info">
+                    <div className="trip-section-title">{e.title}</div>
+                    <div className="trip-section-sub">{formatEventDate(e.start)}</div>
+                  </div>
+                  <span className="trip-section-badge upcoming">
+                    {daysLeft > 0 ? `D-${daysLeft}` : '오늘'}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
       )}

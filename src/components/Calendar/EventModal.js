@@ -19,6 +19,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [endDate, setEndDate] = useState('');
   const [eventType, setEventType] = useState('couple');
   const [isPersonal, setIsPersonal] = useState(false);
+  const [isDday, setIsDday] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showEventLog, setShowEventLog] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
@@ -49,6 +50,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
       setEventType(event.eventType || 'couple');
       setIsPersonal(event.isPersonal || event.extendedProps?.isPersonal || false);
+      setIsDday(event.isDday || event.extendedProps?.isDday || false);
     } else {
       // 새 일정 생성 시 폼 초기화 + localStorage에서 마지막 개인 일정 여부 복원
       setTitle('');
@@ -58,6 +60,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       setEventType('couple');
       const lastPersonalState = localStorage.getItem('twogether_personal_default') === 'true';
       setIsPersonal(lastPersonalState);
+      setIsDday(false);
     }
   }, [event]);
 
@@ -103,6 +106,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         end: adjustedEndDate,
         eventType,
         isPersonal: isPersonal && eventType === myRole, // 내 타입일 때만 개인 일정 가능
+        isDday,
       };
 
       // localStorage에 마지막 선택 상태 저장
@@ -266,6 +270,18 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   </label>
                 </div>
               )}
+
+              {/* 디데이 체크박스 */}
+              <div className="checkbox-group" style={{ marginTop: '0.75rem', paddingLeft: '0.5rem' }}>
+                <label className="checkbox-label">
+                  <input
+                    type="checkbox"
+                    checked={isDday}
+                    onChange={(e) => setIsDday(e.target.checked)}
+                  />
+                  <span className="checkbox-text">디데이로 표시 (홈 화면에 D-day로 표시)</span>
+                </label>
+              </div>
             </div>
           </div>
 
