@@ -6,6 +6,7 @@ import {
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
+import { motion, AnimatePresence } from 'framer-motion';
 import {
   HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiLockClosed
 } from 'react-icons/hi2';
@@ -29,6 +30,15 @@ import HomeSkeleton from './HomeSkeleton';
 import mascotImg from '../images/mascot.png';
 import './Home.css';
 
+const TAB_ORDER = ['today', 'story'];
+
+// 탭 콘텐츠 전환 애니메이션 — 방향에 따라 옆에서 밀려 들어오며 페이드
+const tabPaneVariants = {
+  enter: (direction) => ({ opacity: 0, x: direction > 0 ? 16 : -16 }),
+  center: { opacity: 1, x: 0 },
+  exit: (direction) => ({ opacity: 0, x: direction > 0 ? -16 : 16 }),
+};
+
 const Home = () => {
   const { user, userDoc, coupleId, coupleDoc, myRole } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
@@ -44,6 +54,12 @@ const Home = () => {
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
   const [activeTab, setActiveTab] = useState('today'); // 'today' | 'story' — 홈 화면 스크롤 단축용 탭 분리
+  const [tabDirection, setTabDirection] = useState(1); // 전환 애니메이션 방향 — 오늘→우리 이야기(1) / 반대(-1)
+  const handleTabChange = (tab) => {
+    if (tab === activeTab) return;
+    setTabDirection(TAB_ORDER.indexOf(tab) > TAB_ORDER.indexOf(activeTab) ? 1 : -1);
+    setActiveTab(tab);
+  };
   const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid, {
     includeCycles: false,
   });
@@ -319,21 +335,37 @@ const Home = () => {
         <button
           type="button"
           className={`home-tab ${activeTab === 'today' ? 'active' : ''}`}
-          onClick={() => setActiveTab('today')}
+          onClick={() => handleTabChange('today')}
         >
           오늘
+          {activeTab === 'today' && (
+            <motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
+          )}
         </button>
         <button
           type="button"
           className={`home-tab ${activeTab === 'story' ? 'active' : ''}`}
-          onClick={() => setActiveTab('story')}
+          onClick={() => handleTabChange('story')}
         >
           우리 이야기
+          {activeTab === 'story' && (
+            <motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
+          )}
         </button>
       </div>
 
-      {activeTab === 'today' && (
-        <>
+      <AnimatePresence mode="wait" initial={false} custom={tabDirection}>
+        {activeTab === 'today' && (
+        <motion.div
+          key="today"
+          className="home-tab-content"
+          custom={tabDirection}
+          variants={tabPaneVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        >
           {/* 여행 섹션 */}
           <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
             <div className="card-label">
@@ -428,11 +460,20 @@ const Home = () => {
               </div>
             </div>
           )}
-        </>
-      )}
+        </motion.div>
+        )}
 
-      {activeTab === 'story' && (
-        <>
+        {activeTab === 'story' && (
+        <motion.div
+          key="story"
+          className="home-tab-content"
+          custom={tabDirection}
+          variants={tabPaneVariants}
+          initial="enter"
+          animate="center"
+          exit="exit"
+          transition={{ duration: 0.2, ease: 'easeOut' }}
+        >
           {/* 그날의 우리 (1~3년 전 오늘) */}
           {yearAgoEvents.length > 0 && (
             <div className="home-card home-year-ago">
@@ -456,50 +497,6 @@ const Home = () => {
               ))}
             </div>
           )}
-
-          {/* 버킷리스트 진행률 + 돌림판 */}
-          {bucketStats.total > 0 && (
-            <div className="home-bucket-section">
-              <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
-                <div className="card-label">
-                  <HiCheckCircle className="card-label-icon" />
-                  버킷리스트 진행률
-                </div>
-                <div className="bucket-preview-row">
-                  <div className="bucket-preview-bar-wrap">
-                    <div
-                      className="bucket-preview-bar-fill"
-                      style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="bucket-preview-stat">
-                    {bucketStats.completed}/{bucketStats.total} 완료
-                  </span>
-                </div>
-              </div>
-              <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
-                <div className="card-label">
-                  <span className="wheel-icon">🎡</span>
-                  돌림판
-                </div>
-                <div className="wheel-button-hint">
-                  항목을 선택해보세요
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* 추억 갤러리 바로가기 */}
-          <Link to="/memories" className="home-card home-memory-link">
-            <div className="card-label">
-              <HiPhoto className="card-label-icon" />
-              추억 갤러리
-            </div>
-            <div className="memory-link-content">
-              <span className="memory-link-text">우리의 소중한 순간들</span>
-              <span className="card-arrow">›</span>
-            </div>
-          </Link>
 
           {/* 봉인 편지함 바로가기 */}
           <Link to="/letters" className="home-card home-memory-link">
@@ -542,8 +539,41 @@ const Home = () => {
               </div>
             )}
           </Link>
-        </>
-      )}
+
+          {/* 버킷리스트 진행률 + 돌림판 */}
+          {bucketStats.total > 0 && (
+            <div className="home-bucket-section">
+              <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
+                <div className="card-label">
+                  <HiCheckCircle className="card-label-icon" />
+                  버킷리스트 진행률
+                </div>
+                <div className="bucket-preview-row">
+                  <div className="bucket-preview-bar-wrap">
+                    <div
+                      className="bucket-preview-bar-fill"
+                      style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="bucket-preview-stat">
+                    {bucketStats.completed}/{bucketStats.total} 완료
+                  </span>
+                </div>
+              </div>
+              <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
+                <div className="card-label">
+                  <span className="wheel-icon">🎡</span>
+                  돌림판
+                </div>
+                <div className="wheel-button-hint">
+                  항목을 선택해보세요
+                </div>
+              </div>
+            </div>
+          )}
+        </motion.div>
+        )}
+      </AnimatePresence>
 
       {/* 돌림판 모달 */}
       <WheelModal

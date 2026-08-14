@@ -127,7 +127,7 @@
   align-items: center;
   gap: 0.2rem;
   background: rgba(255, 255, 255, 0.9);
-  color: var(--color-primary-dark);
+  color: var(--color-primary);
   font-size: 0.85rem;
   font-weight: 800;
   padding: 0.25rem 0.6rem;
@@ -160,7 +160,7 @@
   flex: 1;
   background: #fffdf9;
   border-radius: var(--border-radius);
-  border: 1px dashed rgba(255, 182, 193, 0.55);
+  border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-md);
   display: flex;
@@ -186,12 +186,12 @@
   flex-shrink: 0;
 }
 
-/* 공통 카드 — 필름 다이어리 톤: 점선 테두리 + 살짝 따뜻한 종이색 */
+/* 공통 카드 — 살짝 따뜻한 종이색 배경만 필름 다이어리 톤 유지, 테두리는 실선으로 원복(요청) */
 .home-card {
   background: #fffdf9;
   border-radius: var(--border-radius);
   padding: var(--spacing-lg);
-  border: 1px dashed rgba(255, 182, 193, 0.55);
+  border: 1px solid var(--card-border);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
@@ -258,8 +258,8 @@
   color: var(--color-primary-dark);
 }
 
-.home-tab.active::after {
-  content: '';
+/* framer-motion layoutId로 두 탭 사이를 부드럽게 슬라이드하는 밑줄 (JS로 렌더링, Home.jsx 참고) */
+.home-tab-underline {
   position: absolute;
   left: 0;
   right: 0;
@@ -267,6 +267,13 @@
   height: 2px;
   border-radius: 2px;
   background: var(--color-primary);
+}
+
+/* 탭 콘텐츠 전환 애니메이션 래퍼 — home-container의 flex gap을 그대로 이어받도록 동일하게 설정 */
+.home-tab-content {
+  display: flex;
+  flex-direction: column;
+  gap: var(--spacing-lg);
 }
 
 /* 스탯 아이콘/콘텐츠 (hero-stat-card 내부 공용) */
@@ -564,11 +571,8 @@
   width: 100%;
 }
 
-/* 그날의 우리 (1~3년 전 오늘) — 다른 홈 카드보다 존재감을 살리기 위해 은은한 그라데이션 배경을 씀 */
-.home-year-ago {
-  background: linear-gradient(135deg, #fff8ec 0%, #fff0f2 100%);
-  border-color: rgba(255, 179, 71, 0.3);
-}
+/* 그날의 우리 (1~3년 전 오늘) — 카드 자체는 다른 홈 카드와 동일한 스타일(.home-card)로 통일.
+   전에 존재감을 살리려고 넣었던 별도 그라데이션 배경/테두리 색은 취소함(요청으로 원복). */
 
 .year-ago-item {
   display: flex;
