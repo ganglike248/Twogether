@@ -37,13 +37,16 @@
   height: 280px;
 }
 
+/* 필름 다이어리 톤 — 사진을 폴라로이드처럼 흰 여백으로 감싸고 살짝 기울임 */
 .hero-photo-col {
   flex: 1;
   position: relative;
+  background: #fffdf9;
+  padding: 7px;
   border-radius: var(--border-radius-lg);
-  overflow: hidden;
   box-shadow: var(--shadow-md);
   min-width: 0;
+  transform: rotate(-1.2deg);
 }
 
 .hero-img {
@@ -52,6 +55,7 @@
   object-fit: cover;
   object-position: center top;
   display: block;
+  border-radius: 8px;
 }
 
 /* 사진 미설정 플레이스홀더 */
@@ -59,6 +63,7 @@
   width: 100%;
   height: 100%;
   background: linear-gradient(160deg, #ffd6e0 0%, #ffb6c1 50%, #ffc8d4 100%);
+  border-radius: 8px;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -66,6 +71,19 @@
   gap: 0.5rem;
   padding: 0.75rem;
   text-align: center;
+}
+
+/* 워시테이프 — 폴라로이드 상단에 붙인 것처럼 */
+.hero-tape {
+  position: absolute;
+  top: -7px;
+  left: 50%;
+  transform: translateX(-50%) rotate(-3deg);
+  width: 56px;
+  height: 20px;
+  background: linear-gradient(180deg, rgba(255, 227, 227, 0.9), rgba(255, 182, 193, 0.6));
+  border: 1px solid rgba(255, 182, 193, 0.55);
+  box-shadow: 0 1px 3px rgba(109, 104, 117, 0.15);
 }
 
 .hero-placeholder-emoji {
@@ -86,19 +104,40 @@
   inset: 0;
 }
 
-.hero-text {
+/* 마스코트(로고 캐릭터) — 사진 안이 아니라 왼쪽 아래 모서리에 살짝 걸쳐서. hero-photo-col은
+   overflow를 안 잘라서(폴라로이드 화이트 프레임 자체가 컨테이너) 음수 offset으로 밖으로 걸쳐도 안 잘림. */
+.hero-mascot {
   position: absolute;
-  bottom: 0.875rem;
-  left: 0.875rem;
-  color: white;
+  left: -10px;
+  bottom: -8px;
+  width: 46px;
+  height: auto;
+  filter: drop-shadow(0 2px 5px rgba(0, 0, 0, 0.25));
+  pointer-events: none;
+  z-index: 1;
 }
 
+/* 디데이 — 사진 위 텍스트가 아니라 흰 배경 알약 배지, 상단 왼쪽(워시테이프와 안 겹치게) */
 .hero-dday {
-  font-size: 1.6rem;
+  position: absolute;
+  left: 0.9rem;
+  top: 0.9rem;
+  transform: rotate(-2deg);
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  background: rgba(255, 255, 255, 0.9);
+  color: var(--color-primary-dark);
+  font-size: 0.85rem;
   font-weight: 800;
-  line-height: 1;
-  letter-spacing: -0.5px;
-  text-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  padding: 0.25rem 0.6rem;
+  border-radius: 999px;
+  box-shadow: 0 2px 6px rgba(109, 104, 117, 0.2);
+  z-index: 1;
+}
+
+.hero-dday-heart {
+  font-size: 0.8rem;
 }
 
 .hero-sub {
@@ -119,9 +158,9 @@
 
 .hero-stat-card {
   flex: 1;
-  background: white;
+  background: #fffdf9;
   border-radius: var(--border-radius);
-  border: 1px solid var(--card-border);
+  border: 1px dashed rgba(255, 182, 193, 0.55);
   box-shadow: var(--shadow-sm);
   padding: var(--spacing-md);
   display: flex;
@@ -147,12 +186,12 @@
   flex-shrink: 0;
 }
 
-/* 공통 카드 */
+/* 공통 카드 — 필름 다이어리 톤: 점선 테두리 + 살짝 따뜻한 종이색 */
 .home-card {
-  background: white;
+  background: #fffdf9;
   border-radius: var(--border-radius);
   padding: var(--spacing-lg);
-  border: 1px solid var(--card-border);
+  border: 1px dashed rgba(255, 182, 193, 0.55);
   box-shadow: var(--shadow-sm);
   text-decoration: none;
   color: inherit;
@@ -189,6 +228,45 @@
   color: var(--color-gray-400);
   flex-shrink: 0;
   margin-left: auto;
+}
+
+/* 오늘 / 우리 이야기 탭 — 시간에 민감한 카드와 발견형 카드를 분리해 스크롤을 줄임.
+   Calendar.jsx의 .calendar-tabs(개별 필터 버튼)와는 용도가 달라 별도 컴포넌트로 둠 —
+   여긴 정확히 2개짜리 세그먼트 전환이라 폭 100%로 나눠 채우는 형태가 더 맞음.
+   필름 다이어리 톤: 필 배경 대신 다이어리 목차처럼 점선 밑줄 + 밑줄 표시. */
+.home-tabbar {
+  display: flex;
+  gap: 1.25rem;
+  border-bottom: 1px dashed rgba(255, 182, 193, 0.55);
+  padding: 0 0.2rem;
+}
+
+.home-tab {
+  border: none;
+  background: transparent;
+  color: var(--text-sub);
+  font-size: 0.85rem;
+  font-weight: var(--font-weight-bold);
+  font-family: inherit;
+  padding: 0.15rem 0 0.55rem;
+  cursor: pointer;
+  transition: var(--transition-fast);
+  position: relative;
+}
+
+.home-tab.active {
+  color: var(--color-primary-dark);
+}
+
+.home-tab.active::after {
+  content: '';
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--color-primary);
 }
 
 /* 스탯 아이콘/콘텐츠 (hero-stat-card 내부 공용) */

@@ -26,6 +26,7 @@ import NotificationPrimingModal from '../common/NotificationPrimingModal';
 import TutorialSlides from '../Onboarding/TutorialSlides';
 import WheelModal from '../Wheel/WheelModal';
 import HomeSkeleton from './HomeSkeleton';
+import mascotImg from '../images/mascot.png';
 import './Home.css';
 
 const Home = () => {
@@ -42,6 +43,7 @@ const Home = () => {
     () => !!location.state?.showTutorial
   );
   const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  const [activeTab, setActiveTab] = useState('today'); // 'today' | 'story' — 홈 화면 스크롤 단축용 탭 분리
   const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid, {
     includeCycles: false,
   });
@@ -261,13 +263,11 @@ const Home = () => {
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
         <div className="hero-photo-col">
+          <div className="hero-tape" />
           {heroImageUrl ? (
             <>
               <img src={heroImageUrl} alt="우리" className="hero-img" />
               <div className="hero-overlay" />
-              <div className="hero-text">
-                <div className="hero-dday"><HiHeart className="hero-dday-heart" />+{dday}</div>
-              </div>
             </>
           ) : (
             <div className="hero-img-placeholder">
@@ -276,6 +276,8 @@ const Home = () => {
               </p>
             </div>
           )}
+          <div className="hero-dday"><HiHeart className="hero-dday-heart" />+{dday}</div>
+          <img src={mascotImg} alt="" className="hero-mascot" />
         </div>
         <div className="hero-info-col">
           <div className="hero-stat-card">
@@ -312,210 +314,236 @@ const Home = () => {
         </div>
       </div>
 
-      {/* 여행 섹션 */}
-      <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
-        <div className="card-label">
-          {ongoingTrip
-            ? <HiMapPin className="card-label-icon" />
-            : <HiPaperAirplane className="card-label-icon" />
-          }
-          {ongoingTrip ? '지금 여행 중' : '다음 여행'}
-        </div>
-        {relevantTrip ? (
-          <>
-            <div className="trip-section-row">
-              <div className="trip-section-info">
-                <div className="trip-section-title">{relevantTrip.title}</div>
-                <div className="trip-section-sub">
-                  {ongoingTrip
-                    ? `Day ${ongoingDay} · ${ongoingTrip.destination || ''} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
-                    : `${nextTrip.destination || ''} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
-                  }
-                </div>
-              </div>
-              <span className={`trip-section-badge ${ongoingTrip ? 'ongoing' : 'upcoming'}`}>
-                {ongoingTrip ? '여행 중' : `D-${nextTripDays}`}
-              </span>
-            </div>
-            {ongoingTrip && todayItems.length > 0 && (
-              <div className="trip-today-schedule">
-                {todayItems.map((item, i) => (
-                  <div key={i} className="trip-sched-item">
-                    {item.time && <span className="trip-sched-time">{item.time}</span>}
-                    <span className="trip-sched-title">{item.title}</span>
-                  </div>
-                ))}
-              </div>
-            )}
-          </>
-        ) : (
-          <div className="trip-empty-state">
-            <HiPaperAirplane className="trip-empty-icon" />
-            <span className="trip-empty-text">다음 여행은 어디로~?</span>
-          </div>
-        )}
+      {/* 오늘 / 우리 이야기 탭 — 홈 화면 스크롤을 줄이기 위해 시간에 민감한 정보와 발견형 정보를 분리 */}
+      <div className="home-tabbar">
+        <button
+          type="button"
+          className={`home-tab ${activeTab === 'today' ? 'active' : ''}`}
+          onClick={() => setActiveTab('today')}
+        >
+          오늘
+        </button>
+        <button
+          type="button"
+          className={`home-tab ${activeTab === 'story' ? 'active' : ''}`}
+          onClick={() => setActiveTab('story')}
+        >
+          우리 이야기
+        </button>
       </div>
 
-      {/* 다음 일정 */}
-      {nextEvent && (
-        <div
-          className="home-card home-next-event"
-          onClick={() => navigate(`/calendar?date=${nextEvent.start.split('T')[0]}`)}
-        >
-          <div className="card-label">
-            <HiCalendarDays className="card-label-icon" />
-            다음 일정
-          </div>
-          <div className="next-event-content">
-            <div className="event-type-dot" style={{ background: eventTypeColor(nextEvent) }} />
-            <div className="next-event-info">
-              <div className="next-event-title">{nextEvent.title}</div>
-              <div className="next-event-date">{formatEventDate(nextEvent.start)}</div>
+      {activeTab === 'today' && (
+        <>
+          {/* 여행 섹션 */}
+          <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
+            <div className="card-label">
+              {ongoingTrip
+                ? <HiMapPin className="card-label-icon" />
+                : <HiPaperAirplane className="card-label-icon" />
+              }
+              {ongoingTrip ? '지금 여행 중' : '다음 여행'}
             </div>
-            <span className="card-arrow">›</span>
-          </div>
-        </div>
-      )}
-
-      {/* 디데이 */}
-      {ddayEvents.length > 0 && (
-        <div className="home-card home-dday-section">
-          <div className="card-label">
-            <HiSparkles className="card-label-icon" />
-            디데이
-          </div>
-          <div className="dday-list">
-            {ddayEvents.slice(0, 3).map((e) => {
-              const daysLeft = differenceInCalendarDays(parseISO(e.start), today);
-              return (
-                <div
-                  key={e.id}
-                  className="trip-section-row clickable"
-                  onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
-                >
+            {relevantTrip ? (
+              <>
+                <div className="trip-section-row">
                   <div className="trip-section-info">
-                    <div className="trip-section-title">{e.title}</div>
-                    <div className="trip-section-sub">{formatEventDate(e.start)}</div>
+                    <div className="trip-section-title">{relevantTrip.title}</div>
+                    <div className="trip-section-sub">
+                      {ongoingTrip
+                        ? `Day ${ongoingDay} · ${ongoingTrip.destination || ''} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
+                        : `${nextTrip.destination || ''} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
+                      }
+                    </div>
                   </div>
-                  <span className="trip-section-badge upcoming">
-                    {daysLeft > 0 ? `D-${daysLeft}` : '오늘'}
+                  <span className={`trip-section-badge ${ongoingTrip ? 'ongoing' : 'upcoming'}`}>
+                    {ongoingTrip ? '여행 중' : `D-${nextTripDays}`}
                   </span>
                 </div>
-              );
-            })}
-          </div>
-        </div>
-      )}
-
-      {/* 그날의 우리 (1~3년 전 오늘) */}
-      {yearAgoEvents.length > 0 && (
-        <div className="home-card home-year-ago">
-          <div className="card-label">
-            <HiPhoto className="card-label-icon" />
-            그날의 우리
-          </div>
-          {yearAgoEvents.map((e, i) => (
-            <div
-              key={i}
-              className="year-ago-item clickable"
-              onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
-            >
-              <div className="event-type-dot" style={{ background: eventTypeColor(e) }} />
-              <div className="year-ago-info">
-                <div className="year-ago-title">{e.title}</div>
-                <div className="year-ago-date">{formatYearAgoDate(e.start)}</div>
-              </div>
-              <span className="year-ago-badge">{e.yearsAgo}년 전</span>
-            </div>
-          ))}
-        </div>
-      )}
-
-      {/* 버킷리스트 진행률 + 돌림판 */}
-      {bucketStats.total > 0 && (
-        <div className="home-bucket-section">
-          <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
-            <div className="card-label">
-              <HiCheckCircle className="card-label-icon" />
-              버킷리스트 진행률
-            </div>
-            <div className="bucket-preview-row">
-              <div className="bucket-preview-bar-wrap">
-                <div
-                  className="bucket-preview-bar-fill"
-                  style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
-                />
-              </div>
-              <span className="bucket-preview-stat">
-                {bucketStats.completed}/{bucketStats.total} 완료
-              </span>
-            </div>
-          </div>
-          <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
-            <div className="card-label">
-              <span className="wheel-icon">🎡</span>
-              돌림판
-            </div>
-            <div className="wheel-button-hint">
-              항목을 선택해보세요
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* 추억 갤러리 바로가기 */}
-      <Link to="/memories" className="home-card home-memory-link">
-        <div className="card-label">
-          <HiPhoto className="card-label-icon" />
-          추억 갤러리
-        </div>
-        <div className="memory-link-content">
-          <span className="memory-link-text">우리의 소중한 순간들</span>
-          <span className="card-arrow">›</span>
-        </div>
-      </Link>
-
-      {/* 봉인 편지함 바로가기 */}
-      <Link to="/letters" className="home-card home-memory-link">
-        <div className="card-label">
-          <HiLockClosed className="card-label-icon" />
-          봉인 편지함
-        </div>
-        {lockedForMe.length > 0 ? (
-          <div className="trip-section-row">
-            <div className="trip-section-info">
-              <div className="trip-section-title">
-                봉인된 편지 <span className="sealed-accent-text">{lockedForMe.length}</span>통
-              </div>
-              <div className="trip-section-sub">
-                {nextUnlockMsg ? (
-                  <>
-                    가장 빠른 편지{' '}
-                    <span className="sealed-accent-text">
-                      {format(nextUnlockMsg.unlockAt.toDate(), 'M월 d일 (E) HH:mm', { locale: ko })}
-                    </span>{' '}
-                    공개
-                  </>
-                ) : (
-                  '작성자가 직접 공개할 때까지 봉인'
+                {ongoingTrip && todayItems.length > 0 && (
+                  <div className="trip-today-schedule">
+                    {todayItems.map((item, i) => (
+                      <div key={i} className="trip-sched-item">
+                        {item.time && <span className="trip-sched-time">{item.time}</span>}
+                        <span className="trip-sched-title">{item.title}</span>
+                      </div>
+                    ))}
+                  </div>
                 )}
+              </>
+            ) : (
+              <div className="trip-empty-state">
+                <HiPaperAirplane className="trip-empty-icon" />
+                <span className="trip-empty-text">다음 여행은 어디로~?</span>
               </div>
-            </div>
-            {nextUnlockMsg && (
-              <span className="trip-section-badge sealed">
-                {nextUnlockDays > 0 ? `D-${nextUnlockDays}` : '오늘'}
-              </span>
             )}
           </div>
-        ) : (
-          <div className="memory-link-content">
-            <span className="memory-link-text">
-              {sealedMessages.length > 0 ? `${sealedMessages.length}통의 편지` : '파트너에게 편지를 남겨보세요'}
-            </span>
-            <span className="card-arrow">›</span>
-          </div>
-        )}
-      </Link>
+
+          {/* 다음 일정 */}
+          {nextEvent && (
+            <div
+              className="home-card home-next-event"
+              onClick={() => navigate(`/calendar?date=${nextEvent.start.split('T')[0]}`)}
+            >
+              <div className="card-label">
+                <HiCalendarDays className="card-label-icon" />
+                다음 일정
+              </div>
+              <div className="next-event-content">
+                <div className="event-type-dot" style={{ background: eventTypeColor(nextEvent) }} />
+                <div className="next-event-info">
+                  <div className="next-event-title">{nextEvent.title}</div>
+                  <div className="next-event-date">{formatEventDate(nextEvent.start)}</div>
+                </div>
+                <span className="card-arrow">›</span>
+              </div>
+            </div>
+          )}
+
+          {/* 디데이 */}
+          {ddayEvents.length > 0 && (
+            <div className="home-card home-dday-section">
+              <div className="card-label">
+                <HiSparkles className="card-label-icon" />
+                디데이
+              </div>
+              <div className="dday-list">
+                {ddayEvents.slice(0, 3).map((e) => {
+                  const daysLeft = differenceInCalendarDays(parseISO(e.start), today);
+                  return (
+                    <div
+                      key={e.id}
+                      className="trip-section-row clickable"
+                      onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
+                    >
+                      <div className="trip-section-info">
+                        <div className="trip-section-title">{e.title}</div>
+                        <div className="trip-section-sub">{formatEventDate(e.start)}</div>
+                      </div>
+                      <span className="trip-section-badge upcoming">
+                        {daysLeft > 0 ? `D-${daysLeft}` : '오늘'}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          )}
+        </>
+      )}
+
+      {activeTab === 'story' && (
+        <>
+          {/* 그날의 우리 (1~3년 전 오늘) */}
+          {yearAgoEvents.length > 0 && (
+            <div className="home-card home-year-ago">
+              <div className="card-label">
+                <HiPhoto className="card-label-icon" />
+                그날의 우리
+              </div>
+              {yearAgoEvents.map((e, i) => (
+                <div
+                  key={i}
+                  className="year-ago-item clickable"
+                  onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
+                >
+                  <div className="event-type-dot" style={{ background: eventTypeColor(e) }} />
+                  <div className="year-ago-info">
+                    <div className="year-ago-title">{e.title}</div>
+                    <div className="year-ago-date">{formatYearAgoDate(e.start)}</div>
+                  </div>
+                  <span className="year-ago-badge">{e.yearsAgo}년 전</span>
+                </div>
+              ))}
+            </div>
+          )}
+
+          {/* 버킷리스트 진행률 + 돌림판 */}
+          {bucketStats.total > 0 && (
+            <div className="home-bucket-section">
+              <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
+                <div className="card-label">
+                  <HiCheckCircle className="card-label-icon" />
+                  버킷리스트 진행률
+                </div>
+                <div className="bucket-preview-row">
+                  <div className="bucket-preview-bar-wrap">
+                    <div
+                      className="bucket-preview-bar-fill"
+                      style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
+                    />
+                  </div>
+                  <span className="bucket-preview-stat">
+                    {bucketStats.completed}/{bucketStats.total} 완료
+                  </span>
+                </div>
+              </div>
+              <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
+                <div className="card-label">
+                  <span className="wheel-icon">🎡</span>
+                  돌림판
+                </div>
+                <div className="wheel-button-hint">
+                  항목을 선택해보세요
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* 추억 갤러리 바로가기 */}
+          <Link to="/memories" className="home-card home-memory-link">
+            <div className="card-label">
+              <HiPhoto className="card-label-icon" />
+              추억 갤러리
+            </div>
+            <div className="memory-link-content">
+              <span className="memory-link-text">우리의 소중한 순간들</span>
+              <span className="card-arrow">›</span>
+            </div>
+          </Link>
+
+          {/* 봉인 편지함 바로가기 */}
+          <Link to="/letters" className="home-card home-memory-link">
+            <div className="card-label">
+              <HiLockClosed className="card-label-icon" />
+              봉인 편지함
+            </div>
+            {lockedForMe.length > 0 ? (
+              <div className="trip-section-row">
+                <div className="trip-section-info">
+                  <div className="trip-section-title">
+                    봉인된 편지 <span className="sealed-accent-text">{lockedForMe.length}</span>통
+                  </div>
+                  <div className="trip-section-sub">
+                    {nextUnlockMsg ? (
+                      <>
+                        가장 빠른 편지{' '}
+                        <span className="sealed-accent-text">
+                          {format(nextUnlockMsg.unlockAt.toDate(), 'M월 d일 (E) HH:mm', { locale: ko })}
+                        </span>{' '}
+                        공개
+                      </>
+                    ) : (
+                      '작성자가 직접 공개할 때까지 봉인'
+                    )}
+                  </div>
+                </div>
+                {nextUnlockMsg && (
+                  <span className="trip-section-badge sealed">
+                    {nextUnlockDays > 0 ? `D-${nextUnlockDays}` : '오늘'}
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="memory-link-content">
+                <span className="memory-link-text">
+                  {sealedMessages.length > 0 ? `${sealedMessages.length}통의 편지` : '파트너에게 편지를 남겨보세요'}
+                </span>
+                <span className="card-arrow">›</span>
+              </div>
+            )}
+          </Link>
+        </>
+      )}
 
       {/* 돌림판 모달 */}
       <WheelModal
