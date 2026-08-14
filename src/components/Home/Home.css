@@ -324,6 +324,19 @@
   gap: 0.625rem;
 }
 
+/* 오늘 일정 카드처럼 한 카드 안에 여러 줄이 들어갈 때 각 줄이 개별 클릭 대상인 경우 */
+.next-event-content.clickable {
+  cursor: pointer;
+  border-radius: 0.5rem;
+  padding: 0.25rem;
+  margin: -0.25rem;
+  transition: background 0.12s;
+}
+
+.next-event-content.clickable:hover {
+  background: rgba(255, 182, 193, 0.08);
+}
+
 .event-type-dot {
   width: 8px;
   height: 8px;
@@ -349,6 +362,15 @@
   font-size: 0.72rem;
   color: var(--color-gray-500);
   margin-top: 0.1rem;
+}
+
+.next-event-desc {
+  font-size: 0.72rem;
+  color: var(--text-sub);
+  margin-top: 0.1rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 /* 여행 섹션 (동적) */
@@ -436,25 +458,6 @@
 .sealed-accent-text {
   color: var(--color-primary);
   font-weight: 800;
-}
-
-/* 여행 섹션 빈 상태 */
-.trip-empty-state {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  padding: 0.25rem 0;
-}
-
-.trip-empty-icon {
-  font-size: 1rem;
-  flex-shrink: 0;
-  opacity: 0.7;
-}
-
-.trip-empty-text {
-  font-size: 0.82rem;
-  color: var(--color-gray-400);
 }
 
 /* 오늘의 여행 일정 */

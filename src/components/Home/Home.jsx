@@ -177,10 +177,22 @@ const Home = () => {
     try { return isSameMonth(parseISO(e.start), today); } catch { return false; }
   }).length;
 
-  // 다음 일정
+  // 오늘 일정 (오늘이 [start, end) 범위 안에 걸치는 이벤트 — 반열린 구간 비교라
+  // 하루짜리(end가 당일 23:59:59)든 여러 날짜(end가 다음날 00:00 배타적)든 동일하게 맞음)
+  const todayStart = startOfDay(today);
+  const todayEnd = addDays(todayStart, 1);
+  const todayEvents = events.filter(e => {
+    try {
+      const s = parseISO(e.start);
+      const en = parseISO(e.end);
+      return s < todayEnd && en > todayStart;
+    } catch { return false; }
+  });
+
+  // 다음 일정 — 오늘 일정과 겹치지 않도록 내일 이후 시작하는 것만
   const nextEvent = events
     .filter(e => {
-      try { return parseISO(e.start) >= startOfDay(today); } catch { return false; }
+      try { return parseISO(e.start) >= todayEnd; } catch { return false; }
     })
     .sort((a, b) => parseISO(a.start) - parseISO(b.start))[0] || null;
 
@@ -366,49 +378,70 @@ const Home = () => {
           exit="exit"
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
-          {/* 여행 섹션 */}
-          <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
-            <div className="card-label">
-              {ongoingTrip
-                ? <HiMapPin className="card-label-icon" />
-                : <HiPaperAirplane className="card-label-icon" />
-              }
-              {ongoingTrip ? '지금 여행 중' : '다음 여행'}
-            </div>
-            {relevantTrip ? (
-              <>
-                <div className="trip-section-row">
-                  <div className="trip-section-info">
-                    <div className="trip-section-title">{relevantTrip.title}</div>
-                    <div className="trip-section-sub">
-                      {ongoingTrip
-                        ? `Day ${ongoingDay} · ${ongoingTrip.destination || ''} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
-                        : `${nextTrip.destination || ''} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
-                      }
-                    </div>
-                  </div>
-                  <span className={`trip-section-badge ${ongoingTrip ? 'ongoing' : 'upcoming'}`}>
-                    {ongoingTrip ? '여행 중' : `D-${nextTripDays}`}
-                  </span>
-                </div>
-                {ongoingTrip && todayItems.length > 0 && (
-                  <div className="trip-today-schedule">
-                    {todayItems.map((item, i) => (
-                      <div key={i} className="trip-sched-item">
-                        {item.time && <span className="trip-sched-time">{item.time}</span>}
-                        <span className="trip-sched-title">{item.title}</span>
-                      </div>
-                    ))}
-                  </div>
-                )}
-              </>
-            ) : (
-              <div className="trip-empty-state">
-                <HiPaperAirplane className="trip-empty-icon" />
-                <span className="trip-empty-text">다음 여행은 어디로~?</span>
+          {/* 여행 섹션 — 다음/진행 중인 여행이 없으면 카드 자체를 표시 안 함 */}
+          {relevantTrip && (
+            <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
+              <div className="card-label">
+                {ongoingTrip
+                  ? <HiMapPin className="card-label-icon" />
+                  : <HiPaperAirplane className="card-label-icon" />
+                }
+                {ongoingTrip ? '지금 여행 중' : '다음 여행'}
               </div>
-            )}
-          </div>
+              <div className="trip-section-row">
+                <div className="trip-section-info">
+                  <div className="trip-section-title">{relevantTrip.title}</div>
+                  <div className="trip-section-sub">
+                    {ongoingTrip
+                      ? `Day ${ongoingDay} · ${ongoingTrip.destination || ''} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
+                      : `${nextTrip.destination || ''} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
+                    }
+                  </div>
+                </div>
+                <span className={`trip-section-badge ${ongoingTrip ? 'ongoing' : 'upcoming'}`}>
+                  {ongoingTrip ? '여행 중' : `D-${nextTripDays}`}
+                </span>
+              </div>
+              {ongoingTrip && todayItems.length > 0 && (
+                <div className="trip-today-schedule">
+                  {todayItems.map((item, i) => (
+                    <div key={i} className="trip-sched-item">
+                      {item.time && <span className="trip-sched-time">{item.time}</span>}
+                      <span className="trip-sched-title">{item.title}</span>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* 오늘 일정 */}
+          {todayEvents.length > 0 && (
+            <div className="home-card home-today-event">
+              <div className="card-label">
+                <HiCalendarDays className="card-label-icon" />
+                오늘 일정
+              </div>
+              <div className="dday-list">
+                {todayEvents.map((e) => (
+                  <div
+                    key={e.id}
+                    className="next-event-content clickable"
+                    onClick={() => navigate(`/calendar?date=${format(today, 'yyyy-MM-dd')}`)}
+                  >
+                    <div className="event-type-dot" style={{ background: eventTypeColor(e) }} />
+                    <div className="next-event-info">
+                      <div className="next-event-title">{e.title}</div>
+                      {e.extendedProps?.description && (
+                        <div className="next-event-desc">{e.extendedProps.description}</div>
+                      )}
+                    </div>
+                    <span className="card-arrow">›</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
 
           {/* 다음 일정 */}
           {nextEvent && (
