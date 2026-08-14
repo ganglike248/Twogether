@@ -174,14 +174,36 @@ const Home = () => {
     })
     .sort((a, b) => parseISO(a.start) - parseISO(b.start));
 
-  // 1년 전 오늘 ±3일 이벤트
-  const oneYearAgo = subYears(today, 1);
-  const yearAgoEvents = events.filter(e => {
-    try {
-      const d = parseISO(e.start);
-      return Math.abs(differenceInCalendarDays(d, oneYearAgo)) <= 3;
-    } catch { return false; }
+  // 그날의 우리 — 1~3년 전 오늘 ±3일 이벤트 (personal_events도 useCalendarData가 이미 events에 합쳐서 반환함).
+  // 연차별로 최대 2개까지 뽑은 뒤, 라운드로빈으로 채워 매칭이 있는 연차는 최소 1개씩 반드시 보이도록 함
+  // (단순히 앞에서부터 4개만 자르면 1년 전 기록이 2년/3년 전보다 먼저 쌓여 뒤쪽 연차가 통째로 밀려날 수 있음).
+  const MEMORY_YEARS_AGO = [1, 2, 3];
+  const MAX_PER_YEAR = 2;
+  const MAX_MEMORY_TOTAL = 4;
+  const memoryCandidatesByYear = MEMORY_YEARS_AGO.map((yearsAgo) => {
+    const anchor = subYears(today, yearsAgo);
+    return events
+      .filter(e => {
+        try {
+          const d = parseISO(e.start);
+          return Math.abs(differenceInCalendarDays(d, anchor)) <= 3;
+        } catch { return false; }
+      })
+      .sort((a, b) => {
+        const diffA = Math.abs(differenceInCalendarDays(parseISO(a.start), anchor));
+        const diffB = Math.abs(differenceInCalendarDays(parseISO(b.start), anchor));
+        return diffA - diffB;
+      })
+      .slice(0, MAX_PER_YEAR)
+      .map(e => ({ ...e, yearsAgo }));
   });
+  const yearAgoEvents = [];
+  for (let round = 0; round < MAX_PER_YEAR && yearAgoEvents.length < MAX_MEMORY_TOTAL; round++) {
+    for (const candidates of memoryCandidatesByYear) {
+      if (yearAgoEvents.length >= MAX_MEMORY_TOTAL) break;
+      if (candidates[round]) yearAgoEvents.push(candidates[round]);
+    }
+  }
 
   // 다음 100일 기념일 (dday=0이면 아직 로드 전이므로 100 기준으로 계산)
   const nextMilestone = dday > 0 ? Math.ceil(dday / 100) * 100 : 100;
@@ -385,14 +407,14 @@ const Home = () => {
         </div>
       )}
 
-      {/* 1년 전 오늘 */}
+      {/* 그날의 우리 (1~3년 전 오늘) */}
       {yearAgoEvents.length > 0 && (
         <div className="home-card home-year-ago">
           <div className="card-label">
             <HiPhoto className="card-label-icon" />
-            1년 전 오늘
+            그날의 우리
           </div>
-          {yearAgoEvents.slice(0, 2).map((e, i) => (
+          {yearAgoEvents.map((e, i) => (
             <div
               key={i}
               className="year-ago-item clickable"
@@ -403,7 +425,7 @@ const Home = () => {
                 <div className="year-ago-title">{e.title}</div>
                 <div className="year-ago-date">{formatYearAgoDate(e.start)}</div>
               </div>
-              <span className="card-arrow">›</span>
+              <span className="year-ago-badge">{e.yearsAgo}년 전</span>
             </div>
           ))}
         </div>

@@ -486,7 +486,12 @@
   width: 100%;
 }
 
-/* 1년 전 오늘 */
+/* 그날의 우리 (1~3년 전 오늘) — 다른 홈 카드보다 존재감을 살리기 위해 은은한 그라데이션 배경을 씀 */
+.home-year-ago {
+  background: linear-gradient(135deg, #fff8ec 0%, #fff0f2 100%);
+  border-color: rgba(255, 179, 71, 0.3);
+}
+
 .year-ago-item {
   display: flex;
   align-items: center;
@@ -502,15 +507,28 @@
 }
 
 .year-ago-item.clickable:hover {
-  background: rgba(255, 182, 193, 0.08);
+  background: rgba(255, 179, 71, 0.1);
 }
 
-.year-ago-info { flex: 1; }
+.year-ago-info { flex: 1; min-width: 0; }
 
 .year-ago-title {
-  font-size: 0.85rem;
-  font-weight: 600;
+  font-size: 0.9rem;
+  font-weight: 700;
   color: var(--color-gray-800);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.year-ago-badge {
+  font-size: 0.68rem;
+  font-weight: 700;
+  padding: 0.2rem 0.55rem;
+  border-radius: 999px;
+  flex-shrink: 0;
+  background: rgba(255, 179, 71, 0.2);
+  color: #b26a00;
 }
 
 .year-ago-date {
