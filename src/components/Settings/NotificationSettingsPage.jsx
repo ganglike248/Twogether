@@ -25,6 +25,7 @@ export const NOTIFICATION_TYPES = [
   { key: 'tomorrowReminder', category: '일정', label: '내일 일정 리마인드', desc: '내일 일정이 있으면 전날 저녁 9시', defaultOn: true },
   { key: 'tripDday', category: 'D-day', label: '여행 시작 D-day', desc: '여행 시작 3일 전 / 하루 전, 매일 오전 9시', defaultOn: true },
   { key: 'anniversaryDday', category: 'D-day', label: '기념일 D-day', desc: '100일 단위·매년 기념일 당일, 매일 오전 9시', defaultOn: true },
+  { key: 'ddayReminder', category: 'D-day', label: '디데이 D-day', desc: '디데이로 표시한 일정 3일 전 / 하루 전, 매일 오전 9시', defaultOn: true },
   { key: 'sealedMessageArrived', category: '봉인 편지', label: '봉인 편지 도착', desc: '파트너가 나에게 편지를 봉인했을 때', defaultOn: true },
   { key: 'sealedMessageUnlocked', category: '봉인 편지', label: '봉인 편지 공개', desc: '봉인했던 편지가 공개됐을 때', defaultOn: true },
 ];

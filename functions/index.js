@@ -455,6 +455,52 @@ exports.sendMorningReminders = functions.pubsub
         }
       }
 
+      // 디데이(isDday) D-3 / D-1 — EventModal "디데이로 표시" 체크박스로 지정한 일정.
+      // 커플 공유 일정(events) + 개인 일정(personal_events) 양쪽 다 대상.
+      const ddayStarts = [`${d1}T00:00:00`, `${d3}T00:00:00`];
+
+      const coupleDdaySnap = await db.collection('events')
+        .where('isDday', '==', true)
+        .where('start', 'in', ddayStarts)
+        .get();
+
+      const ddayCoupleIds = [...new Set(coupleDdaySnap.docs.map((d) => d.data().coupleId).filter(Boolean))];
+      await Promise.all(ddayCoupleIds.map(async (cid) => {
+        if (membersByCouple.has(cid)) return;
+        const snap = await db.collection('couples').doc(cid).get();
+        membersByCouple.set(cid, snap.data()?.members || []);
+      }));
+
+      for (const doc of coupleDdaySnap.docs) {
+        const { coupleId, title, start } = doc.data();
+        if (!coupleId) continue;
+        const ddayLabel = start === ddayStarts[0] ? '내일' : '3일 후';
+        const members = membersByCouple.get(coupleId) || [];
+        for (const uid of members) {
+          await sendPushToUser(uid, {
+            title: `${title}까지 ${ddayLabel}`,
+            body: '디데이로 표시해둔 일정이에요',
+            link: '/calendar',
+          }, 'sendMorningReminders', 'ddayReminder', true);
+        }
+      }
+
+      const personalDdaySnap = await db.collection('personal_events')
+        .where('isDday', '==', true)
+        .where('start', 'in', ddayStarts)
+        .get();
+
+      for (const doc of personalDdaySnap.docs) {
+        const { userId, title, start } = doc.data();
+        if (!userId) continue;
+        const ddayLabel = start === ddayStarts[0] ? '내일' : '3일 후';
+        await sendPushToUser(userId, {
+          title: `${title}까지 ${ddayLabel}`,
+          body: '디데이로 표시해둔 일정이에요',
+          link: '/calendar',
+        }, 'sendMorningReminders', 'ddayReminder', true);
+      }
+
       // 기념일 D-day + D-1 (모든 커플의 anniversaryDate를 순회해야 해서 커플 전체 스캔 필요.
       // anniversaryDate가 없어도 이벤트데이(발렌타인데이 등)는 대상이라 members만 확인)
       const todayStr = getKstDateStr(0);
