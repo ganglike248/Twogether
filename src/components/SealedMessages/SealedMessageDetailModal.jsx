@@ -4,7 +4,6 @@ import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { HiEnvelopeOpen, HiXMark, HiLockClosed } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import {
   getSealedMessageContent,
@@ -26,7 +25,6 @@ const toLocalInputValue = (timestamp) => {
 const SealedMessageDetailModal = ({ message, onClose }) => {
   const { user, coupleId } = useAuthContext();
   const canClick = useDoubleClickPrevention(800);
-  useModalBackButton(true, onClose);
 
   const isAuthor = message.authorUid === user?.uid;
   const [content, setContent] = useState(null);

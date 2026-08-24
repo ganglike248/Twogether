@@ -1,6 +1,6 @@
 // src/components/Profile/ProfilePage.jsx
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useBlocker } from 'react-router-dom';
+import { useNavigate, useLocation, useBlocker, useSearchParams } from 'react-router-dom';
 import { doc, updateDoc } from 'firebase/firestore';
 import { updateProfile, GoogleAuthProvider } from 'firebase/auth';
 import { toast } from 'react-toastify';
@@ -23,6 +23,7 @@ import './ProfilePage.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, userDoc, coupleDoc, coupleId } = useAuthContext();
   const [googleLinkLoading, setGoogleLinkLoading] = useState(false);
   const [showUnlinkGoogleModal, setShowUnlinkGoogleModal] = useState(false);
@@ -36,7 +37,10 @@ const ProfilePage = () => {
   const [displayName, setDisplayName] = useState('');
   const [origName, setOrigName] = useState('');
 
-  const [showChangePasswordModal, setShowChangePasswordModal] = useState(false);
+  // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate 훅
+  // (useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
+  const [searchParams] = useSearchParams();
+  const showChangePasswordModal = searchParams.get('modal') === 'password';
   const [loading, setLoading] = useState(false);
   const [saved, setSaved] = useState(false);
   const [showUnsavedModal, setShowUnsavedModal] = useState(false);
@@ -66,8 +70,15 @@ const ProfilePage = () => {
     pendingHeroFile !== null ||
     pendingHeroDelete;
 
-  // React Router 네비게이션 차단 (nav바, 헤더, 뒤로가기 버튼 포함)
-  const blocker = useBlocker(isDirty);
+  // React Router 네비게이션 차단 (nav바, 헤더, 뒤로가기 버튼 포함). 단, 같은 페이지
+  // (/profile) 안에서 ?modal=password만 붙었다 떨어지는 이동(비밀번호 변경 모달 열기/닫기)은
+  // 실제로 페이지를 벗어나는 게 아니므로 차단 대상에서 제외 — 안 그러면 프로필을 수정하다가
+  // 비밀번호 변경 버튼만 눌러도 "저장 안 하고 나가시겠습니까?"가 뜨는 오탐이 생김.
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => {
+    if (!isDirty) return false;
+    if (nextLocation.pathname === currentLocation.pathname) return false;
+    return true;
+  });
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -353,7 +364,7 @@ const ProfilePage = () => {
           <button
             type="button"
             className="profile-change-password-btn"
-            onClick={() => setShowChangePasswordModal(true)}
+            onClick={() => navigate('/profile?modal=password', { state: { modal: true } })}
             disabled={loading}
           >
             <HiLockClosed className="profile-field-icon" />
@@ -599,7 +610,15 @@ const ProfilePage = () => {
       {/* 비밀번호 변경 모달 */}
       <ChangePasswordModal
         isOpen={showChangePasswordModal}
-        onClose={() => setShowChangePasswordModal(false)}
+        onClose={() => {
+          // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라
+          // navigate(-1)이 앱 밖으로 나갈 수 있어 대신 /profile로 보냄.
+          if (location.key === 'default') {
+            navigate('/profile', { replace: true });
+          } else {
+            navigate(-1);
+          }
+        }}
       />
     </div>
   );

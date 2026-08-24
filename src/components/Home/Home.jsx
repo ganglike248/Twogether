@@ -1,6 +1,6 @@
 // src/components/Home/Home.jsx
 import React, { useEffect, useRef, useState } from 'react';
-import { Link, useNavigate, useLocation } from 'react-router-dom';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import {
   differenceInCalendarDays, differenceInMonths, addMonths,
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
@@ -52,7 +52,10 @@ const Home = () => {
   const [showTutorial, setShowTutorial] = useState(
     () => !!location.state?.showTutorial
   );
-  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
+  // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate
+  // 훅(useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
+  const [searchParams] = useSearchParams();
+  const isWheelModalOpen = searchParams.get('modal') === 'wheel';
   const [activeTab, setActiveTab] = useState('today'); // 'today' | 'story' — 홈 화면 스크롤 단축용 탭 분리
   const [tabDirection, setTabDirection] = useState(1); // 전환 애니메이션 방향 — 오늘→우리 이야기(1) / 반대(-1)
   const handleTabChange = (tab) => {
@@ -593,7 +596,7 @@ const Home = () => {
                   </span>
                 </div>
               </div>
-              <div className="home-card home-wheel-button" onClick={() => setIsWheelModalOpen(true)}>
+              <div className="home-card home-wheel-button" onClick={() => navigate('/?modal=wheel', { state: { modal: true } })}>
                 <div className="card-label">
                   <span className="wheel-icon">🎡</span>
                   돌림판
@@ -611,7 +614,15 @@ const Home = () => {
       {/* 돌림판 모달 */}
       <WheelModal
         isOpen={isWheelModalOpen}
-        onClose={() => setIsWheelModalOpen(false)}
+        onClose={() => {
+          // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라
+          // navigate(-1)이 앱 밖으로 나갈 수 있어 대신 홈으로 보냄.
+          if (location.key === 'default') {
+            navigate('/', { replace: true });
+          } else {
+            navigate(-1);
+          }
+        }}
         bucketList={bucketList}
         customCategories={customCategories}
       />

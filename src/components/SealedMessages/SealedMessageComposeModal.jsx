@@ -2,7 +2,6 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { HiPencilSquare, HiXMark } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createSealedMessage } from '../../services/sealedMessageService';
@@ -21,7 +20,6 @@ const SealedMessageComposeModal = ({ onClose }) => {
   const { user, coupleId, partnerDoc } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(800);
-  useModalBackButton(true, onClose);
 
   const [title, setTitle] = useState('');
   const [content, setContent] = useState('');

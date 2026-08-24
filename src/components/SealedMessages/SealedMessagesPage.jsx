@@ -1,6 +1,6 @@
 // src/components/SealedMessages/SealedMessagesPage.jsx
 import React, { useState, useEffect, useMemo } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { HiLockClosed, HiLockOpen, HiPlus, HiEnvelope, HiArrowLeft } from 'react-icons/hi2';
@@ -30,11 +30,26 @@ const formatUnlockLabel = (msg) => {
 
 const SealedMessagesPage = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { user, coupleId, coupleDoc, getMemberName } = useAuthContext();
   const [messages, setMessages] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
-  const [showCompose, setShowCompose] = useState(false);
-  const [selected, setSelected] = useState(null);
+  // 모달 열림 상태를 useState 대신 쿼리에서 파생 — 손수 만든 pushState/popstate 훅
+  // (useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
+  const [searchParams] = useSearchParams();
+  const showCompose = searchParams.get('modal') === 'compose';
+  const selectedId = searchParams.get('letter');
+  const selected = selectedId ? messages.find((m) => m.id === selectedId) || null : null;
+
+  // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
+  // 앱 밖으로 나갈 수 있어 대신 /letters로 보냄 — 캘린더 closeModal과 동일한 패턴.
+  const closeModal = () => {
+    if (location.key === 'default') {
+      navigate('/letters', { replace: true });
+    } else {
+      navigate(-1);
+    }
+  };
 
   useEffect(() => {
     if (!coupleId) return;
@@ -80,7 +95,7 @@ const SealedMessagesPage = () => {
           </button>
           <p className="sm-page-title">봉인 편지함</p>
         </div>
-        <button className="sm-write-btn" onClick={() => setShowCompose(true)}>
+        <button className="sm-write-btn" onClick={() => navigate('/letters?modal=compose', { state: { modal: true } })}>
           <HiPlus /> 편지 쓰기
         </button>
       </div>
@@ -100,7 +115,7 @@ const SealedMessagesPage = () => {
                 key={msg.id}
                 className={`sm-item ${openable ? '' : 'sm-item--locked'}`}
                 style={{ borderLeftColor: authorColor(msg.authorUid) }}
-                onClick={() => openable && setSelected(msg)}
+                onClick={() => openable && navigate(`/letters?letter=${msg.id}`, { state: { modal: true } })}
               >
                 {msg.isUnlocked ? (
                   <HiLockOpen className="sm-item-icon sm-item-icon--unlocked" />
@@ -134,10 +149,10 @@ const SealedMessagesPage = () => {
       )}
 
       {showCompose && (
-        <SealedMessageComposeModal onClose={() => setShowCompose(false)} />
+        <SealedMessageComposeModal onClose={closeModal} />
       )}
       {selected && (
-        <SealedMessageDetailModal message={selected} onClose={() => setSelected(null)} />
+        <SealedMessageDetailModal message={selected} onClose={closeModal} />
       )}
     </div>
   );

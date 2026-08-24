@@ -1,5 +1,6 @@
 // src/components/BucketList/BucketListPage.jsx
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
@@ -68,16 +69,25 @@ function BucketListPage() {
   const { coupleId } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
+  const navigate = useNavigate();
+  const location = useLocation();
   const [bucketList, setBucketList] = useState([]);
   const [customCategories, setCustomCategories] = useState({});
   const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
   const [activeTab, setActiveTab] = useState('pending');
-  const [isWheelModalOpen, setIsWheelModalOpen] = useState(false);
   const [tabFilters, setTabFilters] = useState({ pending: 'all', completed: 'all' });
   const [isLoading, setIsLoading] = useState(true);
 
-  // 모달 상태 통합 관리
-  const [modalState, setModalState] = useState({ type: null, data: null });
+  // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate
+  // 훅(useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
+  // 폼 데이터(editForm/addForm 등)는 그대로 useState — "무엇이 열려있는지"만 URL이 결정.
+  const [searchParams] = useSearchParams();
+  const modalType = searchParams.get('modal');
+  const modalState = { type: modalType, data: searchParams.get('from') === 'edit' ? 'from-edit' : null };
+  const isWheelModalOpen = modalType === 'wheel';
+
+  const openModal = (type, extra = '') =>
+    navigate(`/bucket?modal=${type}${extra}`, { state: { modal: true } });
 
   // 모달 타입별 폼 데이터
   const [addForm, setAddForm] = useState({ title: '', content: '', category: 'food' });
@@ -158,11 +168,11 @@ function BucketListPage() {
     // 필터된 카테고리가 있으면 그것을 기본값으로, 아니면 첫 번째 카테고리
     const defaultCategory = currentFilter !== 'all' ? currentFilter : getFirstCategory();
     setAddForm(f => ({ ...f, category: defaultCategory }));
-    setModalState({ type: 'add', data: null });
+    openModal('add');
   };
 
   const handleOpenCategoryManager = () => {
-    setModalState({ type: 'categoryManager', data: null });
+    openModal('categoryManager');
   };
 
   const handleSaveCategories = async (updatedCategories) => {
@@ -207,7 +217,7 @@ function BucketListPage() {
   const handleOpenDateModal = useCallback((id) => {
     setSelectedItemId(id);
     setCompletionDate(format(new Date(), 'yyyy-MM-dd')); // 오늘 날짜 기본값
-    setModalState({ type: 'date', data: null });
+    openModal('date');
   }, []);
 
   const handleCompleteWithDate = useCallback(async () => {
@@ -253,13 +263,20 @@ function BucketListPage() {
     }
   }, [editForm.id]);
 
+  // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
+  // 앱 밖으로 나갈 수 있어 대신 /bucket으로 보냄 — 캘린더 closeModal과 동일한 패턴.
   const closeModal = useCallback(() => {
-    setModalState({ type: null, data: null });
     setCompletionDate('');
     setSelectedItemId(null);
     setAddForm(f => ({ ...f, category: getFirstCategory() }));
     setShowDeleteConfirm(false);
-  }, []);
+    if (location.key === 'default') {
+      navigate('/bucket', { replace: true });
+    } else {
+      navigate(-1);
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [location.key, navigate]);
 
   const handleOpenEditModal = useCallback((item) => {
     // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
@@ -276,7 +293,7 @@ function BucketListPage() {
       completed: item.completed,
       completedAt: item.completedAt
     });
-    setModalState({ type: 'edit', data: item });
+    openModal('edit');
   }, []);
 
   const handleEditSave = useCallback(async () => {
@@ -298,7 +315,7 @@ function BucketListPage() {
 
   const handleEditComplete = useCallback(() => {
     setSelectedItemId(editForm.id);
-    setModalState({ type: 'date', data: 'from-edit' });
+    openModal('date', '&from=edit');
   }, [editForm.id]);
 
   const handleEditUncheck = async (id = editForm.id) => {
@@ -403,7 +420,7 @@ function BucketListPage() {
         <button className="bucket-add-top" onClick={handleOpenAddModal}>
           <MdAdd className="add-icon" color="#51cf66" /> 새로운 버킷 추가
         </button>
-        <button className="bucket-wheel-btn" onClick={() => setIsWheelModalOpen(true)} title="돌림판으로 선택">
+        <button className="bucket-wheel-btn" onClick={() => openModal('wheel')} title="돌림판으로 선택">
           🎡
         </button>
       </div>
@@ -603,7 +620,7 @@ function BucketListPage() {
               onClick={() => {
                 setSelectedItemId(editForm.id);
                 setCompletionDate(editForm.completedAt);
-                setModalState({ type: 'date', data: 'from-edit' });
+                openModal('date', '&from=edit');
               }}
               style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', marginLeft: '0.5rem' }}
             >
@@ -669,7 +686,7 @@ function BucketListPage() {
       {/* 돌림판 모달 */}
       <WheelModal
         isOpen={isWheelModalOpen}
-        onClose={() => setIsWheelModalOpen(false)}
+        onClose={closeModal}
         bucketList={bucketList}
         customCategories={customCategories}
       />

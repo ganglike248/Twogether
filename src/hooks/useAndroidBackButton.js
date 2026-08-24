@@ -12,9 +12,10 @@ const EXIT_CONFIRM_WINDOW_MS = 2000;
 // 잘 안 쌓이는데, @capacitor/app 리스너를 안 달면(기본 동작에 맡기면) 웹뷰가 "더 갈 곳 없음"
 // 상태에서 뒤로가기를 그냥 앱 종료로 처리해버림 — 그래서 아래처럼 직접 판단해서 처리함.
 //
-// 우선순위: ① 갈 수 있는 히스토리가 있으면(모달 열림 등) 그쪽으로 이동 → useModalBackButton의
-// popstate 리스너가 그대로 받아서 모달을 닫음 ② 홈이 아니면 홈으로 ③ 이미 홈이면 한 번 더
-// 눌러야 종료(토스트 안내)
+// 우선순위: ① 갈 수 있는 히스토리가 있으면(모달 열림 등) 그쪽으로 이동 → 모달들이
+// ?modal=… 같은 쿼리 파라미터로 열려있는 URL을 navigate(-1)이 그대로 벗어나면서 닫힘
+// (모달마다 손수 만든 pushState/popstate 훅 없이, React Router 히스토리 하나로 통일됨)
+// ② 홈이 아니면 홈으로 ③ 이미 홈이면 한 번 더 눌러야 종료(토스트 안내)
 const useAndroidBackButton = () => {
   const navigate = useNavigate();
   const location = useLocation();

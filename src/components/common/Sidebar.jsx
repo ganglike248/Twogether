@@ -1,33 +1,55 @@
-import React, { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useMemo } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { HiXMark, HiUser, HiCog, HiArrowRightOnRectangle, HiUsers } from 'react-icons/hi2';
 import { MdFavorite } from 'react-icons/md';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { signOut } from '../../services/authService';
 import { calcDday } from '../../utils/dataUtils';
 import { version } from '../../../package.json';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
 import './Sidebar.css';
 
 const Sidebar = ({ isOpen, onClose }) => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { userDoc, partnerDoc, coupleDoc } = useAuthContext();
-  const [showLogoutModal, setShowLogoutModal] = useState(false);
-  useModalBackButton(isOpen, onClose);
-  useModalBackButton(showLogoutModal, () => setShowLogoutModal(false));
+  // 로그아웃 확인 모달도 같은 쿼리 파라미터 방식(?logout=1) — 손수 만든 pushState/popstate
+  // 훅(useModalBackButton) 없이 React Router가 히스토리를 전담하게 함. isOpen도 같이 확인해서
+  // 사이드바가 닫힌 상태에서 이 모달만 남는 경우가 없게 방어.
+  const [searchParams] = useSearchParams();
+  const showLogoutModal = isOpen && searchParams.get('logout') === '1';
+
+  const openLogoutModal = () => {
+    const qs = new URLSearchParams(location.search);
+    qs.set('logout', '1');
+    navigate(`${location.pathname}?${qs.toString()}`, { state: { modal: true } });
+  };
+
+  const closeLogoutModal = () => {
+    if (location.key === 'default') {
+      const qs = new URLSearchParams(location.search);
+      qs.delete('logout');
+      const suffix = qs.toString();
+      navigate(`${location.pathname}${suffix ? `?${suffix}` : ''}`, { replace: true });
+    } else {
+      navigate(-1);
+    }
+  };
 
   const dday = useMemo(() => calcDday(coupleDoc?.anniversaryDate), [coupleDoc?.anniversaryDate]);
 
+  // path로 완전히 다른 화면으로 이동하는 것이라 onClose()(navigate(-1)/replace)를 따로
+  // 부를 필요 없음 — 이 이동 자체가 이미 사이드바가 열려있던 URL(?sidebar=1)을 벗어나므로
+  // 자동으로 닫힘. 굳이 onClose()까지 연달아 부르면 캘린더 모달에서 겪었던 것과 같은
+  // 히스토리 레이스가 날 수 있어 의도적으로 안 부름.
   const handleNavigation = (path) => {
     navigate(path, { replace: true });
-    onClose();
   };
 
   const handleLogout = async () => {
-    setShowLogoutModal(false);
-    // signOut을 먼저 기다린 뒤 이동해야 함 — 로그아웃 확인 모달이 닫히며 발생하는
-    // history.back()(useModalBackButton)과 순서가 겹치면 /login이 아닌 엉뚱한 이전 페이지로
-    // 튕기는 문제가 있었음. await로 그 back() 처리가 먼저 끝나게 한 뒤 명시적으로 이동.
+    // signOut을 먼저 기다린 뒤 이동해야 함(순서 보장). /login으로 이동하는 것 자체가
+    // 사이드바+로그아웃 모달이 열려있던 URL을 완전히 벗어나므로 별도로 닫을 필요 없음 —
+    // 예전엔 이 함수가 setShowLogoutModal(false) 후 history.back()과 순서가 겹쳐 엉뚱한
+    // 페이지로 튕기는 문제가 있었는데, 그 손수 만든 히스토리 관리 자체가 없어지면서 해결됨.
     await signOut();
     navigate('/login', { replace: true });
   };
@@ -95,7 +117,7 @@ const Sidebar = ({ isOpen, onClose }) => {
         <div className="sidebar-footer">
           <span className="sidebar-version">v{version}</span>
           <span className="sidebar-feedback">Business9498@gmail.com</span>
-          <button className="sidebar-logout" onClick={() => setShowLogoutModal(true)}>
+          <button className="sidebar-logout" onClick={openLogoutModal}>
             <HiArrowRightOnRectangle />
             <span>로그아웃</span>
           </button>
@@ -111,7 +133,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             <div className="sidebar-modal-actions">
               <button
                 className="sidebar-modal-btn"
-                onClick={() => setShowLogoutModal(false)}
+                onClick={closeLogoutModal}
               >
                 취소
               </button>

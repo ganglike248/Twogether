@@ -1,9 +1,7 @@
 import React from 'react';
 import { MdClose } from 'react-icons/md';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
 
 function BaseModal({ isOpen, onClose, title, icon: Icon, iconColor, children, className = '' }) {
-  useModalBackButton(isOpen, onClose);
   if (!isOpen) return null;
 
   return (

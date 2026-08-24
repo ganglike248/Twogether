@@ -4,13 +4,11 @@ import { useNavigate } from 'react-router-dom';
 import { subDays, parseISO, format } from 'date-fns';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dataUtils';
-import { useModalBackButton } from '../../hooks/useModalBackButton';
 import './MemoryDetail.css';
 
 const MemoryDetail = ({ isOpen, onClose, memory }) => {
   const { getMemberName } = useAuthContext();
   const navigate = useNavigate();
-  useModalBackButton(isOpen, onClose);
   if (!isOpen || !memory) return null;
 
   const startDay = memory.start?.split('T')[0];
@@ -19,7 +17,10 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
   const displayEnd = isMultiDay ? formatDate(format(subDays(parseISO(endDay), 1), 'yyyy-MM-dd')) : null;
 
   const handleGoToEvent = () => {
-    onClose();
+    // onClose()(navigate(-1))를 먼저 부르고 곧바로 다른 곳으로 navigate하면 back()(비동기
+    // 처리)과 뒤이은 이동이 겹쳐 히스토리가 꼬일 수 있음(캘린더 모달에서 겪었던 것과 같은
+    // 레이스). /calendar로 바로 이동하는 것 자체가 이 카드의 열림 상태(URL 기반)를 자동으로
+    // 닫아주므로 onClose()를 따로 부를 필요 없음.
     navigate(`/calendar?date=${startDay}`);
   };
 

@@ -1,5 +1,6 @@
 // src/components/Travel/TripDetail.js
 import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
@@ -11,7 +12,6 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
-import { useModalBackButton } from '../../../hooks/useModalBackButton';
 import ScheduleItem from '../Schedule/ScheduleItem';
 import ScheduleModal from '../Schedule/ScheduleModal';
 import TravelTimeInput from '../Schedule/TravelTimeInput';
@@ -22,9 +22,25 @@ import './TripDetail.css';
 
 const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const { user } = useAuthContext();
+    const navigate = useNavigate();
+    const location = useLocation();
+    // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate 훅
+    // (useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
+    const [searchParams] = useSearchParams();
+    const showScheduleModal = searchParams.get('modal') === 'schedule';
+    const openScheduleModal = () => navigate(`${location.pathname}?modal=schedule`, { state: { modal: true } });
+    // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
+    // 앱 밖으로 나갈 수 있어 대신 현재 페이지로 보냄 — 캘린더 closeModal과 동일한 패턴.
+    const closeScheduleModal = () => {
+        setSelectedSchedule(null);
+        if (location.key === 'default') {
+            navigate(location.pathname, { replace: true });
+        } else {
+            navigate(-1);
+        }
+    };
     const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'decisions' | 'checklist'
     const [activeDay, setActiveDay] = useState(1);
-    const [showScheduleModal, setShowScheduleModal] = useState(false);
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [daySchedules, setDaySchedules] = useState({});
     const [travelTimes, setTravelTimes] = useState({});
@@ -43,8 +59,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const unscorredCount = decisions.reduce((count, decision) => {
       return count + (decision.options || []).filter(opt => !hasUserScored(opt, user?.uid)).length;
     }, 0);
-
-    useModalBackButton(showScheduleModal, () => { setShowScheduleModal(false); setSelectedSchedule(null); });
 
     const getTripDays = () => {
         try {
@@ -101,14 +115,18 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             if (scheduleData.id && current.find(s => s.id === scheduleData.id)) {
                 updated = current.map(s => s.id === scheduleData.id ? scheduleData : s);
             } else {
+                // 저장 버튼 클릭 시(렌더 중이 아님)에만 실행되는 이벤트 핸들러라 Date.now()/
+                // Math.random()을 여기서 써도 안전함 — react-hooks/purity는 렌더 중 호출만
+                // 문제 삼는 규칙인데 이 파일의 다른 부분 때문에 분석이 이 줄까지 닿으면서
+                // 오탐으로 걸림.
                 updated = [...current, {
                     ...scheduleData,
+                    // eslint-disable-next-line react-hooks/purity
                     id: `schedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
                 }];
             }
             await saveTripSchedule(trip.id, activeDay, updated);
-            setShowScheduleModal(false);
-            setSelectedSchedule(null);
+            closeScheduleModal();
             setOptionForSchedule(null);
             toast.success(scheduleData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
         } catch (error) {
@@ -137,7 +155,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         };
 
         setSelectedSchedule(scheduleData);
-        setShowScheduleModal(true);
+        openScheduleModal();
     };
 
     const handleDeleteSchedule = async (scheduleId) => {
@@ -174,7 +192,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     // FloatingActionMenu 콜백
     const handleFABScheduleAdd = () => {
         setSelectedSchedule(null);
-        setShowScheduleModal(true);
+        openScheduleModal();
     };
 
     const handleFABDecisionMenu = () => {
@@ -346,7 +364,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     <div className="td-empty">
                         <div className="td-empty-icon"><MdDateRange size={48} color="#4dabf7" /></div>
                         <p className="td-empty-text">일정이 없어요</p>
-                        <button className="td-empty-add-btn" onClick={() => setShowScheduleModal(true)}>
+                        <button className="td-empty-add-btn" onClick={openScheduleModal}>
                             첫 일정 추가하기
                         </button>
                     </div>
@@ -356,7 +374,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                             <React.Fragment key={schedule.id}>
                                 <ScheduleItem
                                     schedule={schedule}
-                                    onEdit={s => { setSelectedSchedule(s); setShowScheduleModal(true); }}
+                                    onEdit={s => { setSelectedSchedule(s); openScheduleModal(); }}
                                     onToggleComplete={handleToggleCompletion}
                                 />
                                 {index < currentDaySchedules.length - 1 && (
@@ -431,7 +449,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             {showScheduleModal && (
                 <ScheduleModal
                     isOpen={showScheduleModal}
-                    onClose={() => { setShowScheduleModal(false); setSelectedSchedule(null); }}
+                    onClose={closeScheduleModal}
                     schedule={selectedSchedule}
                     onSave={handleSaveSchedule}
                     onDelete={handleDeleteSchedule}
