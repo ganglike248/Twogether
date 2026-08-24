@@ -13,35 +13,7 @@
   padding: 1rem;
 }
 
-.modal-container {
-  background-color: white;
-  border-radius: var(--border-radius);
-  box-shadow: var(--shadow-lg);
-  width: 100%;
-  max-width: 420px;
-  max-height: 90vh;
-  overflow-y: auto;
-}
-
-.modal-header {
-  padding: 1.25rem;
-  border-bottom: 1px solid var(--color-gray-200);
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  position: sticky;
-  top: 0;
-  background-color: white;
-  z-index: 10;
-}
-
-.modal-title {
-  font-size: 1.05rem;
-  font-weight: 700;
-  color: var(--color-gray-800);
-  margin: 0;
-}
-
+/* EditLogModal도 같이 쓰는 닫기 버튼 — 그쪽 레이아웃에 영향 없게 그대로 둠 */
 .modal-close {
   background: none;
   border: none;
@@ -54,218 +26,291 @@
   color: var(--color-gray-700);
 }
 
-.modal-body {
-  padding: 1rem 1.25rem;
-}
+/* ============ 일정 모달 ============
+   배경/버튼은 앱 전역 톤(흰 배경, index.css의 .btn-primary/.btn-secondary/.btn-danger,
+   var(--border-radius))을 그대로 따르고, 입력 요소(제목/날짜)만 밑줄 스타일로 정리함. */
 
-.form-group {
-  margin-bottom: 0.75rem;
-}
-
-.form-label {
-  display: block;
-  margin-bottom: 0.5rem;
-  font-weight: 500;
-  color: var(--color-gray-700);
-}
-
-.date-input-group {
-  display: flex;
-  flex-direction: column;
-  min-width: 0; /* iOS Safari: grid 컬럼 초과 방지 */
-}
-
-.date-input-group .form-label {
-  font-size: 0.8rem;
-  font-weight: 500;
-  color: var(--color-gray-600);
-  margin-bottom: 0.4rem;
-  text-align: center;
-}
-
-.date-input-group input[type="date"] {
-  width: 100%;
-  padding: 0.7rem;
-  border: 1px solid var(--color-gray-300);
+.sheet-card {
+  background: white;
   border-radius: var(--border-radius);
-  font-size: 1rem; /* iOS zoom 방지: 16px 이상 필수 */
-  text-align: center;
-  background-color: white;
-  transition: all 0.2s ease;
-}
-
-.date-input-group input[type="date"]:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 2px var(--color-primary-light);
-  transform: translateY(-1px);
-}
-
-.form-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 1rem;
-  margin: 0;
-}
-
-/* 날짜 입력 필드 컨테이너 스타일 개선 */
-.form-grid > div {
-  display: flex;
-  flex-direction: column;
-}
-
-.form-grid .form-label {
-  margin-bottom: 0.5rem;
-  font-size: 0.875rem;
-  font-weight: 500;
-  color: var(--color-gray-700);
-}
-
-.form-grid input[type="date"] {
+  box-shadow: var(--shadow-lg);
   width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  padding: 1.5rem 1.5rem 1.15rem;
   box-sizing: border-box;
-  padding: 0.75rem 0.4rem;
-  border: 1px solid var(--color-gray-300);
-  border-radius: var(--border-radius);
-  font-size: 1rem; /* iOS zoom 방지: 16px 이상 필수 */
-  transition: border-color 0.2s ease, box-shadow 0.2s ease;
 }
 
-.form-grid input[type="date"]:focus {
-  outline: none;
-  border-color: var(--color-primary);
-  box-shadow: 0 0 0 3px var(--color-primary-light);
-}
-
-.toggle-container {
+.sheet-top-row {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  margin-bottom: 1.2rem;
 }
 
-.toggle-switch {
+.sheet-eyebrow {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--color-primary-dark);
+  text-transform: uppercase;
+}
+
+.sheet-close {
+  background: none;
+  border: none;
+  color: var(--color-gray-500);
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  padding: 0.15rem;
+}
+
+.sheet-close:hover {
+  color: var(--color-gray-700);
+}
+
+.sheet-title-input {
+  border: none;
+  outline: none;
+  width: 100%;
+  background: transparent;
+  font-size: 1.3rem; /* iOS zoom 방지: 16px(1rem) 이상 유지 */
+  font-weight: 700;
+  color: var(--color-gray-800);
+  border-bottom: 2px solid var(--color-gray-200);
+  padding: 0 0 0.5rem;
+  margin-bottom: 1.1rem;
+  transition: border-color 0.2s ease;
+}
+
+.sheet-title-input:focus {
+  border-color: var(--color-primary);
+}
+
+.sheet-title-input::placeholder {
+  color: var(--color-gray-500);
+  font-weight: 500;
+}
+
+/* 유형 선택 — 선택 전에도 배경을 줘서 눌러야 하는 버튼임을 항상 드러냄
+   (밑줄 텍스트만으로는 클릭 가능한 요소인지 알기 어렵다는 피드백으로 수정).
+   모양은 앱의 다른 버튼(.radio-label 등)과 같은 var(--border-radius) 둥근 사각형. */
+.sheet-type-row {
+  display: flex;
+  gap: 0.5rem;
+  margin-bottom: 1.2rem;
+  flex-wrap: wrap;
+}
+
+.sheet-type-opt {
   position: relative;
-  display: inline-block;
-  width: 48px;
-  height: 28px;
-  margin-right: 0.75rem;
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-600);
+  cursor: pointer;
+  padding: 0.4rem 0.85rem;
+  background: var(--color-gray-100);
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: 16px;
+  transition: background 0.15s ease, border-color 0.15s ease, color 0.15s ease;
 }
 
-.toggle-switch input {
+.sheet-type-opt:hover {
+  border-color: var(--color-gray-300);
+}
+
+.sheet-type-opt input[type='radio'] {
+  position: absolute;
   opacity: 0;
   width: 0;
   height: 0;
 }
 
-.toggle-slider {
-  position: absolute;
-  cursor: pointer;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background-color: var(--color-gray-300);
-  transition: .4s;
-  border-radius: 28px;
-}
-
-.toggle-slider:before {
-  position: absolute;
-  content: "";
-  height: 20px;
-  width: 20px;
-  left: 4px;
-  bottom: 4px;
-  background-color: white;
-  transition: .4s;
+.sheet-type-opt .dot {
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
+  background: var(--color-gray-400);
 }
 
-.toggle-switch input:checked + .toggle-slider {
-  background-color: var(--color-primary);
+/* 색상은 파트너별 커스텀 색상 설정(colorService)이 반영되는 실제 앱 변수를 그대로 사용 */
+.sheet-type-opt.couple.sel {
+  color: var(--color-couple-font);
+  background: var(--color-couple-background);
+  border-color: var(--color-couple);
+  box-shadow: 0 0 0 2px var(--color-couple-shadow);
+}
+.sheet-type-opt.couple.sel .dot {
+  background: var(--color-couple-font);
 }
 
-.toggle-switch input:checked + .toggle-slider:before {
-  transform: translateX(20px);
+.sheet-type-opt.boy.sel {
+  color: var(--color-boyfriend-font);
+  background: var(--color-boyfriend-background);
+  border-color: var(--color-boyfriend);
+  box-shadow: 0 0 0 2px var(--color-boyfriend-shadow);
+}
+.sheet-type-opt.boy.sel .dot {
+  background: var(--color-boyfriend-font);
 }
 
-.toggle-label {
-  font-weight: 500;
-  color: var(--color-gray-700);
+.sheet-type-opt.girl.sel {
+  color: var(--color-girlfriend-font);
+  background: var(--color-girlfriend-background);
+  border-color: var(--color-girlfriend);
+  box-shadow: 0 0 0 2px var(--color-girlfriend-shadow);
+}
+.sheet-type-opt.girl.sel .dot {
+  background: var(--color-girlfriend-font);
 }
 
-.dropzone {
-  border: 2px dashed var(--color-gray-300);
-  border-radius: var(--border-radius);
-  padding: 2rem;
-  text-align: center;
-  background-color: var(--color-gray-100);
-  transition: border-color 0.2s ease;
-  cursor: pointer;
+/* 설명 */
+.sheet-desc-input {
+  width: 100%;
+  border: none;
+  outline: none;
+  resize: none;
+  background: transparent;
+  font-size: 0.95rem; /* iOS zoom 방지: 16px 이상 필수 */
+  color: var(--color-gray-800);
+  line-height: 1.7;
+  padding: 0 0 0.9rem;
+  border-bottom: 1px dashed var(--color-gray-300);
+  margin-bottom: 1.2rem;
 }
 
-.dropzone:hover {
+.sheet-desc-input::placeholder {
+  color: var(--color-gray-500);
+}
+
+/* 날짜 — 네이티브 date input은 브라우저마다 최소 너비가 커서(picker 아이콘 포함)
+   flex-grow로 나란히 붙이면 줄바꿈이 깨짐 → grid 1fr/1fr로 폭을 확정 (min-width:0 필수,
+   이 파일의 예전 .form-grid와 같은 이유로 iOS Safari 셀 넘침 방지). */
+.sheet-date-block {
+  margin-bottom: 0.3rem;
+}
+
+.sheet-date-grid {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.7rem;
+}
+
+.sheet-date-col {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
+}
+
+.sheet-date-micro {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--color-gray-500);
+  margin-bottom: 0.3rem;
+}
+
+.sheet-date-input {
+  border: none;
+  outline: none;
+  background: transparent;
+  border-bottom: 1px dashed var(--color-gray-300);
+  font-size: 1rem; /* iOS zoom 방지: 16px 이상 필수 */
+  font-weight: 700;
+  color: var(--color-gray-800);
+  padding: 0 0 0.3rem;
+  width: 100%;
+  min-width: 0;
+}
+
+.sheet-date-input:focus {
   border-color: var(--color-primary);
 }
 
-.dropzone-text {
-  margin-bottom: 0.75rem;
-  color: var(--color-gray-600);
+/* 나만 보기 / 디데이 — 이모지 없이 스위치 + 텍스트만.
+   크기는 NotificationSettingsPage의 기존 토글(44x24)과 맞춤. */
+.sheet-toggle-row {
+  display: flex;
+  gap: 1.5rem;
+  margin: 1.3rem 0 0.1rem;
+  flex-wrap: wrap;
 }
 
-.dropzone-icon {
-  font-size: 2rem;
-  color: var(--color-gray-400);
-  margin-bottom: 0.75rem;
-}
-
-.image-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(100px, 1fr));
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.image-item {
-  position: relative;
-  aspect-ratio: 1;
-  border-radius: var(--border-radius);
-  overflow: hidden;
-  border: 1px solid var(--color-gray-200);
-}
-
-.image-preview {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-}
-
-.image-delete {
-  position: absolute;
-  top: 0.25rem;
-  right: 0.25rem;
-  background-color: rgba(255, 255, 255, 0.8);
-  border: none;
-  border-radius: 50%;
-  width: 24px;
-  height: 24px;
-  font-size: 14px;
+.sheet-toggle-item {
   display: flex;
   align-items: center;
-  justify-content: center;
+  gap: 0.6rem;
   cursor: pointer;
-  color: #e74c3c;
 }
 
-.modal-footer {
-  padding: 0.875rem 1rem;
-  border-top: 1px solid var(--color-gray-200);
+.sheet-toggle-item input[type='checkbox'] {
+  position: absolute;
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.sheet-switch {
+  width: 44px;
+  height: 24px;
+  border-radius: 12px;
+  background: var(--color-gray-300);
+  position: relative;
+  flex-shrink: 0;
+  transition: background 0.2s;
+}
+
+.sheet-switch::before {
+  content: '';
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: white;
+  left: 3px;
+  top: 3px;
+  transition: transform 0.2s;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.2);
+}
+
+.sheet-toggle-item input:checked + .sheet-switch {
+  background: var(--color-primary);
+}
+
+.sheet-toggle-item input:checked + .sheet-switch::before {
+  transform: translateX(20px);
+}
+
+.sheet-toggle-item input:focus-visible + .sheet-switch {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+.sheet-toggle-text {
+  font-size: 0.87rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.sheet-dashed {
+  border: none;
+  border-top: 1px dashed var(--color-gray-300);
+  margin: 1.3rem 0 1rem;
+}
+
+.sheet-footer-row {
   display: flex;
-  justify-content: space-between;
   align-items: center;
+  justify-content: space-between;
 }
 
-.buttons-right {
+.sheet-foot-actions {
   display: flex;
+  align-items: center;
   gap: 0.75rem;
 }
 
@@ -280,76 +325,6 @@
   margin-right: 0.5rem;
 }
 
-/* 라디오 버튼 스타일 수정 */
-.radio-group {
-  display: flex;
-  gap: 0.5rem;
-  margin-top: 0.5rem;
-  justify-content: space-around;
-}
-
-.radio-option {
-  flex: 1;
-  min-width: 0;
-}
-
-/* 실제 라디오 버튼 숨기기 */
-.radio-option input[type="radio"] {
-  position: absolute;
-  opacity: 0;
-  width: 0;
-  height: 0;
-}
-
-/* 라벨 스타일 수정 */
-.radio-label {
-  display: block;
-  text-align: center;
-  font-weight: 500;
-  padding: 0.5rem 0.3rem;
-  border-radius: var(--border-radius);
-  cursor: pointer;
-  transition: all 0.2s ease;
-  width: 100%;
-  box-sizing: border-box;
-  border: 1px solid transparent;
-  font-size: 0.85rem;
-}
-
-.radio-label.boyfriend {
-  color: var(--color-boyfriend-font);
-  background-color: var(--color-boyfriend-background);
-}
-
-.radio-label.girlfriend {
-  color: var(--color-girlfriend-font);
-  background-color: var(--color-girlfriend-background);
-}
-
-.radio-label.couple {
-  color: var(--color-couple-font);
-  background-color: var(--color-couple-background);
-}
-
-/* 선택된 라벨 스타일 */
-.radio-option input[type="radio"]:checked + .radio-label.boyfriend {
-  background-color: var(--color-boyfriend-background);
-  border: 1px solid var(--color-boyfriend);
-  box-shadow: 0 0 0 2px var(--color-boyfriend-shadow);
-}
-
-.radio-option input[type="radio"]:checked + .radio-label.girlfriend {
-  background-color: var(--color-girlfriend-background);
-  border: 1px solid var(--color-girlfriend);
-  box-shadow: 0 0 0 2px var(--color-girlfriend-shadow);
-}
-
-.radio-option input[type="radio"]:checked + .radio-label.couple {
-  background-color: var(--color-couple-background);
-  border: 1px solid var(--color-couple);
-  box-shadow: 0 0 0 2px var(--color-couple-shadow);
-}
-
 @keyframes spin {
   0% {
     transform: rotate(0deg);
@@ -359,45 +334,34 @@
   }
 }
 
-/* 날짜 입력 섹션 전체 스타일 개선 */
-.date-inputs-section {
-  background-color: var(--color-gray-50);
+/* 삭제 확인 — 다른 확인 모달들과 같은 흰 배경 카드 */
+.confirm-card {
+  background: white;
   border-radius: var(--border-radius);
-  margin-bottom: 1rem;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 300px;
+  padding: 1.35rem 1.3rem 1.1rem;
+  box-sizing: border-box;
 }
 
-.date-inputs-title {
-  font-size: 0.875rem;
-  font-weight: 600;
-  color: var(--color-gray-700);
-  margin-bottom: 0.75rem;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+.confirm-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0 0 0.5rem;
 }
 
-/* 체크박스 스타일 */
-.checkbox-group {
+.confirm-body {
+  font-size: 0.88rem;
+  color: var(--color-gray-600);
+  line-height: 1.55;
+  margin: 0 0 1.2rem;
+}
+
+.confirm-actions {
   display: flex;
+  justify-content: flex-end;
   align-items: center;
-}
-
-.checkbox-label {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  cursor: pointer;
-  font-size: 0.875rem;
-  color: var(--color-gray-700);
-  user-select: none;
-}
-
-.checkbox-label input[type="checkbox"] {
-  width: 18px;
-  height: 18px;
-  cursor: pointer;
-  accent-color: var(--color-primary);
-}
-
-.checkbox-text {
-  font-weight: 500;
+  gap: 0.75rem;
 }

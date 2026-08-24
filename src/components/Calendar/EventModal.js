@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import { addDays, subDays } from 'date-fns';
 import { toast } from 'react-toastify';
 import './EventModal.css';
-import EditLogModal from '../EditLog/EditLogModal';
 import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
@@ -19,7 +18,6 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [isPersonal, setIsPersonal] = useState(false);
   const [isDday, setIsDday] = useState(false);
   const [loading, setLoading] = useState(false);
-  const [showEventLog, setShowEventLog] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
 
   const extractDate = (dateValue) => {
@@ -144,146 +142,156 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
   if (!isOpen) return null;
 
+  const isSaveDisabled =
+    loading || !title.trim() || !startDate || (startDate && endDate && new Date(startDate) > new Date(endDate));
+
   return (
-    <div className="modal-overlay" onClick={(e) => {
-      if (e.target === e.currentTarget) onClose();
-    }}>
-      <div className="modal-container">
-        <div className="modal-header">
-          <h2 className="modal-title">
-            {event && event.id ? '일정 수정' : '새 일정 추가'}
-          </h2>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+    <div
+      className="modal-overlay"
+      onClick={(e) => {
+        if (e.target === e.currentTarget) onClose();
+      }}
+    >
+      <div className="sheet-card">
+        <div className="sheet-top-row">
+          <span className="sheet-eyebrow">
+            {event && event.id ? "일정 수정" : "새 일정 추가"}
+          </span>
+          <button
+            type="button"
+            className="sheet-close"
+            onClick={onClose}
+            aria-label="닫기"
+          >
+            &times;
+          </button>
         </div>
 
         <form onSubmit={handleSubmit}>
-          <div className="modal-body">
-            <div className="form-group">
-              <label className="form-label" htmlFor="event-title">일정 제목</label>
+          <input
+            className="sheet-title-input"
+            type="text"
+            value={title}
+            onChange={(e) => setTitle(e.target.value)}
+            placeholder="일정 제목을 입력하세요"
+            aria-label="일정 제목"
+            required
+          />
+
+          <div
+            className="sheet-type-row"
+            role="radiogroup"
+            aria-label="일정 유형"
+          >
+            <label
+              className={`sheet-type-opt couple${
+                eventType === "couple" ? " sel" : ""
+              }`}
+            >
               <input
-                id="event-title"
-                type="text"
-                value={title}
-                onChange={(e) => setTitle(e.target.value)}
-                placeholder="일정 제목을 입력하세요"
-                required
+                type="radio"
+                name="eventType"
+                value="couple"
+                checked={eventType === "couple"}
+                onChange={() => setEventType("couple")}
               />
-            </div>
-
-            <div className="form-group">
-              <label className="form-label" htmlFor="event-description">설명</label>
-              <textarea
-                id="event-description"
-                value={description}
-                onChange={(e) => setDescription(e.target.value)}
-                placeholder="일정에 대한 상세 설명을 입력하세요"
-                rows="5"
-                spellCheck={false}
+              <span className="dot"></span>데이트
+            </label>
+            <label
+              className={`sheet-type-opt boy${
+                eventType === "boyfriend" ? " sel" : ""
+              }`}
+            >
+              <input
+                type="radio"
+                name="eventType"
+                value="boyfriend"
+                checked={eventType === "boyfriend"}
+                onChange={() => setEventType("boyfriend")}
               />
-            </div>
+              <span className="dot"></span>
+              {getMemberName("boyfriend")}
+            </label>
+            <label
+              className={`sheet-type-opt girl${
+                eventType === "girlfriend" ? " sel" : ""
+              }`}
+            >
+              <input
+                type="radio"
+                name="eventType"
+                value="girlfriend"
+                checked={eventType === "girlfriend"}
+                onChange={() => setEventType("girlfriend")}
+              />
+              <span className="dot"></span>
+              {getMemberName("girlfriend")}
+            </label>
+          </div>
 
-            <div className="form-group">
-              <div className="date-inputs-section">
-                <div className="date-inputs-title">일정 기간</div>
-                <div className="form-grid">
-                  <div className="date-input-group">
-                    <label className="form-label" htmlFor="event-start">시작일</label>
-                    <input
-                      id="event-start"
-                      type="date"
-                      value={startDate}
-                      onChange={(e) => setStartDate(e.target.value)}
-                      required
-                    />
-                  </div>
-                  <div className="date-input-group">
-                    <label className="form-label" htmlFor="event-end">종료일</label>
-                    <input
-                      id="event-end"
-                      type="date"
-                      value={endDate}
-                      onChange={(e) => setEndDate(e.target.value)}
-                      min={startDate}
-                    />
-                  </div>
-                </div>
-                <p style={{ fontSize: '0.75rem', color: '#888', margin: '0.25rem 0 0' }}>종료일 미입력 시 하루 일정으로 처리됩니다</p>
+          <textarea
+            className="sheet-desc-input"
+            value={description}
+            onChange={(e) => setDescription(e.target.value)}
+            placeholder="메모를 남겨보세요"
+            aria-label="일정 설명"
+            rows="6"
+            spellCheck={false}
+          />
+
+          <div className="sheet-date-block">
+            <div className="sheet-date-grid">
+              <div className="sheet-date-col">
+                <span className="sheet-date-micro">시작</span>
+                <input
+                  type="date"
+                  className="sheet-date-input"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  aria-label="시작일"
+                  required
+                />
               </div>
-            </div>
-
-            <div className="form-group">
-              <label className="form-label">일정 유형</label>
-              <div className="radio-group">
-                <div className="radio-option">
-                  <input
-                    type="radio"
-                    id="couple"
-                    name="eventType"
-                    value="couple"
-                    checked={eventType === 'couple'}
-                    onChange={() => setEventType('couple')}
-                  />
-                  <label htmlFor="couple" className="radio-label couple">
-                    데이트
-                  </label>
-                </div>
-                <div className="radio-option">
-                  <input
-                    type="radio"
-                    id="boyfriend"
-                    name="eventType"
-                    value="boyfriend"
-                    checked={eventType === 'boyfriend'}
-                    onChange={() => setEventType('boyfriend')}
-                  />
-                  <label htmlFor="boyfriend" className="radio-label boyfriend">
-                    {getMemberName('boyfriend')}
-                  </label>
-                </div>
-                <div className="radio-option">
-                  <input
-                    type="radio"
-                    id="girlfriend"
-                    name="eventType"
-                    value="girlfriend"
-                    checked={eventType === 'girlfriend'}
-                    onChange={() => setEventType('girlfriend')}
-                  />
-                  <label htmlFor="girlfriend" className="radio-label girlfriend">
-                    {getMemberName('girlfriend')}
-                  </label>
-                </div>
-              </div>
-
-              {/* 개인 일정 체크박스 */}
-              {eventType === myRole && (
-                <div className="checkbox-group" style={{ marginTop: '0.75rem', paddingLeft: '0.5rem' }}>
-                  <label className="checkbox-label">
-                    <input
-                      type="checkbox"
-                      checked={isPersonal}
-                      onChange={(e) => setIsPersonal(e.target.checked)}
-                    />
-                    <span className="checkbox-text">나만 보기 (개인 일정)</span>
-                  </label>
-                </div>
-              )}
-
-              {/* 디데이 체크박스 */}
-              <div className="checkbox-group" style={{ marginTop: '0.75rem', paddingLeft: '0.5rem' }}>
-                <label className="checkbox-label">
-                  <input
-                    type="checkbox"
-                    checked={isDday}
-                    onChange={(e) => setIsDday(e.target.checked)}
-                  />
-                  <span className="checkbox-text">디데이로 표시 (홈 화면에 D-day로 표시)</span>
-                </label>
+              <div className="sheet-date-col">
+                <span className="sheet-date-micro">종료</span>
+                <input
+                  type="date"
+                  className="sheet-date-input"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  min={startDate}
+                  aria-label="종료일"
+                />
               </div>
             </div>
           </div>
 
-          <div className="modal-footer">
+          <div className="sheet-toggle-row">
+            <label className="sheet-toggle-item">
+              <input
+                type="checkbox"
+                checked={isDday}
+                onChange={(e) => setIsDday(e.target.checked)}
+              />
+              <span className="sheet-switch"></span>
+              <span className="sheet-toggle-text">디데이로 표시</span>
+            </label>
+            {eventType === myRole && (
+              <label className="sheet-toggle-item">
+                <input
+                  type="checkbox"
+                  checked={isPersonal}
+                  onChange={(e) => setIsPersonal(e.target.checked)}
+                />
+                <span className="sheet-switch"></span>
+                <span className="sheet-toggle-text">나만 보기</span>
+              </label>
+            )}
+          </div>
+
+          <hr className="sheet-dashed" />
+
+          <div className="sheet-footer-row">
             {event && event.id ? (
               <button
                 type="button"
@@ -297,7 +305,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               <div></div>
             )}
 
-            <div className="buttons-right">
+            <div className="sheet-foot-actions">
               <button
                 type="button"
                 onClick={onClose}
@@ -309,14 +317,16 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               <button
                 type="submit"
                 className="btn btn-primary"
-                disabled={loading || !title.trim() || !startDate || (startDate && endDate && new Date(startDate) > new Date(endDate))}
+                disabled={isSaveDisabled}
               >
                 {loading ? (
                   <>
                     <span className="loading-indicator"></span>
                     저장 중...
                   </>
-                ) : '저장'}
+                ) : (
+                  "저장"
+                )}
               </button>
             </div>
           </div>
@@ -326,16 +336,10 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       {/* 삭제 확인 모달 */}
       {showDeleteModal && (
         <div className="modal-overlay">
-          <div className="modal-container">
-            <div className="modal-header">
-              <h2 className="modal-title">일정 삭제</h2>
-            </div>
-            <div className="modal-body">
-              <p style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-                이 일정을 삭제하시겠습니까?
-              </p>
-            </div>
-            <div className="modal-footer">
+          <div className="confirm-card">
+            <p className="confirm-title">일정 삭제</p>
+            <p className="confirm-body">이 일정을 삭제하시겠습니까?</p>
+            <div className="confirm-actions">
               <button
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
