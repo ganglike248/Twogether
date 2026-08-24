@@ -87,7 +87,10 @@ const router = createBrowserRouter([
         key: 'home',
       },
       {
-        path: '/calendar',
+        // '/*'로 하위 경로(모달 라우트: day/:date, event/new/:date, event/:eventId, log)까지
+        // 전부 같은 Calendar 컴포넌트가 받아서 자체적으로 matchPath로 해석함 — 모달을
+        // history.pushState 손수 구현 대신 React Router가 관리하는 진짜 라우트로 만들기 위함.
+        path: '/calendar/*',
         element: <ProtectedRoute key="calendar"><Layout><Calendar /></Layout></ProtectedRoute>,
         key: 'calendar',
       },

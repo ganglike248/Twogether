@@ -1,6 +1,6 @@
 // src/components/Calendar/Calendar.jsx
 import React, { useState, useEffect, useRef, useMemo, useCallback } from 'react';
-import { useSearchParams, useNavigate } from 'react-router-dom';
+import { useSearchParams, useNavigate, useLocation, matchPath } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import EventModal from './EventModal';
 import DayModal from './DayModal';
@@ -56,12 +56,56 @@ const Calendar = () => {
   }, [events, userDoc, partnerDoc, myRole]);
 
   // State management
-  const [selectedEvent, setSelectedEvent] = useState(null);
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [isDayModalOpen, setIsDayModalOpen] = useState(false);
-  const [selectedDate, setSelectedDate] = useState(null);
-  const [showEditLog, setShowEditLog] = useState(false);
-  const [selectedEventForLog, setSelectedEventForLog] = useState(null);
+  const location = useLocation();
+  // 모달 열림 상태는 더 이상 useState가 아니라 URL(location.pathname)에서 파생됨 — 손수 만든
+  // pushState/popstate 훅(useModalBackButton)을 걷어내고 React Router가 히스토리를 전담하게
+  // 하기 위함(모달 닫은 뒤 번쩍거림, 가로 스크롤 시 엉뚱한 화면 노출 버그의 근본 원인이었음).
+  const dayMatch = matchPath('/calendar/day/:date', location.pathname);
+  const eventNewMatch = matchPath('/calendar/event/new/:date', location.pathname);
+  const eventEditMatch = matchPath('/calendar/event/:eventId', location.pathname);
+  const logMatch = matchPath('/calendar/log', location.pathname);
+
+  const isDayModalOpen = !!dayMatch;
+  const selectedDate = dayMatch?.params?.date ?? null;
+  // 수정 대상 이벤트는 events가 아직 로딩 중이면 열지 않음 — 데이터 도착 전 "빈 새 일정
+  // 작성" 폼이 스치듯 보이는 걸 방지 (기존 ?date= 딥링크가 !isLoading을 기다리던 것과 동일한 이유).
+  const isModalOpen = !!(eventNewMatch || (eventEditMatch && !isLoading));
+  const showEditLog = !!logMatch;
+
+  // matchPath는 매 렌더마다 새 객체를 반환하므로(불필요한 useMemo 의존성 경고만 유발)
+  // 그냥 일반 계산으로 둠 — events.find()에 비하면 부담이 없는 연산.
+  const selectedEvent = (() => {
+    try {
+      if (eventNewMatch) {
+        const d = eventNewMatch.params.date;
+        return { start: d, end: d, allDay: true };
+      }
+      if (eventEditMatch) {
+        const ev = events.find(e => e.id === eventEditMatch.params.eventId);
+        if (!ev) return null;
+        const getDateString = (dateValue) => {
+          if (typeof dateValue === 'string') return dateValue.split('T')[0];
+          if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+          return '';
+        };
+        const startDate = getDateString(ev.start);
+        const endDate = ev.end ? getDateString(ev.end) : startDate;
+        const isPersonalEvent = ev.extendedProps?.isPersonal || false;
+        return {
+          id: ev.id, title: ev.title,
+          start: startDate, end: endDate,
+          description: ev.extendedProps?.description || '',
+          eventType: isPersonalEvent ? myRole : (ev.extendedProps?.eventType || 'couple'),
+          isPersonal: isPersonalEvent,
+          imageUrls: ev.extendedProps?.imageUrls || []
+        };
+      }
+      return null;
+    } catch {
+      return null;
+    }
+  })();
+
   const [viewMode, setViewMode] = useState('all'); // 'all' | 'personal' | 'couple'
   const [currentDate, setCurrentDate] = useState(() => {
     const d = new Date();
@@ -108,6 +152,23 @@ const Calendar = () => {
   // (0.5초) 안의 수정기록 클릭은 그 여파로 보고 무시해서 방지 (2026-08-10).
   const eventModalClosedAtRef = useRef(0);
 
+  // 모달 닫기 = 그 모달을 열며 쌓인 히스토리 엔트리로 "뒤로가기". location.key === 'default'는
+  // 이 브라우저 세션에서 아직 아무 내비게이션도 없었다는 뜻(예: 모달 경로로 바로 딥링크/새로고침
+  // 진입) — 이 경우 navigate(-1)은 앱 밖으로 나가버릴 수 있어 대신 캘린더 기본 화면으로 보냄.
+  const closeModal = useCallback(() => {
+    if (location.key === 'default') {
+      navigatePage('/calendar', { replace: true });
+    } else {
+      navigatePage(-1);
+    }
+  }, [navigatePage, location.key]);
+
+  // EventModal 전용 닫기 — 'X'/취소/오버레이 클릭으로 닫을 때만 오클릭 방지 타임스탬프를
+  // 남김(저장/삭제 성공으로 닫힐 때는 기존처럼 타임스탬프를 남기지 않음).
+  const handleCloseEventModal = useCallback(() => {
+    eventModalClosedAtRef.current = Date.now();
+    closeModal();
+  }, [closeModal]);
 
   useEffect(() => {
     const dateParam = searchParams.get('date');
@@ -120,13 +181,21 @@ const Calendar = () => {
 
   useEffect(() => {
     if (!isLoading && pendingDateRef.current) {
-      const [year, month] = pendingDateRef.current.split('-').map(Number);
-      setCurrentDate(new Date(year, month - 1, 1));
-      setSelectedDate(pendingDateRef.current);
-      setIsDayModalOpen(true);
+      const dateStr = pendingDateRef.current;
       pendingDateRef.current = null;
+      navigatePage(`/calendar/day/${dateStr}`, { replace: true, state: { modal: true } });
     }
-  }, [isLoading]);
+  }, [isLoading, navigatePage]);
+
+  // 캘린더 슬라이더가 보여주는 월을 DayModal 라우트의 날짜에 맞춤 — 위 딥링크 리다이렉트뿐
+  // 아니라 /calendar/day/:date를 북마크·새로고침으로 직접 열었을 때도 동작하게 함.
+  useEffect(() => {
+    if (!dayMatch?.params?.date) return;
+    const [y, m] = dayMatch.params.date.split('-').map(Number);
+    setCurrentDate(prev =>
+      (prev.getFullYear() === y && prev.getMonth() === m - 1) ? prev : new Date(y, m - 1, 1)
+    );
+  }, [dayMatch?.params?.date]);
 
   // Months for 3-month slider
   const months = useMemo(() => [
@@ -135,54 +204,30 @@ const Calendar = () => {
     new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1),
   ], [currentDate]);
 
+  // DayModal 안 "+ 일정 추가"에서 옴 — DayModal의 히스토리 엔트리를 대체(replace)해서,
+  // 닫을 때 DayModal로 안 돌아가고 바로 캘린더로 나가는 기존 동작을 그대로 유지.
   const handleAddEventFromDay = useCallback((date) => {
-    setSelectedEvent({ start: date, end: date, allDay: true });
-    setIsDayModalOpen(false);
-    setIsModalOpen(true);
-  }, []);
+    navigatePage(`/calendar/event/new/${date}`, { replace: true, state: { modal: true } });
+  }, [navigatePage]);
 
-  // FAB 콜백: 새 일정 추가
+  // FAB 콜백: 새 일정 추가 — 빈 캘린더에서 여는 것이라 새 히스토리 엔트리를 쌓음(push).
   const handleFABAddEvent = useCallback(() => {
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const date = String(today.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${date}`;
-    setSelectedEvent({ start: dateStr, end: dateStr, allDay: true });
-    setIsModalOpen(true);
-  }, []);
+    navigatePage(`/calendar/event/new/${dateStr}`, { state: { modal: true } });
+  }, [navigatePage]);
 
   const handleEditEventFromDay = useCallback((event) => {
-    try {
-      if (event.extendedProps?.isTrip) {
-        navigatePage(`/travel/${event.id}`);
-        setIsDayModalOpen(false);
-        return;
-      }
-
-      const getDateString = (dateValue) => {
-        if (typeof dateValue === 'string') return dateValue.split('T')[0];
-        if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
-        return '';
-      };
-
-      const startDate = getDateString(event.start);
-      const endDate = event.end ? getDateString(event.end) : startDate;
-      const isPersonalEvent = event.extendedProps?.isPersonal || false;
-      setSelectedEvent({
-        id: event.id, title: event.title,
-        start: startDate, end: endDate,
-        description: event.extendedProps?.description || '',
-        eventType: isPersonalEvent ? myRole : (event.extendedProps?.eventType || 'couple'),
-        isPersonal: isPersonalEvent,
-        imageUrls: event.extendedProps?.imageUrls || []
-      });
-      setIsDayModalOpen(false);
-      setIsModalOpen(true);
-    } catch {
-      toast.error('일정 수정 중 오류가 발생했습니다.');
+    if (event.extendedProps?.isTrip) {
+      navigatePage(`/travel/${event.id}`);
+      return;
     }
-  }, [myRole, events, navigatePage]);
+    // DayModal 안에서 일정을 눌러 여는 것이라 위 handleAddEventFromDay와 동일하게 replace.
+    navigatePage(`/calendar/event/${event.id}`, { replace: true, state: { modal: true } });
+  }, [navigatePage]);
 
   const handleSaveEvent = useCallback(async (eventData) => {
     try {
@@ -215,12 +260,12 @@ const Calendar = () => {
           await createEvent(eventData, uid, coupleId);
         }
       }
-      setIsModalOpen(false);
+      closeModal();
       toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
     } catch (error) {
       toast.error('일정 저장 중 오류가 발생했습니다.');
     }
-  }, [events, user?.uid, coupleId]);
+  }, [events, user?.uid, coupleId, closeModal]);
 
   const handleDeleteEvent = useCallback(async (eventId) => {
     try {
@@ -231,12 +276,12 @@ const Calendar = () => {
       } else {
         await deleteEvent(eventId, user?.uid, coupleId);
       }
-      setIsModalOpen(false);
+      closeModal();
       toast.success('일정을 삭제했습니다.');
     } catch {
       toast.error('일정 삭제 중 오류가 발생했습니다.');
     }
-  }, [events, user?.uid, coupleId]);
+  }, [events, user?.uid, coupleId, closeModal]);
 
   const handleAddPeriod = useCallback(async (startDate, periodLength) => {
     try {
@@ -288,15 +333,13 @@ const Calendar = () => {
     currentDate.getMonth() === new Date().getMonth();
 
   const handleDateClick = useCallback((info) => {
-    setSelectedDate(info.dateStr);
-    setIsDayModalOpen(true);
-  }, []);
+    navigatePage(`/calendar/day/${info.dateStr}`, { state: { modal: true } });
+  }, [navigatePage]);
 
   const handleMoreLinkClick = useCallback((info) => {
-    setSelectedDate(info.date.toISOString().split('T')[0]);
-    setIsDayModalOpen(true);
+    navigatePage(`/calendar/day/${info.date.toISOString().split('T')[0]}`, { state: { modal: true } });
     return 'stop';
-  }, []);
+  }, [navigatePage]);
 
   return (
     <div className="calendar-container">
@@ -308,8 +351,7 @@ const Calendar = () => {
         onGoToday={goToday}
         onShowEditLog={() => {
           if (Date.now() - eventModalClosedAtRef.current < 500) return;
-          setSelectedEventForLog(null);
-          setShowEditLog(true);
+          navigatePage('/calendar/log', { state: { modal: true } });
         }}
       />
 
@@ -354,14 +396,14 @@ const Calendar = () => {
 
       <EventModal
         isOpen={isModalOpen}
-        onClose={() => { eventModalClosedAtRef.current = Date.now(); setIsModalOpen(false); }}
+        onClose={handleCloseEventModal}
         event={selectedEvent}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
       />
       <DayModal
         isOpen={isDayModalOpen}
-        onClose={() => setIsDayModalOpen(false)}
+        onClose={closeModal}
         selectedDate={selectedDate}
         dayEvents={getDayEvents()}
         specialDays={getDaySpecials()}
@@ -374,8 +416,8 @@ const Calendar = () => {
       />
       <EditLogModal
         isOpen={showEditLog}
-        onClose={() => setShowEditLog(false)}
-        eventId={selectedEventForLog}
+        onClose={closeModal}
+        eventId={null}
       />
 
       {/* FloatingActionMenu - 일정 추가 */}

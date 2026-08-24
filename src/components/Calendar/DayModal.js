@@ -6,7 +6,6 @@ import "./DayModal.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EmptyState from "../common/EmptyState";
 import { MdCalendarToday } from "react-icons/md";
-import { useModalBackButton } from "../../hooks/useModalBackButton";
 
 const DayModal = ({
   isOpen,
@@ -22,7 +21,6 @@ const DayModal = ({
   onDeletePeriod,
 }) => {
   const { getMemberName } = useAuthContext();
-  useModalBackButton(isOpen, onClose);
   const [showPeriodForm, setShowPeriodForm] = useState(false);
   const [periodFormLength, setPeriodFormLength] = useState("");
   const [periodSubmitting, setPeriodSubmitting] = useState(false);

@@ -108,6 +108,10 @@
   overflow: hidden;
   min-height: 0;
   position: relative;
+  /* 가로 스와이프는 JS(useCalendarNavigation)가 직접 처리 — 브라우저에게 이 영역의
+     가로 방향은 넘겨받지 않겠다고 선언해서, 화면 가장자리에서 시작하는 브라우저
+     네이티브 뒤로/앞으로가기 스와이프 제스처와 충돌하지 않도록 함(세로 스크롤은 유지). */
+  touch-action: pan-y;
 }
 
 .calendar-slider-track {
