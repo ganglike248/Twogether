@@ -12,8 +12,8 @@
   align-items: center;
   gap: 12px;
   padding: 12px;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
+  border: 1px solid var(--color-gray-200);
+  border-radius: var(--border-radius);
   margin-bottom: 8px;
 }
 
@@ -35,24 +35,24 @@
 .btn-delete {
   padding: 6px 12px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 12px;
   cursor: pointer;
   transition: all 0.2s;
 }
 
 .btn-edit {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
 }
 
 .btn-edit:hover {
-  background-color: #e0e0e0;
+  background-color: var(--color-gray-200);
 }
 
 .btn-delete {
-  background-color: #ffebee;
-  color: #c62828;
+  background-color: #fff0f0;
+  color: #c9605f;
   padding: 6px 8px;
   display: flex;
   align-items: center;
@@ -60,7 +60,7 @@
 }
 
 .btn-delete:hover {
-  background-color: #ffcdd2;
+  background-color: #ffe0e0;
 }
 
 .category-edit-form {
@@ -72,13 +72,13 @@
 
 .category-name-input {
   padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: 8px;
   font-size: 14px;
 }
 
 .category-name-input.disabled {
-  background-color: #f5f5f5;
+  background-color: var(--color-gray-100);
   cursor: not-allowed;
 }
 
@@ -103,8 +103,8 @@
 }
 
 .color-option.selected {
-  border-color: #333;
-  box-shadow: 0 0 0 2px white, 0 0 0 4px #333;
+  border-color: var(--color-gray-700);
+  box-shadow: 0 0 0 2px white, 0 0 0 4px var(--color-gray-700);
 }
 
 .category-edit-actions,
@@ -119,54 +119,56 @@
 .btn-cancel {
   padding: 8px 16px;
   border: none;
-  border-radius: 4px;
+  border-radius: 8px;
   font-size: 13px;
   cursor: pointer;
-  transition: all 0.2s;
+  transition: opacity 0.15s ease;
 }
 
+/* .btn-primary와 동일한 그라데이션 — 앱 전역 저장/추가 버튼 톤과 통일 */
 .btn-save,
 .btn-add {
-  background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
   color: white;
   flex: 1;
 }
 
 .btn-save:hover:not(:disabled),
 .btn-add:hover {
-  background: linear-gradient(135deg, #ff9bb5 0%, #ff82a0 100%);
+  opacity: 0.9;
 }
 
 .btn-save:disabled,
 .btn-add:disabled {
-  background-color: #ccc;
+  opacity: 0.5;
   cursor: not-allowed;
 }
 
 .btn-cancel {
-  background-color: #f0f0f0;
-  color: #333;
+  background-color: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
   flex: 1;
 }
 
 .btn-cancel:hover {
-  background-color: #e0e0e0;
+  background-color: var(--color-gray-200);
 }
 
 .category-add-form {
-  border: 2px dashed #ffb6c1;
-  border-radius: 8px;
+  border: 1px dashed var(--color-gray-300);
+  border-radius: var(--border-radius);
   padding: 12px;
-  background-color: #f9f9f9;
+  background-color: var(--color-gray-100);
 }
 
 .btn-add-category {
   width: 100%;
   padding: 12px;
-  border: 1px dashed #ffb6c1;
+  border: 1px dashed var(--color-gray-300);
   background-color: transparent;
-  color: #e879a0;
-  border-radius: 6px;
+  color: var(--color-primary-dark);
+  border-radius: var(--border-radius);
   font-size: 13px;
   font-weight: 500;
   cursor: pointer;
@@ -174,11 +176,11 @@
   align-items: center;
   justify-content: center;
   gap: 6px;
-  transition: all 0.2s;
+  transition: background-color 0.2s;
 }
 
 .btn-add-category:hover {
-  background-color: #fff0f5;
+  background-color: var(--color-primary-light);
 }
 
 .category-delete-modal-overlay {
@@ -196,22 +198,22 @@
 
 .category-delete-modal {
   background: white;
-  border-radius: 12px;
+  border-radius: var(--border-radius);
   padding: 20px;
   max-width: 300px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+  box-shadow: var(--shadow-lg);
 }
 
 .category-delete-modal-title {
   font-size: 16px;
-  font-weight: 600;
+  font-weight: 700;
   margin: 0 0 8px 0;
-  color: #333;
+  color: var(--color-gray-800);
 }
 
 .category-delete-modal-msg {
   font-size: 14px;
-  color: #666;
+  color: var(--color-gray-600);
   margin: 0 0 20px 0;
 }
 
@@ -224,27 +226,28 @@
 .category-delete-modal-btn {
   padding: 8px 16px;
   border: none;
-  border-radius: 6px;
+  border-radius: 999px;
   cursor: pointer;
   font-size: 14px;
-  font-weight: 500;
-  transition: all 0.15s ease;
+  font-weight: 700;
+  transition: opacity 0.15s ease;
 }
 
 .category-delete-modal-btn.cancel {
-  background: #f0f0f0;
-  color: #333;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
 }
 
 .category-delete-modal-btn.cancel:hover {
-  background: #e0e0e0;
+  background: var(--color-gray-200);
 }
 
 .category-delete-modal-btn.delete {
-  background: #dc3545;
+  background: #e74c3c;
   color: white;
 }
 
 .category-delete-modal-btn.delete:hover {
-  background: #c82333;
+  opacity: 0.9;
 }

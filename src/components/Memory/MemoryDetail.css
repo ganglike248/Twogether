@@ -23,8 +23,7 @@
 }
 
 .memory-modal-header {
-  padding: 0.875rem 1rem;
-  border-bottom: 1px solid var(--color-gray-200);
+  padding: 1.1rem 1.1rem 0.8rem;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -55,7 +54,7 @@
 }
 
 .memory-details {
-  padding: 1rem;
+  padding: 0 1.1rem 1.1rem;
 }
 
 .memory-meta-row {
@@ -78,30 +77,34 @@
   font-weight: 500;
 }
 
+/* 커플별 커스텀 색상 설정(colorService)이 반영되는 실제 앱 변수를 그대로 사용
+   — 예전엔 고정 색상이라 사용자가 설정에서 색을 바꿔도 여기만 안 바뀌었음 */
 .memory-badge.boyfriend {
-  background-color: rgba(161, 188, 255, 0.2);
-  color: #4a7fc4;
+  background-color: var(--color-boyfriend-background);
+  color: var(--color-boyfriend-font);
 }
 
 .memory-badge.girlfriend {
-  background-color: rgba(148, 255, 134, 0.2);
-  color: #3da05a;
+  background-color: var(--color-girlfriend-background);
+  color: var(--color-girlfriend-font);
 }
 
 .memory-badge.couple {
-  background-color: rgba(255, 107, 107, 0.2);
-  color: #d94f4f;
+  background-color: var(--color-couple-background);
+  color: var(--color-couple-font);
 }
 
 .memory-badge.personal {
   background-color: var(--color-personal-background);
-  color: var(--color-personal-font);
+  /* --color-personal-font는 정의된 적 없는 변수였음(기존 버그) — 배경색이 옅은 민트라
+     회색을 폴백으로 둠 */
+  color: var(--color-personal-font, var(--color-gray-700));
 }
 
 .memory-section {
   margin-bottom: 1rem;
   padding-bottom: 1rem;
-  border-bottom: 1px solid var(--color-gray-200);
+  border-bottom: 1px dashed var(--color-gray-300);
 }
 
 .memory-section:last-child {
@@ -125,18 +128,25 @@
 }
 
 .memory-modal-footer {
-  padding: 0.75rem 1rem;
-  border-top: 1px solid var(--color-gray-200);
+  /* memory-modal-overlay는 center 정렬(바닥에 안 붙음) — safe-area 패딩은 flex-end로
+     화면 바닥에 붙는 모달에서만 필요(DayModal에서 겪었던 것과 같은 실수 방지). */
+  padding: 0.9rem 1.1rem;
+  border-top: 1px dashed var(--color-gray-300);
 }
 
 .memory-goto-event-btn {
   width: 100%;
   padding: 0.65rem;
-  background: linear-gradient(135deg, #ff6b91 0%, #ff9bac 100%);
+  /* .btn-primary와 동일한 그라데이션 — 앱 전역 버튼 톤과 통일 */
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
   color: white;
   border: none;
   border-radius: var(--border-radius);
-  font-weight: 600;
+  font-weight: 700;
   font-size: 0.875rem;
   cursor: pointer;
+}
+
+.memory-goto-event-btn:hover {
+  opacity: 0.9;
 }

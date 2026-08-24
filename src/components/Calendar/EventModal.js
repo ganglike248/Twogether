@@ -195,7 +195,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 checked={eventType === "couple"}
                 onChange={() => setEventType("couple")}
               />
-              <span className="dot"></span>데이트
+              데이트
             </label>
             <label
               className={`sheet-type-opt boy${
@@ -209,7 +209,6 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 checked={eventType === "boyfriend"}
                 onChange={() => setEventType("boyfriend")}
               />
-              <span className="dot"></span>
               {getMemberName("boyfriend")}
             </label>
             <label
@@ -224,7 +223,6 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 checked={eventType === "girlfriend"}
                 onChange={() => setEventType("girlfriend")}
               />
-              <span className="dot"></span>
               {getMemberName("girlfriend")}
             </label>
           </div>

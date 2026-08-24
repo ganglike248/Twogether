@@ -22,11 +22,11 @@
   }
 }
 
-/* ================ 모달 박스 ================ */
+/* ================ 모달 박스 — 캘린더 일정 모달과 같은 흰 배경 톤 ================ */
 .bucket-modal-box {
   background: #fff;
   border-radius: 1.2rem 1.2rem 0 0;
-  box-shadow: 0 10px 40px rgba(255, 107, 107, 0.15);
+  box-shadow: var(--shadow-lg);
   width: 100%;
   max-width: 100%;
   overflow: hidden;
@@ -48,19 +48,18 @@
 
 /* ================ 모달 헤더 ================ */
 .bucket-modal-header {
-  background: linear-gradient(135deg, var(--main-bg) 0%, #ffe5ec 100%);
-  padding: 1.25rem 1.25rem;
-  border-bottom: 1px solid rgba(255, 182, 193, 0.2);
+  background: #fff;
+  padding: 1.25rem 1.25rem 0.9rem;
   display: flex;
   align-items: center;
-  gap: 0.75rem;
+  gap: 0.6rem;
   position: relative;
 }
 
 .bucket-modal-icon {
-  font-size: 1.25rem;
-  width: 1.25rem;
-  height: 1.25rem;
+  font-size: 1.1rem;
+  width: 1.1rem;
+  height: 1.1rem;
   flex-shrink: 0;
   display: flex;
   align-items: center;
@@ -70,7 +69,7 @@
 .bucket-modal-title {
   font-size: 1.15rem;
   font-weight: 700;
-  color: var(--text-main);
+  color: var(--color-gray-800);
   margin: 0;
   flex: 1;
 }
@@ -78,28 +77,24 @@
 .bucket-modal-close {
   background: none;
   border: none;
-  font-size: 1.5rem;
-  color: var(--text-sub);
+  font-size: 1.35rem;
+  color: var(--color-gray-500);
   cursor: pointer;
   width: 32px;
   height: 32px;
   display: flex;
   align-items: center;
   justify-content: center;
-  border-radius: 50%;
-  transition: all 0.15s ease;
   flex-shrink: 0;
 }
 
 .bucket-modal-close:hover {
-  background: rgba(255, 107, 107, 0.1);
-  color: var(--main-pink);
-  transform: rotate(90deg);
+  color: var(--color-gray-700);
 }
 
 /* ================ 모달 본문 ================ */
 .bucket-modal-body {
-  padding: 1.25rem;
+  padding: 0.25rem 1.25rem 1.25rem;
   display: flex;
   flex-direction: column;
   gap: 1rem;
@@ -112,26 +107,26 @@
 .bucket-modal-textarea {
   width: 100%;
   padding: 0.75rem 1rem;
-  border: 1.5px solid var(--color-gray-300);
-  border-radius: 0.9rem;
+  border: 1.5px solid var(--color-gray-200);
+  border-radius: var(--border-radius);
   font-size: 0.9rem;
   font-family: inherit;
-  background: #fff;
-  color: var(--text-main);
+  background: var(--color-gray-100);
+  color: var(--color-gray-800);
   outline: none;
   transition: all 0.2s ease;
 }
 
 .bucket-modal-input::placeholder,
 .bucket-modal-textarea::placeholder {
-  color: var(--text-sub);
+  color: var(--color-gray-500);
 }
 
 .bucket-modal-input:focus,
 .bucket-modal-textarea:focus {
-  border-color: var(--main-pink);
-  background: rgba(255, 214, 224, 0.3);
-  box-shadow: 0 0 0 3px rgba(255, 214, 224, 0.2);
+  border-color: var(--color-primary);
+  background: #fff;
+  box-shadow: 0 0 0 3px var(--color-primary-light);
 }
 
 .bucket-modal-textarea {
@@ -147,11 +142,10 @@
 }
 
 .bucket-selector-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
+  font-size: 0.76rem;
+  font-weight: 700;
+  color: var(--color-gray-600);
+  letter-spacing: 0.02em;
 }
 
 .bucket-category-options {
@@ -171,17 +165,18 @@
   height: 0;
 }
 
+/* 선택 전에도 카테고리 색이 항상 보이고(캘린더 유형 선택과 같은 원칙),
+   선택된 것만 테두리+그림자로 강조 — 점(dot) 같은 별도 표식은 안 씀 */
 .bucket-category-label {
   display: flex;
   flex-direction: column;
   align-items: center;
   gap: 0.3rem;
   padding: 0.6rem 0.5rem;
-  border: 2px solid var(--color-gray-300);
-  border-radius: 0.9rem;
-  background: #f9f9fb;
+  border: 1.5px solid transparent;
+  border-radius: var(--border-radius);
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
   text-align: center;
 }
 
@@ -197,46 +192,45 @@
 .bucket-cat-text {
   font-size: 0.8rem;
   font-weight: 600;
-  color: var(--text-sub);
+  color: inherit;
 }
 
 /* 음식 카테고리 */
 .bucket-category-label.bucket-cat-food {
-  color: #a3d8ca;
+  color: #4f9d85;
+  background: rgba(163, 216, 202, 0.25);
 }
 
 .bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-food {
-  background: rgba(163, 216, 202, 0.15);
   border-color: #a3d8ca;
-  box-shadow: 0 0 0 2px rgba(163, 216, 202, 0.2);
-  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgba(163, 216, 202, 0.3);
 }
 
 /* 여행 카테고리 */
 .bucket-category-label.bucket-cat-place {
-  color: #b4aee8;
+  color: #6c63b5;
+  background: rgba(180, 174, 232, 0.25);
 }
 
 .bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-place {
-  background: rgba(180, 174, 232, 0.15);
   border-color: #b4aee8;
-  box-shadow: 0 0 0 2px rgba(180, 174, 232, 0.2);
-  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgba(180, 174, 232, 0.3);
 }
 
 /* 데이트 카테고리 */
 .bucket-category-label.bucket-cat-date {
-  color: #ff9fb4;
+  color: #d6537b;
+  background: rgba(255, 159, 180, 0.25);
 }
 
 .bucket-category-option input[type="radio"]:checked + .bucket-category-label.bucket-cat-date {
-  background: rgba(255, 159, 180, 0.15);
   border-color: #ff9fb4;
-  box-shadow: 0 0 0 2px rgba(255, 159, 180, 0.2);
-  transform: scale(1.05);
+  box-shadow: 0 0 0 2px rgba(255, 159, 180, 0.3);
 }
 
-/* ================ 모달 액션 버튼 ================ */
+/* ================ 모달 액션 버튼 ================
+   앱 전역 버튼 톤(index.css의 .btn-primary/.btn-secondary/.btn-danger)과
+   같은 색을 그대로 씀 — 클래스 이름은 기존 그대로 두고(JS 변경 없음) 색만 맞춤. */
 .bucket-modal-actions {
   display: flex;
   flex-direction: column;
@@ -244,7 +238,7 @@
   margin-top: 0.5rem;
   padding-top: 1rem;
   padding-bottom: env(safe-area-inset-bottom);
-  border-top: 1px solid var(--color-gray-200);
+  border-top: 1px dashed var(--color-gray-300);
 }
 
 .bucket-modal-actions-primary {
@@ -261,23 +255,23 @@
   flex: 1;
   padding: 0.6rem 1rem;
   border: none;
-  border-radius: 0.85rem;
+  border-radius: var(--border-radius);
   font-size: 0.875rem;
   font-weight: 700;
   cursor: pointer;
-  transition: all 0.15s ease;
+  transition: opacity 0.15s ease;
   font-family: inherit;
 }
 
-/* 기본 버튼 */
-.bucket-modal-btn-primary {
-  background: linear-gradient(135deg, var(--main-mint) 0%, #8ec9bc 100%);
-  color: white;
+.bucket-modal-btn:hover:not(:disabled) {
+  opacity: 0.9;
 }
 
-.bucket-modal-btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(163, 216, 202, 0.3);
+/* 기본/완료 버튼 — .btn-primary와 동일한 그라데이션 */
+.bucket-modal-btn-primary,
+.bucket-modal-btn-complete {
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  color: white;
 }
 
 .bucket-modal-btn-primary:disabled {
@@ -287,61 +281,32 @@
 
 /* 저장 버튼 */
 .bucket-modal-btn-save {
-  background: linear-gradient(135deg, var(--main-lavender) 0%, #a39ece 100%);
+  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
   color: white;
-}
-
-.bucket-modal-btn-save:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(180, 174, 232, 0.3);
-}
-
-/* 완료 버튼 */
-.bucket-modal-btn-complete {
-  background: linear-gradient(135deg, var(--main-mint) 0%, #8ec9bc 100%);
-  color: white;
-}
-
-.bucket-modal-btn-complete:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(163, 216, 202, 0.3);
 }
 
 /* 미완료 버튼 */
 .bucket-modal-btn-incomplete {
-  background: linear-gradient(135deg, #ff9fb4 0%, #ff7fa5 100%);
-  color: white;
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
 }
 
-.bucket-modal-btn-incomplete:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 159, 180, 0.3);
-}
-
-/* 삭제 버튼 */
+/* 삭제 버튼 — .btn-danger와 동일 */
 .bucket-modal-btn-delete {
-  background: linear-gradient(135deg, #ff9b9b 0%, #ff6b6b 100%);
+  background: #e74c3c;
   color: white;
   flex: 1;
   font-size: 0.85rem;
 }
 
-.bucket-modal-btn-delete:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(255, 107, 107, 0.3);
-}
-
-/* 취소 버튼 */
+/* 취소 버튼 — .btn-secondary와 동일 */
 .bucket-modal-btn-cancel {
-  background: #f5f5f7;
-  color: var(--main-lavender);
+  background: var(--color-gray-100);
+  color: var(--color-gray-700);
+  border: 1px solid var(--color-gray-200);
   flex: 1;
   font-size: 0.85rem;
-}
-
-.bucket-modal-btn-cancel:hover {
-  background: var(--main-lavender);
-  color: white;
 }
 
 /* ================ 편집 모달 footer 레이아웃 ================ */
@@ -360,7 +325,7 @@
 .bucket-modal-btn-delete-text {
   background: none;
   border: none;
-  color: #ff6b6b;
+  color: #c9605f;
   font-size: 0.875rem;
   font-weight: 500;
   cursor: pointer;
@@ -375,7 +340,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  border-top: 1px solid rgba(255, 107, 107, 0.2);
+  border-top: 1px dashed var(--color-gray-300);
   margin-top: 0.5rem;
   padding-top: 1rem;
 }
@@ -383,7 +348,7 @@
 .bucket-modal-delete-confirm-text {
   flex: 1;
   font-size: 0.875rem;
-  color: #495057;
+  color: var(--color-gray-700);
   font-weight: 500;
 }
 
@@ -401,24 +366,23 @@
 
 /* ================ 완료 상태 표시 ================ */
 .bucket-modal-completed-badge {
-  background: rgba(163, 216, 202, 0.1);
-  border: 1px solid rgba(163, 216, 202, 0.3);
-  border-left: 4px solid var(--main-mint);
+  background: var(--color-gray-100);
+  border: 1px solid var(--color-gray-200);
+  border-left: 3px solid var(--color-primary);
   padding: 0.75rem 0.9rem;
-  border-radius: 0.8rem;
+  border-radius: var(--border-radius);
   display: flex;
   align-items: center;
   gap: 0.6rem;
   font-size: 0.85rem;
-  color: var(--text-sub);
+  color: var(--color-gray-700);
 }
 
 .bucket-modal-completed-badge-icon {
   font-size: 1.2rem;
-  color: var(--main-mint);
+  color: var(--color-primary);
 }
 
 .bucket-modal-completed-badge-text {
   font-weight: 500;
 }
-
