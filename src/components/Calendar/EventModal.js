@@ -236,7 +236,10 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         hasDescription: !!description,
         isRecurring: !!eventData.recurrenceRule,
       });
-      onClose();
+      // onClose()는 따로 안 부름 — Calendar.jsx의 onSave(handleSaveEvent)가 성공 시 이미
+      // closeModal()을 호출함. 여기서 또 부르면 navigate(-1)이 두 번 실행돼 히스토리를
+      // 하나 더 건너뛰어 버림(사이드바를 열고 들어온 경로면 그 사이드바 상태로 되돌아가는
+      // 버그로 실제 재현됨 — AppHeader.jsx의 closeSidebar 주석에 있는 것과 동일한 문제).
     } catch (error) {
       console.error('Error saving event:', error);
       toast.error(`일정 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
@@ -278,7 +281,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       } else {
         await onSave({ ...pendingEventData, recurrenceScope: scope });
       }
-      onClose();
+      // onClose()는 따로 안 부름 — 위 handleSubmit과 같은 이유(Calendar.jsx가 이미 닫음).
     } catch (err) {
       const label = scopeMode === 'delete' ? '삭제' : '저장';
       toast.error(`${label} 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
