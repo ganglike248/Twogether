@@ -103,9 +103,15 @@ export async function createRecurringEvent({ rule, template, userId, coupleId, i
   return { seriesId, instanceCount: dates.length };
 }
 
-// 시리즈에 속한(예외 아닌) 인스턴스 중 dateStr 이후(cutDateStr 이상, cutDateStr=null이면 전체)인 것들 조회
-async function fetchSeriesInstances(collName, seriesId, cutDateStr) {
-  const q = query(collection(db, collName), where('recurrence.seriesId', '==', seriesId));
+// 시리즈에 속한(예외 아닌) 인스턴스 중 dateStr 이후(cutDateStr 이상, cutDateStr=null이면 전체)인 것들 조회.
+// ⚠ coupleId/userId where절을 반드시 같이 걸어야 함 — Firestore 보안 규칙(events/personal_events의
+// allow read)이 resource.data.coupleId(또는 userId)를 참조하는데, list 쿼리는 결과에 포함될 모든
+// 문서가 규칙을 통과한다는 걸 쿼리의 where절만으로 사전에 증명할 수 있어야 허용됨. seriesId만 걸면
+// Firestore가 그걸 증명 못 해서 "Missing or insufficient permissions"로 통째로 거부함(실제로 재현된
+// 버그) — 단건 get/delete("이 일정만")는 이 list 제약이 없어서 멀쩡했던 것과 대비됨.
+async function fetchSeriesInstances(collName, seriesId, cutDateStr, isPersonal, coupleId, userId) {
+  const ownerClause = isPersonal ? where('userId', '==', userId) : where('coupleId', '==', coupleId);
+  const q = query(collection(db, collName), where('recurrence.seriesId', '==', seriesId), ownerClause);
   const snap = await getDocs(q);
   return snap.docs.filter((d) => {
     const data = d.data();
@@ -168,7 +174,7 @@ export async function updateRecurringEvent({
     // 날짜를 기준점으로 삼으면 매월/매년 반복에서 "매월 1일"이 "매월 25일"처럼 위상이 밀려버리는
     // 버그가 생김(주별 반복만 우연히 무관함) — 그래서 'future' 범위와 동일한 기준점을 재사용함.
     const cutDateStr = instanceDateStr;
-    const allDocs = await fetchSeriesInstances(collName, seriesId, null);
+    const allDocs = await fetchSeriesInstances(collName, seriesId, null, isPersonal, coupleId, userId);
     const pastDocs = allDocs.filter((d) => (d.data().start || '').split('T')[0] < cutDateStr);
     const futureDocs = allDocs.filter((d) => (d.data().start || '').split('T')[0] >= cutDateStr);
 
@@ -219,7 +225,7 @@ export async function updateRecurringEvent({
 
   // scope === 'future'
   const cutDateStr = instanceDateStr;
-  const futureDocs = await fetchSeriesInstances(collName, seriesId, cutDateStr);
+  const futureDocs = await fetchSeriesInstances(collName, seriesId, cutDateStr, isPersonal, coupleId, userId);
   const dates = generateOccurrenceDates(normalizedRule, cutDateStr); // 50개 초과 시 여기서 throw
   if (dates.length === 0) {
     throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없습니다.');
@@ -270,7 +276,7 @@ export async function deleteRecurringEvent({ eventId, seriesId, scope, isPersona
   }
 
   const cutDateStr = scope === 'all' ? null : instanceDateStr;
-  const toDelete = await fetchSeriesInstances(collName, seriesId, cutDateStr);
+  const toDelete = await fetchSeriesInstances(collName, seriesId, cutDateStr, isPersonal, coupleId, userId);
 
   const batch = writeBatch(db);
   toDelete.forEach((d) => batch.delete(d.ref));
