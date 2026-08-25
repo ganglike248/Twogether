@@ -53,6 +53,15 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   // 기존 단일/예외 일정을 나중에 반복으로 "전환"하는 건 지원하지 않음(범위가 커져서 1단계 제외).
   const canConfigureRecurrence = !(event && event.id) || isSeriesMember;
   const recurrenceActive = canConfigureRecurrence && (recurrence.enabled || isSeriesMember);
+  // 진짜 시작(첫) 인스턴스인지 — "수정"의 범위 선택에서 "전체"를 여기서만 노출함(그 외 인스턴스에서
+  // "전체"를 고르면 실제로는 이 인스턴스 날짜부터 재계산되는데 이름과 동작이 안 맞아 헷갈린다는
+  // 피드백으로 도입). "삭제"는 애매함이 없어서(항상 시리즈 전체 삭제) 이 제한을 안 둠.
+  const isFirstInstance = event?.recurrence?.isFirst === true;
+  const instanceDateLabel = (() => {
+    if (!isSeriesMember || !startDate) return '';
+    const [, m, d] = startDate.split('-');
+    return `${Number(m)}월 ${Number(d)}일`;
+  })();
 
   const extractDate = (dateValue) => {
     if (!dateValue) return '';
@@ -538,10 +547,13 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         </div>
       )}
 
-      {/* 반복 일정 범위 선택 (이 일정만 / 이후 모두 / 전체) */}
+      {/* 반복 일정 범위 선택 (이 일정만 / 이후 모두 / 전체) —
+          "전체"는 삭제 시 항상, 수정 시엔 진짜 첫 인스턴스를 열었을 때만 노출 */}
       {showScopeModal && (
         <RecurrenceScopeModal
           mode={scopeMode}
+          showAllOption={scopeMode === 'delete' || isFirstInstance}
+          instanceDateLabel={instanceDateLabel}
           onCancel={handleScopeCancel}
           onChoose={handleScopeChoose}
         />

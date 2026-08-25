@@ -24,7 +24,10 @@ const normalizeRule = (rule) => ({
 });
 
 // template: { title, description, eventType, startDate('YYYY-MM-DD'), durationDays(정수, 0=당일) }
-const buildInstanceData = ({ template, dateStr, isPersonal, coupleId, seriesId, rule }) => {
+// isFirst: 이 인스턴스가 시리즈 전체에서 가장 이른(진짜 시작일) 문서인지 — EventModal이 "전체 수정"
+// 범위를 이 인스턴스를 열었을 때만 보여줄지 판단하는 용도. 과거 인스턴스는 재생성 대상이 아니라서
+// 한 번 찍히면 그 문서가 남아있는 한 안 바뀜(아래 updateRecurringEvent의 재계산 로직 참고).
+const buildInstanceData = ({ template, dateStr, isPersonal, coupleId, seriesId, rule, isFirst = false }) => {
   const start = `${dateStr}T00:00:00`;
   const durationDays = template.durationDays || 0;
   let end;
@@ -42,7 +45,7 @@ const buildInstanceData = ({ template, dateStr, isPersonal, coupleId, seriesId, 
     start,
     end,
     isDday: false, // 반복 일정은 디데이와 상호 배타 (EventModal에서도 UI로 강제)
-    recurrence: { seriesId, isException: false, ...rule },
+    recurrence: { seriesId, isException: false, isFirst, ...rule },
   };
 
   if (isPersonal) {
@@ -82,9 +85,9 @@ export async function createRecurringEvent({ rule, template, userId, coupleId, i
   });
 
   const collName = instanceCollectionName(isPersonal);
-  dates.forEach((dateStr) => {
+  dates.forEach((dateStr, idx) => {
     const instRef = doc(collection(db, collName));
-    const data = buildInstanceData({ template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule });
+    const data = buildInstanceData({ template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule, isFirst: idx === 0 });
     batch.set(instRef, {
       ...data,
       ...(isPersonal ? { userId } : {}),
@@ -195,9 +198,16 @@ export async function updateRecurringEvent({
       });
     });
     futureDocs.forEach((d) => batch.delete(d.ref));
-    dates.forEach((dateStr) => {
+    // pastDocs가 비어있어야만(=클릭한 인스턴스가 진짜 시작일) 새로 만드는 첫 문서가 isFirst를 이어받음.
+    // 지금 UI는 "전체" 범위 자체를 진짜 첫 인스턴스를 열었을 때만 노출하므로 pastDocs는 항상 비어있어야
+    // 정상이지만, 방어적으로 실제 조회 결과를 기준으로 판단함(가정에만 의존하지 않음).
+    const regeneratingFromTrueStart = pastDocs.length === 0;
+    dates.forEach((dateStr, idx) => {
       const instRef = doc(collection(db, collName));
-      const data = buildInstanceData({ template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule });
+      const data = buildInstanceData({
+        template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule,
+        isFirst: regeneratingFromTrueStart && idx === 0,
+      });
       batch.set(instRef, {
         ...data,
         ...(isPersonal ? { userId } : {}),
@@ -225,7 +235,11 @@ export async function updateRecurringEvent({
 
   // scope === 'future'
   const cutDateStr = instanceDateStr;
-  const futureDocs = await fetchSeriesInstances(collName, seriesId, cutDateStr, isPersonal, coupleId, userId);
+  // 전체 인스턴스를 조회해서(50개 상한이라 부담 없음) cutDateStr 이전에 남아있는 게 있는지 확인 —
+  // 없으면(=클릭한 인스턴스가 진짜 시작일) 새로 만드는 첫 문서가 isFirst를 이어받아야 함.
+  const allDocsForFuture = await fetchSeriesInstances(collName, seriesId, null, isPersonal, coupleId, userId);
+  const futureDocs = allDocsForFuture.filter((d) => (d.data().start || '').split('T')[0] >= cutDateStr);
+  const hasEarlierDocs = allDocsForFuture.some((d) => (d.data().start || '').split('T')[0] < cutDateStr);
   const dates = generateOccurrenceDates(normalizedRule, cutDateStr); // 50개 초과 시 여기서 throw
   if (dates.length === 0) {
     throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없습니다.');
@@ -233,9 +247,12 @@ export async function updateRecurringEvent({
 
   const batch = writeBatch(db);
   futureDocs.forEach((d) => batch.delete(d.ref));
-  dates.forEach((dateStr) => {
+  dates.forEach((dateStr, idx) => {
     const instRef = doc(collection(db, collName));
-    const data = buildInstanceData({ template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule });
+    const data = buildInstanceData({
+      template, dateStr, isPersonal, coupleId, seriesId, rule: normalizedRule,
+      isFirst: !hasEarlierDocs && idx === 0,
+    });
     batch.set(instRef, {
       ...data,
       ...(isPersonal ? { userId } : {}),
