@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.35 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.36 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -147,6 +147,20 @@ Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 imp
 `max-age=31536000, immutable`을 뒤에 둬서 해시 파일만 오버라이드함. **주의**: `source: "/index.html"`처럼
 리터럴 경로만 지정하면 안 됨 — SPA 리라이트로 실제 요청은 `/`, `/calendar` 등으로 오기 때문에 매칭이 안 됨
 (처음엔 이렇게 잘못 설정했다가 다시 고침).
+
+### Firestore 보안 규칙 — list 쿼리는 where절만으로 규칙 통과가 증명돼야 함 (v0.4.36~)
+`events`/`personal_events`처럼 규칙이 `resource.data.coupleId`(또는 `userId`) 같은 문서 필드를 참조하는
+컬렉션에 **새 쿼리(`query()`+`getDocs`/`onSnapshot`)를 추가할 때, `where()` 절에 그 필드를 반드시 동등
+비교로 포함시킬 것.** Firestore는 list(다건 조회) 요청을 허용하기 전에 "결과에 포함될 모든 문서가 규칙을
+통과한다"는 걸 **쿼리의 where절만 보고 사전에 증명**할 수 있어야 하는데, 규칙이 참조하는 필드가 쿼리
+필터에 없으면 그 문서를 실제로 읽어보지 않고도(!) list 자체를 통째로 `Missing or insufficient permissions`로
+거부함 — 단건 `get()`/`doc(id)` 조회는 이 제약이 없어서 정상 동작하니 "단건은 되는데 목록만 안 됨"이 이
+증상의 특징. 실제로 반복 일정의 `recurrence.seriesId`로만 필터링한 쿼리가 이렇게 거부당해서 재현됨 —
+`where('coupleId','==',coupleId)`(개인 일정은 `userId`)를 추가해서 해결(`recurrenceService.js`의
+`fetchSeriesInstances` 참고). `useCalendarData.js`의 기존 구독들이 이미 이 패턴(항상 `coupleId`/`userId`
+필터 포함)을 따르고 있었던 것도 같은 이유. 이 필드들이 순수 동등 비교(`==`)라면 별도 복합 인덱스도
+필요 없음(Firestore가 동등 비교끼리는 자동으로 병합 처리 — 인덱스가 필요한 건 range 비교나 orderBy가
+섞일 때뿐).
 
 ### Firestore 오프라인 캐시 staleness — AuthContext 리다이렉트 가드 (v0.4.18~)
 `src/firebase.js`의 `persistentLocalCache`는 origin(localhost vs 배포 도메인)별로 IndexedDB에 독립 저장됨.
