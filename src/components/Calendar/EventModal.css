@@ -489,6 +489,15 @@
   background: var(--color-primary-light);
 }
 
+.scope-choice-btn.sel {
+  border-color: var(--color-primary);
+  background: var(--color-primary-light);
+}
+
+.scope-choice-btn.sel .scope-choice-label {
+  color: var(--color-primary-dark);
+}
+
 .scope-choice-label {
   color: var(--color-gray-800);
   font-size: 0.9rem;
