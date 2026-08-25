@@ -185,7 +185,15 @@ const CoupleInfoPage = () => {
                 <span className="couple-info-waiting-emoji">⏳</span>
                 <span className="couple-info-waiting-text">연결 대기 중</span>
                 {coupleDoc?.inviteCode && (
-                  <span className="couple-info-invite-code">{coupleDoc.inviteCode}</span>
+                  <>
+                    <div className="couple-info-code-row" onClick={handleCopyInviteCode}>
+                      <span className="couple-info-code-text">{coupleDoc.inviteCode}</span>
+                      <button type="button" className="couple-info-code-copy-btn" aria-label="초대 코드 복사">
+                        {copied ? <HiCheck /> : <HiClipboardDocument />}
+                      </button>
+                    </div>
+                    <span className="couple-info-hint">탭하여 복사하기</span>
+                  </>
                 )}
               </div>
             )}
@@ -212,28 +220,6 @@ const CoupleInfoPage = () => {
           <span className="couple-info-hint">변경하면 D+day가 다시 계산됩니다</span>
         </div>
       </div>
-
-      {/* 초대 코드 */}
-      {coupleDoc?.inviteCode && isConnected && (
-        <>
-          <p className="couple-info-section-label">초대 코드</p>
-          <div className="couple-info-section">
-            <div className="couple-info-field">
-              <label className="couple-info-label">
-                <HiClipboardDocument className="couple-info-label-icon" />
-                코드
-              </label>
-              <div className="couple-info-code-row" onClick={handleCopyInviteCode}>
-                <span className="couple-info-code-text">{coupleDoc.inviteCode}</span>
-                <button type="button" className="couple-info-code-copy-btn" aria-label="초대 코드 복사">
-                  {copied ? <HiCheck /> : <HiClipboardDocument />}
-                </button>
-              </div>
-              <span className="couple-info-hint">탭하여 복사하기</span>
-            </div>
-          </div>
-        </>
-      )}
 
       {/* 저장 버튼 */}
       <button

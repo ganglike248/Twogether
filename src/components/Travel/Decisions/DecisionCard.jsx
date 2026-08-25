@@ -4,6 +4,7 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, updateOption, decideOption, toggleFavorite } from '../../../services/travelDecisionService';
 import { handleOpenLink } from '../../../utils/appLinkUtils';
 import EditOptionModal from './EditOptionModal';
+import ConfirmModal from '../../common/ConfirmModal';
 import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionCard.css';
@@ -15,6 +16,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const [selectedScore, setSelectedScore] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [deciding, setDeciding] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'decide' | 'delete' | null
   const imageScrollRef = useRef(null);
 
   const myScore = getUserScore(option, currentUserId);
@@ -92,8 +94,12 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     }
   };
 
-  const handleDecide = async () => {
-    if (!window.confirm('이 후보로 확정하시겠습니까?')) return;
+  const handleDecide = () => {
+    setConfirmAction('decide');
+  };
+
+  const confirmDecide = async () => {
+    setConfirmAction(null);
     setDeciding(true);
     try {
       await decideOption(decision.tripId, decision.id, option.id, currentUserId);
@@ -106,9 +112,12 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     }
   };
 
-  const handleDeleteOption = async () => {
-    if (!window.confirm('이 옵션을 삭제하시겠습니까?')) return;
+  const handleDeleteOption = () => {
+    setConfirmAction('delete');
+  };
 
+  const confirmDeleteOption = async () => {
+    setConfirmAction(null);
     try {
       await deleteOption(decision.tripId, decision.id, option.id);
       toast.success('옵션이 삭제되었습니다.');
@@ -380,6 +389,24 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
           onSave={handleUpdateOption}
         />
       )}
+
+      <ConfirmModal
+        isOpen={confirmAction === 'decide'}
+        title="후보 확정"
+        message="이 후보로 확정하시겠습니까?"
+        confirmText="확정"
+        danger={false}
+        onConfirm={confirmDecide}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmModal
+        isOpen={confirmAction === 'delete'}
+        title="옵션 삭제"
+        message="이 옵션을 삭제하시겠습니까?"
+        confirmText="삭제"
+        onConfirm={confirmDeleteOption}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 };

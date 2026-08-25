@@ -116,7 +116,6 @@ const Sidebar = ({ isOpen, onClose }) => {
         {/* 하단 푸터 */}
         <div className="sidebar-footer">
           <span className="sidebar-version">v{version}</span>
-          <span className="sidebar-feedback">Business9498@gmail.com</span>
           <button className="sidebar-logout" onClick={openLogoutModal}>
             <HiArrowRightOnRectangle />
             <span>로그아웃</span>

@@ -38,11 +38,14 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
   // Step 1: 선택 화면에서의 현재 아이템들
   const allSelectedItems = [...directItems, ...selectedBucketItems];
 
-  // 카테고리 필터 변경 시 선택 항목 동기화
+  // 버킷리스트 항목이 실제로 삭제/완료 처리된 경우에만 선택에서 정리함 — 필터(미완료/완료,
+  // 카테고리) 전환은 "보이는 목록"만 바꾸는 것이라 그것 때문에 이미 골라둔 선택이 조용히
+  // 사라지면 안 됨(전에는 filteredBucketItems 기준으로 걸러서, 완료/카테고리 탭을 옮기기만
+  // 해도 선택이 사라지는 문제가 있었음 — 2026-08-25 발견/수정)
   useEffect(() => {
-    const validIds = new Set(filteredBucketItems.map(item => item.id));
+    const validIds = new Set(bucketList.map(item => item.id));
     setSelectedBucketItems(prev => prev.filter(item => validIds.has(item.id)));
-  }, [bucketFilter, bucketList]);
+  }, [bucketList]);
 
   // 결과 표시 후 3초 자동 초기화 (명확한 상태 관리)
   useEffect(() => {

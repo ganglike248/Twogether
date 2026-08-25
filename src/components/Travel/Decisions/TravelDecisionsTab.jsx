@@ -9,6 +9,7 @@ import {
 } from '../../../services/travelDecisionService';
 import DecisionCategoryList from './DecisionCategoryList';
 import DecisionModal from './DecisionModal';
+import ConfirmModal from '../../common/ConfirmModal';
 import { MdGpsFixed } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './TravelDecisionsTab.css';
@@ -25,6 +26,7 @@ const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref)
   const { user } = useAuthContext();
   const { decisions, loading } = useTravelDecisions(trip.id);
   const [showModal, setShowModal] = useState(false);
+  const [decisionToDelete, setDecisionToDelete] = useState(null);
   const [filter, setFilter] = useState('all'); // 'all', 'deciding', 'decided'
   const [selectedDecisionId, setSelectedDecisionId] = useState(null); // 주제 필터
   const [activeCategory, setActiveCategory] = useState(null); // TOC 스크롤 추적
@@ -104,8 +106,13 @@ const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref)
     }
   };
 
-  const handleDeleteDecision = async (decisionId) => {
-    if (!window.confirm('이 선택지를 삭제하시겠습니까?')) return;
+  const handleDeleteDecision = (decisionId) => {
+    setDecisionToDelete(decisionId);
+  };
+
+  const confirmDeleteDecision = async () => {
+    const decisionId = decisionToDelete;
+    setDecisionToDelete(null);
     try {
       await deleteDecision(trip.id, decisionId);
       toast.success('선택지가 삭제되었습니다.');
@@ -249,6 +256,15 @@ const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref)
           onSave={handleCreateDecision}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!decisionToDelete}
+        title="선택지 삭제"
+        message="이 선택지를 삭제하시겠습니까?"
+        confirmText="삭제"
+        onConfirm={confirmDeleteDecision}
+        onCancel={() => setDecisionToDelete(null)}
+      />
     </div>
   );
 });

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import { MdSettings, MdDelete, MdAdd } from 'react-icons/md';
 import BaseModal from './BaseModal';
+import ConfirmModal from '../common/ConfirmModal';
 import { CATEGORY_COLORS, DEFAULT_CATEGORIES, getCategoryDisplayName } from '../../services/categoryColorService';
 import './category-manager-modal.css';
 
@@ -200,30 +201,14 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
       )}
 
       {/* 카테고리 삭제 확인 모달 */}
-      {showDeleteModal && (
-        <div className="category-delete-modal-overlay" onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}>
-          <div className="category-delete-modal" onClick={e => e.stopPropagation()}>
-            <p className="category-delete-modal-title">카테고리 삭제</p>
-            <p className="category-delete-modal-msg">
-              '{getCategoryDisplayName(categoryToDelete, customCategories)}'을(를) 삭제하시겠습니까?
-            </p>
-            <div className="category-delete-modal-actions">
-              <button
-                className="category-delete-modal-btn cancel"
-                onClick={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}
-              >
-                취소
-              </button>
-              <button
-                className="category-delete-modal-btn delete"
-                onClick={confirmDeleteCategory}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
+      <ConfirmModal
+        isOpen={showDeleteModal}
+        title="카테고리 삭제"
+        message={`'${getCategoryDisplayName(categoryToDelete, customCategories)}'을(를) 삭제하시겠습니까?`}
+        confirmText="삭제"
+        onConfirm={confirmDeleteCategory}
+        onCancel={() => { setShowDeleteModal(false); setCategoryToDelete(null); }}
+      />
     </BaseModal>
   );
 }

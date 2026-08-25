@@ -1,0 +1,47 @@
+/* src/components/common/ConfirmModal.css
+   EventModal.css의 .modal-overlay/.confirm-card와 같은 톤(흰 배경, 앱 전역 버튼) —
+   클래스명만 분리해서 이 파일 하나로 독립적으로 동작함. */
+.confirm-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.confirm-modal-card {
+  background: white;
+  border-radius: var(--border-radius);
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 300px;
+  padding: 1.35rem 1.3rem 1.1rem;
+}
+
+.confirm-modal-title {
+  font-size: 1.05rem;
+  font-weight: 700;
+  color: var(--color-gray-800);
+  margin: 0 0 0.5rem;
+}
+
+.confirm-modal-body {
+  font-size: 0.88rem;
+  color: var(--color-gray-600);
+  line-height: 1.55;
+  margin: 0 0 1.2rem;
+  white-space: pre-line;
+}
+
+.confirm-modal-actions {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 0.75rem;
+}

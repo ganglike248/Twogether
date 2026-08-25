@@ -1,22 +1,16 @@
-/* ================ 카테고리 선택기 (동적) ================ */
-.bucket-category-selector {
-  display: flex;
-  flex-direction: column;
-  gap: 0.6rem;
-}
-
-.bucket-selector-label {
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--text-main);
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-}
-
+/* ================ 카테고리 선택기 (동적) ================
+   EventModal의 .sheet-type-row/.sheet-type-opt와 같은 원칙 — 작은 알약(pill) 칩을
+   가로로 나열, 선택 여부와 무관하게 카테고리 고유색이 항상 보이고(다른 색으로 안 바뀜),
+   선택된 것만 테두리+그림자 링으로 강조.
+   ⚠ .bucket-category-selector/.bucket-selector-label은 여기 정의하지 않음 —
+   bucket-modal.css에 이미 있고, 예전엔 두 파일에 같은 클래스명이 서로 다른 값으로
+   중복 정의돼 있어서(로드 순서에 따라 어느 쪽이 이길지 불명확한 상태였음) 실제로는
+   여기서 아무리 스타일을 고쳐도 반영이 안 되는 문제가 있었음(2026-08-25 발견/수정) —
+   같은 클래스를 다른 파일에 또 정의하지 말 것. */
 .bucket-category-options {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
-  gap: 0.6rem;
+  display: flex;
+  gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .bucket-category-option {
@@ -31,39 +25,20 @@
 }
 
 .bucket-category-label {
-  display: flex;
-  flex-direction: column;
+  display: inline-flex;
   align-items: center;
-  gap: 0.4rem;
-  padding: 0.8rem 0.6rem;
-  border: 2px solid var(--color-gray-300);
-  border-radius: 0.9rem;
-  background: #f9f9fb;
-  cursor: pointer;
-  transition: all 0.15s ease;
-  text-align: center;
-}
-
-.bucket-cat-color-dot {
-  width: 1.5rem;
-  height: 1.5rem;
-  border-radius: 50%;
-  flex-shrink: 0;
-}
-
-.bucket-cat-text {
-  font-size: 0.8rem;
+  font-size: 0.85rem;
   font-weight: 600;
-  color: var(--text-sub);
-  max-width: 100%;
-  word-break: break-word;
+  padding: 0.4rem 0.85rem;
+  border: 1.5px solid transparent;
+  border-radius: 16px;
+  color: #fff;
+  background: var(--category-color);
+  cursor: pointer;
+  transition: border-color 0.15s ease, box-shadow 0.15s ease;
 }
 
-/* 라디오 버튼 선택 시 스타일 */
 .bucket-category-option input[type="radio"]:checked + .bucket-category-label {
-  border-color: var(--category-color, #4D96FF);
-  background: rgba(77, 150, 255, 0.1);
-  box-shadow: 0 0 0 2px rgba(77, 150, 255, 0.2);
-  transform: scale(1.05);
+  border-color: rgba(0, 0, 0, 0.35);
+  box-shadow: 0 0 0 2px rgba(0, 0, 0, 0.15);
 }
-

@@ -12,6 +12,7 @@ import {
 } from '../../../services/travelChecklistService';
 import ChecklistItem from './ChecklistItem';
 import ChecklistModal from './ChecklistModal';
+import ConfirmModal from '../../common/ConfirmModal';
 import { MdCheckCircle } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './TravelChecklistTab.css';
@@ -22,6 +23,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
   const [initialized, setInitialized] = useState(false);
+  const [itemToDelete, setItemToDelete] = useState(null);
 
   // 처음 로드 시 체크리스트 생성
   useEffect(() => {
@@ -86,8 +88,13 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
     }
   }), []);
 
-  const handleDelete = async (itemId) => {
-    if (!window.confirm('이 항목을 삭제하시겠습니까?')) return;
+  const handleDelete = (itemId) => {
+    setItemToDelete(itemId);
+  };
+
+  const confirmDeleteItem = async () => {
+    const itemId = itemToDelete;
+    setItemToDelete(null);
     try {
       await deleteChecklistItem(trip.id, itemId);
       toast.success('항목이 삭제되었습니다.');
@@ -169,6 +176,15 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
           editingItem={editingItem}
         />
       )}
+
+      <ConfirmModal
+        isOpen={!!itemToDelete}
+        title="항목 삭제"
+        message="이 항목을 삭제하시겠습니까?"
+        confirmText="삭제"
+        onConfirm={confirmDeleteItem}
+        onCancel={() => setItemToDelete(null)}
+      />
     </div>
   );
 });

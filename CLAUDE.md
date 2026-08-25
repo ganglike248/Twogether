@@ -997,6 +997,12 @@ density별 폴더(`drawable-port-*/splash.png`, `drawable-land-*/splash.png`)는
    - 웹 빌드(`npm run build`) + `npx cap sync`
    - Firebase Hosting 배포
    - 커밋 + 푸시
+   - **업데이트 노트 출력** — 위 작업이 다 끝난 뒤, 이번에 새로 올린 버전과 **그 직전 "마무리"로
+     배포됐던 버전**(단순 이전 커밋 1개가 아니라, 직전 release 커밋 — `git log`에서 `release: vX.Y.Z`
+     형태의 가장 최근 커밋을 찾아 그 시점 기준) 사이에 뭐가 달라졌는지 **사용자 입장에서 알아볼 수 있는
+     내용만** 간단히 정리해서 보여줌. 앱스토어 업데이트 노트에 그대로 붙여넣을 수 있는 톤(기능
+     추가/버그 수정 위주, 내부 리팩터링·규칙 파일·CI 설정 같은 코드 구조 변경은 제외)으로, 항목마다
+     `-`로 구분해서 출력.
    ⚠ 이 버전 동기화는 "번호"만 맞추는 것 — Android AAB(Play Console)/iOS Archive(App Store Connect) 실제
    빌드·업로드는 아래 8번과 동일하게 keystore·Apple 계정 접근 권한이 없어 항상 수동 단계로 남음.
 8. 내가 "배포해줘"(또는 "배포"만 언급)라고 하면 확인 없이 바로 웹 빌드(`npm run build`) +

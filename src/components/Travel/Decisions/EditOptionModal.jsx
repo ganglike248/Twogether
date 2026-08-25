@@ -2,6 +2,7 @@
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
+import { toast } from 'react-toastify';
 import './EditOptionModal.css';
 
 const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
@@ -42,7 +43,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
     e.preventDefault();
 
     if (!formData.title.trim()) {
-      alert('제목을 입력해주세요.');
+      toast.error('제목을 입력해주세요.');
       return;
     }
 

@@ -12,6 +12,7 @@ import {
   deleteSealedMessage,
 } from '../../services/sealedMessageService';
 import UnlockTimePicker from './UnlockTimePicker';
+import ConfirmModal from '../common/ConfirmModal';
 import './sealed-message-modal.css';
 
 const toLocalInputValue = (timestamp) => {
@@ -32,6 +33,7 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
   const [unlockAtLocal, setUnlockAtLocal] = useState(() => toLocalInputValue(message.unlockAt));
   const [isSaving, setIsSaving] = useState(false);
   const [isDeleting, setIsDeleting] = useState(false);
+  const [confirmAction, setConfirmAction] = useState(null); // 'delete' | 'unlock' | null
 
   useEffect(() => {
     let cancelled = false;
@@ -62,9 +64,13 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
     }
   };
 
-  const handleDelete = async () => {
+  const handleDelete = () => {
     if (!canClick()) return;
-    if (!window.confirm('편지를 삭제할까요? 되돌릴 수 없어요.')) return;
+    setConfirmAction('delete');
+  };
+
+  const confirmDelete = async () => {
+    setConfirmAction(null);
     setIsDeleting(true);
     try {
       await deleteSealedMessage(message.id, coupleId);
@@ -77,9 +83,13 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
     }
   };
 
-  const handleUnlockNow = async () => {
+  const handleUnlockNow = () => {
     if (!canClick()) return;
-    if (!window.confirm('지금 바로 공개할까요? 한번 공개하면 되돌릴 수 없어요.')) return;
+    setConfirmAction('unlock');
+  };
+
+  const confirmUnlockNow = async () => {
+    setConfirmAction(null);
     setIsSaving(true);
     try {
       await unlockSealedMessageNow(message.id);
@@ -153,6 +163,24 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
           )}
         </div>
       </div>
+
+      <ConfirmModal
+        isOpen={confirmAction === 'delete'}
+        title="편지 삭제"
+        message={'편지를 삭제할까요?\n되돌릴 수 없어요.'}
+        confirmText="삭제"
+        onConfirm={confirmDelete}
+        onCancel={() => setConfirmAction(null)}
+      />
+      <ConfirmModal
+        isOpen={confirmAction === 'unlock'}
+        title="지금 공개"
+        message={'지금 바로 공개할까요?\n한번 공개하면 되돌릴 수 없어요.'}
+        confirmText="공개"
+        danger={false}
+        onConfirm={confirmUnlockNow}
+        onCancel={() => setConfirmAction(null)}
+      />
     </div>
   );
 };

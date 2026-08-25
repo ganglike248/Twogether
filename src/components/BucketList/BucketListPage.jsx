@@ -13,6 +13,8 @@ import BaseModal from './BaseModal';
 import CategorySelector from './CategorySelector';
 import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
+import ConfirmModal from '../common/ConfirmModal';
+import FloatingActionMenu from '../Travel/FloatingActionMenu';
 import { BucketListSkeleton } from './BucketListSkeleton';
 import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
@@ -86,8 +88,10 @@ function BucketListPage() {
   const modalState = { type: modalType, data: searchParams.get('from') === 'edit' ? 'from-edit' : null };
   const isWheelModalOpen = modalType === 'wheel';
 
-  const openModal = (type, extra = '') =>
-    navigate(`/bucket?modal=${type}${extra}`, { state: { modal: true } });
+  const openModal = useCallback(
+    (type, extra = '') => navigate(`/bucket?modal=${type}${extra}`, { state: { modal: true } }),
+    [navigate]
+  );
 
   // 모달 타입별 폼 데이터
   const [addForm, setAddForm] = useState({ title: '', content: '', category: 'food' });
@@ -152,18 +156,23 @@ function BucketListPage() {
     return () => unsubscribe();
   }, [coupleId]);
 
-  const getFirstCategory = () => {
+  // useCallback으로 감싸고 customCategories를 deps에 명시 — 안 그러면 이 함수들을 참조하는
+  // 다른 useCallback(예: handleOpenEditModal)이 자기 deps에 이 함수 자체를 안 넣었을 때
+  // "최초 렌더 시점의 customCategories(아직 로드 전이라 항상 {})"로 영원히 고정된 클로저를
+  // 참조하게 됨 — 실제로 handleOpenEditModal이 이 문제였음(아래 참고, 2026-08-25 발견/수정):
+  // 로드 완료 후 실제로 존재하는 커스텀 카테고리인데도 "삭제된 카테고리"로 오판해 카드를 열
+  // 때마다 엉뚱하게 기본 카테고리로 되돌리고 있었음.
+  const getFirstCategory = useCallback(() => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     return Object.keys(allCategories).sort()[0] || 'food';
-  };
+  }, [customCategories]);
 
-  const isValidCategory = (category) => {
+  const isValidCategory = useCallback((category) => {
     const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     return Object.keys(allCategories).includes(category);
-  };
+  }, [customCategories]);
 
   const handleOpenAddModal = () => {
-    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
     const currentFilter = tabFilters[activeTab];
     // 필터된 카테고리가 있으면 그것을 기본값으로, 아니면 첫 번째 카테고리
     const defaultCategory = currentFilter !== 'all' ? currentFilter : getFirstCategory();
@@ -218,7 +227,7 @@ function BucketListPage() {
     setSelectedItemId(id);
     setCompletionDate(format(new Date(), 'yyyy-MM-dd')); // 오늘 날짜 기본값
     openModal('date');
-  }, []);
+  }, [openModal]);
 
   const handleCompleteWithDate = useCallback(async () => {
     if (!selectedItemId || !completionDate) return;
@@ -275,8 +284,7 @@ function BucketListPage() {
     } else {
       navigate(-1);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [location.key, navigate]);
+  }, [location.key, navigate, getFirstCategory]);
 
   const handleOpenEditModal = useCallback((item) => {
     // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
@@ -294,7 +302,7 @@ function BucketListPage() {
       completedAt: item.completedAt
     });
     openModal('edit');
-  }, []);
+  }, [isValidCategory, getFirstCategory, openModal]);
 
   const handleEditSave = useCallback(async () => {
     if (!canClick()) return;
@@ -316,7 +324,7 @@ function BucketListPage() {
   const handleEditComplete = useCallback(() => {
     setSelectedItemId(editForm.id);
     openModal('date', '&from=edit');
-  }, [editForm.id]);
+  }, [editForm.id, openModal]);
 
   const handleEditUncheck = async (id = editForm.id) => {
     try {
@@ -416,15 +424,6 @@ function BucketListPage() {
         </div>
       </div>
 
-      <div className="bucket-add-wrapper">
-        <button className="bucket-add-top" onClick={handleOpenAddModal}>
-          <MdAdd className="add-icon" color="#51cf66" /> 새로운 버킷 추가
-        </button>
-        <button className="bucket-wheel-btn" onClick={() => openModal('wheel')} title="돌림판으로 선택">
-          🎡
-        </button>
-      </div>
-
       <div className="bucket-tab-bar">
         <button
           className={`bucket-tab ${activeTab === 'pending' ? 'active' : ''}`}
@@ -438,11 +437,21 @@ function BucketListPage() {
         >
           완료 <span className="bucket-tab-count">{completedList.length}</span>
         </button>
+        <button className="bucket-wheel-btn" onClick={() => openModal('wheel')} title="돌림판으로 선택">
+          🎡
+        </button>
       </div>
 
       <div className="bucket-list" ref={bucketListRef}>
         <div className="bucket-toolbar">
           <div className="category-tabs">
+            <button
+              className="cat-tab-manage"
+              onClick={handleOpenCategoryManager}
+              title="카테고리 관리"
+            >
+              <MdSettings color="#74c0fc" />
+            </button>
             {categoryOptions.map(opt => {
               const categoryColor = opt.value === 'all'
                 ? '#FFD700'
@@ -459,13 +468,6 @@ function BucketListPage() {
                 </button>
               );
             })}
-            <button
-              className="cat-tab-manage"
-              onClick={handleOpenCategoryManager}
-              title="카테고리 관리"
-            >
-              <MdSettings color="#74c0fc" />
-            </button>
           </div>
         </div>
         {isLoading ? (
@@ -477,7 +479,10 @@ function BucketListPage() {
             text={bucketList.length === 0
               ? '새로운 버킷을 추가해보세요!'
               : '조건에 맞는 항목이 없습니다.'}
-            button={bucketList.length === 0 ? undefined : null}
+            button={bucketList.length === 0 ? {
+              text: '첫 버킷 추가하기',
+              onClick: handleOpenAddModal
+            } : undefined}
           />
         ) : (
           activeList.map(item => (
@@ -522,18 +527,12 @@ function BucketListPage() {
           customCategories={customCategories}
         />
         <div className="bucket-modal-actions">
-          <div className="bucket-modal-actions-primary">
-            <button
-              className="bucket-modal-btn bucket-modal-btn-primary"
-              onClick={handleAdd}
-            >
-              추가하기
-            </button>
-            <button
-              className="bucket-modal-btn bucket-modal-btn-cancel"
-              onClick={closeModal}
-            >
+          <div className="bucket-modal-foot-actions">
+            <button type="button" className="btn btn-secondary" onClick={closeModal}>
               취소
+            </button>
+            <button type="button" className="btn btn-primary" onClick={handleAdd}>
+              추가하기
             </button>
           </div>
         </div>
@@ -555,19 +554,17 @@ function BucketListPage() {
           max={format(new Date(), 'yyyy-MM-dd')}
         />
         <div className="bucket-modal-actions">
-          <div className="bucket-modal-actions-primary">
+          <div className="bucket-modal-foot-actions">
+            <button type="button" className="btn btn-secondary" onClick={closeModal}>
+              취소
+            </button>
             <button
-              className="bucket-modal-btn bucket-modal-btn-complete"
+              type="button"
+              className="btn btn-primary"
               disabled={!completionDate}
               onClick={handleCompleteWithDate}
             >
               완료
-            </button>
-            <button
-              className="bucket-modal-btn bucket-modal-btn-cancel"
-              onClick={closeModal}
-            >
-              취소
             </button>
           </div>
         </div>
@@ -616,72 +613,48 @@ function BucketListPage() {
               {formatBucketDate(editForm.completedAt)} 완료
             </span>
             <button
-              className="bucket-modal-btn bucket-modal-btn-edit-date"
+              className="bucket-modal-btn-edit-date"
               onClick={() => {
                 setSelectedItemId(editForm.id);
                 setCompletionDate(editForm.completedAt);
                 openModal('date', '&from=edit');
               }}
-              style={{ fontSize: '0.75rem', padding: '0.3rem 0.6rem', marginLeft: '0.5rem' }}
             >
               수정
             </button>
           </div>
         )}
-        {showDeleteConfirm ? (
-          <div className="bucket-modal-delete-confirm">
-            <span className="bucket-modal-delete-confirm-text">정말 삭제하시겠습니까?</span>
-            <div className="bucket-modal-delete-confirm-btns">
-              <button
-                className="bucket-modal-btn bucket-modal-btn-cancel"
-                onClick={() => setShowDeleteConfirm(false)}
-              >
-                취소
-              </button>
-              <button
-                className="bucket-modal-btn bucket-modal-btn-delete"
-                onClick={handleConfirmDelete}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        ) : (
-          <div className="bucket-modal-actions">
-            <div className="bucket-modal-footer-row">
-              <button
-                className="bucket-modal-btn-delete-text"
-                onClick={() => setShowDeleteConfirm(true)}
-              >
-                삭제
-              </button>
-              <div className="bucket-modal-footer-actions">
-                {!editForm.completed ? (
-                  <button
-                    className="bucket-modal-btn bucket-modal-btn-complete"
-                    onClick={handleEditComplete}
-                  >
-                    완료
-                  </button>
-                ) : (
-                  <button
-                    className="bucket-modal-btn bucket-modal-btn-incomplete"
-                    onClick={() => handleEditUncheck(editForm.id)}
-                  >
-                    미완료
-                  </button>
-                )}
-                <button
-                  className="bucket-modal-btn bucket-modal-btn-save"
-                  onClick={handleEditSave}
-                >
-                  저장
+        <div className="bucket-modal-actions">
+          <div className="bucket-modal-footer-row">
+            <button type="button" className="btn btn-danger" onClick={() => setShowDeleteConfirm(true)}>
+              삭제
+            </button>
+            <div className="bucket-modal-foot-actions">
+              {!editForm.completed ? (
+                <button type="button" className="btn btn-secondary" onClick={handleEditComplete}>
+                  완료
                 </button>
-              </div>
+              ) : (
+                <button type="button" className="btn btn-secondary" onClick={() => handleEditUncheck(editForm.id)}>
+                  미완료
+                </button>
+              )}
+              <button type="button" className="btn btn-primary" onClick={handleEditSave}>
+                저장
+              </button>
             </div>
           </div>
-        )}
+        </div>
       </BaseModal>
+
+      <ConfirmModal
+        isOpen={showDeleteConfirm}
+        title="버킷 삭제"
+        message="정말 삭제하시겠습니까?"
+        confirmText="삭제"
+        onConfirm={handleConfirmDelete}
+        onCancel={() => setShowDeleteConfirm(false)}
+      />
 
       {/* 돌림판 모달 */}
       <WheelModal
@@ -689,6 +662,13 @@ function BucketListPage() {
         onClose={closeModal}
         bucketList={bucketList}
         customCategories={customCategories}
+      />
+
+      {/* FloatingActionMenu — 버킷 추가. Calendar/TripDetail과 같은 위치·컴포넌트 재사용 */}
+      <FloatingActionMenu
+        actions={[
+          { label: '버킷 추가', onClick: handleOpenAddModal }
+        ]}
       />
     </div>
   );

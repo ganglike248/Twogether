@@ -28,11 +28,7 @@ function CategorySelector({ value, onChange, name = 'category', customCategories
                 className="bucket-category-label"
                 style={{ '--category-color': color }}
               >
-                <span
-                  className="bucket-cat-color-dot"
-                  style={{ backgroundColor: color }}
-                />
-                <span className="bucket-cat-text">{displayName}</span>
+                {displayName}
               </label>
             </div>
           );
