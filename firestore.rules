@@ -76,6 +76,27 @@ service cloud.firestore {
         isValidEvent();
     }
 
+    // 반복 일정 규칙 원본 (v0.4.35~): 인스턴스는 events/personal_events에 개별 문서로 그대로
+    // 저장되고(recurrence.seriesId로 이 문서를 참조), 이 문서는 규칙 기록 + 알림 트리거 앵커 역할만 함
+    match /eventSeries/{seriesId} {
+      function isSeriesOwner(data) {
+        return data.isPersonal == true
+          ? request.auth.uid == data.userId
+          : isCoupleMe(data.coupleId);
+      }
+      function isValidSeries() {
+        return request.resource.data.freq in ['daily', 'weekly', 'monthly', 'yearly'] &&
+          request.resource.data.title is string &&
+          request.resource.data.title.size() > 0;
+      }
+
+      allow read: if isAuthenticated() && isSeriesOwner(resource.data);
+      allow create: if isAuthenticated() &&
+        isSeriesOwner(request.resource.data) &&
+        isValidSeries();
+      allow update, delete: if isAuthenticated() && isSeriesOwner(resource.data);
+    }
+
     match /edit_logs/{docId} {
       allow read: if isAuthenticated() && (
         resource.data.coupleId == null ||

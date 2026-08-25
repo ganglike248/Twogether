@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.33 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.35 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -288,6 +288,81 @@ onClick도 `onClose()` 한 번만 호출 — 중복 호출 경로 없음)라 JS 
 원인과 무관하게 증상을 막도록 `Calendar.jsx`에서 `EventModal`이 닫힌 시각을 `eventModalClosedAtRef`에
 기록하고, `onShowEditLog`가 그로부터 0.5초 이내면 클릭을 무시하도록 방어적으로 처리함. 비슷하게 모달
 위/아래로 겹치는 다른 버튼(예: FloatingActionMenu, 캘린더 탭)에서도 같은 증상이 보고되면 동일 패턴 적용할 것.
+
+### 반복 일정 (Recurring Events, v0.4.35~)
+캘린더 일정(커플/개인 둘 다)에 매일/매주/매월/매년 반복 설정 추가. 별도 관리 화면 없이 **기존
+`EventModal`에 반복 섹션을 추가**하는 방식(디데이 다중 관리와 동일한 원칙 — 새 UI 패턴 대신 기존 폼 확장).
+
+**데이터 모델 — 사전 생성(expand) + 상한, 가상 확장(virtual) 안 씀**: 반복 규칙만 저장하고 렌더링 시점에
+occurrence를 계산하는 방식은 캘린더 렌더링뿐 아니라 D-day 카드/오늘·다음 일정/MemoryList 검색/edit_logs/FCM
+등 이벤트를 "문서 하나짜리 독립 개체"로 다루는 기존 인프라 전체를 다시 손봐야 해서 채택 안 함. 대신 등록
+시점에 실제 발생 날짜만큼 `events`/`personal_events`에 **개별 문서를 그대로 생성**함(각 인스턴스가 보통
+일정과 완전히 동일하게 취급됨) — 이 방식이라 위 기존 인프라를 거의 그대로 재사용함.
+"계속(무기한)" 옵션은 없음 — 종료 조건(날짜까지/횟수)이 항상 필수이고, 총 발생 개수가
+**50개(`RECURRENCE_MAX_OCCURRENCES`)를 넘으면 저장 자체를 막고** "일정의 수가 너무 많습니다. 반복되는
+기간 등을 조절해주세요" 에러를 띄움(사용자 확정 사양). 50개면 Firestore 배치 쓰기 한도(500)에 여유 있게
+들어가 한 번의 `writeBatch`로 시리즈 생성이 끝남 — 별도 청크 분할/재시도 로직 불필요.
+- `eventSeries/{seriesId}`: 규칙 원본 기록(`freq/interval/byWeekday/endType/until/count` 등) + 알림
+  트리거 앵커 역할. **재생성 로직이 이 문서를 다시 읽어서 판단하지 않음** — 항상 호출 시점에 전달받은
+  rule을 신뢰하는 동기적 구조라 문서 필드가 살짝 낡아도(예: `until`이 근사치) 기능에 영향 없음.
+- `events`/`personal_events`의 각 인스턴스 문서: `recurrence: { seriesId, isException, freq, interval,
+  byWeekday, endType, until, count }` 필드 추가(규칙 스냅샷을 인스턴스마다 중복 저장 — EventModal이 특정
+  인스턴스를 열 때 시리즈 문서를 또 조회하지 않고 그 인스턴스 자체의 값으로 바로 폼을 채우기 위함).
+  `isException: true`면 "이 일정만 수정/삭제"로 시리즈에서 분리된 인스턴스 — 이후로는 완전히 일반 일정과
+  동일하게 취급(반복 UI 자체가 다시 안 뜸, 재전환/재편입 불가).
+
+**수정/삭제 범위 선택(구글 캘린더 패턴)**: 반복 중인(예외 아닌) 인스턴스를 열어 저장/삭제하면
+`RecurrenceScopeModal`이 "이 일정만 / 이후 모두 / 전체" 중 골라야만 진행됨(신규 생성 시엔 안 뜸 — 아직
+아무것도 안 만들어졌으니 물어볼 필요가 없음). 서비스 로직은 `src/services/recurrenceService.js`:
+- `이 일정만`: 그 문서 하나만 수정/삭제, `isException: true`로 마킹.
+- `이후 모두`: **클릭한 인스턴스 자신의 날짜**를 기준으로 그 이후(예외 아닌) 인스턴스를 지우고 새 규칙으로
+  재생성. 그 이전은 그대로.
+- `전체`: 클릭한 인스턴스 날짜를 기준으로 그 이전은 내용(제목/설명/유형)만 갱신(날짜는 안 건드림), 그
+  날짜부터는 지우고 재생성 + `eventSeries` 문서 갱신.
+  ⚠ **재생성 기준점은 반드시 "클릭한 인스턴스 자신의 날짜"를 써야 함 — "오늘"이나 "시리즈 최초 시작일"을
+  기준점으로 쓰면 안 됨.** 클릭한 인스턴스는 애초에 규칙대로 생성됐던 지점이라 요일/일자 위상(phase)이
+  항상 규칙과 맞지만, "오늘" 같은 임의 날짜를 기준점으로 새로 돌리면 매월/매년 반복에서 "매월 1일"이
+  "매월 25일"처럼 위상이 밀려버리는 위상 버그가 생김(구현 중 실제로 발견하고 수정함 — 매주 반복만
+  요일 집합만 보므로 우연히 안 걸림). "전체"에서 재생성 대상 개수가 0개가 되는 경우(예: 종료일을
+  실수로 클릭 인스턴스보다 이전으로 수정)도 저장 자체를 막음 — 안 막으면 기존 미래 인스턴스가 대체 없이
+  통째로 삭제돼버림.
+
+**디데이(`isDday`)와 상호 배타** — 반복 일정은 `isDday`를 항상 `false`로 강제(폼에서 두 토글이 서로를
+비활성화). 디데이는 특정 하루 기준 카운트다운 개념이라 반복이면 의미가 깨짐(로드맵 "디데이 다중 관리"
+결정 참고).
+
+**개인↔커플 전환 미지원**: 이미 반복 중인 인스턴스를 편집할 때는 "나만 보기" 토글이 비활성화됨 — 시리즈
+전체를 `events`↔`personal_events` 컬렉션 사이로 옮기는 로직은 범위가 커서 1단계에서 제외(새 반복 일정을
+"생성"할 때는 평소처럼 개인/커플 자유 선택 가능, 문제는 기존 시리즈의 사후 전환만).
+
+**기존 단일 일정을 반복으로 "전환" 불가**: 반복 설정 UI는 신규 생성 시, 또는 이미 반복 중인(예외 아닌)
+인스턴스를 편집할 때만 노출됨. 평범한 기존 일정이나 이미 분리된 예외 인스턴스를 나중에 반복으로 바꾸는
+기능은 없음(1단계 스코프 제외 — 필요성이 확인되면 후속 추가 검토).
+
+**알림/수정기록도 인스턴스 단위가 아니라 시리즈 단위로 요약**: `functions/index.js`의 `onEventCreate`/
+`onEventUpdate`는 `recurrence.seriesId`가 있는 문서(=반복 인스턴스)를 감지하면 알림을 스킵함(안 그러면
+시리즈 생성 시 인스턴스 수만큼 알림이 한꺼번에 옴). 대신 새 트리거 `onEventSeriesCreate`(`eventSeries`
+컬렉션의 `onCreate`)가 시리즈당 1건만 "OO님이 반복 일정을 등록했어요" 발송(개인 일정은 애초에 파트너에게
+안 보이므로 스킵, 알림 타입은 기존 `eventCreate`를 재사용 — `NOTIFICATION_TYPES`에 새 항목 추가 안 함).
+`edit_logs`도 인스턴스 생성/재생성마다 찍으면 수정기록이 스팸이 되므로, 시리즈 생성/이후모두/전체
+수정·삭제는 `action: 'recurrence_created'|'recurrence_updated'|'recurrence_deleted'`로 시리즈당 1건만
+기록(`eventId`에 `seriesId`를 씀). "이 일정만" 수정/삭제는 이제 완전히 일반 이벤트라 기존과 동일하게
+`action: 'updated'|'deleted'`로 인스턴스별 기록.
+
+**여행(travel) 이벤트는 반복 대상 아님** — `trips` 컬렉션과 이중 연동된 특수 구조라 스코프 제외.
+
+**날짜 계산은 로컬 시각 기준 통일** — `src/utils/recurrenceRules.js`의 날짜 생성 로직은 `toISOString()`을
+전혀 안 쓰고 `${dateStr}T00:00:00`(로컬 자정 파싱) + date-fns 가감(로컬 getter/setter 기반) +
+`getLocalDateStr()`(로컬 포맷)로 통일함 — date-fns의 `addDays`/`addMonths` 등이 내부적으로
+`getDate()`/`setDate()` 같은 **로컬** getter/setter를 쓰기 때문에, 만약 UTC로 파싱한 날짜와 섞어 쓰면
+KST가 아닌 타임존(예: 서버가 UTC로 도는 환경)에서 하루 밀리는 버그가 생김 — 구현 중에 이 조합 실수를
+초기에 발견하고 로컬 통일로 수정함.
+
+관련 파일: `src/utils/recurrenceRules.js`(순수 날짜 생성 로직, Firebase 의존 없음), `src/services/
+recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields.jsx`(규칙 입력 UI),
+`src/components/Calendar/RecurrenceScopeModal.jsx`(범위 선택), `src/components/Calendar/EventModal.js`
+(반복 토글/제출 플로우), `firestore.rules`(`eventSeries` 블록), `functions/index.js`(`onEventSeriesCreate`,
+`onEventCreate`/`onEventUpdate`의 인스턴스 스킵 분기).
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.

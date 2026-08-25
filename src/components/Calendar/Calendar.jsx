@@ -14,6 +14,9 @@ import {
   createPersonalEvent, updatePersonalEvent, deletePersonalEvent,
   convertEventType
 } from '../../services/eventService';
+import {
+  createRecurringEvent, updateRecurringEvent, deleteRecurringEvent
+} from '../../services/recurrenceService';
 import { createCycle, deleteCycle } from '../../services/cycleService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
@@ -97,7 +100,8 @@ const Calendar = () => {
           description: ev.extendedProps?.description || '',
           eventType: isPersonalEvent ? myRole : (ev.extendedProps?.eventType || 'couple'),
           isPersonal: isPersonalEvent,
-          imageUrls: ev.extendedProps?.imageUrls || []
+          imageUrls: ev.extendedProps?.imageUrls || [],
+          recurrence: ev.extendedProps?.recurrence || null
         };
       }
       return null;
@@ -236,7 +240,29 @@ const Calendar = () => {
       const uid = user?.uid;
       const isPersonal = eventData.isPersonal === true;
 
-      if (eventData.id) {
+      if (eventData.recurrenceScope) {
+        // 반복 일정의 기존 인스턴스 수정 — "이 일정만/이후 모두/전체" 중 EventModal에서 고른 범위대로 적용
+        await updateRecurringEvent({
+          eventId: eventData.id,
+          seriesId: eventData.seriesId,
+          scope: eventData.recurrenceScope,
+          rule: eventData.recurrenceRule,
+          template: eventData.recurrenceTemplate,
+          isPersonal,
+          userId: uid,
+          coupleId,
+          instanceDateStr: eventData.instanceDateStr,
+        });
+      } else if (!eventData.id && eventData.recurrenceRule) {
+        // 새 반복 일정 생성 (인스턴스들을 한 번에 배치 생성)
+        await createRecurringEvent({
+          rule: eventData.recurrenceRule,
+          template: eventData.recurrenceTemplate,
+          userId: uid,
+          coupleId,
+          isPersonal,
+        });
+      } else if (eventData.id) {
         const wasPersonal = events.find(e => e.id === eventData.id)?.extendedProps?.isPersonal || false;
 
         if (wasPersonal !== isPersonal) {
@@ -263,23 +289,37 @@ const Calendar = () => {
       closeModal();
       toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
     } catch (error) {
-      toast.error('일정 저장 중 오류가 발생했습니다.');
+      toast.error(`일정 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
     }
   }, [events, user?.uid, coupleId, closeModal]);
 
-  const handleDeleteEvent = useCallback(async (eventId) => {
+  const handleDeleteEvent = useCallback(async (eventId, scope, seriesId) => {
     try {
       // filteredEvents 대신 events 사용: 탭 필터에 관계없이 원본 속성으로 판별
       const event = events.find(e => e.id === eventId);
-      if (event?.extendedProps?.isPersonal) {
+      const isPersonal = event?.extendedProps?.isPersonal || false;
+
+      if (scope) {
+        // 반복 일정 삭제 — "이 일정만/이후 모두/전체" 범위대로 적용
+        const instanceDateStr = typeof event?.start === 'string' ? event.start.split('T')[0] : '';
+        await deleteRecurringEvent({
+          eventId,
+          seriesId,
+          scope,
+          isPersonal,
+          instanceDateStr,
+          userId: user?.uid,
+          coupleId,
+        });
+      } else if (isPersonal) {
         await deletePersonalEvent(eventId);
       } else {
         await deleteEvent(eventId, user?.uid, coupleId);
       }
       closeModal();
       toast.success('일정을 삭제했습니다.');
-    } catch {
-      toast.error('일정 삭제 중 오류가 발생했습니다.');
+    } catch (error) {
+      toast.error(`일정 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
     }
   }, [events, user?.uid, coupleId, closeModal]);
 

@@ -170,9 +170,15 @@ exports.onEventCreate = functions.firestore
   .document('events/{eventId}')
   .onCreate(async (snap, context) => {
     try {
-      const { coupleId, createdBy, title } = snap.data();
+      const { coupleId, createdBy, title, recurrence } = snap.data();
       if (!coupleId || !createdBy) {
         console.log(`[onEventCreate] skip: coupleId/createdBy 없음 (coupleId=${coupleId}, createdBy=${createdBy})`);
+        return;
+      }
+      if (recurrence?.seriesId) {
+        // 반복 일정의 개별 인스턴스는 여기서 알림을 안 보냄 — 한 번에 수십 개가 생성될 수 있어
+        // 인스턴스마다 보내면 스팸이 됨. 대신 onEventSeriesCreate가 시리즈당 1건만 발송함.
+        console.log(`[onEventCreate] skip: 반복 일정 인스턴스 (seriesId=${recurrence.seriesId})`);
         return;
       }
 
@@ -204,9 +210,15 @@ exports.onEventUpdate = functions.firestore
         return; // 날짜/시간 변경 없음 — 알림 대상 아님
       }
 
-      const { coupleId, updatedBy, title } = after;
+      const { coupleId, updatedBy, title, recurrence } = after;
       if (!coupleId || !updatedBy) {
         console.log(`[onEventUpdate] skip: coupleId/updatedBy 없음 (coupleId=${coupleId}, updatedBy=${updatedBy})`);
+        return;
+      }
+      if (recurrence?.seriesId && !recurrence.isException) {
+        // 반복 일정의 "이후 모두/전체 수정"은 한 번에 여러 인스턴스의 날짜가 바뀔 수 있어
+        // 인스턴스마다 알림을 보내면 스팸이 됨(기본 꺼짐 설정인 eventUpdate라도 안전하게 스킵).
+        console.log(`[onEventUpdate] skip: 반복 일정 인스턴스 (seriesId=${recurrence.seriesId})`);
         return;
       }
 
@@ -223,6 +235,34 @@ exports.onEventUpdate = functions.firestore
       }, 'onEventUpdate', 'eventUpdate', false);
     } catch (error) {
       console.error('[onEventUpdate] Error:', error);
+    }
+  });
+
+// ✅ 반복 일정 시리즈 생성 시 파트너에게 알림 1건만 발송 (인스턴스 하나하나가 아니라 시리즈 단위).
+// 개인 일정(isPersonal)은 애초에 파트너에게 안 보이므로 발송 대상 아님.
+exports.onEventSeriesCreate = functions.firestore
+  .document('eventSeries/{seriesId}')
+  .onCreate(async (snap, context) => {
+    try {
+      const { coupleId, createdBy, title, isPersonal } = snap.data();
+      if (isPersonal || !coupleId || !createdBy) {
+        console.log(`[onEventSeriesCreate] skip: isPersonal=${isPersonal}, coupleId=${coupleId}, createdBy=${createdBy}`);
+        return;
+      }
+
+      const partnerUid = await getPartnerUid(coupleId, createdBy, 'onEventSeriesCreate');
+      if (!partnerUid) return;
+
+      const creatorSnap = await db.collection('users').doc(createdBy).get();
+      const creatorName = creatorSnap.data()?.displayName || '상대방';
+
+      await sendPushToUser(partnerUid, {
+        title: `${creatorName}님이 반복 일정을 등록했어요`,
+        body: title || '새 반복 일정을 확인해보세요',
+        link: '/calendar',
+      }, 'onEventSeriesCreate', 'eventCreate');
+    } catch (error) {
+      console.error('[onEventSeriesCreate] Error:', error);
     }
   });
 

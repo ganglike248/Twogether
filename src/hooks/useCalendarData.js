@@ -65,7 +65,8 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
               eventType: data.eventType,
               imageUrls: data.imageUrls || [],
               isTrip: false,
-              isDday: data.isDday || false
+              isDday: data.isDday || false,
+              recurrence: data.recurrence || null
             }
           };
         });
@@ -204,7 +205,8 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
             eventType: 'personal',
             isPersonal: true,
             sharedToCoupleEventId: data.sharedToCoupleEventId || null,
-            isDday: data.isDday || false
+            isDday: data.isDday || false,
+            recurrence: data.recurrence || null
           }
         };
       });

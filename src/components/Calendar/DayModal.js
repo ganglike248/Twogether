@@ -6,6 +6,7 @@ import "./DayModal.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EmptyState from "../common/EmptyState";
 import { MdCalendarToday } from "react-icons/md";
+import { describeRecurrenceRule } from "../../utils/recurrenceRules";
 
 const DayModal = ({
   isOpen,
@@ -257,7 +258,18 @@ const DayModal = ({
                         </div>
                       </div>
                       <div className="event-details">
-                        <div className="event-title">{event.title}</div>
+                        <div className="event-title">
+                          {event.extendedProps?.recurrence?.seriesId && (
+                            <span
+                              className="event-recurring-icon"
+                              aria-label="반복 일정"
+                              title={describeRecurrenceRule(event.extendedProps.recurrence) || "반복 일정"}
+                            >
+                              🔁{" "}
+                            </span>
+                          )}
+                          {event.title}
+                        </div>
                         <div className="event-meta">
                           <span className={`event-type ${eventTypeClass}`}>
                             {getEventTypeName(

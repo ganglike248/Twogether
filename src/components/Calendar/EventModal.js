@@ -1,10 +1,33 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { addDays, subDays } from 'date-fns';
 import { toast } from 'react-toastify';
 import './EventModal.css';
 import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
+import RecurrenceFields from './RecurrenceFields';
+import RecurrenceScopeModal from './RecurrenceScopeModal';
+import { generateOccurrenceDates, RecurrenceLimitError } from '../../utils/recurrenceRules';
+
+const DEFAULT_RECURRENCE = {
+  enabled: false,
+  freq: 'weekly',
+  interval: 1,
+  byWeekday: [],
+  endType: 'date',
+  until: '',
+  count: 10,
+};
+
+// RecurrenceFields/서비스 양쪽이 기대하는 형태로 정리 (freq==='weekly'가 아니면 byWeekday는 항상 null)
+const toRuleObject = (r) => ({
+  freq: r.freq,
+  interval: r.interval,
+  byWeekday: r.freq === 'weekly' ? (r.byWeekday || []) : null,
+  endType: r.endType,
+  until: r.endType === 'date' ? r.until : null,
+  count: r.endType === 'count' ? r.count : null,
+});
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const { getMemberName, myRole } = useAuthContext();
@@ -19,6 +42,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [isDday, setIsDday] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [recurrence, setRecurrence] = useState(DEFAULT_RECURRENCE);
+  const [showScopeModal, setShowScopeModal] = useState(false);
+  const [scopeMode, setScopeMode] = useState('save'); // 'save' | 'delete'
+  const [pendingEventData, setPendingEventData] = useState(null);
+
+  // 반복 일정의 "예외 아닌" 인스턴스인지 — 이 경우만 반복 규칙 편집/범위선택 UI 대상
+  const isSeriesMember = !!(event?.recurrence?.seriesId) && !event?.recurrence?.isException;
+  // 반복 설정 UI 자체를 보여줄지: 새 일정이거나(신규 생성 시 켤 수 있음), 이미 반복 중인 인스턴스 편집 시.
+  // 기존 단일/예외 일정을 나중에 반복으로 "전환"하는 건 지원하지 않음(범위가 커져서 1단계 제외).
+  const canConfigureRecurrence = !(event && event.id) || isSeriesMember;
+  const recurrenceActive = canConfigureRecurrence && (recurrence.enabled || isSeriesMember);
 
   const extractDate = (dateValue) => {
     if (!dateValue) return '';
@@ -47,6 +81,21 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       setEventType(event.eventType || 'couple');
       setIsPersonal(event.isPersonal || event.extendedProps?.isPersonal || false);
       setIsDday(event.isDday || event.extendedProps?.isDday || false);
+
+      const seriesInfo = event.recurrence;
+      if (seriesInfo?.seriesId && !seriesInfo.isException) {
+        setRecurrence({
+          enabled: true,
+          freq: seriesInfo.freq || 'weekly',
+          interval: seriesInfo.interval || 1,
+          byWeekday: seriesInfo.byWeekday || [],
+          endType: seriesInfo.endType || 'date',
+          until: seriesInfo.until || '',
+          count: seriesInfo.count || 10,
+        });
+      } else {
+        setRecurrence(DEFAULT_RECURRENCE);
+      }
     } else {
       // 새 일정 생성 시 폼 초기화 + localStorage에서 마지막 개인 일정 여부 복원
       setTitle('');
@@ -57,8 +106,70 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       const lastPersonalState = localStorage.getItem('twogether_personal_default') === 'true';
       setIsPersonal(lastPersonalState);
       setIsDday(false);
+      setRecurrence(DEFAULT_RECURRENCE);
     }
   }, [event]);
+
+  // 반복 미리보기(생성될 개수) + 50개 상한 초과 여부 — 저장 버튼 비활성화 조건에도 사용
+  const recurPreview = useMemo(() => {
+    if (!recurrenceActive || !startDate) return { count: 0, error: '' };
+    if (recurrence.endType === 'date' && !recurrence.until) return { count: 0, error: '' };
+    if (recurrence.endType === 'count' && !recurrence.count) return { count: 0, error: '' };
+    try {
+      const dates = generateOccurrenceDates(toRuleObject(recurrence), startDate);
+      if (dates.length === 0) {
+        return { count: 0, error: '반복 종료 조건을 확인해주세요. 생성될 일정이 없습니다.' };
+      }
+      return { count: dates.length, error: '' };
+    } catch (err) {
+      if (err instanceof RecurrenceLimitError) {
+        return { count: err.count, error: err.message };
+      }
+      return { count: 0, error: '반복 설정을 확인해주세요.' };
+    }
+  }, [recurrence, startDate, recurrenceActive]);
+
+  const buildEventData = () => {
+    const finalEndDate = endDate || startDate;
+    const isMultiDay = startDate !== finalEndDate;
+
+    const adjustedStartDate = `${startDate}T00:00:00`;
+    const adjustedEndDate = isMultiDay
+      ? addDays(new Date(finalEndDate), 1).toISOString().split('T')[0] + 'T00:00:00'
+      : `${finalEndDate}T23:59:59`;
+
+    const durationDays = Math.round((new Date(finalEndDate) - new Date(startDate)) / 86400000);
+
+    const data = {
+      id: event?.id,
+      title,
+      description,
+      start: adjustedStartDate,
+      end: adjustedEndDate,
+      eventType,
+      isPersonal: isPersonal && eventType === myRole,
+      isDday: recurrenceActive ? false : isDday,
+    };
+
+    if (recurrenceActive) {
+      data.recurrenceRule = toRuleObject(recurrence);
+      data.recurrenceTemplate = {
+        title,
+        description,
+        eventType,
+        startDate,
+        durationDays,
+        start: adjustedStartDate,
+        end: adjustedEndDate,
+      };
+    }
+    if (isSeriesMember) {
+      data.seriesId = event.recurrence.seriesId;
+      data.instanceDateStr = extractDate(event.start);
+    }
+
+    return { data, isMultiDay };
+  };
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -83,31 +194,38 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       return;
     }
 
+    if (recurrenceActive) {
+      if (recurrence.endType === 'date' && !recurrence.until) {
+        toast.error('반복 종료일을 입력해주세요.');
+        return;
+      }
+      if (recurrence.endType === 'count' && !recurrence.count) {
+        toast.error('반복 횟수를 입력해주세요.');
+        return;
+      }
+      if (recurPreview.error) {
+        toast.error(recurPreview.error);
+        return;
+      }
+    }
+
     setLoading(true);
 
     try {
-      const finalEndDate = endDate || startDate;
-      const isMultiDay = startDate !== finalEndDate;
-
-      const adjustedStartDate = `${startDate}T00:00:00`;
-      const adjustedEndDate = isMultiDay
-        ? addDays(new Date(finalEndDate), 1).toISOString().split('T')[0] + 'T00:00:00'
-        : `${finalEndDate}T23:59:59`;
-
-      const eventData = {
-        id: event?.id,
-        title,
-        description,
-        start: adjustedStartDate,
-        end: adjustedEndDate,
-        eventType,
-        isPersonal: isPersonal && eventType === myRole, // 내 타입일 때만 개인 일정 가능
-        isDday,
-      };
+      const { data: eventData, isMultiDay } = buildEventData();
 
       // localStorage에 마지막 선택 상태 저장
       if (eventType === myRole) {
         localStorage.setItem('twogether_personal_default', isPersonal ? 'true' : 'false');
+      }
+
+      if (isSeriesMember) {
+        // 반복 일정의 기존 인스턴스 수정 — 어디까지 적용할지 먼저 물어봄
+        setPendingEventData(eventData);
+        setScopeMode('save');
+        setShowScopeModal(true);
+        setLoading(false);
+        return;
       }
 
       await onSave(eventData);
@@ -116,6 +234,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         eventType,
         isMultiDay,
         hasDescription: !!description,
+        isRecurring: !!eventData.recurrenceRule,
       });
       onClose();
     } catch (error) {
@@ -127,6 +246,11 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   };
 
   const handleDelete = () => {
+    if (isSeriesMember) {
+      setScopeMode('delete');
+      setShowScopeModal(true);
+      return;
+    }
     setShowDeleteModal(true);
   };
 
@@ -140,10 +264,38 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     }
   };
 
+  const handleScopeCancel = () => {
+    setShowScopeModal(false);
+    setPendingEventData(null);
+  };
+
+  const handleScopeChoose = async (scope) => {
+    setShowScopeModal(false);
+    setLoading(true);
+    try {
+      if (scopeMode === 'delete') {
+        await onDelete(event.id, scope, event.recurrence.seriesId);
+      } else {
+        await onSave({ ...pendingEventData, recurrenceScope: scope });
+      }
+      onClose();
+    } catch (err) {
+      const label = scopeMode === 'delete' ? '삭제' : '저장';
+      toast.error(`${label} 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
+    } finally {
+      setLoading(false);
+      setPendingEventData(null);
+    }
+  };
+
   if (!isOpen) return null;
 
   const isSaveDisabled =
-    loading || !title.trim() || !startDate || (startDate && endDate && new Date(startDate) > new Date(endDate));
+    loading ||
+    !title.trim() ||
+    !startDate ||
+    (startDate && endDate && new Date(startDate) > new Date(endDate)) ||
+    (recurrenceActive && !!recurPreview.error);
 
   return (
     <div
@@ -270,6 +422,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 type="checkbox"
                 checked={isDday}
                 onChange={(e) => setIsDday(e.target.checked)}
+                disabled={recurrenceActive}
               />
               <span className="sheet-switch"></span>
               <span className="sheet-toggle-text">디데이로 표시</span>
@@ -280,12 +433,37 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   type="checkbox"
                   checked={isPersonal}
                   onChange={(e) => setIsPersonal(e.target.checked)}
+                  disabled={isSeriesMember}
                 />
                 <span className="sheet-switch"></span>
                 <span className="sheet-toggle-text">나만 보기</span>
               </label>
             )}
+            {canConfigureRecurrence && !isSeriesMember && (
+              <label className="sheet-toggle-item">
+                <input
+                  type="checkbox"
+                  checked={recurrence.enabled}
+                  onChange={(e) =>
+                    setRecurrence((prev) => ({ ...prev, enabled: e.target.checked }))
+                  }
+                  disabled={isDday}
+                />
+                <span className="sheet-switch"></span>
+                <span className="sheet-toggle-text">반복 일정으로 만들기</span>
+              </label>
+            )}
           </div>
+
+          {recurrenceActive && (
+            <RecurrenceFields
+              value={recurrence}
+              onChange={setRecurrence}
+              startDate={startDate}
+              disabled={loading}
+              preview={recurPreview}
+            />
+          )}
 
           <hr className="sheet-dashed" />
 
@@ -331,7 +509,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         </form>
       </div>
 
-      {/* 삭제 확인 모달 */}
+      {/* 삭제 확인 모달 (반복 아닌 일반 일정) */}
       {showDeleteModal && (
         <div className="modal-overlay">
           <div className="confirm-card">
@@ -355,6 +533,15 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
             </div>
           </div>
         </div>
+      )}
+
+      {/* 반복 일정 범위 선택 (이 일정만 / 이후 모두 / 전체) */}
+      {showScopeModal && (
+        <RecurrenceScopeModal
+          mode={scopeMode}
+          onCancel={handleScopeCancel}
+          onChoose={handleScopeChoose}
+        />
       )}
     </div>
   );

@@ -17,7 +17,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 
-const saveEditLog = async (eventId, changes, action, userId = 'anonymous', coupleId = null) => {
+// recurrenceService.js에서도 재사용 (반복 일정 생성/수정/삭제 시 시리즈 단위 요약 로그 기록용)
+export const saveEditLog = async (eventId, changes, action, userId = 'anonymous', coupleId = null) => {
   try {
     await addDoc(collection(db, 'edit_logs'), {
       eventId,
