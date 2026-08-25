@@ -20,6 +20,16 @@ const END_TYPE_OPTIONS = [
   { value: 'count', label: '횟수만큼' },
 ];
 
+// "횟수만큼" 선택 시 기본 횟수 — 매주 반복이고 요일을 골랐으면 "주기(n주) × 요일 수(m)"로
+// 한 주기(간격) 분량을 기본값으로 잡음(예: 2주마다 월화수목 → 2×4=8). 그 외(매일/매월/매년,
+// 또는 아직 요일 미선택)에는 딱히 곱할 대상이 없으니 1로 시작.
+const computeDefaultCount = (value) => {
+  if (value.freq === 'weekly' && value.byWeekday?.length > 0) {
+    return Math.max(1, value.interval) * value.byWeekday.length;
+  }
+  return 1;
+};
+
 const RecurrenceFields = ({ value, onChange, startDate, disabled, preview }) => {
   const update = (patch) => onChange({ ...value, ...patch });
 
@@ -92,7 +102,11 @@ const RecurrenceFields = ({ value, onChange, startDate, disabled, preview }) => 
               type="button"
               key={opt.value}
               className={`recur-chip ${value.endType === opt.value ? 'sel' : ''}`}
-              onClick={() => update({ endType: opt.value })}
+              onClick={() => update(
+                opt.value === 'count'
+                  ? { endType: 'count', count: computeDefaultCount(value) }
+                  : { endType: opt.value }
+              )}
               disabled={disabled}
             >
               {opt.label}

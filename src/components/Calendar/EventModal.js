@@ -16,7 +16,7 @@ const DEFAULT_RECURRENCE = {
   byWeekday: [],
   endType: 'date',
   until: '',
-  count: 10,
+  count: 1,
 };
 
 // RecurrenceFields/서비스 양쪽이 기대하는 형태로 정리 (freq==='weekly'가 아니면 byWeekday는 항상 null)
@@ -100,7 +100,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
           byWeekday: seriesInfo.byWeekday || [],
           endType: seriesInfo.endType || 'date',
           until: seriesInfo.until || '',
-          count: seriesInfo.count || 10,
+          count: seriesInfo.count || 1,
         });
       } else {
         setRecurrence(DEFAULT_RECURRENCE);
