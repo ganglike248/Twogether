@@ -162,6 +162,40 @@ Cloud Functions가 별도 Node 패키지라 클라이언트 소스를 직접 imp
 필요 없음(Firestore가 동등 비교끼리는 자동으로 병합 처리 — 인덱스가 필요한 건 range 비교나 orderBy가
 섞일 때뿐).
 
+### 커플 합류(초대 코드) 규칙 취약점 — 합류 처리는 반드시 서버(Cloud Function)에서만 (v0.4.37~)
+2026-08-25 보안 감사에서 발견: 예전 `firestore.rules`의 `couples` update 규칙이 "멤버가 1명인 커플이면
+누구든 자기 uid를 추가 가능"으로 되어 있었는데, **초대 코드 검증이 전혀 없었음** — `coupleId`만 알면
+(예: URL, 로그 등으로 유추) 초대 코드 없이도 아무 인증된 사용자가 파트너를 기다리는 아무 커플에나 무단
+합류할 수 있었고, 합류 즉시 `onCoupleUpdate`가 custom claims까지 부여해 그 커플의 캘린더/여행/버킷리스트/
+Storage 사진까지 전부 접근 가능해지는 심각한 취약점이었음. 여기에 `inviteCodes`의 `allow read`가 필드
+조건 없이 열려 있어 `list()`로 전체 초대 코드(coupleId, joined 여부 포함)를 열람할 수 있었던 것,
+`allow update: if !resource.data.joined`가 필드 제한 없이 미사용 코드를 아무 값으로나 덮어쓸 수 있게
+했던 것까지 셋이 결합되면 자동화된 커플 탈취 체인이 됐음.
+
+**수정**: 합류 로직을 클라이언트 트랜잭션에서 `functions/index.js`의 `joinCoupleWithInviteCode`(Admin SDK
+콜러블)로 이전 — 서버가 초대 코드 존재/미사용/본인 아님을 직접 검증한 뒤에만 `couples.members`/
+`inviteCodes.joined`/`users.coupleId`를 원자적(Admin 트랜잭션)으로 갱신함. `authService.js`의 `joinCouple()`은
+이제 `httpsCallable(functionsInstance, 'joinCoupleWithInviteCode')`만 호출 — 에러 메시지는 기존과 동일하게
+맞춰서 UX 변화 없음. `firestore.rules`도 함께 조여둠: `couples` update는 "기존 멤버가 자기 정보만 수정"만
+허용(`members` 배열 자체는 불변 강제)하고 새 멤버 합류는 이 규칙으로 아예 불가능하게 막음. `inviteCodes`는
+`allow get`/`allow list: if false`로 분리해 전체 열람 차단, `allow update: if false`로 클라이언트 직접
+쓰기 자체를 봉쇄(합류 갱신은 Admin SDK만).
+
+**같은 감사에서 함께 고친 것**: `events`/`trips`/`bucketlists`/`cycles`/`personal_events`/`eventSeries`/
+`tripSchedules`/`travelTimes`의 update 규칙이 기존 문서의 소유권 필드(`resource.data.coupleId`/`userId`/
+`tripId`)만 확인하고 **새로 쓰려는 값**은 확인하지 않아서, 정상적으로 내가 소유한 문서를 수정하는 요청
+안에 `coupleId`/`userId`/`tripId`를 몰래 다른 값으로 끼워넣으면 그 문서를 남의 커플/캘린더로 이전시킬 수
+있는 이론적 구멍도 있었음(`personal_events`는 파트너 uid를 알 수 있어서 특히 취약 — 파트너의 "비공개"
+개인 캘린더에 조작된 일정을 심는 것도 가능했음). 모든 update 규칙에 `request.resource.data.X ==
+resource.data.X` 불변 검증을 추가해서 막음 — 앱의 실제 update 로직(`eventService.js`/`tripService.js`/
+`recurrenceService.js` 전부 재확인함)은 애초에 이 필드들을 update 시 절대 안 건드리므로 **기존 사용자
+동작에는 영향 없음**(막은 건 앱이 원래 하지도 않던 쓰기 패턴). `sealedMessages` create에도
+`recipientUid`가 실제 커플 멤버인지 검증을 추가함(예전엔 임의 uid로 알림을 보낼 수 있었음, 내용 유출은
+아니었음).
+
+관련 파일: `firestore.rules`(`couples`/`inviteCodes`/각 컬렉션 update 규칙), `functions/index.js`
+(`joinCoupleWithInviteCode`), `src/services/authService.js`(`joinCouple`).
+
 ### Firestore 오프라인 캐시 staleness — AuthContext 리다이렉트 가드 (v0.4.18~)
 `src/firebase.js`의 `persistentLocalCache`는 origin(localhost vs 배포 도메인)별로 IndexedDB에 독립 저장됨.
 같은 브라우저로 여러 계정을 번갈아 로그인하며 테스트하면 `users/{uid}.coupleId` 같은 캐시가 꼬여서, 실제로는
@@ -359,6 +393,13 @@ occurrence를 계산하는 방식은 캘린더 렌더링뿐 아니라 D-day 카�
 비활성화). 디데이는 특정 하루 기준 카운트다운 개념이라 반복이면 의미가 깨짐(로드맵 "디데이 다중 관리"
 결정 참고).
 
+**반복 인스턴스는 시작일(startDate) 입력을 비활성화함 (v0.4.37~)** — 위 "재생성 기준점은 클릭한 인스턴스
+자신의 날짜" 설계 때문에 시작일을 수정해도 실제 발생 날짜엔 반영 안 되는데, `EventModal.js`의
+`buildEventData()`가 그 값으로 `durationDays`(=기간)는 그대로 계산해서 인스턴스에 적용하고 있었음 —
+"시작일만 바꿨는데 왜 매번 며칠짜리 일정이 됐지" 버그로 실제 재현됨(2026-08-25 발견/수정). `isSeriesMember`일
+때 시작일 `<input>`에 `disabled`를 걸어 애초에 혼동 자체를 없앰 — 종료일은 그대로 편집 가능(기간 조정
+용도).
+
 **개인↔커플 전환 미지원**: 이미 반복 중인 인스턴스를 편집할 때는 "나만 보기" 토글이 비활성화됨 — 시리즈
 전체를 `events`↔`personal_events` 컬렉션 사이로 옮기는 로직은 범위가 커서 1단계에서 제외(새 반복 일정을
 "생성"할 때는 평소처럼 개인/커플 자유 선택 가능, 문제는 기존 시리즈의 사후 전환만).
@@ -413,6 +454,12 @@ trips 컬렉션에서만 여행 이벤트를 FullCalendar 형식으로 변환하
 캘린더에서 [전체] / [개인] / [커플] 탭으로 필터링.  
 MemoryList에도 [개인] 필터 탭으로 표시됨 (과거 일정만, start <= 오늘).
 오늘 날짜 문자열 계산: `toISOString()` 금지 — UTC 변환으로 KST에서 하루 밀리고, 이벤트 저장 형식(`'YYYY-MM-DDT00:00:00'`)과 문자열 비교 시 같은 날짜도 제외됨. `src/utils/dataUtils.js`의 `getLocalDateStr()` 공용 유틸 사용 (MemoryList, koreanHolidays 등에서 재사용).  
+같은 실수가 산발적으로 계속 재발함(2026-08-25 코드 리뷰에서 추가 발견/수정) — `Calendar.jsx`의
+`handleMoreLinkClick`(월간뷰 "+N개 더보기" 클릭 시 `info.date`가 로컬 자정 `Date`인데 바로
+`.toISOString()`해서 하루 전으로 이동하던 버그. `info.dateStr`을 쓰는 `handleDateClick`과 달리 FullCalendar가
+문자열을 안 줘서 직접 변환해야 하는 자리였음), `CoupleSetupPage.jsx`/`CoupleInfoPage.jsx`의 연애 시작일
+`<input type="date" max=...>`(자정~9시 사이 "오늘"을 선택 못 하던 버그) 전부 같은 패턴으로 고침 —
+`new Date()...toISOString()` 형태가 보이면 KST 자정~9시 구간을 의심하고 `getLocalDateStr()`로 바꿀 것.  
 Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.  
 Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅이지만 Home은 `{ includeCycles: false }` 옵션으로 호출해 불필요한 cycles 구독을 끔. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
 
@@ -834,6 +881,9 @@ safe-area 등 — 위 "안드로이드/iOS 네이티브 안정화" 섹션 참고
 날짜짜리(`end`가 다음날 00:00 배타적)든 같은 로직으로 맞음. 이 카드 신설로 **다음 일정**의 조건도
 `start >= 내일 시작`으로 좁혀서 오늘 이벤트가 두 카드에 중복 표시되는 걸 막음. 각 항목은 제목 아래
 `extendedProps.description` 한 줄(있을 때만, 말줄임 처리)까지 보여줌.
+⚠ 두 필터 다 `extendedProps.isTrip`은 안 걸러서, 오늘 걸치거나 가장 가까운 다음 일정이 여행이면 "다음
+여행"/"지금 여행 중" 카드와 중복으로 여기도 표시되던 버그가 있었음(클릭 시 여행 상세가 아니라 캘린더로
+이동하는 것도 어긋남) — `todayEvents`/`nextEvent` 필터에 `isTrip` 제외 추가해서 수정(2026-08-25).
 
 **다음 여행**: 갈 여행이 없으면 예전엔 "다음 여행은 어디로~?" 빈 상태 문구를 보여줬는데, 지금은 **카드
 자체를 렌더링 안 함**으로 바뀜.

@@ -411,6 +411,13 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   value={startDate}
                   onChange={(e) => setStartDate(e.target.value)}
                   aria-label="시작일"
+                  // 반복 중인 인스턴스는 시작일을 수정해도 실제 발생 날짜엔 반영 안 됨 —
+                  // "이후 모두"/"전체" 재생성이 항상 규칙+기준일(클릭한 인스턴스 자신의 날짜)로만
+                  // 날짜를 계산하기 때문(재생성 위상 버그 방지 설계, recurrenceService.js 참고).
+                  // 그런데 이 값이 durationDays 계산엔 그대로 쓰여서, 수정이 조용히 무시되는 줄
+                  // 모르고 시작일만 바꾸면 모든 미래 인스턴스 기간이 의도치 않게 늘어나는 버그가
+                  // 있었음(2026-08-25 발견/수정) — 애초에 못 바꾸게 막아 혼동을 없앰
+                  disabled={isSeriesMember}
                   required
                 />
               </div>

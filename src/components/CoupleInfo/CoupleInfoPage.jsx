@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate, useBlocker } from 'react-router-dom';
 import { HiUser, HiHeart, HiEnvelope, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { getLocalDateStr } from '../../utils/dataUtils';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-toastify';
@@ -204,7 +205,9 @@ const CoupleInfoPage = () => {
             type="date"
             value={anniversaryDate}
             onChange={(e) => setAnniversaryDate(e.target.value)}
-            max={new Date().toISOString().split('T')[0]}
+            // toISOString() 대신 getLocalDateStr() — KST 자정~9시 사이엔 toISOString()이 UTC
+            // 변환으로 어제 날짜를 반환해 오늘을 선택 못 하는 버그가 있었음 (2026-08-25 발견/수정)
+            max={getLocalDateStr()}
           />
           <span className="couple-info-hint">변경하면 D+day가 다시 계산됩니다</span>
         </div>

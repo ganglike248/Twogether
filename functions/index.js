@@ -292,6 +292,63 @@ exports.ensureCoupleClaims = functions.https.onCall(async (data, context) => {
   return { success: true, coupleId };
 });
 
+// ✅ 초대 코드로 커플 합류 — 반드시 Admin SDK(서버)에서만 처리해야 함.
+// 예전엔 클라이언트가 firestore.rules의 couples update 규칙("멤버 1명짜리 커플이면 누구든
+// 자기 uid를 추가 가능")에 기대어 직접 처리했는데, 그 규칙이 초대 코드 자체를 전혀 검증하지
+// 않아서 coupleId만 알면 아무나 파트너 없는 커플에 무단으로 합류할 수 있는 취약점이었음
+// (2026-08-25 보안 감사에서 발견). 이제 firestore.rules의 couples update는 "기존 멤버가
+// 자기 정보 수정"만 허용하고, 합류는 이 콜러블이 초대 코드를 서버에서 검증한 뒤 Admin 권한으로
+// members/joined/coupleId를 원자적으로 갱신하는 방식으로만 가능함.
+exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) => {
+  if (!context.auth) {
+    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+  }
+  const uid = context.auth.uid;
+  const code = typeof data?.inviteCode === 'string' ? data.inviteCode.trim().toUpperCase() : '';
+  if (!code) {
+    throw new functions.https.HttpsError('invalid-argument', '초대 코드가 필요합니다.');
+  }
+
+  const inviteRef = db.collection('inviteCodes').doc(code);
+
+  const coupleId = await db.runTransaction(async (transaction) => {
+    const inviteSnap = await transaction.get(inviteRef);
+    if (!inviteSnap.exists) {
+      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드입니다.');
+    }
+
+    const { coupleId: targetCoupleId, creatorUid, joined } = inviteSnap.data();
+    if (joined) {
+      throw new functions.https.HttpsError('failed-precondition', '이미 커플이 연결된 코드입니다.');
+    }
+    if (creatorUid === uid) {
+      throw new functions.https.HttpsError('failed-precondition', '자신의 초대 코드는 사용할 수 없습니다.');
+    }
+
+    const coupleRef = db.collection('couples').doc(targetCoupleId);
+    const coupleSnap = await transaction.get(coupleRef);
+    if (!coupleSnap.exists) {
+      throw new functions.https.HttpsError('not-found', '연결할 커플을 찾을 수 없습니다.');
+    }
+    const members = coupleSnap.data().members || [];
+    if (members.includes(uid)) {
+      throw new functions.https.HttpsError('failed-precondition', '이미 연결된 커플입니다.');
+    }
+    if (members.length >= 2) {
+      throw new functions.https.HttpsError('failed-precondition', '이미 인원이 가득 찬 커플입니다.');
+    }
+
+    transaction.update(coupleRef, { members: admin.firestore.FieldValue.arrayUnion(uid) });
+    transaction.update(inviteRef, { joined: true });
+    transaction.update(db.collection('users').doc(uid), { coupleId: targetCoupleId });
+
+    return targetCoupleId;
+  });
+
+  console.log(`[joinCoupleWithInviteCode] uid=${uid} coupleId=${coupleId} 합류 완료`);
+  return { coupleId };
+});
+
 // ✅ FCM 토큰을 현재 로그인 계정에만 등록 — 같은 브라우저/기기로 예전에 다른 계정을 테스트했다면
 // FCM 토큰 자체는 계정이 아니라 브라우저/기기 단위라 이전 계정 문서에 토큰이 남아있을 수 있음.
 // 등록 전 다른 모든 계정 문서에서 이 토큰을 제거해 "토큰 1개 = 계정 1개"를 강제함.

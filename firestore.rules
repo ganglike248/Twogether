@@ -29,27 +29,31 @@ service cloud.firestore {
 
     // inviteCodes: 초대 코드 → coupleId 매핑 (초대 코드 조회 전용)
     // couples 컬렉션을 누구나 읽는 대신 이 컬렉션으로 분리해 커플 데이터 노출 최소화
+    // ⚠ 2026-08-25 보안 감사: allow read가 필드 조건 없이 열려있으면 list()로 컬렉션 전체
+    // (coupleId, joined 여부 포함)를 누구나 열람할 수 있어서 get/list를 분리함 — 앱은 항상
+    // 정확한 코드로 단건 조회(get)만 하고 목록 조회는 쓰지 않으므로 list는 완전히 차단.
     match /inviteCodes/{code} {
-      allow read: if isAuthenticated();
+      allow get: if isAuthenticated();
+      allow list: if false;
       allow create: if isAuthenticated();
-      // 합류 시 joined: true 업데이트만 허용 (이미 사용된 코드 재사용 방지)
-      allow update: if isAuthenticated() && !resource.data.joined;
+      // joined 갱신(합류 처리)은 반드시 joinCoupleWithInviteCode Cloud Function(Admin SDK)을
+      // 거쳐야 함 — 클라이언트 직접 쓰기를 허용하면 초대 코드 검증 없이도 갱신 시도가 가능해짐.
+      allow update: if false;
       allow delete: if false;
     }
 
-    // couples: 멤버만 읽기 가능, 생성은 인증된 사용자, 업데이트는 멤버만
+    // couples: 멤버만 읽기/쓰기 가능. 새 멤버 합류는 이 규칙으로 처리하지 않음 —
+    // ⚠ 2026-08-25 보안 감사: 예전엔 "멤버 1명짜리 커플이면 누구든 자기 uid를 추가 가능"
+    // 분기가 있었는데 초대 코드 검증이 전혀 없어서, coupleId만 알면 아무나 파트너를 기다리는
+    // 커플에 무단으로 합류할 수 있는 취약점이었음. 합류는 초대 코드를 서버에서 검증하는
+    // joinCoupleWithInviteCode Cloud Function(Admin SDK, 규칙 우회)로만 가능하도록 변경.
     match /couples/{coupleId} {
       allow read: if isCoupleMe(coupleId);
       allow create: if isAuthenticated() &&
         request.auth.uid in request.resource.data.members;
-      allow update: if isAuthenticated() && (
-        // 기존 멤버가 정보 수정 (기념일 등)
-        request.auth.uid in resource.data.members ||
-        // 새 멤버가 합류: 현재 멤버가 1명이고, 자기 자신을 추가하는 경우만 허용
-        (resource.data.members.size() == 1 &&
-         request.resource.data.members.hasAll(resource.data.members) &&
-         request.auth.uid in request.resource.data.members)
-      );
+      allow update: if isAuthenticated() &&
+        request.auth.uid in resource.data.members &&
+        request.resource.data.members == resource.data.members;
     }
 
     // events: 커플 공유 이벤트 (필수 필드 검증)
@@ -73,6 +77,7 @@ service cloud.firestore {
         isValidEvent();
       allow update: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId) &&
+        request.resource.data.coupleId == resource.data.coupleId &&
         isValidEvent();
     }
 
@@ -94,7 +99,11 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         isSeriesOwner(request.resource.data) &&
         isValidSeries();
-      allow update, delete: if isAuthenticated() && isSeriesOwner(resource.data);
+      allow update: if isAuthenticated() &&
+        isSeriesOwner(resource.data) &&
+        request.resource.data.coupleId == resource.data.coupleId &&
+        request.resource.data.userId == resource.data.userId;
+      allow delete: if isAuthenticated() && isSeriesOwner(resource.data);
     }
 
     match /edit_logs/{docId} {
@@ -126,25 +135,34 @@ service cloud.firestore {
         isValidTrip();
       allow update: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId) &&
+        request.resource.data.coupleId == resource.data.coupleId &&
         isValidTrip();
     }
 
     match /tripSchedules/{docId} {
-      allow read, write: if isAuthenticated() &&
+      allow read, delete: if isAuthenticated() &&
         exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
         isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId);
       allow create: if isAuthenticated() &&
         exists(/databases/$(database)/documents/trips/$(request.resource.data.tripId)) &&
         isCoupleMe(get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.coupleId);
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId) &&
+        request.resource.data.tripId == resource.data.tripId;
     }
 
     match /travelTimes/{docId} {
-      allow read, write: if isAuthenticated() &&
+      allow read, delete: if isAuthenticated() &&
         exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
         isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId);
       allow create: if isAuthenticated() &&
         exists(/databases/$(database)/documents/trips/$(request.resource.data.tripId)) &&
         isCoupleMe(get(/databases/$(database)/documents/trips/$(request.resource.data.tripId)).data.coupleId);
+      allow update: if isAuthenticated() &&
+        exists(/databases/$(database)/documents/trips/$(resource.data.tripId)) &&
+        isCoupleMe(get(/databases/$(database)/documents/trips/$(resource.data.tripId)).data.coupleId) &&
+        request.resource.data.tripId == resource.data.tripId;
     }
 
     // bucketlists: 버킷리스트 (필수 필드 검증)
@@ -163,22 +181,29 @@ service cloud.firestore {
         isValidBucket();
       allow update: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId) &&
+        request.resource.data.coupleId == resource.data.coupleId &&
         isValidBucket();
     }
 
     match /cycles/{docId} {
-      allow read, write: if isAuthenticated() &&
+      allow read, delete: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId);
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
+      allow update: if isAuthenticated() &&
+        isCoupleMe(resource.data.coupleId) &&
+        request.resource.data.coupleId == resource.data.coupleId;
     }
 
     // 개인 캘린더: 소유자만 접근 가능
     match /personal_events/{docId} {
-      allow read, write: if isAuthenticated() &&
+      allow read, delete: if isAuthenticated() &&
         request.auth.uid == resource.data.userId;
       allow create: if isAuthenticated() &&
         request.auth.uid == request.resource.data.userId;
+      allow update: if isAuthenticated() &&
+        request.auth.uid == resource.data.userId &&
+        request.resource.data.userId == resource.data.userId;
     }
 
     // 여행 선택지 (v0.3.51): 커플 멤버만 접근 가능
@@ -222,7 +247,9 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId) &&
         request.resource.data.authorUid == request.auth.uid &&
-        request.resource.data.isUnlocked == false;
+        request.resource.data.isUnlocked == false &&
+        request.resource.data.recipientUid in
+          get(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members;
       // 작성자만, 아직 안 열린 편지만 수정 가능 (예약시각 변경 또는 직접 공개 처리)
       allow update: if isAuthenticated() &&
         resource.data.authorUid == request.auth.uid &&

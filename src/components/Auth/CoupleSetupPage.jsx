@@ -4,6 +4,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { HiHeart, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
 import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
+import { getLocalDateStr } from '../../utils/dataUtils';
 import NotificationPrimingModal from '../common/NotificationPrimingModal';
 import './CoupleSetupPage.css';
 
@@ -145,7 +146,10 @@ const CoupleSetupPage = () => {
                         type="date"
                         value={anniversaryDate}
                         onChange={e => setAnniversaryDate(e.target.value)}
-                        max={new Date().toISOString().split('T')[0]}
+                        // toISOString() 대신 getLocalDateStr() — KST 자정~9시 사이엔
+                        // toISOString()이 UTC 변환으로 어제 날짜를 반환해 오늘을 선택 못 하는
+                        // 버그가 있었음 (2026-08-25 발견/수정)
+                        max={getLocalDateStr()}
                         required
                       />
                       <span className="couple-setup-hint">우리가 처음 만난 날을 입력해주세요</span>

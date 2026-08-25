@@ -18,6 +18,7 @@ import {
   createRecurringEvent, updateRecurringEvent, deleteRecurringEvent
 } from '../../services/recurrenceService';
 import { createCycle, deleteCycle } from '../../services/cycleService';
+import { getLocalDateStr } from '../../utils/dataUtils';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents';
@@ -377,7 +378,10 @@ const Calendar = () => {
   }, [navigatePage]);
 
   const handleMoreLinkClick = useCallback((info) => {
-    navigatePage(`/calendar/day/${info.date.toISOString().split('T')[0]}`, { state: { modal: true } });
+    // info.date는 FullCalendar가 만든 로컬 자정 Date — toISOString()으로 바로 변환하면
+    // UTC로 밀려서 KST(UTC+9)에서 하루 전 날짜가 됨 (handleDateClick의 info.dateStr과 달리
+    // 이 콜백은 미리 포맷된 문자열을 안 줌). getLocalDateStr()로 로컬 기준 포맷 (2026-08-25 발견/수정)
+    navigatePage(`/calendar/day/${getLocalDateStr(info.date)}`, { state: { modal: true } });
     return 'stop';
   }, [navigatePage]);
 

@@ -184,7 +184,11 @@ const Home = () => {
   // 하루짜리(end가 당일 23:59:59)든 여러 날짜(end가 다음날 00:00 배타적)든 동일하게 맞음)
   const todayStart = startOfDay(today);
   const todayEnd = addDays(todayStart, 1);
+  // 여행(isTrip) 이벤트는 제외 — "다음 여행"/"지금 여행 중" 카드가 이미 별도로 표시하므로
+  // 여기서도 노출하면 같은 여행이 두 번 뜨고, 클릭 시 여행 상세(/travel/:tripId) 대신
+  // 캘린더로 이동하는 등 동작도 어긋남 (2026-08-25 발견/수정)
   const todayEvents = events.filter(e => {
+    if (e?.extendedProps?.isTrip) return false;
     try {
       const s = parseISO(e.start);
       const en = parseISO(e.end);
@@ -195,6 +199,7 @@ const Home = () => {
   // 다음 일정 — 오늘 일정과 겹치지 않도록 내일 이후 시작하는 것만
   const nextEvent = events
     .filter(e => {
+      if (e?.extendedProps?.isTrip) return false;
       try { return parseISO(e.start) >= todayEnd; } catch { return false; }
     })
     .sort((a, b) => parseISO(a.start) - parseISO(b.start))[0] || null;

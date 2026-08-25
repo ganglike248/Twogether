@@ -25,14 +25,13 @@ import {
   where,
   getDocs,
   serverTimestamp,
-  arrayUnion,
   writeBatch,
-  runTransaction,
 } from 'firebase/firestore';
+import { httpsCallable } from 'firebase/functions';
 import { initializeApp, deleteApp } from 'firebase/app';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
-import { auth, db, app } from '../firebase';
+import { auth, db, app, functionsInstance } from '../firebase';
 
 // 랜덤 6자리 대문자+숫자 초대 코드 생성
 const generateInviteCode = () => {
@@ -283,37 +282,15 @@ export const createCouple = async (uid, anniversaryDate) => {
 };
 
 // 초대 코드로 커플 합류
+// ⚠ 2026-08-25 보안 감사: 예전엔 이 클라이언트 트랜잭션이 직접 couples.members를 갱신했는데,
+// firestore.rules의 couples update 규칙이 초대 코드를 검증할 방법이 없어서(합류 요청에 코드가
+// 실려오지 않음) coupleId만 알면 초대 코드 없이도 합류가 가능한 취약점으로 이어졌음. 검증·쓰기를
+// joinCoupleWithInviteCode Cloud Function(Admin SDK)으로 옮겨 서버에서 초대 코드를 확인한 뒤에만
+// members/joined/coupleId가 원자적으로 갱신되도록 함 — uid는 context.auth에서 서버가 직접 확인.
 export const joinCouple = async (uid, inviteCode) => {
   const code = inviteCode.trim().toUpperCase();
-  const inviteRef = doc(db, 'inviteCodes', code);
-
-  // runTransaction으로 joined 체크와 쓰기를 원자적으로 묶음 — 두 사용자가 동시에 같은
-  // 코드로 합류를 시도해도 Firestore가 트랜잭션 충돌을 감지해 하나는 재시도 후
-  // joined:true를 다시 읽어 에러를 던지게 됨 (check-then-write 사이의 gap 제거).
-  const coupleId = await runTransaction(db, async (transaction) => {
-    const inviteSnap = await transaction.get(inviteRef);
-
-    if (!inviteSnap.exists()) {
-      throw new Error('유효하지 않은 초대 코드입니다.');
-    }
-
-    const { coupleId: targetCoupleId, creatorUid, joined } = inviteSnap.data();
-
-    if (joined) {
-      throw new Error('이미 커플이 연결된 코드입니다.');
-    }
-    if (creatorUid === uid) {
-      throw new Error('자신의 초대 코드는 사용할 수 없습니다.');
-    }
-
-    transaction.update(doc(db, 'couples', targetCoupleId), { members: arrayUnion(uid) });
-    transaction.update(inviteRef, { joined: true });
-    transaction.update(doc(db, 'users', uid), { coupleId: targetCoupleId });
-
-    return targetCoupleId;
-  });
-
-  return { coupleId };
+  const result = await httpsCallable(functionsInstance, 'joinCoupleWithInviteCode')({ inviteCode: code });
+  return { coupleId: result.data.coupleId };
 };
 
 // 커플 정보 조회
