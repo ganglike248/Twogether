@@ -28,6 +28,11 @@ const DayModal = ({
   const [showDeletePeriodModal, setShowDeletePeriodModal] = useState(false);
   const [periodToDelete, setPeriodToDelete] = useState(null);
   const moreMenuRef = useRef(null);
+  const openedAtRef = useRef(0);
+
+  useEffect(() => {
+    if (isOpen) openedAtRef.current = Date.now();
+  }, [isOpen]);
 
   useEffect(() => {
     if (!showMoreMenu) return;
@@ -148,8 +153,15 @@ const DayModal = ({
     setPeriodToDelete(null);
   };
 
+  const handleOverlayClick = () => {
+    // 방금 열렸다면(캘린더 날짜 탭 뒤 iOS가 합성하는 ghost click) 무시 — 모달이 열리자마자
+    // 닫혀 번쩍이는 것을 방지. 명시적으로 배경을 눌러 닫는 정상 동작은 300ms 뒤부터 유효.
+    if (Date.now() - openedAtRef.current < 300) return;
+    onClose();
+  };
+
   return (
-    <div className="day-modal-overlay" onClick={onClose}>
+    <div className="day-modal-overlay" onClick={handleOverlayClick}>
       <div className="day-modal-container" onClick={(e) => e.stopPropagation()}>
         <div className="day-modal-header">
           <div className="day-modal-date">

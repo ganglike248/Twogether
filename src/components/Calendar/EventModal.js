@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { addDays, subDays } from 'date-fns';
 import { toast } from 'react-toastify';
 import './EventModal.css';
@@ -46,6 +46,11 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [showScopeModal, setShowScopeModal] = useState(false);
   const [scopeMode, setScopeMode] = useState('save'); // 'save' | 'delete'
   const [pendingEventData, setPendingEventData] = useState(null);
+  const openedAtRef = useRef(0);
+
+  useEffect(() => {
+    if (isOpen) openedAtRef.current = Date.now();
+  }, [isOpen]);
 
   // 반복 일정의 "예외 아닌" 인스턴스인지 — 이 경우만 반복 규칙 편집/범위선택 UI 대상
   const isSeriesMember = !!(event?.recurrence?.seriesId) && !event?.recurrence?.isException;
@@ -313,7 +318,10 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     <div
       className="modal-overlay"
       onClick={(e) => {
-        if (e.target === e.currentTarget) onClose();
+        if (e.target !== e.currentTarget) return;
+        // 방금 열렸다면(날짜/일정 탭 뒤 iOS ghost click) 무시 — 모달이 열리자마자 닫히며 번쩍이는 것 방지
+        if (Date.now() - openedAtRef.current < 300) return;
+        onClose();
       }}
     >
       <div className="sheet-card">

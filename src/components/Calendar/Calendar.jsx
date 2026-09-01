@@ -76,17 +76,29 @@ const Calendar = () => {
   const isModalOpen = !!(eventNewMatch || (eventEditMatch && !isLoading));
   const showEditLog = !!logMatch;
 
-  // matchPath는 매 렌더마다 새 객체를 반환하므로(불필요한 useMemo 의존성 경고만 유발)
-  // 그냥 일반 계산으로 둠 — events.find()에 비하면 부담이 없는 연산.
-  const selectedEvent = (() => {
+  // 모달 열기/닫기 내비게이션 재진입 잠금 + 마지막으로 해석된 수정 대상 이벤트 캐시
+  const navLockRef = useRef(false);
+  const navLockTimerRef = useRef(null);
+  const lastResolvedEventRef = useRef(null);
+
+  // 라우트에서 파생한 "수정 대상 이벤트". events가 이 id를 잠깐 놓치는 순간에도
+  // (백그라운드 복귀 시 onSnapshot 캐시 재emit, 파트너의 동시 수정/삭제 등) 직전에
+  // 해석해둔 같은 id의 객체를 그대로 재사용해, 열려 있는 '수정' 폼이 빈 '새 일정' 폼으로
+  // 리셋되며 번쩍이는 것을 막는다. 내용이 실제로 안 바뀌었으면 레퍼런스도 유지해
+  // EventModal의 폼 재초기화(useEffect [event]) 자체를 줄인다.
+  const eventNewDate = eventNewMatch?.params?.date ?? null;
+  const eventEditId = eventEditMatch?.params?.eventId ?? null;
+  const selectedEvent = useMemo(() => {
     try {
-      if (eventNewMatch) {
-        const d = eventNewMatch.params.date;
-        return { start: d, end: d, allDay: true };
+      if (eventNewDate) {
+        return { start: eventNewDate, end: eventNewDate, allDay: true };
       }
-      if (eventEditMatch) {
-        const ev = events.find(e => e.id === eventEditMatch.params.eventId);
-        if (!ev) return null;
+      if (eventEditId) {
+        const ev = events.find(e => e.id === eventEditId);
+        if (!ev) {
+          const cached = lastResolvedEventRef.current;
+          return cached && cached.id === eventEditId ? cached : null;
+        }
         const getDateString = (dateValue) => {
           if (typeof dateValue === 'string') return dateValue.split('T')[0];
           if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
@@ -95,7 +107,7 @@ const Calendar = () => {
         const startDate = getDateString(ev.start);
         const endDate = ev.end ? getDateString(ev.end) : startDate;
         const isPersonalEvent = ev.extendedProps?.isPersonal || false;
-        return {
+        const resolved = {
           id: ev.id, title: ev.title,
           start: startDate, end: endDate,
           description: ev.extendedProps?.description || '',
@@ -104,12 +116,29 @@ const Calendar = () => {
           imageUrls: ev.extendedProps?.imageUrls || [],
           recurrence: ev.extendedProps?.recurrence || null
         };
+        const prev = lastResolvedEventRef.current;
+        if (
+          prev &&
+          prev.id === resolved.id &&
+          prev.title === resolved.title &&
+          prev.start === resolved.start &&
+          prev.end === resolved.end &&
+          prev.description === resolved.description &&
+          prev.eventType === resolved.eventType &&
+          prev.isPersonal === resolved.isPersonal &&
+          (prev.imageUrls?.length || 0) === (resolved.imageUrls?.length || 0) &&
+          JSON.stringify(prev.recurrence ?? null) === JSON.stringify(resolved.recurrence ?? null)
+        ) {
+          return prev;
+        }
+        lastResolvedEventRef.current = resolved;
+        return resolved;
       }
       return null;
     } catch {
       return null;
     }
-  })();
+  }, [eventNewDate, eventEditId, events, myRole]);
 
   const [viewMode, setViewMode] = useState('all'); // 'all' | 'personal' | 'couple'
   const [currentDate, setCurrentDate] = useState(() => {
@@ -157,16 +186,37 @@ const Calendar = () => {
   // (0.5초) 안의 수정기록 클릭은 그 여파로 보고 무시해서 방지 (2026-08-10).
   const eventModalClosedAtRef = useRef(0);
 
+  // iOS WebKit에서 navigate(-1)(history.go)은 비동기라, 이전 전환이 끝나기 전에 새 push/pop이
+  // 겹치면 히스토리 스택이 꼬여 모달이 안 닫히거나(캘린더 터치 먹통) 번쩍인다. 한 번에 하나의
+  // 모달 전환만 허용하고, location이 실제로 바뀌면(전환 완료) 잠금을 푼다.
+  const lockNav = useCallback(() => {
+    navLockRef.current = true;
+    if (navLockTimerRef.current) clearTimeout(navLockTimerRef.current);
+    // 되돌아갈 히스토리가 없어 popstate가 끝내 안 오는 예외 상황에서도 잠금이 영구히
+    // 남지 않도록 하는 안전장치.
+    navLockTimerRef.current = setTimeout(() => { navLockRef.current = false; }, 700);
+  }, []);
+
+  useEffect(() => {
+    navLockRef.current = false;
+    if (navLockTimerRef.current) {
+      clearTimeout(navLockTimerRef.current);
+      navLockTimerRef.current = null;
+    }
+  }, [location.key, location.pathname]);
+
   // 모달 닫기 = 그 모달을 열며 쌓인 히스토리 엔트리로 "뒤로가기". location.key === 'default'는
   // 이 브라우저 세션에서 아직 아무 내비게이션도 없었다는 뜻(예: 모달 경로로 바로 딥링크/새로고침
   // 진입) — 이 경우 navigate(-1)은 앱 밖으로 나가버릴 수 있어 대신 캘린더 기본 화면으로 보냄.
   const closeModal = useCallback(() => {
+    if (navLockRef.current) return;
+    lockNav();
     if (location.key === 'default') {
       navigatePage('/calendar', { replace: true });
     } else {
       navigatePage(-1);
     }
-  }, [navigatePage, location.key]);
+  }, [navigatePage, location.key, lockNav]);
 
   // EventModal 전용 닫기 — 'X'/취소/오버레이 클릭으로 닫을 때만 오클릭 방지 타임스탬프를
   // 남김(저장/삭제 성공으로 닫힐 때는 기존처럼 타임스탬프를 남기지 않음).
@@ -212,27 +262,33 @@ const Calendar = () => {
   // DayModal 안 "+ 일정 추가"에서 옴 — DayModal의 히스토리 엔트리를 대체(replace)해서,
   // 닫을 때 DayModal로 안 돌아가고 바로 캘린더로 나가는 기존 동작을 그대로 유지.
   const handleAddEventFromDay = useCallback((date) => {
+    if (navLockRef.current) return;
+    lockNav();
     navigatePage(`/calendar/event/new/${date}`, { replace: true, state: { modal: true } });
-  }, [navigatePage]);
+  }, [navigatePage, lockNav]);
 
   // FAB 콜백: 새 일정 추가 — 빈 캘린더에서 여는 것이라 새 히스토리 엔트리를 쌓음(push).
   const handleFABAddEvent = useCallback(() => {
+    if (navLockRef.current) return;
+    lockNav();
     const today = new Date();
     const year = today.getFullYear();
     const month = String(today.getMonth() + 1).padStart(2, '0');
     const date = String(today.getDate()).padStart(2, '0');
     const dateStr = `${year}-${month}-${date}`;
     navigatePage(`/calendar/event/new/${dateStr}`, { state: { modal: true } });
-  }, [navigatePage]);
+  }, [navigatePage, lockNav]);
 
   const handleEditEventFromDay = useCallback((event) => {
+    if (navLockRef.current) return;
+    lockNav();
     if (event.extendedProps?.isTrip) {
       navigatePage(`/travel/${event.id}`);
       return;
     }
     // DayModal 안에서 일정을 눌러 여는 것이라 위 handleAddEventFromDay와 동일하게 replace.
     navigatePage(`/calendar/event/${event.id}`, { replace: true, state: { modal: true } });
-  }, [navigatePage]);
+  }, [navigatePage, lockNav]);
 
   const handleSaveEvent = useCallback(async (eventData) => {
     try {
@@ -374,16 +430,31 @@ const Calendar = () => {
     currentDate.getMonth() === new Date().getMonth();
 
   const handleDateClick = useCallback((info) => {
-    navigatePage(`/calendar/day/${info.dateStr}`, { state: { modal: true } });
-  }, [navigatePage]);
+    if (navLockRef.current) return;
+    lockNav();
+    const dateStr = info.dateStr;
+    // FullCalendar 인터랙션(터치) 제스처가 완전히 끝난 뒤 다음 프레임에 오버레이를 마운트.
+    // 같은 프레임에 마운트하면 iOS에서 touchend 뒤 합성되는 ghost click이 갓 열린 모달
+    // 오버레이로 넘어가 모달이 즉시 닫히며 번쩍인다.
+    requestAnimationFrame(() => {
+      navigatePage(`/calendar/day/${dateStr}`, { state: { modal: true } });
+    });
+  }, [navigatePage, lockNav]);
 
   const handleMoreLinkClick = useCallback((info) => {
     // info.date는 FullCalendar가 만든 로컬 자정 Date — toISOString()으로 바로 변환하면
     // UTC로 밀려서 KST(UTC+9)에서 하루 전 날짜가 됨 (handleDateClick의 info.dateStr과 달리
     // 이 콜백은 미리 포맷된 문자열을 안 줌). getLocalDateStr()로 로컬 기준 포맷 (2026-08-25 발견/수정)
-    navigatePage(`/calendar/day/${getLocalDateStr(info.date)}`, { state: { modal: true } });
+    if (!navLockRef.current) {
+      lockNav();
+      const dateStr = getLocalDateStr(info.date);
+      // handleDateClick과 동일: 제스처가 끝난 뒤 다음 프레임에 오버레이 마운트 (ghost click 방지)
+      requestAnimationFrame(() => {
+        navigatePage(`/calendar/day/${dateStr}`, { state: { modal: true } });
+      });
+    }
     return 'stop';
-  }, [navigatePage]);
+  }, [navigatePage, lockNav]);
 
   return (
     <div className="calendar-container">
@@ -395,6 +466,8 @@ const Calendar = () => {
         onGoToday={goToday}
         onShowEditLog={() => {
           if (Date.now() - eventModalClosedAtRef.current < 500) return;
+          if (navLockRef.current) return;
+          lockNav();
           navigatePage('/calendar/log', { state: { modal: true } });
         }}
       />
