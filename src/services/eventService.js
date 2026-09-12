@@ -72,9 +72,30 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
 };
 
 export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null) => {
-  const eventSnap = await getDoc(doc(db, 'events', eventId));
-  const eventData = eventSnap.exists() ? eventSnap.data() : {};
-  await deleteDoc(doc(db, 'events', eventId));
+  let eventData = {};
+  try {
+    const eventSnap = await getDoc(doc(db, 'events', eventId));
+    if (!eventSnap.exists()) {
+      // 이미 삭제된 일정(중복 삭제 요청, 파트너의 동시 삭제 등) — 목적은 이미 달성됐으므로 조용히 종료
+      return eventId;
+    }
+    eventData = eventSnap.data();
+  } catch (error) {
+    // Firestore 규칙 특성상 문서가 이미 없으면 read 자체가 permission-denied로 거부됨
+    // (delete/read 규칙이 resource.data.coupleId를 참조하는데, 문서가 없으면 resource가 null이라
+    // 규칙 평가 중 에러 처리되어 "Missing or insufficient permissions"로 내려옴) — 이미 삭제된 경우로 간주
+    if (error?.code === 'permission-denied') return eventId;
+    throw error;
+  }
+
+  try {
+    await deleteDoc(doc(db, 'events', eventId));
+  } catch (error) {
+    // getDoc과 deleteDoc 사이에 다른 기기/중복 클릭으로 이미 삭제된 경우도 동일하게 처리
+    if (error?.code === 'permission-denied') return eventId;
+    throw error;
+  }
+
   await saveEditLog(eventId, eventData, 'deleted', userId, coupleId);
   return eventId;
 };
@@ -201,7 +222,13 @@ export const updatePersonalEvent = async (eventId, eventData, userId, coupleId =
 };
 
 export const deletePersonalEvent = async (eventId) => {
-  await deleteDoc(doc(db, 'personal_events', eventId));
+  try {
+    await deleteDoc(doc(db, 'personal_events', eventId));
+  } catch (error) {
+    // 이미 삭제된 문서를 다시 지우는 경우 permission-denied로 내려옴 (deleteEvent 주석 참고) — 이미 삭제된 것으로 간주
+    if (error?.code === 'permission-denied') return eventId;
+    throw error;
+  }
   return eventId;
 };
 

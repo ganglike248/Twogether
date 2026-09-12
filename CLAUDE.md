@@ -2,7 +2,7 @@
 
 ## 기본 정보
 - **앱 이름**: 우리두리 (한글 UI), Twogether (영어/코드)
-- **현재 버전**: v0.4.36 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
+- **현재 버전**: v0.4.40 | 배포: https://twogether-206fb.web.app | GitHub: master 브랜치
 
 ## 버전 관리 규칙 (필수)
 커밋마다 `package.json` version 필드 + `version.txt` **동시** 업데이트
@@ -589,6 +589,7 @@ utils/
   koreanHolidays.js      → 한국 공휴일 + 음력 명절 + 커플기념일 계산
   numberFormat.js        → 숫자 포맷
   appLinkUtils.js        → URL을 플랫폼별 앱 딥링크로 변환 (YouTube/Google Maps/Naver/Kakao/Yanolja 등). getAppLink(url), handleOpenLink(e, url)
+  errorMessages.js       → getFriendlyErrorMessage(error, fallback?). Firebase 에러(error.code 있음: Firestore 무접두사/auth-*/storage-*/functions-*)를 한글 안내 문구로 매핑 — catch한 에러를 toast/화면에 보여줄 때 raw error.message를 직접 노출하지 말고 반드시 이 함수를 거칠 것 (안 그러면 "Missing or insufficient permissions." 같은 원문이 그대로 사용자에게 보임, v0.4.40에서 실제 발견). functions/* 코드는 우리 Cloud Function이 HttpsError로 직접 지정한 한글 메시지라 예외적으로 그대로 신뢰. error.code가 없는 에러(이 프로젝트가 직접 throw new Error('한글 문구')한 것)도 message를 그대로 신뢰.
 ```
 
 ## 추가 구현 기능 (주요 컴포넌트)

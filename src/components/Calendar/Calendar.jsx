@@ -19,6 +19,7 @@ import {
 } from '../../services/recurrenceService';
 import { createCycle, deleteCycle } from '../../services/cycleService';
 import { getLocalDateStr } from '../../utils/dataUtils';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useCalendarEvents } from '../../hooks/useCalendarEvents';
@@ -346,7 +347,7 @@ const Calendar = () => {
       closeModal();
       toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
     } catch (error) {
-      toast.error(`일정 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
     }
   }, [events, user?.uid, coupleId, closeModal]);
 
@@ -376,7 +377,7 @@ const Calendar = () => {
       closeModal();
       toast.success('일정을 삭제했습니다.');
     } catch (error) {
-      toast.error(`일정 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`일정 삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
     }
   }, [events, user?.uid, coupleId, closeModal]);
 

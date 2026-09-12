@@ -3,6 +3,7 @@ import { updatePassword, reauthenticateWithCredential, EmailAuthProvider } from 
 import { toast } from 'react-toastify';
 import { HiLockClosed, HiXMark } from 'react-icons/hi2';
 import { auth } from '../../firebase';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './ChangePasswordModal.css';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
@@ -76,7 +77,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       } else if (error.code === 'auth/requires-recent-login') {
         toast.error('보안을 위해 다시 로그인해주세요.');
       } else {
-        toast.error(`비밀번호 변경 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+        toast.error(`비밀번호 변경 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
       }
     } finally {
       setLoading(false);

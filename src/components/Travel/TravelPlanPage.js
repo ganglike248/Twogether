@@ -11,6 +11,7 @@ import TripDetail from './Trip/TripDetail';
 import EmptyState from '../common/EmptyState';
 import { TravelPlanSkeleton } from './Trip/TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './TravelPlanPage.css';
 
 const TravelPlanPage = () => {
@@ -103,7 +104,7 @@ const TravelPlanPage = () => {
             toast.success(tripData.id ? '여행이 수정되었습니다.' : '여행이 추가되었습니다.');
         } catch (error) {
             console.error('Error saving trip:', error);
-            toast.error(`여행 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+            toast.error(`여행 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
         }
     }, [user?.uid, coupleId, closeModal]);
 
@@ -127,7 +128,7 @@ const TravelPlanPage = () => {
             toast.success('여행을 삭제했습니다.');
         } catch (error) {
             console.error('Error deleting trip:', error);
-            toast.error(`여행 삭제 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+            toast.error(`여행 삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
         }
     }, [tripToDelete, user?.uid, coupleId, navigate]);
 

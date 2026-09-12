@@ -13,6 +13,7 @@ import {
   enableNotifications,
   disableNotifications,
 } from '../../services/notificationService';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './NotificationSettingsPage.css';
 
 // 서버(functions/index.js)의 sendPushToUser type/defaultOn 인자와 일치해야 함.
@@ -72,7 +73,7 @@ const NotificationSettingsPage = () => {
         toast.success('알림이 켜졌습니다.');
       }
     } catch (err) {
-      toast.error(err.message || '알림 설정 중 오류가 발생했습니다.');
+      toast.error(getFriendlyErrorMessage(err, '알림 설정 중 오류가 발생했습니다.'));
     } finally {
       setNotifLoading(false);
     }

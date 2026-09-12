@@ -281,11 +281,28 @@ export async function deleteRecurringEvent({ eventId, seriesId, scope, isPersona
 
   if (scope === 'this') {
     const evRef = doc(db, collName, eventId);
-    const snap = await getDoc(evRef);
-    const oldData = snap.exists() ? snap.data() : {};
-    const batch = writeBatch(db);
-    batch.delete(evRef);
-    await batch.commit();
+    let oldData = {};
+    try {
+      const snap = await getDoc(evRef);
+      if (!snap.exists()) {
+        // 이미 삭제된 인스턴스(중복 삭제 요청 등) — 목적은 이미 달성됐으므로 조용히 종료
+        return { deletedCount: 0 };
+      }
+      oldData = snap.data();
+    } catch (error) {
+      // 문서가 이미 없으면 read 자체가 permission-denied로 거부됨 (deleteEvent 주석 참고)
+      if (error?.code === 'permission-denied') return { deletedCount: 0 };
+      throw error;
+    }
+
+    try {
+      const batch = writeBatch(db);
+      batch.delete(evRef);
+      await batch.commit();
+    } catch (error) {
+      if (error?.code === 'permission-denied') return { deletedCount: 0 };
+      throw error;
+    }
     if (!isPersonal) {
       await saveEditLog(eventId, oldData, 'deleted', userId, coupleId);
     }

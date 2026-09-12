@@ -6,6 +6,7 @@ import { getLocalDateStr } from '../../utils/dataUtils';
 import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-toastify';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './CoupleInfoPage.css';
 
 const CoupleInfoPage = () => {
@@ -52,7 +53,7 @@ const CoupleInfoPage = () => {
       toast.success('기념일이 저장되었습니다.');
     } catch (error) {
       console.error('Failed to save:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -100,7 +101,7 @@ const CoupleInfoPage = () => {
       }
     } catch (error) {
       console.error('Failed to save:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
       if (blocker.state === 'blocked') blocker.reset();
     } finally {
       setLoading(false);

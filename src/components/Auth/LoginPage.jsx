@@ -11,6 +11,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { HiHeart, HiInformationCircle } from 'react-icons/hi2';
 import { FcGoogle } from 'react-icons/fc';
 import OnboardingSlides from '../Onboarding/OnboardingSlides';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './LoginPage.css';
 
 // 로그인 화면 진입 시 자동으로 뜨는 앱 소개 슬라이드를 '다음부터 보지 않기'로 껐는지 여부.
@@ -61,18 +62,9 @@ const LoginPage = () => {
     resetForm();
   };
 
-  const getErrorMessage = (code) => {
-    switch (code) {
-      case 'auth/email-already-in-use': return '이미 사용 중인 이메일입니다.';
-      case 'auth/invalid-email': return '유효하지 않은 이메일 형식입니다.';
-      case 'auth/weak-password': return '비밀번호는 6자 이상이어야 합니다.';
-      case 'auth/user-not-found': return '등록되지 않은 이메일입니다.';
-      case 'auth/wrong-password': return '비밀번호가 올바르지 않습니다.';
-      case 'auth/invalid-credential': return '이메일 또는 비밀번호가 올바르지 않습니다.';
-      case 'auth/too-many-requests': return '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.';
-      default: return '오류가 발생했습니다. 다시 시도해주세요.';
-    }
-  };
+  // 공용 에러 매핑(utils/errorMessages.js)에 auth/* 코드를 그대로 넘겨서 재사용 —
+  // LoginPage 전용 목록을 따로 유지하지 않음(다른 화면과 매핑이 어긋나는 것 방지)
+  const getErrorMessage = (code) => getFriendlyErrorMessage({ code }, '오류가 발생했습니다. 다시 시도해주세요.');
 
   const handleLogin = async (e) => {
     e.preventDefault();

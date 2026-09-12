@@ -8,6 +8,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import RecurrenceFields from './RecurrenceFields';
 import RecurrenceScopeModal from './RecurrenceScopeModal';
 import { generateOccurrenceDates, RecurrenceLimitError } from '../../utils/recurrenceRules';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 
 const DEFAULT_RECURRENCE = {
   enabled: false,
@@ -42,6 +43,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [isDday, setIsDday] = useState(false);
   const [loading, setLoading] = useState(false);
   const [showDeleteModal, setShowDeleteModal] = useState(false);
+  const [deleting, setDeleting] = useState(false);
   const [recurrence, setRecurrence] = useState(DEFAULT_RECURRENCE);
   const [showScopeModal, setShowScopeModal] = useState(false);
   const [scopeMode, setScopeMode] = useState('save'); // 'save' | 'delete'
@@ -256,7 +258,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       // 버그로 실제 재현됨 — AppHeader.jsx의 closeSidebar 주석에 있는 것과 동일한 문제).
     } catch (error) {
       console.error('Error saving event:', error);
-      toast.error(`일정 저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -272,12 +274,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   };
 
   const confirmDelete = async () => {
+    // 연타 시 삭제 요청이 중복 전송되는 것을 방지 — 이미 지워진 문서를 다시 지우려 하면
+    // Firestore 규칙 특성상 "Missing or insufficient permissions" 에러로 보임
+    if (!canClick() || deleting) return;
+    setDeleting(true);
     try {
       await onDelete(event.id);
-    } catch (err) {
-      toast.error(`삭제 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
-    } finally {
       setShowDeleteModal(false);
+    } catch (err) {
+      toast.error(`삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(err)}`);
+    } finally {
+      setDeleting(false);
     }
   };
 
@@ -298,7 +305,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       // onClose()는 따로 안 부름 — 위 handleSubmit과 같은 이유(Calendar.jsx가 이미 닫음).
     } catch (err) {
       const label = scopeMode === 'delete' ? '삭제' : '저장';
-      toast.error(`${label} 중 오류가 발생했습니다.\n${err?.message || String(err)}`);
+      toast.error(`${label} 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(err)}`);
     } finally {
       setLoading(false);
       setPendingEventData(null);

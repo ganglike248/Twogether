@@ -5,6 +5,7 @@ import { MdColorLens } from 'react-icons/md';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { DEFAULT_COLOR_PALETTE } from '../../services/colorService';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './EventTypeColorSettingsModal.css';
 
 const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
@@ -59,7 +60,7 @@ const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
       toast.success('색상 설정이 저장되었습니다!');
       onClose();
     } catch (error) {
-      toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }

@@ -19,6 +19,7 @@ import {
 } from '../../services/authService';
 import useHeroImage from '../../hooks/useHeroImage';
 import ChangePasswordModal from './ChangePasswordModal';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './ProfilePage.css';
 
 const ProfilePage = () => {
@@ -120,7 +121,7 @@ const ProfilePage = () => {
       return true;
     } catch (error) {
       console.error('[ProfilePage] 저장 실패:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${error?.message || String(error)}`);
+      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
       return false;
     } finally {
       setLoading(false);
@@ -246,7 +247,7 @@ const ProfilePage = () => {
       closeGoogleConflict();
     } catch (error) {
       console.error('[ProfilePage] 계정 정리 실패:', error);
-      toast.error(error.message || '처리 중 오류가 발생했습니다.');
+      toast.error(getFriendlyErrorMessage(error, '처리 중 오류가 발생했습니다.'));
       setGoogleConflict(prev => prev && { ...prev, resolving: false });
       setConflictConfirming(false);
     }
