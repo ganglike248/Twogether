@@ -13,8 +13,11 @@ const PrivacyPage = () => {
 
         <section>
           <p>
-            우리두리(이하 "서비스")는 커플을 위한 일정·추억·여행 공유 앱입니다.
-            본 방침은 서비스 이용 과정에서 수집되는 개인정보의 처리 방법을 안내합니다.
+            우리두리(Twogether, 패키지명: com.wooridoori.twogether, 이하 "서비스")는
+            Google Play 개발자 <strong>ganglike</strong>(계정 소유자: 손경락)가 제공하는
+            커플을 위한 일정·추억·여행 공유 앱입니다.
+            본 개인정보처리방침은 Google Play에 등록된 위 앱과 개발자에게 적용되며,
+            서비스 이용 과정에서 수집되는 개인정보의 처리 방법을 안내합니다.
           </p>
         </section>
 
