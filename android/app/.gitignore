@@ -1,2 +1,5 @@
 /build/*
 !/build/.npmkeep
+
+# Android Studio "Generate Signed Bundle" 출력(서명된 AAB + R8 mapping.txt) — 저장소에 올리지 않음
+/release/
