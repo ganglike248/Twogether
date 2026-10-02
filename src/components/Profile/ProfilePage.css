@@ -570,7 +570,7 @@
   color: var(--color-gray-700, #495057);
 }
 
-/* 생리주기 사용하기 버튼 */
+/* 설정 메뉴 버튼 (설정 페이지 공용) */
 .profile-cycle-btn {
   display: flex;
   align-items: center;

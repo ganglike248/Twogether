@@ -461,10 +461,10 @@ MemoryList에도 [개인] 필터 탭으로 표시됨 (과거 일정만, start <=
 `<input type="date" max=...>`(자정~9시 사이 "오늘"을 선택 못 하던 버그) 전부 같은 패턴으로 고침 —
 `new Date()...toISOString()` 형태가 보이면 KST 자정~9시 구간을 의심하고 `getLocalDateStr()`로 바꿀 것.  
 Home의 "다음 일정"과 "이번 달 일정"에도 개인 일정 포함.  
-Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅이지만 Home은 `{ includeCycles: false }` 옵션으로 호출해 불필요한 cycles 구독을 끔. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
+Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅. `extendedProps.isPersonal = true` + `extendedProps.eventType === 'personal'`로 구분.
 
-**useCalendarData.js 구독 구조 주의**: 커플 이벤트, 여행, 생리 기록, 개인 이벤트를 각각 독립 상태(`coupleEvents`, `tripEvents`, `cycles`, `personalEvents`)로 관리하고 렌더링 시 `useMemo`로 병합함. 예전 functional update 기반 `setEvents(prev => ...)` 패턴으로 되돌리지 말 것.
-세 번째 인자로 구독 옵션을 받을 수 있음. 예: Home은 생리 기록이 필요 없으므로 `useCalendarData(coupleId, userId, { includeCycles: false })`로 불필요한 `cycles` 구독을 줄임.
+**useCalendarData.js 구독 구조 주의**: 커플 이벤트, 여행, 개인 이벤트를 각각 독립 상태(`coupleEvents`, `tripEvents`, `personalEvents`)로 관리하고 렌더링 시 `useMemo`로 병합함. 예전 functional update 기반 `setEvents(prev => ...)` 패턴으로 되돌리지 말 것.
+세 번째 인자로 구독 옵션(`includeCoupleEvents`/`includeTrips`/`includePersonalEvents`)을 받아 필요 없는 구독을 끌 수 있음.
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
@@ -527,7 +527,6 @@ users/{uid}             → uid, email, displayName, coupleId
 couples/{coupleId}      → members:[uid1,uid2], inviteCode, anniversaryDate, heroImageUrl,
                           eventTypeColors:{boyfriend,girlfriend,personal},
                           customCategories:[{id,name,color}],  (버킷리스트 카테고리 커스텀)
-                          cycleSettings:{enabled,cycleLength,periodLength,icon,label,color,showFertile,showOvulation}
                           ※ 읽기: 멤버(isCoupleMe)만 가능. 초대 코드 조회는 inviteCodes 컬렉션 사용
 inviteCodes/{code}      → coupleId, creatorUid, joined(bool), createdAt
                           ※ 인증된 누구나 읽기 가능. joined=true이면 코드 재사용 불가
@@ -540,7 +539,6 @@ tripSchedules           → tripId, day(숫자), schedules:[{id,time,title,place
 travelTimes             → tripId, day, fromScheduleId, toScheduleId, travelTime
                           ※ subscribeTravelTimes(tripId, day)로 실시간 구독
 bucketlists             → coupleId, title, category, completed, completedAt
-cycles                  → coupleId, createdBy, startDate, periodLength  (생리 주기 기록)
 edit_logs               → eventId, coupleId, action, changes, userId, timestamp  (eventId 기반 조회)
 sealedMessages           → coupleId, authorUid, recipientUid, title, unlockAt(Timestamp|null),
                           isUnlocked, unlockedAt, createdAt
@@ -553,7 +551,6 @@ sealedMessages           → coupleId, authorUid, recipientUid, title, unlockAt(
 services/
   colorService.js        → 이벤트 타입 색상 팔레트 & 유틸 (DEFAULT_COLOR_PALETTE, DEFAULT_EVENT_TYPE_COLORS)
   categoryColorService.js→ 버킷리스트 카테고리 색상 & 기본값
-  cycleService.js        → 생리 주기 Firestore CRUD
   analyticsService.js    → Google Analytics 커스텀 이벤트 로깅
   storageService.js      → Firebase Storage (hero 이미지, 봉인 편지 첨부 이미지 업로드/삭제; 범용 이벤트 이미지는 미구현)
   eventService.js        → 커플/여행 이벤트 CRUD + edit_log. convertEventType(writeBatch, 원자적 컬렉션 이동)
@@ -566,10 +563,10 @@ services/
                            updateUnlockAt/unlockSealedMessageNow/deleteSealedMessage). 상세는 "봉인 편지함" 섹션 참고
 
 hooks/
-  useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 + cycles 통합).
+  useCalendarData.js     → Home.jsx + Calendar.jsx 공용 (커플 이벤트 + 개인 이벤트 + 여행 통합).
                            여행 이벤트 end를 FullCalendar allDay exclusive 방식에 맞게 +1일 조정함.
-                           isLoading: 활성화된 구독(events/trips/cycles/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false.
-                           옵션으로 필요 없는 구독을 끌 수 있음(includeCoupleEvents/includeTrips/includeCycles/includePersonalEvents).
+                           isLoading: 활성화된 구독(events/trips/personal) 각각 개별 loaded 플래그로 추적 — 모두 첫 응답 받아야 false.
+                           옵션으로 필요 없는 구독을 끌 수 있음(includeCoupleEvents/includeTrips/includePersonalEvents).
   useCalendarEvents.js   → 이벤트 변환/특별일 계산 유틸
   useCalendarNavigation.js → Calendar.jsx 전용 — 월별 슬라이드 터치/스와이프(dragX 기반) 네비게이션
   useColorSync.js        → CSS 변수로 이벤트 색상 동기화 (파트너 포함)
@@ -598,7 +595,6 @@ utils/
 - **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
 - **TravelTimeInput** (`src/components/Travel/Schedule/TravelTimeInput.js`) — 여행 일정 간 이동 시간 기록
 - **ScheduleModal** (`src/components/Travel/Schedule/ScheduleModal.js`) — 여행 일정 추가/편집 모달
-- **CycleSettingsModal** (`src/components/Profile/CycleSettingsModal.jsx`) — 생리 주기 설정 (사이클 길이, 아이콘, 색상, 가임기 표시)
 - **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
 - **PrivacyPage** (`src/components/Privacy/PrivacyPage.jsx`) — 개인정보처리방침 페이지. 로그인 없이 접근 가능(`/privacy`). 앱스토어 심사 제출 URL: `https://twogether-206fb.web.app/privacy`
@@ -646,9 +642,15 @@ utils/
 `getTravelTimes` (getDocs 일회성) 대신 `subscribeTravelTimes` (onSnapshot) 사용.  
 의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
 
-### 생리 주기 배란일/가임기 계산 가드
-`useCalendarEvents.js`에서 `cycleLength`/`periodLength`는 숫자로 정규화해서 사용.
-`cycleLength < 14`이면 배란일 오프셋이 음수가 되므로 배란일 이벤트를 만들지 않음. 가임기도 시작/종료 오프셋이 음수이면 표시하지 않음.
+### 생리주기 기능 제거 (2026-10-02)
+Google Play "건강 앱 선언" 정책 반려(선언한 '생리 추적' 기능을 심사자가 확인하지 못함 — 기본 꺼짐 + 스토어
+설명에 미기재)를 계기로 기능 자체를 제거함. 삭제: `cycleService.js`, `CycleSettingsModal.jsx/.css`, 캘린더의
+생리/가임기/배란일 이벤트 계산(`useCalendarEvents.js`)과 `cycles` 구독(`useCalendarData.js`), DayModal의 생리
+기록 폼·카드·"더보기(⋯)" 메뉴(생리 기록 전용이었음), 설정 페이지 진입 버튼, `firestore.rules`의 `cycles` 블록
+(→ 기본 거부). Firestore에 남은 `cycles` 컬렉션 문서와 `couples.cycleSettings` 필드는 코드에서 더 이상 읽지
+않음. **다시 추가하려면 Play Console 건강 앱 선언·데이터 보안(건강 정보)·개인정보처리방침(민감정보)을 함께
+갱신해야 함** — 기능만 되살리면 같은 반려가 재발함. `profile-cycle-btn` CSS 클래스는 이름만 남은 설정 메뉴
+공용 버튼 스타일이라 유지.
 
 ### MemoryList 검색 페이지네이션 (디바운스 + 경쟁 조건 가드)
 검색은 Firestore `title` 접두사 매칭 대신, 날짜순 페이지를 읽어 클라이언트에서 제목/내용 부분 문자열 매칭(`matchesSearchTerm`)함.
@@ -953,6 +955,24 @@ sharp 네이티브 모듈이 빌드 안 돼 있으면 위 명령이 에러남 �
 3. Build → Generate Signed Bundle/APK → Android App Bundle (.aab) 선택
 4. keystore 생성 (최초 1회) — **keystore 파일 분실 시 업데이트 불가, 반드시 백업**
 5. Google Play Console에 .aab 업로드
+
+### Android 릴리즈 R8 코드 축소/난독화 (2026-10-02~)
+Play Console "DEX 코드 최적화가 기준점 미만(난독화 3%)" 경고(해결 기한 2027-02)로 `android/app/build.gradle`의
+release에 `minifyEnabled true`를 켬. 결과: 압축 해제 DEX 12.5MB → 약 3.3MB. 별도 keep 규칙이 필요 없는 이유 —
+Capacitor 플러그인은 리플렉션 호출이지만 `@capacitor/android`의 consumer 규칙이 `Plugin` 하위 클래스를 통째로
+보존하고, 웹뷰 브리지(`MessageHandler.postMessage`, `CapacitorHttp.isEnabled`)는 기본
+`proguard-android-optimize.txt`의 `@JavascriptInterface` 규칙으로 메서드 이름이 보존됨(클래스명은 난독화돼도
+무관 — `addJavascriptInterface`는 메서드 이름만 노출). 실제 DEX를 `dexdump`로 열어 확인함.
+- `proguard-rules.pro`의 `-dontwarn com.facebook.*` 5줄은 필수 — `@capacitor-firebase/authentication`이 페이스북
+  로그인 핸들러를 항상 포함하는데 페이스북 SDK는 선택 의존성이라 없어서, 이게 없으면 R8이 Missing class로
+  빌드 실패함(구글 로그인만 쓰므로 런타임엔 호출 안 됨). 다른 소셜 로그인 제공자를 켜거나 플러그인을
+  업데이트해서 새 Missing class가 나오면 `app/build/outputs/mapping/release/missing_rules.txt`를 보고 추가.
+- `-keepattributes SourceFile,LineNumberTable`로 크래시 스택의 줄 번호 유지. 매핑 파일은 AAB의
+  `BUNDLE-METADATA/.../proguard.map`에 자동 포함돼 Play Console이 알아서 역난독화함(별도 업로드 불필요).
+- `shrinkResources`는 일부러 안 켬 — 스플래시/알림 아이콘을 `getIdentifier()`로 이름 조회하는 코드가 있어
+  리소스 축소 시 런타임 누락 위험이 있는데 이득(용량)은 작음.
+- R8은 릴리즈 빌드에만 적용되므로 디버그 빌드/에뮬레이터 확인만으로는 검증이 안 됨 — 스토어 배포 전
+  **내부 테스트 트랙**으로 실기기에서 구글 로그인·푸시·인앱 업데이트·뒤로가기를 한 번씩 확인할 것.
 
 ### iOS 빌드 (Mac + Xcode 필수)
 ```bash

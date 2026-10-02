@@ -20,9 +20,6 @@ const CalendarGrid = ({
 }) => {
   const eventClassNames = (arg) => {
     const ep = arg.event.extendedProps;
-    if (ep.isPeriod) return ['period-event'];
-    if (ep.isPeriodPredicted) return ['period-predicted-event'];
-    if (ep.isCycleMeta) return ['cycle-meta-event'];
     if (ep.isSpecial) return ['special-day-event', ep.specialType];
     if (ep.isTrip) return ['trip-event'];
     switch (ep.eventType) {
@@ -34,7 +31,6 @@ const CalendarGrid = ({
 
   const eventDidMount = (info) => {
     const ep = info.event.extendedProps;
-    if (ep.isPeriod || ep.isPeriodPredicted || ep.isCycleMeta) return;
     if (ep.isSpecial) return;
     if (ep.eventType === 'girlfriend') info.el.style.fontWeight = 'bold';
     info.el.style.pointerEvents = 'none';

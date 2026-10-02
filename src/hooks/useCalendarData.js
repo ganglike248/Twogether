@@ -6,24 +6,21 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
   const {
     includeCoupleEvents = true,
     includeTrips = true,
-    includeCycles = true,
     includePersonalEvents = true,
   } = options;
 
   // 각 데이터 타입별 독립적 상태 관리 (누락 버그 방지)
   const [coupleEvents, setCoupleEvents] = useState([]);
   const [tripEvents, setTripEvents] = useState([]);
-  const [cycles, setCycles] = useState([]);
   const [personalEvents, setPersonalEvents] = useState([]);
   const [trips, setTrips] = useState([]);
 
   // 로딩 상태 (각 useEffect에서 개별 관리)
   const [coupleLoaded, setCoupleLoaded] = useState(false);
   const [tripsLoaded, setTripsLoaded] = useState(false);
-  const [cyclesLoaded, setCyclesLoaded] = useState(false);
   const [personalLoaded, setPersonalLoaded] = useState(false);
 
-  const isLoading = !coupleLoaded || !tripsLoaded || !cyclesLoaded || !personalLoaded;
+  const isLoading = !coupleLoaded || !tripsLoaded || !personalLoaded;
 
   // ✅ 구독 #1: 공유 일정 (couple/boyfriend/girlfriend, travel 제외)
   useEffect(() => {
@@ -147,32 +144,7 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
     return () => unsubscribe();
   }, [coupleId, includeTrips]);
 
-  // ✅ 구독 #3: 생리 기록
-  useEffect(() => {
-    if (!includeCycles) {
-      setCycles([]);
-      setCyclesLoaded(true);
-      return;
-    }
-    if (!coupleId) {
-      setCycles([]);
-      setCyclesLoaded(true);
-      return;
-    }
-    setCyclesLoaded(false);
-    const cyclesRef = query(
-      collection(db, 'cycles'),
-      where('coupleId', '==', coupleId)
-    );
-    const unsubscribe = onSnapshot(cyclesRef, (snapshot) => {
-      const data = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() }));
-      setCycles(data);
-      setCyclesLoaded(true);
-    }, () => setCyclesLoaded(true));
-    return () => unsubscribe();
-  }, [coupleId, includeCycles]);
-
-  // ✅ 구독 #4: 개인 일정
+  // ✅ 구독 #3: 개인 일정
   useEffect(() => {
     if (!includePersonalEvents) {
       setPersonalEvents([]);
@@ -217,12 +189,12 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
     return () => unsubscribe();
   }, [userId, includePersonalEvents]);
 
-  // 렌더링 시에만 4개 데이터 병합 (각 useEffect는 독립적)
+  // 렌더링 시에만 3개 데이터 병합 (각 useEffect는 독립적)
   const events = useMemo(() => [
     ...coupleEvents,
     ...tripEvents,
     ...personalEvents
   ], [coupleEvents, tripEvents, personalEvents]);
 
-  return { events, cycles, trips, isLoading };
+  return { events, trips, isLoading };
 };

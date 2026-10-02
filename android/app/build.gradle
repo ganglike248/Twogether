@@ -7,8 +7,8 @@ android {
         applicationId "com.wooridoori.twogether"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 19
-        versionName "1.0.0"
+        versionCode 20
+        versionName "1.0.2"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -18,7 +18,12 @@ android {
     }
     buildTypes {
         release {
-            minifyEnabled false
+            // R8 코드 축소·난독화 — Play Console "DEX 코드 최적화가 기준점 미만" 경고 대응(v1.0.1~).
+            // Capacitor 플러그인은 리플렉션으로 호출되지만 @capacitor/android가 consumer 규칙으로
+            // Plugin 하위 클래스를 보존하고, 기본 proguard-android-optimize.txt가 @JavascriptInterface를
+            // 보존하므로 별도 keep 규칙 없이 동작함. shrinkResources는 스플래시/알림 아이콘처럼
+            // getIdentifier()로 이름 조회하는 리소스가 있어 위험 대비 이득이 작아 켜지 않음.
+            minifyEnabled true
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

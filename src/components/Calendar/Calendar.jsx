@@ -17,7 +17,6 @@ import {
 import {
   createRecurringEvent, updateRecurringEvent, deleteRecurringEvent
 } from '../../services/recurrenceService';
-import { createCycle, deleteCycle } from '../../services/cycleService';
 import { getLocalDateStr } from '../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -26,18 +25,12 @@ import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import { useCalendarNavigation } from '../../hooks/useCalendarNavigation';
 import './Calendar.css';
 
-const addDaysToStr = (dateStr, days) => {
-  const d = new Date(dateStr);
-  d.setDate(d.getDate() + days);
-  return d.toISOString().split('T')[0];
-};
-
 const Calendar = () => {
   const navigatePage = useNavigate();
-  const { user, coupleId, coupleDoc, userDoc, partnerDoc, myRole } = useAuthContext();
+  const { user, coupleId, userDoc, partnerDoc, myRole } = useAuthContext();
 
   // Data fetching
-  const { events, cycles, isLoading } = useCalendarData(coupleId, user?.uid);
+  const { events, isLoading } = useCalendarData(coupleId, user?.uid);
 
   // 사용자 정의 색상 적용
   const eventsWithCustomColors = useMemo(() => {
@@ -171,12 +164,7 @@ const Calendar = () => {
   }, [eventsWithCustomColors, viewMode]);
 
   // Event data transformation
-  const { specialDaysMap, allEvents } = useCalendarEvents(
-    currentDate,
-    filteredEvents,
-    cycles,
-    coupleDoc
-  );
+  const { specialDaysMap, allEvents } = useCalendarEvents(currentDate, filteredEvents);
 
   // Search params handling
   const [searchParams, setSearchParams] = useSearchParams();
@@ -381,24 +369,6 @@ const Calendar = () => {
     }
   }, [events, user?.uid, coupleId, closeModal]);
 
-  const handleAddPeriod = useCallback(async (startDate, periodLength) => {
-    try {
-      await createCycle({ startDate, periodLength }, user?.uid, coupleId);
-      toast.success('생리 기록을 저장했습니다.');
-    } catch {
-      toast.error('생리 기록 중 오류가 발생했습니다.');
-    }
-  }, [user?.uid, coupleId]);
-
-  const handleDeletePeriod = useCallback(async (cycleId) => {
-    try {
-      await deleteCycle(cycleId);
-      toast.success('생리 기록을 삭제했습니다.');
-    } catch {
-      toast.error('생리 기록 삭제 중 오류가 발생했습니다.');
-    }
-  }, []);
-
 
   const getDayEvents = () => {
     if (!selectedDate) return [];
@@ -411,15 +381,6 @@ const Calendar = () => {
       const eventStart = getDateString(event.start);
       const eventEnd = event.end ? getDateString(event.end) : eventStart;
       return selectedDate >= eventStart && selectedDate <= eventEnd;
-    });
-  };
-
-  const getDayPeriods = () => {
-    if (!selectedDate) return [];
-    return cycles.filter(cycle => {
-      const pl = cycle.periodLength || coupleDoc?.cycleSettings?.periodLength || 5;
-      const endDateStr = addDaysToStr(cycle.startDate, pl - 1);
-      return selectedDate >= cycle.startDate && selectedDate <= endDateStr;
     });
   };
 
@@ -527,10 +488,6 @@ const Calendar = () => {
         specialDays={getDaySpecials()}
         onAddEvent={handleAddEventFromDay}
         onEditEvent={handleEditEventFromDay}
-        dayPeriods={getDayPeriods()}
-        cycleSettings={coupleDoc?.cycleSettings}
-        onAddPeriod={handleAddPeriod}
-        onDeletePeriod={handleDeletePeriod}
       />
       <EditLogModal
         isOpen={showEditLog}

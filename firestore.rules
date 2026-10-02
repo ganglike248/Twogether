@@ -185,16 +185,6 @@ service cloud.firestore {
         isValidBucket();
     }
 
-    match /cycles/{docId} {
-      allow read, delete: if isAuthenticated() &&
-        isCoupleMe(resource.data.coupleId);
-      allow create: if isAuthenticated() &&
-        isCoupleMe(request.resource.data.coupleId);
-      allow update: if isAuthenticated() &&
-        isCoupleMe(resource.data.coupleId) &&
-        request.resource.data.coupleId == resource.data.coupleId;
-    }
-
     // 개인 캘린더: 소유자만 접근 가능
     match /personal_events/{docId} {
       allow read, delete: if isAuthenticated() &&

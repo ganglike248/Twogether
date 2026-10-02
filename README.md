@@ -239,7 +239,6 @@ AuthContext
 useCalendarData (Calendar 페이지)
 ├── onSnapshot(events)               → 커플 공유 일정
 ├── onSnapshot(trips)                → 여행 일정
-├── onSnapshot(cycles)               → 생리 주기 기록
 └── onSnapshot(personal_events)      → 나만의 개인 일정
 ```
 
@@ -285,7 +284,7 @@ src/
 │   ├── Home/             # 홈 대시보드
 │   ├── Wheel/            # 돌림판 슬롯머신
 │   ├── Onboarding/       # 온보딩·튜토리얼 슬라이드
-│   ├── Profile/          # 프로필, 색상 설정, 생리주기 설정
+│   ├── Profile/          # 프로필, 색상 설정
 │   ├── Settings/         # 이벤트 색상 설정
 │   ├── CoupleInfo/       # 커플 정보, 초대 코드
 │   └── common/           # Layout, Navigation, Sidebar, ErrorBoundary 등
@@ -294,7 +293,7 @@ src/
 ├── hooks/
 │   ├── useCalendar.js            # Home 전용 이벤트 구독
 │   ├── useCalendarData.js        # Calendar 전용 통합 데이터
-│   ├── useCalendarEvents.js      # 공휴일·생리 이벤트 변환 (useMemo)
+│   ├── useCalendarEvents.js      # 공휴일·기념일 이벤트 변환 (useMemo)
 │   ├── useCalendarNavigation.js  # 터치 스와이프 월 네비게이션
 │   ├── useModalBackButton.js     # Android 뒤로가기 처리 (LIFO 스택)
 │   ├── useColorSync.js           # 이벤트 색상 CSS 변수 실시간 동기화
@@ -401,7 +400,6 @@ couples/{coupleId}
   members: [uid1, uid2]      // [0]=boyfriend(생성자), [1]=girlfriend(합류자)
   inviteCode, anniversaryDate, heroImageUrl
   eventTypeColors: { boyfriend, girlfriend, personal }
-  cycleSettings: { enabled, cycleLength, periodLength, ... }
   customCategories: { ... }  // 버킷리스트 커스텀 카테고리
 
 inviteCodes/{code}
@@ -419,9 +417,6 @@ trips/{id}
 
 bucketlists/{id}
   coupleId, title, content, category, completed, completedAt
-
-cycles/{id}                  // 생리 주기 기록
-  coupleId, startDate, periodLength
 
 edit_logs/{id}               // 일정 편집 이력
   eventId, coupleId, action, changes, userId, timestamp

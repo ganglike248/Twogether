@@ -63,9 +63,7 @@ const Home = () => {
     setTabDirection(TAB_ORDER.indexOf(tab) > TAB_ORDER.indexOf(activeTab) ? 1 : -1);
     setActiveTab(tab);
   };
-  const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid, {
-    includeCycles: false,
-  });
+  const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
   const navigate = useNavigate();
 
   // 프로필 또는 커플 연결 후 튜토리얼 표시

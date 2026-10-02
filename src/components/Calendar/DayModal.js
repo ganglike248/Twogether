@@ -1,7 +1,6 @@
-import React, { useState, useEffect, useRef } from "react";
+import React, { useEffect, useRef } from "react";
 import { format, subDays } from "date-fns";
 import { ko } from "date-fns/locale";
-import { toast } from "react-toastify";
 import "./DayModal.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EmptyState from "../common/EmptyState";
@@ -15,40 +14,15 @@ const DayModal = ({
   specialDays = [],
   onAddEvent,
   onEditEvent,
-  dayPeriods = [],
-  cycleSettings,
-  onAddPeriod,
-  onDeletePeriod,
 }) => {
   const { getMemberName } = useAuthContext();
-  const [showPeriodForm, setShowPeriodForm] = useState(false);
-  const [periodFormLength, setPeriodFormLength] = useState("");
-  const [periodSubmitting, setPeriodSubmitting] = useState(false);
-  const [showMoreMenu, setShowMoreMenu] = useState(false);
-  const [showDeletePeriodModal, setShowDeletePeriodModal] = useState(false);
-  const [periodToDelete, setPeriodToDelete] = useState(null);
-  const moreMenuRef = useRef(null);
   const openedAtRef = useRef(0);
 
   useEffect(() => {
     if (isOpen) openedAtRef.current = Date.now();
   }, [isOpen]);
 
-  useEffect(() => {
-    if (!showMoreMenu) return;
-    const handleOutsideClick = (e) => {
-      if (moreMenuRef.current && !moreMenuRef.current.contains(e.target)) {
-        setShowMoreMenu(false);
-      }
-    };
-    document.addEventListener("mousedown", handleOutsideClick);
-    return () => document.removeEventListener("mousedown", handleOutsideClick);
-  }, [showMoreMenu]);
-
   if (!isOpen || !selectedDate) return null;
-
-  const cycleEnabled = cycleSettings?.enabled;
-  const defaultPeriodLength = cycleSettings?.periodLength || 5;
 
   const formatDate = (dateString) => {
     try {
@@ -115,44 +89,6 @@ const DayModal = ({
     (a, b) => new Date(a.start) - new Date(b.start),
   );
 
-  const handleOpenPeriodForm = () => {
-    setPeriodFormLength(String(defaultPeriodLength));
-    setShowPeriodForm(true);
-  };
-
-  const handlePeriodFormCancel = () => {
-    setShowPeriodForm(false);
-    setPeriodFormLength("");
-  };
-
-  const handlePeriodSubmit = async () => {
-    const length = Number(periodFormLength) || defaultPeriodLength;
-    if (length < 1 || length > 14) {
-      toast.warning("기간은 1~14일 사이로 입력해주세요.");
-      return;
-    }
-    setPeriodSubmitting(true);
-    try {
-      await onAddPeriod(selectedDate, length);
-      setShowPeriodForm(false);
-      setPeriodFormLength("");
-    } finally {
-      setPeriodSubmitting(false);
-    }
-  };
-
-  const handleDeletePeriod = (cycleId) => {
-    setPeriodToDelete(cycleId);
-    setShowDeletePeriodModal(true);
-  };
-
-  const confirmDeletePeriod = async () => {
-    if (!periodToDelete) return;
-    await onDeletePeriod(periodToDelete);
-    setShowDeletePeriodModal(false);
-    setPeriodToDelete(null);
-  };
-
   const handleOverlayClick = () => {
     // 방금 열렸다면(캘린더 날짜 탭 뒤 iOS가 합성하는 ghost click) 무시 — 모달이 열리자마자
     // 닫혀 번쩍이는 것을 방지. 명시적으로 배경을 눌러 닫는 정상 동작은 300ms 뒤부터 유효.
@@ -190,34 +126,8 @@ const DayModal = ({
             </div>
           )}
 
-          {/* 생리 기록 카드 */}
-          {cycleEnabled && dayPeriods.length > 0 && (
-            <div className="period-records-list">
-              {dayPeriods.map((period) => (
-                <div key={period.id} className="period-record-card">
-                  <span className="period-record-icon">
-                    {cycleSettings.icon || "🌸"}
-                  </span>
-                  <div className="period-record-info">
-                    <span className="period-record-detail">
-                      {period.startDate} ·{" "}
-                      {period.periodLength || defaultPeriodLength}일
-                    </span>
-                  </div>
-                  <button
-                    className="period-delete-btn"
-                    onClick={() => handleDeletePeriod(period.id)}
-                  >
-                    삭제
-                  </button>
-                </div>
-              ))}
-            </div>
-          )}
-
           {/* 일반 일정 */}
-          {dayEvents.length === 0 &&
-          !(cycleEnabled && dayPeriods.length > 0) ? (
+          {dayEvents.length === 0 ? (
             <EmptyState
               icon={<MdCalendarToday size={56} color="#4dabf7" />}
               title="이 날에는 일정이 없습니다"
@@ -293,77 +203,8 @@ const DayModal = ({
         </div>
 
         <div className="day-modal-footer">
-          {/* 생리 기록 폼 */}
-          {cycleEnabled && dayPeriods.length === 0 && showPeriodForm && (
-            <div className="period-inline-form">
-              <div className="period-form-header">
-                {cycleSettings?.icon || "🌸"} 생리 시작 기록
-              </div>
-              <div className="period-form-row">
-                <span className="period-form-label">기간</span>
-                <div className="period-form-input-wrap">
-                  <input
-                    type="number"
-                    className="period-form-input"
-                    value={periodFormLength}
-                    onChange={(e) => setPeriodFormLength(e.target.value)}
-                    min={1}
-                    max={14}
-                    autoFocus
-                  />
-                  <span className="period-form-unit">일</span>
-                </div>
-              </div>
-              <div className="period-form-actions">
-                <button
-                  className="period-form-cancel"
-                  onClick={handlePeriodFormCancel}
-                  disabled={periodSubmitting}
-                >
-                  취소
-                </button>
-                <button
-                  className="period-form-submit"
-                  onClick={handlePeriodSubmit}
-                  disabled={periodSubmitting}
-                >
-                  {periodSubmitting ? "기록 중..." : "기록"}
-                </button>
-              </div>
-            </div>
-          )}
-
-          {/* 일정 추가 + 더보기 메뉴 */}
+          {/* 일정 추가 */}
           <div className="day-modal-footer-buttons">
-            {cycleEnabled && (
-              <div className="more-menu-wrapper" ref={moreMenuRef}>
-                <button
-                  className="more-menu-btn"
-                  onClick={() => setShowMoreMenu(!showMoreMenu)}
-                >
-                  ⋯
-                </button>
-                {showMoreMenu && (
-                  <div className="more-menu-popup">
-                    <button
-                      className="more-menu-item"
-                      onClick={() => {
-                        if (dayPeriods.length === 0) {
-                          handleOpenPeriodForm();
-                          setShowMoreMenu(false);
-                        }
-                      }}
-                      disabled={dayPeriods.length > 0}
-                    >
-                      <span className="menu-item-icon">
-                        {cycleSettings?.icon || "🌸"}
-                      </span>
-                      생리 시작 기록
-                    </button>
-                  </div>
-                )}
-              </div>
-            )}
             <button
               className="add-event-btn"
               onClick={() => onAddEvent(selectedDate)}
@@ -374,56 +215,6 @@ const DayModal = ({
           </div>
         </div>
       </div>
-
-      {/* 생리 기록 삭제 확인 모달 */}
-      {showDeletePeriodModal && (
-        <div
-          className="day-modal-overlay"
-          onClick={() => {
-            setShowDeletePeriodModal(false);
-            setPeriodToDelete(null);
-          }}
-        >
-          <div
-            className="day-modal-container"
-            style={{ maxWidth: "300px" }}
-            onClick={(e) => e.stopPropagation()}
-          >
-            <p className="day-modal-title" style={{ marginBottom: "8px" }}>
-              생리 기록 삭제
-            </p>
-            <p
-              style={{ marginBottom: "20px", fontSize: "14px", color: "#666" }}
-            >
-              이 생리 기록을 삭제하시겠습니까?
-            </p>
-            <div
-              style={{
-                display: "flex",
-                gap: "8px",
-                justifyContent: "flex-end",
-              }}
-            >
-              <button
-                className="period-form-cancel"
-                onClick={() => {
-                  setShowDeletePeriodModal(false);
-                  setPeriodToDelete(null);
-                }}
-              >
-                취소
-              </button>
-              <button
-                className="period-form-submit"
-                onClick={confirmDeletePeriod}
-                style={{ backgroundColor: "#ef4444", color: "white" }}
-              >
-                삭제
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 };

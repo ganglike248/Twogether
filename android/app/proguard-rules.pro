@@ -14,8 +14,17 @@
 
 # Uncomment this to preserve the line number information for
 # debugging stack traces.
-#-keepattributes SourceFile,LineNumberTable
+-keepattributes SourceFile,LineNumberTable
 
 # If you keep the line number information, uncomment this to
 # hide the original source file name.
-#-renamesourcefileattribute SourceFile
+-renamesourcefileattribute SourceFile
+
+# @capacitor-firebase/authentication은 페이스북 로그인 핸들러 코드를 항상 포함하지만, 페이스북 SDK는
+# 선택 의존성(variables.gradle의 rgcfaIncludeFacebook)이라 이 앱엔 없음 — 구글 로그인만 쓰므로 해당
+# 경로는 런타임에 절대 호출되지 않음. R8이 생성한 missing_rules.txt 그대로.
+-dontwarn com.facebook.CallbackManager$Factory
+-dontwarn com.facebook.CallbackManager
+-dontwarn com.facebook.FacebookCallback
+-dontwarn com.facebook.login.LoginManager
+-dontwarn com.facebook.login.widget.LoginButton
