@@ -25,6 +25,21 @@ import { useCalendarEvents } from '../../hooks/useCalendarEvents';
 import { useCalendarNavigation } from '../../hooks/useCalendarNavigation';
 import './Calendar.css';
 
+// Firestore 쓰기 promise는 서버 응답(ack)이 와야 resolve되는데, 연결이 멈추면(약한 신호, iOS 백그라운드
+// 복귀 직후 등) 타임아웃 없이 계속 pending — 그동안 저장 버튼이 무한로딩에 걸렸음(2026-10-12 확인).
+// 변경 자체는 즉시 로컬 캐시에 반영되고 연결 회복 시 자동 전송되므로, 이 시간까지만 기다리고 모달을 닫음.
+const SAVE_ACK_TIMEOUT_MS = 3000;
+
+// promise를 최대 ms까지만 기다림 — 시간 초과 시 reject하지 않고 { timedOut: true }만 반환(작업은 계속 진행).
+const waitAtMost = (promise, ms) => {
+  let timer;
+  const timeout = new Promise((resolve) => {
+    timer = setTimeout(() => resolve({ timedOut: true }), ms);
+  });
+  return Promise.race([promise.then(() => ({ timedOut: false })), timeout])
+    .finally(() => clearTimeout(timer));
+};
+
 const Calendar = () => {
   const navigatePage = useNavigate();
   const { user, coupleId, userDoc, partnerDoc, myRole } = useAuthContext();
@@ -194,13 +209,16 @@ const Calendar = () => {
     }
   }, [location.key, location.pathname]);
 
-  // 모달 닫기 = 그 모달을 열며 쌓인 히스토리 엔트리로 "뒤로가기". location.key === 'default'는
-  // 이 브라우저 세션에서 아직 아무 내비게이션도 없었다는 뜻(예: 모달 경로로 바로 딥링크/새로고침
-  // 진입) — 이 경우 navigate(-1)은 앱 밖으로 나가버릴 수 있어 대신 캘린더 기본 화면으로 보냄.
+  // 모달 닫기 = 그 모달을 열며 쌓인 히스토리 엔트리로 "뒤로가기". 단, 뒤로 갈 앱 내 엔트리가
+  // 없으면(history.state.idx === 0 — 모달 경로로 바로 딥링크/새로고침 진입했거나, replace 이동만
+  // 거쳐 모달 엔트리가 히스토리의 맨 처음이 된 경우) navigate(-1)이 아무 일도 안 하거나 앱 밖으로
+  // 나가버려서 모달이 닫히지 않음(X/배경/취소 전부 무반응으로 갇히던 버그, 2026-10-12 재현/수정)
+  // — 이 경우 캘린더 기본 화면으로 replace. location.key === 'default'는 idx가 없는 예외 대비.
   const closeModal = useCallback(() => {
     if (navLockRef.current) return;
     lockNav();
-    if (location.key === 'default') {
+    const historyIdx = window.history.state?.idx;
+    if (location.key === 'default' || !historyIdx) {
       navigatePage('/calendar', { replace: true });
     } else {
       navigatePage(-1);
@@ -223,11 +241,14 @@ const Calendar = () => {
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // ?date= 딥링크(홈 카드, 추억 상세 등에서 진입) — 위에서 쿼리를 걷어낸 /calendar 엔트리 위에
+  // DayModal을 push로 쌓음. replace로 바꿔치면 모달을 닫을 때(X/뒤로가기) 캘린더가 아니라 진입 전
+  // 화면(홈 등)으로 돌아가 버림 — 모달만 닫히고 캘린더에 남도록 /calendar 엔트리를 살려둠.
   useEffect(() => {
     if (!isLoading && pendingDateRef.current) {
       const dateStr = pendingDateRef.current;
       pendingDateRef.current = null;
-      navigatePage(`/calendar/day/${dateStr}`, { replace: true, state: { modal: true } });
+      navigatePage(`/calendar/day/${dateStr}`, { state: { modal: true } });
     }
   }, [isLoading, navigatePage]);
 
@@ -280,12 +301,14 @@ const Calendar = () => {
   }, [navigatePage, lockNav]);
 
   const handleSaveEvent = useCallback(async (eventData) => {
-    try {
-      if (!eventData.start || !eventData.end || !eventData.title)
-        throw new Error('Event data is incomplete!');
-      const uid = user?.uid;
-      const isPersonal = eventData.isPersonal === true;
+    if (!eventData.start || !eventData.end || !eventData.title) {
+      toast.error('일정 저장 중 오류가 발생했습니다.\n일정 정보가 올바르지 않습니다.');
+      return;
+    }
+    const uid = user?.uid;
+    const isPersonal = eventData.isPersonal === true;
 
+    const saveTask = (async () => {
       if (eventData.recurrenceScope) {
         // 반복 일정의 기존 인스턴스 수정 — "이 일정만/이후 모두/전체" 중 EventModal에서 고른 범위대로 적용
         await updateRecurringEvent({
@@ -332,10 +355,25 @@ const Calendar = () => {
           await createEvent(eventData, uid, coupleId);
         }
       }
+    })();
+
+    const saveErrorMessage = (error) =>
+      `일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`;
+
+    try {
+      const { timedOut } = await waitAtMost(saveTask, SAVE_ACK_TIMEOUT_MS);
+      if (timedOut) {
+        // 변경은 이미 로컬 캐시(보낼 목록)에 들어가 있고 연결이 돌아오면 Firestore가 자동 전송함 —
+        // 버튼을 무한로딩에 묶어두지 않고 모달을 닫음. 뒤늦게 서버가 거부하면 그때 에러 토스트.
+        saveTask.catch((error) => toast.error(saveErrorMessage(error)));
+        closeModal();
+        toast.info('연결이 불안정해 저장이 지연되고 있어요.\n연결되면 자동으로 반영돼요.');
+        return;
+      }
       closeModal();
       toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
     } catch (error) {
-      toast.error(`일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(saveErrorMessage(error));
     }
   }, [events, user?.uid, coupleId, closeModal]);
 

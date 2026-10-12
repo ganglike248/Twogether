@@ -7,6 +7,8 @@ import {
   doc,
   getDocs,
   getDoc,
+  getDocFromCache,
+  setDoc,
   query,
   where,
   serverTimestamp,
@@ -34,6 +36,21 @@ export const saveEditLog = async (eventId, changes, action, userId = 'anonymous'
   }
 };
 
+// 쓰기 직전에 읽는 기존 문서는 캐시를 먼저 봄 — 캘린더가 이 문서들을 실시간 구독 중이라 캐시가
+// 항상 최신에 가깝고, getDoc(서버 우선)은 연결이 멈추면 캐시로 폴백하기까지 ~10초를 기다려서
+// 그동안 정작 쓰기가 로컬 큐에 들어가지도 못함(Calendar.jsx의 저장 3초 타임아웃이 무의미해짐).
+// 캐시에 없을 때만 서버 조회.
+const getDocPreferCache = async (ref) => {
+  try {
+    return await getDocFromCache(ref);
+  } catch {
+    return getDoc(ref);
+  }
+};
+
+// 아래 create/update는 이벤트 쓰기와 수정기록 쓰기를 동시에 큐에 넣고 서버 ack를 함께 기다림 —
+// 이벤트 쓰기 ack를 기다린 뒤에야 수정기록을 쓰면, 연결이 멈춘 상태에서 앱을 닫았을 때 수정기록만
+// 로컬 큐에 못 들어가고 유실됨. 문서 ID는 클라이언트에서 미리 발급(doc(collection))해서 씀.
 export const createEvent = async (eventData, userId = 'anonymous', coupleId = null) => {
   const { id, ...dataWithoutId } = eventData;
   const newEvent = {
@@ -44,14 +61,17 @@ export const createEvent = async (eventData, userId = 'anonymous', coupleId = nu
     createdBy: userId,
     updatedBy: userId,
   };
-  const docRef = await addDoc(collection(db, 'events'), newEvent);
-  await saveEditLog(docRef.id, newEvent, 'created', userId, coupleId);
+  const docRef = doc(collection(db, 'events'));
+  await Promise.all([
+    setDoc(docRef, newEvent),
+    saveEditLog(docRef.id, newEvent, 'created', userId, coupleId),
+  ]);
   return { id: docRef.id, ...newEvent };
 };
 
 export const updateEvent = async (eventId, eventData, userId = 'anonymous', coupleId = null) => {
   const eventRef = doc(db, 'events', eventId);
-  const oldEventSnap = await getDoc(eventRef);
+  const oldEventSnap = await getDocPreferCache(eventRef);
   const oldData = oldEventSnap.exists() ? oldEventSnap.data() : {};
 
   const updatedData = {
@@ -59,7 +79,6 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
     updatedAt: serverTimestamp(),
     updatedBy: userId,
   };
-  await updateDoc(eventRef, updatedData);
 
   const changes = {};
   Object.keys(eventData).forEach(key => {
@@ -67,7 +86,10 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
       changes[key] = { from: oldData[key], to: eventData[key] };
     }
   });
-  await saveEditLog(eventId, changes, 'updated', userId, coupleId);
+  await Promise.all([
+    updateDoc(eventRef, updatedData),
+    saveEditLog(eventId, changes, 'updated', userId, coupleId),
+  ]);
   return { id: eventId, ...updatedData };
 };
 
@@ -239,7 +261,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
   if (isPersonal) {
     // personal_events → events (원자적 변환)
     const personalRef = doc(db, 'personal_events', eventId);
-    const personalSnap = await getDoc(personalRef);
+    const personalSnap = await getDocPreferCache(personalRef);
     if (!personalSnap.exists()) throw new Error('Personal event not found');
 
     const personalData = personalSnap.data();
@@ -274,7 +296,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
   } else {
     // events → personal_events (원자적 변환)
     const eventRef = doc(db, 'events', eventId);
-    const eventSnap = await getDoc(eventRef);
+    const eventSnap = await getDocPreferCache(eventRef);
     if (!eventSnap.exists()) throw new Error('Event not found');
 
     const eventData = eventSnap.data();

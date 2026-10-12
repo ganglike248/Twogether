@@ -326,7 +326,7 @@ const Home = () => {
           {loveStartDate && (
             <div
               className="hero-stat-card clickable"
-              onClick={() => navigate(`/calendar?date=${milestoneDateStr}`, { replace: true })}
+              onClick={() => navigate(`/calendar?date=${milestoneDateStr}`)}
             >
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
