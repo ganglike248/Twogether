@@ -471,10 +471,12 @@ Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅. `extende
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
-- `HomeImageSettingsPage` (`/home-image-settings`): 홈 사진 전용 변경 화면 — v1.0.4부터 **Home의 히어로 사진을
-  누르면 push로 이동**(그 전엔 라우트만 있고 앱 내 진입 링크가 없었음). `uploadHeroImage`는 항상 같은 경로에
-  덮어쓰므로 반환 URL 끝에 `?v=시각` 캐시버스터를 붙임 — 안 붙이면 URL이 이전과 같게 나와 브라우저가 옛 사진을
-  계속 보여주고 `heroImageUrl`도 안 바뀌어 파트너 화면이 갱신 안 되는 "사진 바꿨는데 그대로" 문제가 생김
+  - **Home의 히어로 사진을 누르면 `/profile`로 push 이동**(v1.0.5~). 예전 홈 사진 전용 화면
+    `HomeImageSettingsPage`(`/home-image-settings`)는 프로필과 기능이 겹쳐 v1.0.5에서 라우트·파일째 삭제함
+    (사용자 결정) — 홈 사진 변경 진입점은 프로필 하나로 통일, 다시 만들지 말 것.
+  - `uploadHeroImage`는 항상 같은 경로에 덮어쓰므로 반환 URL 끝에 `?v=시각` 캐시버스터를 붙임 — 안 붙이면
+    URL이 이전과 같게 나와 브라우저가 옛 사진을 계속 보여주고 `heroImageUrl`도 안 바뀌어 파트너 화면이 갱신
+    안 되는 "사진 바꿨는데 그대로" 문제가 생김
 - `CoupleInfoPage` (`/couple-info`): 연애 시작일(anniversaryDate), 파트너 정보 표시, 초대코드
 anniversaryDate를 ProfilePage에서 저장하는 로직은 제거됨 — 절대 다시 추가하지 말 것.
 
@@ -520,7 +522,6 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /profile           → ProfilePage
 /couple-info       → CoupleInfoPage
 /settings          → SettingsPage (이벤트 색상 설정 등)
-/home-image-settings → HomeImageSettingsPage
 /letters           → SealedMessagesPage (봉인 편지함)
 /notification-settings → NotificationSettingsPage (알림 설정, v0.4.22부터 모달 아닌 별도 페이지)
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)

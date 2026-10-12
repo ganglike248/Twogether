@@ -26,7 +26,6 @@ const TravelPlanPage = lazy(() => import('./components/Travel/TravelPlanPage'));
 const ProfilePage = lazy(() => import('./components/Profile/ProfilePage'));
 const CoupleInfoPage = lazy(() => import('./components/CoupleInfo/CoupleInfoPage'));
 const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
-const HomeImageSettingsPage = lazy(() => import('./components/HomeImageSettings/HomeImageSettingsPage'));
 const SealedMessagesPage = lazy(() => import('./components/SealedMessages/SealedMessagesPage'));
 const NotificationSettingsPage = lazy(() => import('./components/Settings/NotificationSettingsPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
@@ -128,11 +127,6 @@ const router = createBrowserRouter([
         path: '/settings',
         element: <ProtectedRoute key="settings"><Layout><SettingsPage /></Layout></ProtectedRoute>,
         key: 'settings',
-      },
-      {
-        path: '/home-image-settings',
-        element: <ProtectedRoute key="home-image-settings"><Layout><HomeImageSettingsPage /></Layout></ProtectedRoute>,
-        key: 'home-image-settings',
       },
       {
         path: '/letters',

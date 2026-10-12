@@ -296,8 +296,8 @@ const Home = () => {
 
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
-        {/* 사진을 누르면 홈 배경 사진 변경 화면으로 — 뒤로가기로 홈에 돌아오도록 push(replace 아님) */}
-        <div className="hero-photo-col clickable" onClick={() => navigate('/home-image-settings')}>
+        {/* 사진을 누르면 프로필(홈 화면 사진 변경 포함)로 — 뒤로가기로 홈에 돌아오도록 push(replace 아님) */}
+        <div className="hero-photo-col clickable" onClick={() => navigate('/profile')}>
           <div className="hero-tape" />
           {heroImageUrl ? (
             <>
