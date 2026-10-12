@@ -232,8 +232,11 @@ read 허용)로 분리함. `firestore.rules` 참고. 편지 삭제 시 이 순�
 기다리지 않고 `storageService.js`에 `uploadSealedMessageImage`/`deleteSealedMessageImage`를 별도로 추가함
 (경로: `sealedMessages/{coupleId}/{messageId}`). `storage.rules`에서 이 경로는 `create/update`와 `delete`를
 분리된 규칙으로 씀 — Storage 규칙에서 `request.resource`는 delete 요청엔 `null`이라, `size`/`contentType`을
-검증하는 조건을 `delete`에도 걸면(예: 기존 `couples/{coupleId}/hero`처럼 `allow write` 하나로 합쳐두면)
-삭제 자체가 막혀버림. 새 Storage 업로드 경로를 추가할 때 참고할 것.
+검증하는 조건을 `delete`에도 걸면(`allow write` 하나로 합쳐두면) 삭제 자체가 막혀버림. 새 Storage 업로드
+경로를 추가할 때 참고할 것. ⚠ `couples/{coupleId}/hero`가 실제로 이 상태로 방치돼 있어서 **홈 사진 "제거"가
+항상 거부되던 버그**가 v1.0.4에서 발견/수정됨(Storage 에뮬레이터로 `Null value error` 거부 재현 후 분리 —
+`events/...` 경로도 같이 분리). 규칙 검증은 `npx firebase-tools emulators:exec --project demo-xxx --only
+storage` + JS SDK `connectStorageEmulator(..., { mockUserToken: { sub, coupleIds } })`로 운영 무관하게 가능.
 
 **예약 시각은 자유 입력이 아니라 15분 단위(0/15/30/45분)로만 선택 가능** — `UnlockTimePicker.jsx`(날짜 +
 시 + 분 select, 분은 4개 옵션만). 이유: 자동 공개 스케줄 함수가 15분 간격으로만 돌기 때문에, 그 외의
@@ -468,6 +471,10 @@ Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅. `extende
 
 ### ProfilePage / CoupleInfoPage 역할 분리
 - `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
+- `HomeImageSettingsPage` (`/home-image-settings`): 홈 사진 전용 변경 화면 — v1.0.4부터 **Home의 히어로 사진을
+  누르면 push로 이동**(그 전엔 라우트만 있고 앱 내 진입 링크가 없었음). `uploadHeroImage`는 항상 같은 경로에
+  덮어쓰므로 반환 URL 끝에 `?v=시각` 캐시버스터를 붙임 — 안 붙이면 URL이 이전과 같게 나와 브라우저가 옛 사진을
+  계속 보여주고 `heroImageUrl`도 안 바뀌어 파트너 화면이 갱신 안 되는 "사진 바꿨는데 그대로" 문제가 생김
 - `CoupleInfoPage` (`/couple-info`): 연애 시작일(anniversaryDate), 파트너 정보 표시, 초대코드
 anniversaryDate를 ProfilePage에서 저장하는 로직은 제거됨 — 절대 다시 추가하지 말 것.
 
@@ -582,7 +589,10 @@ hooks/
   ※ usePersonalEvents.js 파일은 존재하지 않음 — 개인 이벤트 구독은 useCalendarData 내부에 통합
 
 utils/
-  dataUtils.js           → 날짜 변환/포맷 유틸. calcDday(anniversaryDate) — D+day 계산 공통 함수
+  dataUtils.js           → 날짜 변환/포맷 유틸. calcDday(anniversaryDate) — D+day 계산 공통 함수.
+                           getEventDayRange(event) — 이벤트가 걸친 날짜 범위(양끝 포함). 여러 날짜 일정의 end는
+                           "다음날 00:00"(배타적)이라 그대로 포함 비교하면 끝난 다음날에도 잡힘(v1.0.4 DayModal
+                           "총 1개인데 목록 빔" 버그) — 날짜별 일정 필터는 반드시 이 함수 사용
   koreanHolidays.js      → 한국 공휴일 + 음력 명절 + 커플기념일 계산
   numberFormat.js        → 숫자 포맷
   appLinkUtils.js        → URL을 플랫폼별 앱 딥링크로 변환 (YouTube/Google Maps/Naver/Kakao/Yanolja 등). getAppLink(url), handleOpenLink(e, url)
@@ -614,6 +624,13 @@ utils/
 ### travelChecklistService — serverTimestamp() 배열 금지 (v0.4.4~)
 `trips/{tripId}/checklists/main` 문서의 `items[]` 배열 안에 `serverTimestamp()`를 사용하면 Firestore가 쓰기를 거부함.  
 배열 항목 내부 타임스탬프는 반드시 `Date.now()` 사용. 문서 최상위 `updatedAt`은 `serverTimestamp()` 유지.
+
+### 배열 필드 읽고-수정-쓰기는 트랜잭션으로 (v1.0.4~)
+체크리스트 `items[]`(`travelChecklistService.js`의 `mutateItems`)와 여행 후보 `options[]`
+(`travelDecisionService.js`의 `mutateOptions`)는 `getDoc → updateDoc`이 아니라 `runTransaction` 헬퍼를
+거침 — 예전 방식은 두 사람이 거의 동시에 체크/점수 매기기를 하면 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로
+덮어썼음. 배열 전체를 다시 쓰는 새 함수를 추가할 때도 이 헬퍼를 쓸 것. 같은 파일의 `updateOption`은
+`||` 폴백 대신 `!== undefined`로 반영 — `||`면 빈 문자열(사용자가 지운 값)이 무시되던 버그가 있었음.
 
 ### ScheduleItem 위치 딥링크 패턴 (v0.4.4~, 안드로이드 네이티브 앱 분기 v0.4.29~)
 - **PWA(안드로이드 브라우저)**: `intent://search?query=...#Intent;scheme=nmap;package=com.nhn.android.nmap;S.browser_fallback_url=...;end` —

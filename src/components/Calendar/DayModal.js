@@ -135,25 +135,10 @@ const DayModal = ({
             />
           ) : (
             <div className="day-events-list">
+              {/* dayEvents는 Calendar.jsx가 이미 getEventDayRange로 이 날짜에 걸친 것만 걸러서 넘겨줌
+                  — 예전엔 여기서만 따로 다시 걸러서 헤더 개수("총 N개")와 목록이 어긋났었음 */}
               {sortedEvents
-                .filter((event) => {
-                  const eventStart = getDateString(event.start);
-                  let eventEnd = event.end
-                    ? getDateString(event.end)
-                    : eventStart;
-                  if (eventEnd !== eventStart) {
-                    eventEnd = format(
-                      subDays(new Date(eventEnd), 1),
-                      "yyyy-MM-dd",
-                    );
-                  }
-                  return selectedDate >= eventStart && selectedDate <= eventEnd;
-                })
                 .map((event) => {
-                  const eventStart = getDateString(event.start);
-                  const eventEnd = event.end
-                    ? getDateString(event.end)
-                    : eventStart;
                   const isTrip = event.extendedProps?.isTrip;
                   const eventTypeClass = isTrip
                     ? "trip"

@@ -7,6 +7,26 @@ export const getLocalDateStr = (date = new Date()) => {
   return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
 };
 
+// 캘린더 이벤트가 걸쳐 있는 날짜 범위('YYYY-MM-DD', 양끝 포함). 여러 날짜 이벤트의 end는
+// FullCalendar allDay 규칙대로 "마지막 날 다음날 00:00"(배타적)으로 저장되므로 하루를 빼서 포함 범위로
+// 바꿈 — 하루짜리(end가 당일 23:59:59)는 날짜가 같아 그대로. end를 그대로 포함 비교하면 일정이 끝난
+// 다음날 칸에도 잡히는 버그가 있었음(2026-10-12 발견/수정). 날짜 계산은 로컬 자정 기준(toISOString 금지).
+export const getEventDayRange = (event) => {
+  const toDateStr = (value) => {
+    if (typeof value === 'string') return value.split('T')[0];
+    if (value instanceof Date) return getLocalDateStr(value);
+    return '';
+  };
+  const startStr = toDateStr(event?.start);
+  let endStr = event?.end ? toDateStr(event.end) : startStr;
+  if (endStr && endStr > startStr) {
+    const d = new Date(`${endStr}T00:00:00`);
+    d.setDate(d.getDate() - 1);
+    endStr = getLocalDateStr(d);
+  }
+  return { startStr, endStr: endStr || startStr };
+};
+
 // Firestore Timestamp 또는 문자열을 Date 객체로 변환
 export const convertToDate = (dateField) => {
   if (!dateField) return null;

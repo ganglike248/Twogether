@@ -17,7 +17,7 @@ import {
 import {
   createRecurringEvent, updateRecurringEvent, deleteRecurringEvent
 } from '../../services/recurrenceService';
-import { getLocalDateStr } from '../../utils/dataUtils';
+import { getLocalDateStr, getEventDayRange } from '../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { useCalendarData } from '../../hooks/useCalendarData';
@@ -341,6 +341,8 @@ const Calendar = () => {
             description: eventData.description,
             start: eventData.start,
             end: eventData.end,
+            // 빠뜨리면 전환된 새 문서에 isDday가 안 들어가 디데이 표시가 사라짐(2026-10-12 발견/수정)
+            isDday: eventData.isDday === true,
           };
           await convertEventType(eventData.id, wasPersonal, eventData.eventType, uid, coupleId, overrides);
         } else if (isPersonal) {
@@ -410,15 +412,10 @@ const Calendar = () => {
 
   const getDayEvents = () => {
     if (!selectedDate) return [];
-    const getDateString = (dateValue) => {
-      if (typeof dateValue === 'string') return dateValue.split('T')[0];
-      if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
-      return '';
-    };
+    // end는 여러 날짜 일정이면 배타적(다음날 00:00) — getEventDayRange가 포함 범위로 바꿔줌
     return events.filter(event => {
-      const eventStart = getDateString(event.start);
-      const eventEnd = event.end ? getDateString(event.end) : eventStart;
-      return selectedDate >= eventStart && selectedDate <= eventEnd;
+      const { startStr, endStr } = getEventDayRange(event);
+      return selectedDate >= startStr && selectedDate <= endStr;
     });
   };
 

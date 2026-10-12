@@ -5,15 +5,33 @@ import {
   updateDoc,
   deleteDoc,
   doc,
-  getDoc,
-  getDocs,
   query,
   orderBy,
   serverTimestamp,
   onSnapshot,
-  writeBatch,
+  runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+
+// options 배열을 읽고-수정-쓰는 작업은 반드시 트랜잭션으로 — 그냥 getDoc → updateDoc으로 하면
+// 두 사람이 거의 동시에 점수를 매기거나 옵션을 고칠 때 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로
+// 덮어써 버림(2026-10-12 발견/수정). mutate(options)가 null을 반환하면 쓰기 없이 종료.
+const mutateOptions = async (tripId, decisionId, mutate) => {
+  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
+  await runTransaction(db, async (transaction) => {
+    const decisionSnap = await transaction.get(decisionRef);
+    if (!decisionSnap.exists()) {
+      throw new Error('Decision not found');
+    }
+    const updatedOptions = mutate([...(decisionSnap.data().options || [])]);
+    if (!updatedOptions) return;
+    transaction.update(decisionRef, {
+      options: updatedOptions,
+      updatedAt: serverTimestamp(),
+    });
+  });
+};
+
 
 /**
  * 선택지(decision) 생성
@@ -61,15 +79,7 @@ export const deleteDecision = async (tripId, decisionId) => {
  * 특정 옵션에 점수 추가/수정 (의견은 선택사항)
  */
 export const addScore = async (tripId, decisionId, optionId, userId, score, comment = '') => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const decision = decisionSnap.data();
-  const updatedOptions = (decision.options || []).map(opt => {
+  await mutateOptions(tripId, decisionId, (options) => options.map(opt => {
     if (opt.id !== optionId) return opt;
 
     // 기존 점수 제거
@@ -92,12 +102,7 @@ export const addScore = async (tripId, decisionId, optionId, userId, score, comm
       scores: updatedScores,
       totalScore,
     };
-  });
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  }));
 };
 
 /**
@@ -148,13 +153,6 @@ export const subscribeToDecisions = (tripId, callback) => {
  * 옵션 추가 (선택지 내에)
  */
 export const addOption = async (tripId, decisionId, optionData) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
   const newOption = {
     id: optionData.id || `opt_${Date.now()}`,
     url: optionData.url,
@@ -166,61 +164,35 @@ export const addOption = async (tripId, decisionId, optionData) => {
     totalScore: 0,
   };
 
-  const updatedOptions = [...(decisionSnap.data().options || []), newOption];
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  await mutateOptions(tripId, decisionId, (options) => [...options, newOption]);
 };
 
 /**
  * 옵션 수정
  */
 export const updateOption = async (tripId, decisionId, optionId, updateData) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const updatedOptions = decisionSnap.data().options.map(opt => {
+  // 넘어온 필드만 반영 — `||`로 폴백하면 빈 문자열(사용자가 URL/설명/가격을 지움)이 무시되고
+  // 예전 값이 그대로 남는 버그가 있었음(2026-10-12 발견/수정). 제목은 모달에서 필수 검증됨.
+  const pick = (key, fallback) => (updateData[key] !== undefined ? updateData[key] : fallback);
+  await mutateOptions(tripId, decisionId, (options) => options.map(opt => {
     if (opt.id !== optionId) return opt;
 
     return {
       ...opt,
       title: updateData.title || opt.title,
-      url: updateData.url || opt.url,
-      description: updateData.description || opt.description,
-      price: updateData.price || opt.price,
-      images: updateData.images !== undefined ? updateData.images : opt.images,
+      url: pick('url', opt.url),
+      description: pick('description', opt.description),
+      price: pick('price', opt.price),
+      images: pick('images', opt.images),
     };
-  });
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  }));
 };
 
 /**
  * 옵션 삭제
  */
 export const deleteOption = async (tripId, decisionId, optionId) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const updatedOptions = decisionSnap.data().options.filter(opt => opt.id !== optionId);
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  await mutateOptions(tripId, decisionId, (options) => options.filter(opt => opt.id !== optionId));
 };
 
 /**
@@ -322,14 +294,7 @@ export const getUserComment = (option, userId) => {
  * 옵션 내 이미지 순서 변경
  */
 export const updateOptionImageOrder = async (tripId, decisionId, optionId, imageIndex, direction) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const updatedOptions = decisionSnap.data().options.map(opt => {
+  await mutateOptions(tripId, decisionId, (options) => options.map(opt => {
     if (opt.id !== optionId) return opt;
 
     const images = [...(opt.images || [])];
@@ -352,44 +317,28 @@ export const updateOptionImageOrder = async (tripId, decisionId, optionId, image
       ...opt,
       images,
     };
-  });
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  }));
 };
 
 /**
  * 선택지 내 옵션 순서 변경
  */
 export const reorderOptions = async (tripId, decisionId, optionIndex, direction) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
+  await mutateOptions(tripId, decisionId, (options) => {
+    // 방향에 따라 인덱스 계산
+    let newIndex = optionIndex;
+    if (direction === 'up' && optionIndex > 0) {
+      newIndex = optionIndex - 1;
+    } else if (direction === 'down' && optionIndex < options.length - 1) {
+      newIndex = optionIndex + 1;
+    } else {
+      // 순서 변경 불가
+      return null;
+    }
 
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const options = [...(decisionSnap.data().options || [])];
-
-  // 방향에 따라 인덱스 계산
-  let newIndex = optionIndex;
-  if (direction === 'up' && optionIndex > 0) {
-    newIndex = optionIndex - 1;
-  } else if (direction === 'down' && optionIndex < options.length - 1) {
-    newIndex = optionIndex + 1;
-  } else {
-    // 순서 변경 불가
-    return;
-  }
-
-  // 옵션 교환
-  [options[optionIndex], options[newIndex]] = [options[newIndex], options[optionIndex]];
-
-  await updateDoc(decisionRef, {
-    options,
-    updatedAt: serverTimestamp(),
+    // 옵션 교환
+    [options[optionIndex], options[newIndex]] = [options[newIndex], options[optionIndex]];
+    return options;
   });
 };
 
@@ -397,25 +346,13 @@ export const reorderOptions = async (tripId, decisionId, optionIndex, direction)
  * 옵션 즐겨찾기 토글
  */
 export const toggleFavorite = async (tripId, decisionId, optionId) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  const decisionSnap = await getDoc(decisionRef);
-
-  if (!decisionSnap.exists()) {
-    throw new Error('Decision not found');
-  }
-
-  const updatedOptions = decisionSnap.data().options.map(opt => {
+  await mutateOptions(tripId, decisionId, (options) => options.map(opt => {
     if (opt.id !== optionId) return opt;
 
     return {
       ...opt,
       isFavorite: !opt.isFavorite,
     };
-  });
-
-  await updateDoc(decisionRef, {
-    options: updatedOptions,
-    updatedAt: serverTimestamp(),
-  });
+  }));
 };
 

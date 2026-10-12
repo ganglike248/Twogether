@@ -254,7 +254,7 @@ export const deletePersonalEvent = async (eventId) => {
   return eventId;
 };
 
-// overrides: 폼에서 편집된 title/description/start/end를 Firestore 저장 값보다 우선 적용
+// overrides: 폼에서 편집된 title/description/start/end/isDday를 Firestore 저장 값보다 우선 적용
 export const convertEventType = async (eventId, isPersonal, newType, userId = 'anonymous', coupleId = null, overrides = {}) => {
   const batch = writeBatch(db);
 
@@ -272,6 +272,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       description: overrides.description ?? personalData.description ?? '',
       start: overrides.start ?? personalData.start,
       end: overrides.end ?? personalData.end,
+      isDday: overrides.isDday ?? personalData.isDday ?? false,
       eventType: newType,
       coupleId,
       createdAt: serverTimestamp(),
@@ -307,6 +308,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       description: overrides.description ?? eventData.description ?? '',
       start: overrides.start ?? eventData.start,
       end: overrides.end ?? eventData.end,
+      isDday: overrides.isDday ?? eventData.isDday ?? false,
       userId,
       coupleId,
       createdAt: serverTimestamp(),

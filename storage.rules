@@ -15,10 +15,13 @@ service firebase.storage {
     match /events/{coupleId}/{eventId}/{filename} {
       allow read: if request.auth != null &&
         hasCoupleIdAccess(coupleId);
-      allow write: if request.auth != null &&
+      allow create, update: if request.auth != null &&
         hasCoupleIdAccess(coupleId) &&
         request.resource.size < 10 * 1024 * 1024 &&
         request.resource.contentType.matches('image/.*');
+      // 삭제는 request.resource가 없어(null) size/contentType 검증이 불가능 — 별도 규칙으로 분리
+      allow delete: if request.auth != null &&
+        hasCoupleIdAccess(coupleId);
     }
 
     // 커플 hero 이미지: 경로 couples/{coupleId}/hero
@@ -26,10 +29,14 @@ service firebase.storage {
     match /couples/{coupleId}/hero {
       allow read: if request.auth != null &&
         hasCoupleIdAccess(coupleId);
-      allow write: if request.auth != null &&
+      allow create, update: if request.auth != null &&
         hasCoupleIdAccess(coupleId) &&
         request.resource.size < 10 * 1024 * 1024 &&
         request.resource.contentType.matches('image/.*');
+      // 삭제는 request.resource가 없어(null) size/contentType 검증이 불가능 — 별도 규칙으로 분리.
+      // 예전엔 allow write 하나로 합쳐져 있어서 홈 사진 "제거"가 항상 거부됐음(2026-10-12 발견/수정)
+      allow delete: if request.auth != null &&
+        hasCoupleIdAccess(coupleId);
     }
 
     // 봉인 편지 첨부 이미지: 경로 sealedMessages/{coupleId}/{messageId}

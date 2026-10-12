@@ -91,7 +91,12 @@ export const uploadHeroImage = async (coupleId, file) => {
   try {
     const snapshot = await uploadBytes(storageRef, file, metadata);
     if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
-    return getDownloadURL(snapshot.ref);
+    const url = await getDownloadURL(snapshot.ref);
+    // 항상 같은 경로에 덮어쓰므로 다운로드 URL이 이전과 똑같이 나올 수 있음 — 그러면 브라우저가 캐시된
+    // 예전 사진을 계속 보여주고, Firestore heroImageUrl 값도 안 바뀌어 파트너 화면도 갱신되지 않음
+    // ("사진을 바꿨는데 그대로"로 실제 보고됨, 2026-10-12). 버전 쿼리를 붙여 매번 다른 URL이 되게 함
+    // (Storage 다운로드 엔드포인트는 모르는 쿼리 파라미터를 무시함).
+    return `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
   } catch (error) {
     if (error.code === 'storage/unauthorized') {
       throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');

@@ -18,6 +18,11 @@ const MAX_RAW_PAGES_PER_SCAN = 500;
 // 검색어 입력 디바운스 — 매 키 입력마다 Firestore 스캔이 실행되는 것을 방지
 const SEARCH_DEBOUNCE_MS = 300;
 
+// 공유 일정 쿼리의 "오늘까지" 상한. start는 'YYYY-MM-DDT00:00:00' 형식이라 'YYYY-MM-DD'와 그대로
+// 문자열 비교하면 오늘 일정이 빠짐(개인 일정은 날짜만 잘라 비교해서 오늘이 포함돼 둘이 어긋났었음,
+// 2026-10-12 발견/수정) — 오늘의 마지막 시각을 상한으로 씀. 시간 없는 'YYYY-MM-DD'(여행)도 이보다 작음.
+const getTodayEndBound = () => `${getLocalDateStr()}T23:59:59`;
+
 const normalizeSearchText = (value) => String(value || '').toLowerCase();
 
 const matchesSearchTerm = (memory, term) => {
@@ -142,11 +147,9 @@ const MemoryList = () => {
     }
 
     setIsLoading(true);
-    const todayStr = getLocalDateStr();
-
     const constraints = [
       where('coupleId', '==', coupleId),
-      where('start', '<=', todayStr),
+      where('start', '<=', getTodayEndBound()),
       orderBy('start', 'desc'),
       limit(PAGE_SIZE)
     ];
@@ -181,11 +184,9 @@ const MemoryList = () => {
     setLoadingMore(true);
 
     try {
-      const todayStr = getLocalDateStr();
-
       const constraints = [
         where('coupleId', '==', coupleId),
-        where('start', '<=', todayStr),
+        where('start', '<=', getTodayEndBound()),
         orderBy('start', 'desc'),
         startAfter(lastDoc),
         limit(PAGE_SIZE)
@@ -226,7 +227,6 @@ const MemoryList = () => {
       return { results: [], last: afterDoc, hasMoreShared: false };
     }
 
-    const todayStr = getLocalDateStr();
     const results = [];
     let cursor = afterDoc;
     let hasMoreShared = true;
@@ -235,7 +235,7 @@ const MemoryList = () => {
     while (results.length < targetCount && hasMoreShared && rawPagesFetched < MAX_RAW_PAGES_PER_SCAN) {
       const constraints = [
         where('coupleId', '==', coupleId),
-        where('start', '<=', todayStr),
+        where('start', '<=', getTodayEndBound()),
         orderBy('start', 'desc'),
       ];
 

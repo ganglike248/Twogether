@@ -6,6 +6,7 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-toastify';
 import useHeroImage from '../../hooks/useHeroImage';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './HomeImageSettingsPage.css';
 
 const HomeImageSettingsPage = () => {
@@ -41,7 +42,8 @@ const HomeImageSettingsPage = () => {
       }
     } catch (error) {
       console.error('Failed to update image:', error);
-      toast.error('이미지 업로드에 실패했습니다.');
+      const label = pendingHeroDelete ? '이미지 제거' : '이미지 업로드';
+      toast.error(`${label}에 실패했습니다.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setIsUploading(false);
     }

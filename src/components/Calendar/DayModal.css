@@ -120,6 +120,12 @@
   background: rgba(0, 0, 0, 0.3);
 }
 
+/* 일정 없는 날의 빈 상태 — 공용 EmptyState의 분홍 그라데이션 배경은 모달 카드 안에서만 제거
+   (다른 화면의 EmptyState는 그대로 유지) */
+.day-modal-content .empty-state-container {
+  background: transparent;
+}
+
 .day-modal-empty {
   display: flex;
   flex-direction: column;

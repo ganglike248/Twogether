@@ -296,7 +296,8 @@ const Home = () => {
 
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
-        <div className="hero-photo-col">
+        {/* 사진을 누르면 홈 배경 사진 변경 화면으로 — 뒤로가기로 홈에 돌아오도록 push(replace 아님) */}
+        <div className="hero-photo-col clickable" onClick={() => navigate('/home-image-settings')}>
           <div className="hero-tape" />
           {heroImageUrl ? (
             <>
@@ -306,7 +307,7 @@ const Home = () => {
           ) : (
             <div className="hero-img-placeholder">
               <p className="hero-placeholder-text">
-                프로필에서<br />둘만의 사진을<br />업로드해보세요
+                여기를 눌러<br />둘만의 사진을<br />업로드해보세요
               </p>
             </div>
           )}
