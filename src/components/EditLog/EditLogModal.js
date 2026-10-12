@@ -5,6 +5,20 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { MdCalendarToday, MdEdit } from 'react-icons/md';
 import './EditLogModal.css';
 
+// 필터 버튼별로 포함할 action 목록 — 반복 일정은 시리즈 단위 요약 로그(recurrence_*)로 남으므로
+// 같은 성격의 필터에 함께 묶음(예전엔 action === filter로만 비교해서 어느 필터에도 안 잡혔음)
+const FILTER_ACTIONS = {
+  created: ['created', 'recurrence_created'],
+  updated: ['updated', 'recurrence_updated', 'converted_to_personal'],
+  deleted: ['deleted', 'recurrence_deleted'],
+};
+const PAGE_SIZE = 10;
+// 필터를 걸었을 때 매칭이 PAGE_SIZE개 모일 때까지 다음 페이지를 이어 읽는 최대 횟수(무한 스캔 방지 안전장치)
+const MAX_PAGES_PER_FETCH = 20;
+
+// 반복 일정 로그는 배지 색을 기본 action과 같게 씀(별도 CSS 없이 created/updated/deleted 색 재사용)
+const actionClassName = (action) => (action || '').replace(/^recurrence_/, '');
+
 const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
   const { coupleId } = useAuthContext();
   const [logs, setLogs] = useState([]);
@@ -26,10 +40,19 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     }
 
     try {
-      const result = await getEditLogs(coupleId, eventId, 10, startAfterDoc);
-      const filteredLogs = filter === 'all'
-        ? result.logs
-        : result.logs.filter(log => log.action === filter);
+      // 서버에서 10건씩 가져와 화면에서 거르는 구조라, 필터를 걸면 한 페이지에 매칭이 0건이어도
+      // 예전엔 거기서 멈춰 "수정 기록이 없습니다"로 보이고(스크롤할 내용도 없어 다음 페이지도 안 불러옴)
+      // 예전 기록을 영영 못 찾았음 — 매칭이 PAGE_SIZE개 모이거나 기록이 끝날 때까지 이어서 읽음
+      const allowed = filter === 'all' ? null : FILTER_ACTIONS[filter] || [filter];
+      const filteredLogs = [];
+      let cursor = startAfterDoc;
+      let result = { logs: [], lastDoc: cursor, hasMore: true };
+      for (let page = 0; page < MAX_PAGES_PER_FETCH; page++) {
+        result = await getEditLogs(coupleId, eventId, PAGE_SIZE, cursor);
+        filteredLogs.push(...(allowed ? result.logs.filter(log => allowed.includes(log.action)) : result.logs));
+        cursor = result.lastDoc;
+        if (!result.hasMore || filteredLogs.length >= PAGE_SIZE) break;
+      }
 
       const newEventsData = { ...eventsDataRef.current };
       await Promise.all(filteredLogs.map(async (log) => {
@@ -51,7 +74,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
         setLogs(prev => [...prev, ...filteredLogs]);
       }
 
-      setLastDoc(result.lastDoc);
+      setLastDoc(cursor);
       setHasMore(result.hasMore);
     } catch (error) {
       console.error('Error fetching logs:', error);
@@ -116,7 +139,10 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
 
   // 개선된 이벤트 날짜 포맷팅 함수 - eventsData에서 조회
   const formatEventDate = (log) => {
-    const eventData = eventsData[log.eventId];
+    // 삭제된 일정·반복 일정 요약 로그(eventId가 시리즈 ID)는 원본 문서가 없어 조회가 안 됨 —
+    // 로그에 함께 저장된 값(changes.start, 반복 수정·삭제의 기준일 changes.from)으로 보완
+    const eventData = eventsData[log.eventId]
+      || (log.changes?.start || log.changes?.from ? { start: log.changes.start || log.changes.from } : null);
     if (!eventData || !eventData.start) {
       return '날짜 정보 없음';
     }
@@ -147,11 +173,8 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
 
   // 개선된 이벤트 제목 추출 함수 - eventsData에서 조회
   const getEventTitle = (log) => {
-    const eventData = eventsData[log.eventId];
-    if (!eventData || !eventData.title) {
-      return '제목 없음';
-    }
-    return eventData.title;
+    const title = eventsData[log.eventId]?.title || log.changes?.title;
+    return title || '제목 없음';
   };
 
   const formatChangesImproved = (changes) => {
@@ -179,6 +202,9 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
       case 'updated': return '수정됨';
       case 'deleted': return '삭제됨';
       case 'converted_to_personal': return '개인 전환됨';
+      case 'recurrence_created': return '반복 일정 생성됨';
+      case 'recurrence_updated': return '반복 일정 수정됨';
+      case 'recurrence_deleted': return '반복 일정 삭제됨';
       default: return action;
     }
   };
@@ -245,7 +271,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                   <div key={log.id} className="log-item">
                     <div className="log-header">
                       <span
-                        className={`log-action log-action-${log.action}`}
+                        className={`log-action log-action-${actionClassName(log.action)}`}
                       >
                         {getActionText(log.action)}
                       </span>
@@ -275,6 +301,15 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                         )}
                         {log.action === 'converted_to_personal' && (
                           <span>개인 일정으로 전환되었습니다</span>
+                        )}
+                        {log.action === 'recurrence_created' && (
+                          <span>반복 일정 {log.changes?.occurrenceCount ? `${log.changes.occurrenceCount}개가 ` : ''}생성되었습니다</span>
+                        )}
+                        {log.action === 'recurrence_updated' && (
+                          <span>반복 일정이 수정되었습니다</span>
+                        )}
+                        {log.action === 'recurrence_deleted' && (
+                          <span>반복 일정 {log.changes?.deletedCount ? `${log.changes.deletedCount}개가 ` : ''}삭제되었습니다</span>
                         )}
                         {log.action === 'updated' && hasChanges && (
                           <span>{meaningfulChanges.length}개 항목이 수정되었습니다</span>

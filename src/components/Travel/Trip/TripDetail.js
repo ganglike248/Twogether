@@ -9,7 +9,7 @@ import { MdDateRange } from 'react-icons/md';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { saveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
+import { mutateTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
 import ScheduleItem from '../Schedule/ScheduleItem';
@@ -110,22 +110,19 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
 
     const handleSaveSchedule = async (scheduleData) => {
         try {
-            const current = daySchedules[activeDay] || [];
-            let updated;
-            if (scheduleData.id && current.find(s => s.id === scheduleData.id)) {
-                updated = current.map(s => s.id === scheduleData.id ? scheduleData : s);
-            } else {
-                // 저장 버튼 클릭 시(렌더 중이 아님)에만 실행되는 이벤트 핸들러라 Date.now()/
-                // Math.random()을 여기서 써도 안전함 — react-hooks/purity는 렌더 중 호출만
-                // 문제 삼는 규칙인데 이 파일의 다른 부분 때문에 분석이 이 줄까지 닿으면서
-                // 오탐으로 걸림.
-                updated = [...current, {
-                    ...scheduleData,
-                    // eslint-disable-next-line react-hooks/purity
-                    id: `schedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`
-                }];
-            }
-            await saveTripSchedule(trip.id, activeDay, updated);
+            // 저장 버튼 클릭 시(렌더 중이 아님)에만 실행되는 이벤트 핸들러라 Date.now()/
+            // Math.random()을 여기서 써도 안전함 — react-hooks/purity는 렌더 중 호출만
+            // 문제 삼는 규칙인데 이 파일의 다른 부분 때문에 분석이 이 줄까지 닿으면서
+            // 오탐으로 걸림.
+            // eslint-disable-next-line react-hooks/purity
+            const newId = `schedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
+            // 화면이 들고 있던 목록이 아니라 서버 최신 목록에 이 변경만 적용(동시 수정 유실 방지)
+            await mutateTripSchedule(trip.id, activeDay, (current) => (
+                scheduleData.id && current.find(s => s.id === scheduleData.id)
+                    // 완료 여부는 모달에서 편집하는 값이 아니라서 서버 최신 값을 유지(그 사이 상대가 체크했을 수 있음)
+                    ? current.map(s => s.id === scheduleData.id ? { ...scheduleData, completed: s.completed } : s)
+                    : [...current, { ...scheduleData, id: newId }]
+            ));
             closeScheduleModal();
             setOptionForSchedule(null);
             toast.success(scheduleData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
@@ -160,8 +157,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
 
     const handleDeleteSchedule = async (scheduleId) => {
         try {
-            const updated = (daySchedules[activeDay] || []).filter(s => s.id !== scheduleId);
-            await saveTripSchedule(trip.id, activeDay, updated);
+            await mutateTripSchedule(trip.id, activeDay, (current) => current.filter(s => s.id !== scheduleId));
             toast.success('일정을 삭제했습니다.');
         } catch (error) {
             console.error('Error deleting schedule:', error);

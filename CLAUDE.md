@@ -193,6 +193,20 @@ resource.data.X` 불변 검증을 추가해서 막음 — 앱의 실제 update �
 `recipientUid`가 실제 커플 멤버인지 검증을 추가함(예전엔 임의 uid로 알림을 보낼 수 있었음, 내용 유출은
 아니었음).
 
+**교차 합류 버그 (v1.0.6에서 수정)**: `joinCoupleWithInviteCode`가 합류하는 사람의 기존 커플을 확인하지 않아서,
+(1) 두 사람이 둘 다 "새 커플 시작"으로 커플을 만든 뒤 서로의 코드를 입력하면 A는 B의 커플에, B는 A의 커플에
+들어가 둘 다 "연결 완료"인데 서로 다른 커플 문서를 보는 상태가 됐고, (2) 이미 2명 커플에 속한 사람이 남의
+코드를 입력하면 원래 파트너를 떠나 옮겨갈 수 있었음(둘 다 Functions 에뮬레이터로 재현). 이제 트랜잭션 안에서
+호출자의 `users.coupleId`와 그 커플을 같이 읽어 — 이미 2명 커플이면 거부, 혼자 만든 커플이면 그 초대 코드를
+`joined: true, abandonedFor`로 무효화(커플 문서 자체는 안 지움) — 교차 경쟁에서 상대가 먼저 내 커플에
+들어온 경우는 에러 대신 기존 커플 ID로 성공 처리.
+같은 수정에서 `functions/index.js`의 `admin.firestore.FieldValue`/`Timestamp` 네임스페이스 접근을
+`require('firebase-admin/firestore')`의 `{ FieldValue, Timestamp }`로 전환함 — 운영에선 옛 방식도 동작했지만
+Functions 에뮬레이터에서는 undefined가 되어 함수 로직을 로컬 검증할 수 없었음. **새 코드도 모듈 import로 쓸 것.**
+검증 방법: `npx firebase-tools emulators:exec --project demo-xxx --config <설정> --only auth,firestore,functions`
+(설정의 `functions.source`는 설정 파일 위치 기준 상대경로라는 점 주의) + 클라이언트 JS SDK를
+`connectAuthEmulator`/`connectFirestoreEmulator`/`connectFunctionsEmulator`로 붙여 콜러블 호출.
+
 관련 파일: `firestore.rules`(`couples`/`inviteCodes`/각 컬렉션 update 규칙), `functions/index.js`
 (`joinCoupleWithInviteCode`), `src/services/authService.js`(`joinCouple`).
 
@@ -630,7 +644,14 @@ utils/
 체크리스트 `items[]`(`travelChecklistService.js`의 `mutateItems`)와 여행 후보 `options[]`
 (`travelDecisionService.js`의 `mutateOptions`)는 `getDoc → updateDoc`이 아니라 `runTransaction` 헬퍼를
 거침 — 예전 방식은 두 사람이 거의 동시에 체크/점수 매기기를 하면 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로
-덮어썼음. 배열 전체를 다시 쓰는 새 함수를 추가할 때도 이 헬퍼를 쓸 것. 같은 파일의 `updateOption`은
+덮어썼음. 배열 전체를 다시 쓰는 새 함수를 추가할 때도 이 헬퍼를 쓸 것. 여행 일정(`tripSchedules`)도 v1.0.6부터
+같은 방식 — `tripService.js`의 `mutateTripSchedule(tripId, day, mutate)`(예전 `saveTripSchedule`은 화면이 들고
+있던 목록 전체로 덮어써서 동시 추가 시 한쪽이 사라졌음, 에뮬레이터로 재현). 단 그날의 첫 일정(문서 없음)은 규칙상
+없는 문서를 트랜잭션으로 읽을 수 없어(read가 `resource.data.tripId` 참조 → permission-denied) 결정론적 ID
+`setDoc`로 씀. 일정 수정 시 `completed`는 모달 값이 아니라 서버 최신 값을 유지.
+`EditLogModal`의 생성/수정/삭제 필터는 매칭이 10개 모일 때까지 다음 페이지를 이어 읽음(최대 20페이지) —
+예전엔 첫 10건만 화면에서 걸러서 기록이 있어도 "없습니다"로 보였음. 반복 일정 요약 로그(`recurrence_*`)는
+같은 성격의 필터에 포함되고 한글 라벨로 표시. 같은 파일의 `updateOption`은
 `||` 폴백 대신 `!== undefined`로 반영 — `||`면 빈 문자열(사용자가 지운 값)이 무시되던 버그가 있었음.
 
 ### ScheduleItem 위치 딥링크 패턴 (v0.4.4~, 안드로이드 네이티브 앱 분기 v0.4.29~)

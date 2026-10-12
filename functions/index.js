@@ -1,5 +1,8 @@
 const functions = require('firebase-functions/v1');
 const admin = require('firebase-admin');
+// firebase-admin v13 권장 방식(모듈 경로 import) — 예전 FieldValue 네임스페이스 접근은
+// Functions 에뮬레이터에서 undefined가 되어 로컬 검증이 불가능했음(운영은 동작했음, 2026-10-12 전환)
+const { FieldValue, Timestamp } = require('firebase-admin/firestore');
 
 admin.initializeApp();
 
@@ -21,7 +24,7 @@ async function sendAndCleanup(uid, field, tokens, message, logTag) {
 
   if (staleTokens.length > 0) {
     await db.collection('users').doc(uid).update({
-      [field]: admin.firestore.FieldValue.arrayRemove(...staleTokens),
+      [field]: FieldValue.arrayRemove(...staleTokens),
     });
   }
 }
@@ -310,19 +313,39 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
   }
 
   const inviteRef = db.collection('inviteCodes').doc(code);
+  const userRef = db.collection('users').doc(uid);
 
+  // ⚠ 합류하는 사람이 이미 자기 커플을 "새 커플 시작"으로 만들어 둔 상태일 수 있음(둘 다 커플을 만든 뒤
+  // 서로의 코드를 입력하는 경우). 예전엔 이걸 전혀 확인하지 않아서 A는 B의 커플에, B는 A의 커플에
+  // 각각 합류해 둘 다 "연결 완료"인데 서로 다른 커플 문서를 보며 상대 일정이 영영 안 보이는 상태가 될
+  // 수 있었음(2026-10-12 발견/수정). 이제 합류 시 (1) 이미 2명짜리 커플에 속해 있으면 거부하고,
+  // (2) 혼자 만들어 둔 커플의 초대 코드는 같은 트랜잭션에서 무효 처리해 교차 합류 자체를 막음.
+  // Firestore 트랜잭션은 모든 읽기를 쓰기보다 먼저 해야 해서 읽기를 앞에 모아둠.
   const coupleId = await db.runTransaction(async (transaction) => {
     const inviteSnap = await transaction.get(inviteRef);
+    const userSnap = await transaction.get(userRef);
+    const currentCoupleId = userSnap.data()?.coupleId || null;
+    const currentCoupleRef = currentCoupleId ? db.collection('couples').doc(currentCoupleId) : null;
+    const currentCoupleSnap = currentCoupleRef ? await transaction.get(currentCoupleRef) : null;
+    const currentMembers = currentCoupleSnap?.exists ? (currentCoupleSnap.data().members || []) : [];
+
     if (!inviteSnap.exists) {
       throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드입니다.');
     }
 
     const { coupleId: targetCoupleId, creatorUid, joined } = inviteSnap.data();
     if (joined) {
+      // 교차 합류 경쟁에서 상대가 먼저 내 커플에 들어와 이미 둘이 연결된 경우 — 에러 대신 성공으로 처리
+      if (currentMembers.length >= 2 && currentMembers.includes(uid)) {
+        return currentCoupleId;
+      }
       throw new functions.https.HttpsError('failed-precondition', '이미 커플이 연결된 코드입니다.');
     }
     if (creatorUid === uid) {
       throw new functions.https.HttpsError('failed-precondition', '자신의 초대 코드는 사용할 수 없습니다.');
+    }
+    if (currentCoupleId && currentCoupleId !== targetCoupleId && currentMembers.length >= 2) {
+      throw new functions.https.HttpsError('failed-precondition', '이미 다른 커플과 연결되어 있습니다.');
     }
 
     const coupleRef = db.collection('couples').doc(targetCoupleId);
@@ -338,9 +361,19 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
       throw new functions.https.HttpsError('failed-precondition', '이미 인원이 가득 찬 커플입니다.');
     }
 
-    transaction.update(coupleRef, { members: admin.firestore.FieldValue.arrayUnion(uid) });
+    // 혼자 만들어 둔 내 커플의 초대 코드 무효화 — 커플 문서 자체는 지우지 않음(혼자 있는 동안
+    // 추가한 데이터가 있을 수 있고, 아무도 더 이상 합류할 수 없으면 무해함)
+    const ownInviteCode = currentCoupleSnap?.exists ? currentCoupleSnap.data().inviteCode : null;
+    const ownInviteSnap = ownInviteCode && ownInviteCode !== code
+      ? await transaction.get(db.collection('inviteCodes').doc(ownInviteCode))
+      : null;
+
+    transaction.update(coupleRef, { members: FieldValue.arrayUnion(uid) });
     transaction.update(inviteRef, { joined: true });
-    transaction.update(db.collection('users').doc(uid), { coupleId: targetCoupleId });
+    transaction.update(userRef, { coupleId: targetCoupleId });
+    if (ownInviteSnap?.exists && !ownInviteSnap.data().joined) {
+      transaction.update(ownInviteSnap.ref, { joined: true, abandonedFor: targetCoupleId });
+    }
 
     return targetCoupleId;
   });
@@ -371,10 +404,10 @@ exports.registerFcmToken = functions.https.onCall(async (data, context) => {
   holders.forEach((docSnap) => {
     if (docSnap.id !== uid) {
       console.log(`[registerFcmToken] uid=${docSnap.id} 문서에서 다른 계정(${uid}) 소유 토큰(${field}) 제거`);
-      batch.update(docSnap.ref, { [field]: admin.firestore.FieldValue.arrayRemove(token) });
+      batch.update(docSnap.ref, { [field]: FieldValue.arrayRemove(token) });
     }
   });
-  batch.update(db.collection('users').doc(uid), { [field]: admin.firestore.FieldValue.arrayUnion(token) });
+  batch.update(db.collection('users').doc(uid), { [field]: FieldValue.arrayUnion(token) });
   await batch.commit();
 
   return { success: true };
@@ -439,7 +472,7 @@ exports.checkSealedMessages = functions.pubsub
   .schedule('58,13,28,43 * * * *')
   .onRun(async () => {
     try {
-      const lookahead = admin.firestore.Timestamp.fromMillis(
+      const lookahead = Timestamp.fromMillis(
         Date.now() + SEALED_MESSAGE_LOOKAHEAD_MINUTES * 60 * 1000
       );
       const dueSnap = await db.collection('sealedMessages')
@@ -453,7 +486,7 @@ exports.checkSealedMessages = functions.pubsub
       dueSnap.forEach((doc) => {
         batch.update(doc.ref, {
           isUnlocked: true,
-          unlockedAt: admin.firestore.FieldValue.serverTimestamp(),
+          unlockedAt: FieldValue.serverTimestamp(),
         });
       });
       await batch.commit();

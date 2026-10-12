@@ -149,17 +149,17 @@ export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) 
   }
 };
 
-export const saveTripSchedule = async (tripId, day, schedules) => {
-  const scheduleData = {
-    tripId,
-    day,
-    schedules: schedules.map((schedule, index) => ({
-      ...schedule,
-      id: schedule.id || `schedule_${Date.now()}_${index}`,
-      completed: schedule.completed || false,
-    })),
-    updatedAt: serverTimestamp(),
-  };
+const normalizeSchedules = (schedules) => schedules.map((schedule, index) => ({
+  ...schedule,
+  id: schedule.id || `schedule_${Date.now()}_${index}`,
+  completed: schedule.completed || false,
+}));
+
+// 특정 날짜(day)의 일정 배열을 mutate(현재 배열) → 새 배열로 갱신.
+// ⚠ 화면이 들고 있던 목록 전체로 덮어쓰면 두 사람이 같은 날 일정을 거의 동시에 고칠 때 나중에 저장한
+// 쪽이 먼저 저장한 쪽 변경을 통째로 지워버림(2026-10-12 발견/수정) — 문서가 있으면 트랜잭션 안에서
+// 서버 최신 배열에 변경을 적용함. (클라이언트 트랜잭션은 쿼리를 못 해서 문서 위치는 먼저 쿼리로 찾음)
+export const mutateTripSchedule = async (tripId, day, mutate) => {
   const q = query(
     collection(db, 'tripSchedules'),
     where('tripId', '==', tripId),
@@ -169,11 +169,26 @@ export const saveTripSchedule = async (tripId, day, schedules) => {
   if (snap.empty) {
     // 결정론적 ID로 생성 — 동시에 두 번 호출돼도(둘 다 empty로 보고 생성 시도) 같은 문서로 수렴해
     // 같은 tripId+day에 중복 문서가 생기는 경쟁 조건을 막음. 기존 자동생성 ID 문서는 위 쿼리로 계속 찾아
-    // updateDoc되므로 마이그레이션 없이 호환됨.
-    await setDoc(doc(db, 'tripSchedules', `${tripId}_${day}`), scheduleData);
-  } else {
-    await updateDoc(snap.docs[0].ref, scheduleData);
+    // 트랜잭션으로 갱신되므로 마이그레이션 없이 호환됨. (없는 문서는 규칙상 read가 거부돼 트랜잭션으로
+    // 읽을 수 없어서, 그날의 첫 일정 생성만은 트랜잭션 없이 씀 — 첫 생성이 동시에 겹치는 건 드묾)
+    await setDoc(doc(db, 'tripSchedules', `${tripId}_${day}`), {
+      tripId,
+      day,
+      schedules: normalizeSchedules(mutate([])),
+      updatedAt: serverTimestamp(),
+    });
+    return;
   }
+
+  const scheduleDocRef = snap.docs[0].ref;
+  await runTransaction(db, async (transaction) => {
+    const scheduleSnap = await transaction.get(scheduleDocRef);
+    const current = scheduleSnap.exists() ? (scheduleSnap.data().schedules || []) : [];
+    transaction.update(scheduleDocRef, {
+      schedules: normalizeSchedules(mutate([...current])),
+      updatedAt: serverTimestamp(),
+    });
+  });
 };
 
 export const subscribeToTripSchedules = (tripId, callback) => {
