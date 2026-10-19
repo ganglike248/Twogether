@@ -87,7 +87,6 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="예: 더 클래식 명동"
               className="aom-input"
-              autoFocus
             />
           </div>
 

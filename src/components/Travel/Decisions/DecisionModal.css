@@ -11,6 +11,7 @@
     align-items: flex-end;
     justify-content: center;
     z-index: 1000;
+    touch-action: manipulation;
 }
 
 .decision-modal-container {
@@ -24,6 +25,7 @@
     display: flex;
     flex-direction: column;
     animation: decisionModalSlideUp 0.28s ease;
+    touch-action: manipulation;
 }
 
 @keyframes decisionModalSlideUp {

@@ -11,6 +11,7 @@
     align-items: flex-end;
     justify-content: center;
     z-index: 1000;
+    touch-action: manipulation;
 }
 
 .edit-option-modal-container {
@@ -24,6 +25,7 @@
     display: flex;
     flex-direction: column;
     animation: editOptionModalSlideUp 0.28s ease;
+    touch-action: manipulation;
 }
 
 @keyframes editOptionModalSlideUp {
@@ -75,8 +77,6 @@
     display: flex;
     flex-direction: column;
     gap: 1rem;
-    overflow-y: auto;
-    max-height: calc(80vh - 100px);
 }
 
 /* 폼 그룹 */

@@ -81,7 +81,6 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
               onChange={(e) => handleChange('title', e.target.value)}
               placeholder="예: 더 클래식 명동"
               className="eom-input"
-              autoFocus
             />
           </div>
 
