@@ -49,6 +49,7 @@ const ProfilePage = () => {
 
   const {
     pendingHeroFile,
+    isProcessingHeroImage,
     pendingHeroDelete,
     displayHeroUrl,
     heroInputRef,
@@ -292,7 +293,7 @@ const ProfilePage = () => {
         <div className="profile-section">
           <div className="profile-section-title">홈 화면 이미지</div>
           <div className="profile-hero-container">
-            <div className="profile-hero-wrap" onClick={() => handleHeroClick(loading)}>
+            <div className="profile-hero-wrap" onClick={() => handleHeroClick(loading || isProcessingHeroImage)}>
               {displayHeroUrl
                 ? <img
                     src={displayHeroUrl}
@@ -301,9 +302,9 @@ const ProfilePage = () => {
                   />
                 : <div className="profile-hero-placeholder" />
               }
-              <div className={`profile-hero-overlay${loading ? ' uploading' : ''}`}>
+              <div className={`profile-hero-overlay${(loading || isProcessingHeroImage) ? ' uploading' : ''}`}>
                 <HiCamera className="profile-hero-camera" />
-                <span>변경</span>
+                <span>{isProcessingHeroImage ? '변환 중...' : '변경'}</span>
               </div>
               <input
                 ref={heroInputRef}

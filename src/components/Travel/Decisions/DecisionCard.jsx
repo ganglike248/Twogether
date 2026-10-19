@@ -316,18 +316,32 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
           <p className="dc-score-hint">아직 아무도 평가하지 않았어요. 먼저 평가해볼까요?</p>
         )}
 
-        {!myScore && !isScoring && (
-          <button
-            className="dc-score-btn"
-            onClick={() => {
-              setIsScoring(true);
-              setSelectedScore(null);
-              setCommentText('');
-            }}
-            disabled={savingScore}
-          >
-            평가하기
-          </button>
+        {((!myScore && !isScoring) || decision.status !== 'decided') && (
+          <div className="dc-score-action-row">
+            {!myScore && !isScoring && (
+              <button
+                className="dc-score-btn"
+                onClick={() => {
+                  setIsScoring(true);
+                  setSelectedScore(null);
+                  setCommentText('');
+                }}
+                disabled={savingScore}
+              >
+                평가하기
+              </button>
+            )}
+
+            {decision.status !== 'decided' && (
+              <button
+                className="dc-decide-btn"
+                onClick={handleDecide}
+                disabled={deciding}
+              >
+                {deciding ? '처리 중...' : '확정하기'}
+              </button>
+            )}
+          </div>
         )}
 
         {/* 점수 선택 그리드 */}
@@ -383,19 +397,6 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
           </div>
         )}
       </div>
-
-      {/* 확정 섹션: 이미 확정된 주제는 숨김 */}
-      {decision.status !== 'decided' && (
-        <div className="dc-decide-section">
-          <button
-            className="dc-decide-btn"
-            onClick={handleDecide}
-            disabled={deciding}
-          >
-            {deciding ? '처리 중...' : '확정하기'}
-          </button>
-        </div>
-      )}
 
       {/* 수정 모달 */}
       {showEditModal && (

@@ -5,6 +5,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
 import { createSealedMessage } from '../../services/sealedMessageService';
+import { ensureBrowserDisplayableImage } from '../../utils/imageUtils';
 import UnlockTimePicker from './UnlockTimePicker';
 import './sealed-message-modal.css';
 
@@ -25,15 +26,27 @@ const SealedMessageComposeModal = ({ onClose }) => {
   const [content, setContent] = useState('');
   const [imageFile, setImageFile] = useState(null);
   const [imagePreview, setImagePreview] = useState(null);
+  const [isProcessingImage, setIsProcessingImage] = useState(false);
   const [unlockMode, setUnlockMode] = useState('scheduled'); // 'scheduled' | 'manual'
   const [unlockAtLocal, setUnlockAtLocal] = useState(defaultUnlockAtLocal);
   const [isSubmitting, setIsSubmitting] = useState(false);
 
-  const handleImageChange = (e) => {
+  const handleImageChange = async (e) => {
     const file = e.target.files?.[0];
+    e.target.value = '';
     if (!file) return;
-    setImageFile(file);
-    setImagePreview(URL.createObjectURL(file));
+
+    setIsProcessingImage(true);
+    try {
+      // 아이폰 HEIC 사진은 변환해야 미리보기/표시가 가능 — 다른 포맷은 그대로 통과
+      const displayableFile = await ensureBrowserDisplayableImage(file);
+      setImageFile(displayableFile);
+      setImagePreview(URL.createObjectURL(displayableFile));
+    } catch (error) {
+      toast.error(error.message);
+    } finally {
+      setIsProcessingImage(false);
+    }
   };
 
   const handleRemoveImage = () => {
@@ -110,8 +123,14 @@ const SealedMessageComposeModal = ({ onClose }) => {
                 </>
               ) : (
                 <label className="sm-image-picker-label">
-                  사진 선택
-                  <input type="file" accept="image/*" onChange={handleImageChange} style={{ display: 'none' }} />
+                  {isProcessingImage ? '변환 중...' : '사진 선택'}
+                  <input
+                    type="file"
+                    accept="image/*"
+                    onChange={handleImageChange}
+                    disabled={isProcessingImage}
+                    style={{ display: 'none' }}
+                  />
                 </label>
               )}
             </div>
