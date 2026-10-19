@@ -3,6 +3,7 @@ import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, updateOption, decideOption, toggleFavorite } from '../../../services/travelDecisionService';
 import { handleOpenLink } from '../../../utils/appLinkUtils';
+import { formatPriceDisplay } from '../../../utils/numberFormat';
 import EditOptionModal from './EditOptionModal';
 import ConfirmModal from '../../common/ConfirmModal';
 import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar, MdFavorite } from 'react-icons/md';
@@ -192,7 +193,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
             )}
             <h4 className="dc-title">{option.title}</h4>
           </div>
-          {option.price && <p className="dc-price">{option.price}</p>}
+          {option.price && <p className="dc-price">{formatPriceDisplay(option.price)}</p>}
         </div>
 
         {/* 액션 버튼 (즐겨찾기 + 일정추가 + 수정 + 삭제) */}

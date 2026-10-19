@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
+import { formatInputNumber, normalizeIfPureNumber } from '../../../utils/numberFormat';
 import './AddOptionModal.css';
 
 const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
@@ -18,7 +19,8 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const processedValue = field === 'price' ? formatInputNumber(value) : value;
+    setFormData(prev => ({ ...prev, [field]: processedValue }));
   };
 
   const handleAddImage = () => {
@@ -52,7 +54,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
         title: formData.title.trim(),
         url: formData.url.trim() || '',
         description: formData.description.trim() || '',
-        price: formData.price.trim() || '',
+        price: normalizeIfPureNumber(formData.price),
         images: formData.images,
         scores: [],
         totalScore: 0,
@@ -116,12 +118,13 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
 
           {/* 가격 */}
           <div className="aom-form-group">
-            <label className="aom-label">가격</label>
+            <label className="aom-label">가격 (원)</label>
             <input
               type="text"
+              inputMode="numeric"
               value={formData.price}
               onChange={(e) => handleChange('price', e.target.value)}
-              placeholder="예: ₩150,000/박"
+              placeholder="예: 150,000"
               className="aom-input"
             />
           </div>

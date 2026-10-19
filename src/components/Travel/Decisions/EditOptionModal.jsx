@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
+import { formatInputNumber, normalizeIfPureNumber } from '../../../utils/numberFormat';
 import './EditOptionModal.css';
 
 const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
@@ -19,7 +20,8 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+    const processedValue = field === 'price' ? formatInputNumber(value) : value;
+    setFormData(prev => ({ ...prev, [field]: processedValue }));
   };
 
   const handleAddImage = () => {
@@ -53,7 +55,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
         title: formData.title.trim(),
         url: formData.url.trim() || '',
         description: formData.description.trim() || '',
-        price: formData.price.trim() || '',
+        price: normalizeIfPureNumber(formData.price),
         images: formData.images,
       });
     } finally {
@@ -110,12 +112,13 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
 
           {/* 가격 */}
           <div className="eom-form-group">
-            <label className="eom-label">가격</label>
+            <label className="eom-label">가격 (원)</label>
             <input
               type="text"
+              inputMode="numeric"
               value={formData.price}
               onChange={(e) => handleChange('price', e.target.value)}
-              placeholder="예: ₩150,000/박"
+              placeholder="예: 150,000"
               className="eom-input"
             />
           </div>

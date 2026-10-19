@@ -1,6 +1,7 @@
 // src/components/Travel/DecisionTopPick.jsx
 import React from 'react';
 import { getTopOptions } from '../../../services/travelDecisionService';
+import { formatPriceDisplay } from '../../../utils/numberFormat';
 import { MdArrowForward, MdStar } from 'react-icons/md';
 import './DecisionTopPick.css';
 
@@ -67,7 +68,7 @@ const DecisionTopPick = ({ options, onSelectOption, boyfriendInfo, girlfriendInf
                 {/* 오른쪽: 정보 */}
                 <div className="dtp-info">
                   <h5 className="dtp-title">{option.title}</h5>
-                  {option.price && <p className="dtp-price">{option.price}</p>}
+                  {option.price && <p className="dtp-price">{formatPriceDisplay(option.price)}</p>}
                   <div className="dtp-scores">
                     <span className="dtp-total-badge">{option.totalScore}/20</span>
                     {(() => {
@@ -121,7 +122,7 @@ const DecisionTopPick = ({ options, onSelectOption, boyfriendInfo, girlfriendInf
                     {/* 오른쪽: 정보 */}
                     <div className="dtp-info">
                       <h5 className="dtp-title">{option.title}</h5>
-                      {option.price && <p className="dtp-price">{option.price}</p>}
+                      {option.price && <p className="dtp-price">{formatPriceDisplay(option.price)}</p>}
                       <div className="dtp-scores">
                         <span className="dtp-total-badge">{option.totalScore}/20</span>
                         {(() => {

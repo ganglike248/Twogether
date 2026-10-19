@@ -2,6 +2,7 @@
 import React, { useState, useRef } from 'react';
 import { MdHotel, MdRestaurant, MdEmojiFlags, MdDirectionsCar, MdPushPin, MdClose, MdAdd, MdExpandMore, MdEdit, MdCheckCircle } from 'react-icons/md';
 import { sortByUserScore, addOption, updateDecision, undecideDecision, hasUserScored } from '../../../services/travelDecisionService';
+import { formatPriceDisplay } from '../../../utils/numberFormat';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import DecisionCard from './DecisionCard';
 import DecisionTopPick from './DecisionTopPick';
@@ -276,7 +277,7 @@ const DecisionCategoryList = ({ category, decisions, currentUserId, onDelete, tr
                           <div className="dcl-decided-info">
                             <p className="dcl-decided-title">{decidedOpt.title}</p>
                             {decidedOpt.price && (
-                              <p className="dcl-decided-price">{decidedOpt.price}</p>
+                              <p className="dcl-decided-price">{formatPriceDisplay(decidedOpt.price)}</p>
                             )}
                             <div className="dcl-decided-scores">
                               {bScore > 0 && (
