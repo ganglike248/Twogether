@@ -5,7 +5,7 @@ import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, up
 import { handleOpenLink } from '../../../utils/appLinkUtils';
 import EditOptionModal from './EditOptionModal';
 import ConfirmModal from '../../common/ConfirmModal';
-import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar } from 'react-icons/md';
+import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar, MdFavorite } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionCard.css';
 
@@ -13,6 +13,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const { coupleDoc, getMemberName } = useAuthContext();
   const [showEditModal, setShowEditModal] = useState(false);
   const [savingScore, setSavingScore] = useState(false);
+  const [isScoring, setIsScoring] = useState(false);
   const [selectedScore, setSelectedScore] = useState(null);
   const [commentText, setCommentText] = useState('');
   const [deciding, setDeciding] = useState(false);
@@ -56,13 +57,6 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     (currentUserId === boyfriendInfo?.uid && boyfriendScore > 0) ||
     (currentUserId === girlfriendInfo?.uid && girlfriendScore > 0);
 
-  // 상대방 평가 여부
-  const partnerHasScored = currentUserId === boyfriendInfo?.uid
-    ? girlfriendScore > 0
-    : currentUserId === girlfriendInfo?.uid
-    ? boyfriendScore > 0
-    : false;
-
   // 의견 존재 여부
   const hasAnyComment = !!(boyfriendComment || girlfriendComment || myComment);
 
@@ -72,6 +66,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
     setSavingScore(true);
     try {
       await addScore(decision.tripId, decision.id, option.id, currentUserId, score, commentText);
+      setIsScoring(false);
       setSelectedScore(null);
       setCommentText('');
       toast.success(`${score}점 평가했습니다!`);
@@ -264,17 +259,32 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
             {myScore && !isMyScoreAlreadyShown && (
               <span className="dc-score-label">{myNickname}: {myScore}점</span>
             )}
-            <span className="dc-total-score">(총: {option.totalScore || 0}/20)</span>
-            {myScore && (
+            <span className="dc-total-score">
+              <MdFavorite size={11} />
+              {option.totalScore || 0}/20
+            </span>
+            {myScore && !isScoring && (
               <button
                 className="dc-score-change-inline"
-                onClick={() => setSelectedScore(myScore)}
+                onClick={() => {
+                  setIsScoring(true);
+                  setSelectedScore(myScore);
+                  setCommentText(myComment);
+                }}
                 disabled={savingScore}
                 title="점수 변경"
               >
                 변경
               </button>
             )}
+          </div>
+
+          {/* 총점 미니 바: 후보 간 한눈에 비교용 */}
+          <div className="dc-total-bar-track">
+            <div
+              className="dc-total-bar-fill"
+              style={{ width: `${Math.min(100, ((option.totalScore || 0) / 20) * 100)}%` }}
+            />
           </div>
 
           {/* 의견 표시 (의견이 있을 때만) */}
@@ -300,21 +310,28 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
         </>
       )}
 
-      {/* 평가 섹션 (상대방 평가가 있을 때만) */}
-      {partnerHasScored && (
-        <div className="dc-score-section">
-          {!myScore && (
-            <button
-              className="dc-score-btn"
-              onClick={() => setSelectedScore(1)}
-              disabled={savingScore}
-            >
-              평가하기
-            </button>
-          )}
+      {/* 평가 섹션 */}
+      <div className="dc-score-section">
+        {!myScore && !isScoring && boyfriendScore === 0 && girlfriendScore === 0 && (
+          <p className="dc-score-hint">아직 아무도 평가하지 않았어요. 먼저 평가해볼까요?</p>
+        )}
+
+        {!myScore && !isScoring && (
+          <button
+            className="dc-score-btn"
+            onClick={() => {
+              setIsScoring(true);
+              setSelectedScore(null);
+              setCommentText('');
+            }}
+            disabled={savingScore}
+          >
+            평가하기
+          </button>
+        )}
 
         {/* 점수 선택 그리드 */}
-        {selectedScore !== null && (
+        {isScoring && (
           <div className="dc-score-selector">
             <div className="dc-score-grid">
               {Array.from({ length: 10 }, (_, i) => i + 1).map(score => (
@@ -349,11 +366,12 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
                 onClick={() => handleScoreSelect(selectedScore)}
                 disabled={savingScore || !selectedScore}
               >
-                {savingScore ? '저장 중...' : '저장'}
+                {savingScore ? '저장 중...' : (selectedScore ? `${selectedScore}점 저장` : '점수를 선택해주세요')}
               </button>
               <button
                 className="dc-score-cancel"
                 onClick={() => {
+                  setIsScoring(false);
                   setSelectedScore(null);
                   setCommentText('');
                 }}
@@ -364,8 +382,7 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
             </div>
           </div>
         )}
-        </div>
-      )}
+      </div>
 
       {/* 확정 섹션: 이미 확정된 주제는 숨김 */}
       {decision.status !== 'decided' && (

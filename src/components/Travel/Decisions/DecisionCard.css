@@ -223,9 +223,9 @@
     align-items: center;
     font-size: 0.72rem;
     flex-wrap: wrap;
-    padding: 0.35rem 0.45rem;
+    padding: 0.35rem 0.5rem;
     background: var(--main-bg);
-    border-radius: 0.35rem;
+    border-radius: 0.8rem;
 }
 
 .dc-score-label {
@@ -235,21 +235,42 @@
 }
 
 .dc-total-score {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.2rem;
+    padding: 0.1rem 0.5rem;
+    background: rgba(255, 107, 129, 0.1);
+    border-radius: 999px;
     font-weight: 700;
-    color: #ffb6c1;
+    color: #ff6b81;
     white-space: nowrap;
 }
 
-/* 점수 변경 버튼: 기본부터 녹색 */
+/* 총점 미니 바: 후보 간 한눈에 비교 */
+.dc-total-bar-track {
+    height: 5px;
+    border-radius: 999px;
+    background: rgba(255, 182, 193, 0.18);
+    overflow: hidden;
+}
+
+.dc-total-bar-fill {
+    height: 100%;
+    border-radius: 999px;
+    background: linear-gradient(90deg, #ffb6c1 0%, #ff6b81 100%);
+    transition: width 0.3s ease;
+}
+
+/* 점수 변경 버튼: 텍스트 링크 스타일로 통일(핑크 톤) */
 .dc-score-change-inline {
     margin-left: auto;
-    padding: 0.2rem 0.45rem;
-    background: rgba(76, 175, 80, 0.1);
-    border: 1px solid rgba(76, 175, 80, 0.4);
-    color: #4caf50;
+    padding: 0.15rem 0.3rem;
+    background: none;
+    border: none;
+    color: var(--color-primary);
     font-size: 0.67rem;
     font-weight: 600;
-    border-radius: 0.25rem;
+    text-decoration: underline;
     cursor: pointer;
     flex-shrink: 0;
 }
@@ -267,14 +288,21 @@
 .dc-score-section {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
+    gap: 0.35rem;
     padding-top: 0.35rem;
+}
+
+.dc-score-hint {
+    margin: 0;
+    font-size: 0.7rem;
+    color: var(--color-gray-400);
+    text-align: center;
 }
 
 .dc-score-btn {
     padding: 0.3rem 0.65rem;
     font-size: 0.72rem;
-    border-radius: 0.3rem;
+    border-radius: 1.1rem;
     cursor: pointer;
     font-weight: 600;
     border: none;
@@ -296,28 +324,30 @@
 .dc-score-selector {
     display: flex;
     flex-direction: column;
-    gap: 0.3rem;
-    padding: 0.4rem;
+    gap: 0.35rem;
+    padding: 0.5rem;
     background: var(--main-bg);
-    border-radius: 0.35rem;
+    border-radius: 0.9rem;
     border: 1px solid rgba(255, 182, 193, 0.2);
 }
 
 .dc-score-grid {
     display: grid;
     grid-template-columns: repeat(5, 1fr);
-    gap: 0.25rem;
+    gap: 0.3rem;
 }
 
 .dc-score-option {
-    padding: 0.35rem;
+    width: 100%;
+    padding: 0.32rem 0;
     font-size: 0.72rem;
-    font-weight: 600;
+    font-weight: 700;
     background: white;
-    border: 1.5px solid var(--card-border);
-    border-radius: 0.25rem;
-    color: var(--color-gray-600);
+    border: 1.5px solid #ffd9e2;
+    border-radius: 0.6rem;
+    color: var(--color-gray-500);
     cursor: pointer;
+    transition: background 0.12s ease, border-color 0.12s ease;
 }
 
 .dc-score-option.active {
@@ -336,12 +366,13 @@
 }
 
 .dc-score-cancel {
-    padding: 0.25rem;
+    flex: 0 0 auto;
+    padding: 0.3rem 0.65rem;
     font-size: 0.68rem;
     background: rgba(0,0,0,0.04);
     border: 1px solid var(--card-border);
     color: var(--color-gray-500);
-    border-radius: 0.25rem;
+    border-radius: 1rem;
     cursor: pointer;
     font-weight: 600;
 }
@@ -428,12 +459,12 @@
 
 .dc-comment-textarea {
     width: 100%;
-    min-height: 50px;
-    padding: 0.35rem 0.4rem;
+    min-height: 44px;
+    padding: 0.3rem 0.5rem;
     font-size: 0.72rem;
     font-family: inherit;
     border: 1px solid #ffb6c1;
-    border-radius: 0.3rem;
+    border-radius: 0.75rem;
     resize: vertical;
     color: var(--color-gray-700);
 }
@@ -469,15 +500,19 @@
 }
 
 .dc-score-save {
+    flex: 1 1 auto;
+    min-width: 0;
     padding: 0.3rem 0.65rem;
     font-size: 0.72rem;
     font-weight: 600;
     background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
     color: white;
     border: none;
-    border-radius: 0.3rem;
+    border-radius: 1rem;
     cursor: pointer;
-    flex: 0 0 auto;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
 }
 
 .dc-score-save:active:not(:disabled) {
