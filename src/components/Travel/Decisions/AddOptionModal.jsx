@@ -1,5 +1,6 @@
 // src/components/Travel/AddOptionModal.jsx
 import React, { useState } from 'react';
+import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './AddOptionModal.css';
@@ -66,7 +67,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
     }
   };
 
-  return (
+  return createPortal(
     <div className="add-option-modal-overlay">
       <div className="add-option-modal-container">
         <div className="aom-header">
@@ -192,7 +193,8 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
           </div>
         </form>
       </div>
-    </div>
+    </div>,
+    document.body
   );
 };
 

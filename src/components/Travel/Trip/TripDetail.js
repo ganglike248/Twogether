@@ -1,5 +1,6 @@
 // src/components/Travel/TripDetail.js
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
@@ -411,7 +412,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             )}
 
             {/* 날짜 선택 모달 */}
-            {showDaySelector && optionForSchedule && (
+            {showDaySelector && optionForSchedule && createPortal(
                 <div className="day-selector-overlay">
                     <div className="day-selector-modal">
                         <div className="dsm-header">
@@ -439,7 +440,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                             취소
                         </button>
                     </div>
-                </div>
+                </div>,
+                document.body
             )}
 
             {showScheduleModal && (
