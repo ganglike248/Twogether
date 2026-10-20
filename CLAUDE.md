@@ -681,6 +681,23 @@ utils/
 `getTravelTimes` (getDocs 일회성) 대신 `subscribeTravelTimes` (onSnapshot) 사용.  
 의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
 
+### 여행 선택 사항 — 링크 자동 추출 (v1.0.13~)
+"새로운 옵션 추가"(`AddOptionModal.jsx`)에만 적용(사용자 결정 — "옵션 수정"엔 자동 추출 없음, 링크 자유 입력/주소 칸만).
+- 링크 칸은 `type="text"` 자유 입력 — `type="url"`이면 공유 문구가 섞일 때 브라우저가 저장 자체를 막았음. 표시/클릭은
+  `appLinkUtils.extractUrl()`로 http(s) 부분만 추출해서 씀(카드·일정 옮기기 모두).
+- 붙여넣기 판별은 `src/utils/sharedTextParser.js` — 네이버지도 공유 문구는 줄 단위(`[네이버지도]`/상호명/주소/링크).
+  붙여넣은 칸만 교체, 나머지·"정보 불러오기" 결과는 **빈 칸만 채움**(사용자 결정).
+- "정보 불러오기" = 콜러블 `fetchLinkPreview`(로직은 `functions/linkPreview.js`로 분리). 사용자 입력 URL을 서버가
+  fetch하므로 SSRF 방어(커스텀 `lookup`으로 연결 시점 IP 검사 → DNS rebinding 포함, 리다이렉트 수동 추적+hop마다
+  재검사, 포트 80/443만, 타임아웃/크기 상한)를 **절대 빼지 말 것**.
+- 네이버지도는 `map.naver.com` 페이지에 공통 지도 OG 이미지밖에 없음 → 장소 ID(경로 `/place/{id}` 또는 모바일 UA
+  리다이렉트의 `appLink.naver?pinId=`)를 꺼내 `m.place.naver.com/place/{id}/home`을 열고 `window.__APOLLO_STATE__`
+  (`PlaceDetailBase:{id}` + `ROOT_QUERY.placeDetail(...).newBusinessHours`/`description`)에서 주소·영업시간·전화 등을
+  읽음. **공식 API가 아니라 네이버 구조 변경 시 깨질 수 있음** — 실패하면 OG 결과로 폴백하도록 돼 있음.
+- 이 함수는 웹(Hosting) 배포만으론 반영 안 됨 — `npx firebase-tools deploy --only functions:fetchLinkPreview` 필요.
+- 후보에 `address` 필드 추가 → 일정에 추가 시 `location`으로, 순수 숫자 `price` → `cost`로 옮김(`TripDetail.js`의
+  `handleDaySelected`). 카드의 긴 설명(3줄)/링크(2줄)는 공용 `common/ClampText.jsx`(넘칠 때만 펼치기 아이콘).
+
 ### 생리주기 기능 제거 (2026-10-02)
 Google Play "건강 앱 선언" 정책 반려(선언한 '생리 추적' 기능을 심사자가 확인하지 못함 — 기본 꺼짐 + 스토어
 설명에 미기재)를 계기로 기능 자체를 제거함. 삭제: `cycleService.js`, `CycleSettingsModal.jsx/.css`, 캘린더의

@@ -120,6 +120,17 @@ const getYoutubeVideoId = (url) => {
 };
 
 /**
+ * 자유 텍스트에서 첫 번째 http(s) 링크만 추출 (없으면 null)
+ * 링크 칸을 자유 입력으로 바꿔서 "[여기어때] 호텔명 … https://..." 같은 공유 문구가 통째로 저장될 수
+ * 있으므로, 표시/클릭 시점에 이 함수로 실제 링크를 골라냄. 끝에 붙은 문장부호/괄호는 잘라냄.
+ */
+export const extractUrl = (text) => {
+  if (!text) return null;
+  const match = String(text).match(/https?:\/\/[^\s<>"'`]+/i);
+  return match ? match[0].replace(/[),.\]}>]+$/, '') : null;
+};
+
+/**
  * 링크 클릭 핸들러
  */
 export const handleOpenLink = (e, url) => {

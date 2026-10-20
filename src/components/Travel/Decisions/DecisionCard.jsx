@@ -2,11 +2,12 @@
 import React, { useState, useRef } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, updateOption, decideOption, toggleFavorite } from '../../../services/travelDecisionService';
-import { handleOpenLink } from '../../../utils/appLinkUtils';
+import { handleOpenLink, extractUrl } from '../../../utils/appLinkUtils';
 import { formatPriceDisplay } from '../../../utils/numberFormat';
 import EditOptionModal from './EditOptionModal';
 import ConfirmModal from '../../common/ConfirmModal';
-import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar, MdFavorite } from 'react-icons/md';
+import ClampText from '../../common/ClampText';
+import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar, MdFavorite, MdPlace } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionCard.css';
 
@@ -20,6 +21,9 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
   const [deciding, setDeciding] = useState(false);
   const [confirmAction, setConfirmAction] = useState(null); // 'decide' | 'delete' | null
   const imageScrollRef = useRef(null);
+
+  // 링크 칸은 자유 입력이라 공유 문구가 통째로 저장돼 있을 수 있음 — 실제 이동은 추출한 링크로
+  const linkUrl = extractUrl(option.url);
 
   const myScore = getUserScore(option, currentUserId);
   const myComment = getUserComment(option, currentUserId);
@@ -231,20 +235,36 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
         </div>
       </div>
 
-      {/* 설명 */}
-      {option.description && (
-        <p className="dc-description">{option.description}</p>
-      )}
+      {/* 상세 정보: 주소 + 설명 + 링크 */}
+      {(option.address || option.description || option.url) && (
+        <div className="dc-details">
+          {option.address && (
+            <p className="dc-address">
+              <MdPlace size={13} />
+              <span>{option.address}</span>
+            </p>
+          )}
 
-      {/* URL 링크 */}
-      {option.url && (
-        <button
-          onClick={(e) => handleOpenLink(e, option.url)}
-          className="dc-url-link"
-          title="링크 열기 (해당 앱으로 이동)"
-        >
-          {option.url}
-        </button>
+          {option.description && (
+            <ClampText lines={3} className="dc-description">{option.description}</ClampText>
+          )}
+
+          {/* 링크는 <a>로 — <button>은 브라우저에 따라 줄 수 제한(line-clamp)이 안 먹음 */}
+          {option.url && (linkUrl ? (
+            <ClampText
+              as="a"
+              lines={2}
+              href={linkUrl}
+              onClick={(e) => handleOpenLink(e, linkUrl)}
+              className="dc-url-link"
+              title="링크 열기 (해당 앱으로 이동)"
+            >
+              {option.url}
+            </ClampText>
+          ) : (
+            <ClampText lines={2} className="dc-url-text">{option.url}</ClampText>
+          ))}
+        </div>
       )}
 
       {/* 점수 표시 + 의견 */}
@@ -313,10 +333,6 @@ const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
 
       {/* 평가 섹션 */}
       <div className="dc-score-section">
-        {!myScore && !isScoring && boyfriendScore === 0 && girlfriendScore === 0 && (
-          <p className="dc-score-hint">아직 아무도 평가하지 않았어요. 먼저 평가해볼까요?</p>
-        )}
-
         {((!myScore && !isScoring) || decision.status !== 'decided') && (
           <div className="dc-score-action-row">
             {!myScore && !isScoring && (

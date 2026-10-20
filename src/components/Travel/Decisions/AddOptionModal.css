@@ -280,3 +280,32 @@
         width: 100%;
     }
 }
+
+/* 링크 → 정보 불러오기 */
+.aom-fetch-btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 0.35rem;
+    align-self: flex-start;
+    padding: 0.5rem 0.85rem;
+    border: 1px solid #ffb6c1;
+    border-radius: 999px;
+    background: white;
+    color: var(--color-primary);
+    font-size: 0.85rem;
+    font-weight: 600;
+    font-family: inherit;
+    cursor: pointer;
+    transition: all 0.15s;
+}
+
+.aom-fetch-btn:hover:not(:disabled) {
+    background: rgba(255, 182, 193, 0.1);
+}
+
+.aom-fetch-btn:disabled {
+    border-color: var(--card-border);
+    color: var(--color-gray-400);
+    cursor: not-allowed;
+}

@@ -724,3 +724,25 @@ exports.sendEveningReminders = functions.pubsub
       console.error('[sendEveningReminders] Error:', error);
     }
   });
+
+// ✅ 링크 미리보기 — 여행 '선택 사항' 후보 추가 모달의 "정보 불러오기"
+// 서버가 사용자 입력 URL을 대신 fetch하므로 SSRF 방어/타임아웃/크기 제한은 linkPreview.js 참고
+const { fetchLinkPreview, BlockedTargetError } = require('./linkPreview');
+
+exports.fetchLinkPreview = functions
+  .runWith({ timeoutSeconds: 20, memory: '256MB' })
+  .https.onCall(async (data, context) => {
+    if (!context.auth) {
+      throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+    }
+    try {
+      return await fetchLinkPreview(data?.url);
+    } catch (error) {
+      if (error instanceof BlockedTargetError) {
+        console.warn(`[fetchLinkPreview] 차단: uid=${context.auth.uid} reason=${error.message}`);
+        throw new functions.https.HttpsError('invalid-argument', '불러올 수 없는 링크예요. 직접 입력해주세요.');
+      }
+      console.warn(`[fetchLinkPreview] 실패: ${error.message}`);
+      throw new functions.https.HttpsError('unavailable', '링크 정보를 불러오지 못했어요. 직접 입력해주세요.');
+    }
+  });

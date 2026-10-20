@@ -13,6 +13,8 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { mutateTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
+import { normalizeIfPureNumber } from '../../../utils/numberFormat';
+import { extractUrl } from '../../../utils/appLinkUtils';
 import ScheduleItem from '../Schedule/ScheduleItem';
 import ScheduleModal from '../Schedule/ScheduleModal';
 import TravelTimeInput from '../Schedule/TravelTimeInput';
@@ -142,12 +144,16 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         setActiveDay(day);
         setShowDaySelector(false);
 
-        // 선택한 옵션 정보를 일정 모달에 pre-fill
+        // 선택한 옵션 정보를 일정 모달에 pre-fill — 후보 칸을 일정의 같은 의미 칸으로 그대로 옮김
+        // (예전엔 설명에 `[제목]`을 또 붙여서 제목이 두 번 들어갔음). 링크는 일정에 별도 칸이 없어 설명 끝에 둠.
+        const { title, description, url, address, price } = optionForSchedule;
+        const priceNumber = normalizeIfPureNumber(price);
         const scheduleData = {
-            title: optionForSchedule.title || '',
-            description: `[${optionForSchedule.title || ''}]\n${optionForSchedule.description || ''}${optionForSchedule.url ? '\n' + optionForSchedule.url : ''}`.trim(),
-            location: '',
-            cost: '',
+            title: title || '',
+            description: [description, extractUrl(url) || url].map(v => (v || '').trim()).filter(Boolean).join('\n'),
+            location: address || '',
+            // 가격이 순수 숫자일 때만 비용으로(자유 텍스트로 저장된 예전 값은 일정 비용 칸 검증에 걸림)
+            cost: /^\d+$/.test(priceNumber) ? priceNumber : '',
             time: '',
             endTime: '',
         };

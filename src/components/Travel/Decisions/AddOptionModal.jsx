@@ -1,26 +1,79 @@
 // src/components/Travel/AddOptionModal.jsx
 import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
-import { MdClose } from 'react-icons/md';
+import { MdClose, MdAutoFixHigh } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import { formatInputNumber, normalizeIfPureNumber } from '../../../utils/numberFormat';
+import { extractUrl } from '../../../utils/appLinkUtils';
+import { parseSharedText } from '../../../utils/sharedTextParser';
+import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
+import { fetchLinkPreview } from '../../../services/linkPreviewService';
 import './AddOptionModal.css';
 
-const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
-  const [formData, setFormData] = useState({
-    title: '',
-    url: '',
-    description: '',
-    price: '',
-    images: [],
+const EMPTY_FORM = { title: '', url: '', address: '', description: '', price: '', images: [] };
+
+// 비어 있는 칸만 채움 — 사용자가 이미 적은 내용은 덮어쓰지 않음(사용자 결정)
+const fillEmpty = (prev, values, overwriteField = null) => {
+  const next = { ...prev };
+  Object.entries(values).forEach(([field, value]) => {
+    if (!value) return;
+    if (field === overwriteField || !prev[field].trim()) next[field] = value;
   });
+  return next;
+};
+
+const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
+  const [formData, setFormData] = useState(EMPTY_FORM);
   const [imageInput, setImageInput] = useState('');
+  const [fetchingPreview, setFetchingPreview] = useState(false);
 
   if (!isOpen) return null;
 
   const handleChange = (field, value) => {
     const processedValue = field === 'price' ? formatInputNumber(value) : value;
     setFormData(prev => ({ ...prev, [field]: processedValue }));
+  };
+
+  // 링크/제목 칸 붙여넣기: 공유 문구면 제목/주소/링크로 나눠서 채움
+  // 붙여넣은 칸 자체는 그 값으로 교체하고, 나머지 칸은 비어 있을 때만 채움
+  const handleSharedPaste = (field) => (e) => {
+    const parsed = parseSharedText(e.clipboardData?.getData('text'));
+    if (!parsed) return; // 알아볼 수 없는 텍스트 → 기본 붙여넣기
+    e.preventDefault();
+    setFormData(prev => fillEmpty(prev, parsed, field));
+  };
+
+  const pastedUrl = extractUrl(formData.url);
+
+  const handleFetchPreview = async () => {
+    if (!pastedUrl || fetchingPreview) return;
+    setFetchingPreview(true);
+    try {
+      const preview = await fetchLinkPreview(pastedUrl);
+      const applyPreview = (prev) => {
+        const next = fillEmpty(prev, {
+          title: preview.title,
+          address: preview.address,
+          description: preview.description,
+        });
+        if (preview.imageUrl && !prev.images.includes(preview.imageUrl)) {
+          next.images = [...prev.images, preview.imageUrl];
+        }
+        return next;
+      };
+      // 안내 문구용 판단은 응답 시점 폼 기준(업데이트 함수 안의 값은 렌더 전까지 계산되지 않음)
+      const expected = applyPreview(formData);
+      const changed = ['title', 'address', 'description'].some(f => expected[f] !== formData[f])
+        || expected.images.length !== formData.images.length;
+      setFormData(applyPreview);
+      if (changed) toast.success('링크 정보를 불러왔어요.');
+      else toast.info('비어 있는 칸이 없어서 바뀐 내용이 없어요.');
+    } catch (error) {
+      console.error('Error fetching link preview:', error);
+      toast.error(getFriendlyErrorMessage(error, '링크 정보를 불러오지 못했어요. 직접 입력해주세요.'));
+    } finally {
+      setFetchingPreview(false);
+    }
   };
 
   const handleAddImage = () => {
@@ -53,6 +106,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
         id: `opt_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`,
         title: formData.title.trim(),
         url: formData.url.trim() || '',
+        address: formData.address.trim() || '',
         description: formData.description.trim() || '',
         price: normalizeIfPureNumber(formData.price),
         images: formData.images,
@@ -60,7 +114,7 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
         totalScore: 0,
       });
 
-      setFormData({ title: '', url: '', description: '', price: '', images: [] });
+      setFormData(EMPTY_FORM);
       setImageInput('');
       onClose();
     } catch (error) {
@@ -87,19 +141,46 @@ const AddOptionModal = ({ isOpen, onClose, onSave, loading }) => {
               type="text"
               value={formData.title}
               onChange={(e) => handleChange('title', e.target.value)}
+              onPaste={handleSharedPaste('title')}
               placeholder="예: 더 클래식 명동"
               className="aom-input"
             />
           </div>
 
-          {/* URL */}
+          {/* 링크 — 자유 입력(공유 문구가 섞여도 저장 가능), 표시/클릭 시 http(s) 부분만 추출 */}
           <div className="aom-form-group">
-            <label className="aom-label">URL</label>
+            <label className="aom-label">
+              링크
+              <span className="aom-label-hint">공유 링크나 공유 문구를 그대로 붙여넣으세요</span>
+            </label>
             <input
-              type="url"
+              type="text"
+              inputMode="url"
               value={formData.url}
               onChange={(e) => handleChange('url', e.target.value)}
-              placeholder="https://example.com"
+              onPaste={handleSharedPaste('url')}
+              placeholder="https://naver.me/..."
+              className="aom-input"
+            />
+            <button
+              type="button"
+              className="aom-fetch-btn"
+              onClick={handleFetchPreview}
+              disabled={!pastedUrl || fetchingPreview || loading}
+            >
+              <MdAutoFixHigh size={16} />
+              {fetchingPreview ? '불러오는 중...' : '정보 불러오기'}
+            </button>
+          </div>
+
+          {/* 주소 — 일정에 추가할 때 '위치'로 옮겨짐 */}
+          <div className="aom-form-group">
+            <label className="aom-label">주소</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+              placeholder="예: 서울 중구 명동길 14"
               className="aom-input"
             />
           </div>

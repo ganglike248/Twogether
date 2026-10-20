@@ -10,6 +10,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
   const [formData, setFormData] = useState({
     title: option.title || '',
     url: option.url || '',
+    address: option.address || '',
     description: option.description || '',
     price: option.price || '',
     images: option.images || [],
@@ -54,6 +55,7 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
       await onSave({
         title: formData.title.trim(),
         url: formData.url.trim() || '',
+        address: formData.address.trim() || '',
         description: formData.description.trim() || '',
         price: normalizeIfPureNumber(formData.price),
         images: formData.images,
@@ -86,14 +88,27 @@ const EditOptionModal = ({ isOpen, onClose, option, onSave }) => {
             />
           </div>
 
-          {/* URL */}
+          {/* 링크 — 자유 입력(type="url"이면 주소 외 텍스트가 섞일 때 브라우저가 저장을 막음) */}
           <div className="eom-form-group">
-            <label className="eom-label">URL</label>
+            <label className="eom-label">링크</label>
             <input
-              type="url"
+              type="text"
+              inputMode="url"
               value={formData.url}
               onChange={(e) => handleChange('url', e.target.value)}
-              placeholder="https://example.com"
+              placeholder="https://naver.me/..."
+              className="eom-input"
+            />
+          </div>
+
+          {/* 주소 — 일정에 추가할 때 '위치'로 옮겨짐 */}
+          <div className="eom-form-group">
+            <label className="eom-label">주소</label>
+            <input
+              type="text"
+              value={formData.address}
+              onChange={(e) => handleChange('address', e.target.value)}
+              placeholder="예: 서울 중구 명동길 14"
               className="eom-input"
             />
           </div>

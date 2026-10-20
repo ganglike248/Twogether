@@ -3,7 +3,8 @@
 .decision-card {
     display: flex;
     flex-direction: column;
-    gap: 0.35rem;
+    /* 묶음(이미지 / 헤더 / 상세 / 점수 / 평가) 사이 간격 — 묶음 안쪽은 각자 더 촘촘하게 */
+    gap: 0.6rem;
     background: #fdf5f7;
     border: 1px solid #ffd9d9;
     border-radius: var(--border-radius-lg);
@@ -19,7 +20,7 @@
 .dc-images-container {
     position: relative;
     width: calc(100% + 1.3rem);
-    margin: -0.6rem -0.65rem 0.35rem -0.65rem;
+    margin: -0.6rem -0.65rem 0 -0.65rem;
     border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
     overflow: hidden;
     background: var(--main-bg);
@@ -188,10 +189,33 @@
     opacity: 0.65;
 }
 
+/* ===== 상세 정보 묶음: 주소 + 설명 + 링크 ===== */
+.dc-details {
+    display: flex;
+    flex-direction: column;
+    gap: 0.3rem;
+}
+
+.dc-address {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.2rem;
+    margin: 0;
+    font-size: 0.75rem;
+    color: var(--color-gray-700);
+    line-height: 1.4;
+}
+
+.dc-address svg {
+    flex-shrink: 0;
+    margin-top: 0.1rem;
+    color: var(--color-primary);
+}
+
 /* ===== 설명 ===== */
 .dc-description {
     font-size: 0.75rem;
-    color: var(--color-gray-500);
+    color: var(--color-gray-700);
     margin: 0;
     white-space: pre-line;
     line-height: 1.45;
@@ -201,6 +225,7 @@
 .dc-url-link {
     font-size: 0.72rem;
     color: #3498db;
+    text-decoration: none;
     word-break: break-all;
     display: block;
     background: rgba(52, 152, 219, 0.06);
@@ -214,6 +239,14 @@
 
 .dc-url-link:active {
     opacity: 0.7;
+}
+
+/* 링크 칸에 http(s) 주소가 없는 자유 텍스트만 있을 때 — 누를 수 없는 일반 글 */
+.dc-url-text {
+    font-size: 0.72rem;
+    color: var(--color-gray-600);
+    word-break: break-all;
+    margin: 0;
 }
 
 /* ===== 점수 표시 ===== */
@@ -246,8 +279,9 @@
     white-space: nowrap;
 }
 
-/* 총점 미니 바: 후보 간 한눈에 비교 */
+/* 총점 미니 바: 후보 간 한눈에 비교 — 바로 위 점수 표시와 한 묶음으로 보이도록 카드 gap을 상쇄 */
 .dc-total-bar-track {
+    margin-top: -0.3rem;
     height: 5px;
     border-radius: 999px;
     background: rgba(255, 182, 193, 0.18);
@@ -290,13 +324,6 @@
     flex-direction: column;
     gap: 0.35rem;
     padding-top: 0.35rem;
-}
-
-.dc-score-hint {
-    margin: 0;
-    font-size: 0.7rem;
-    color: var(--color-gray-400);
-    text-align: center;
 }
 
 .dc-score-action-row {
