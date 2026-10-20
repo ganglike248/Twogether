@@ -33,49 +33,44 @@ const TravelTimeInput = ({ fromScheduleId, toScheduleId, initialTravelTime, onSa
         setTravelTime('');
     };
 
+    // 타임라인 선 위에 놓이는 이동 구간 — 자동차 동그라미가 선을 가리고 옆에 시간만 적음
     return (
-        <div className="travel-time-container">
-            <div className="travel-time-line"></div>
-
+        <div className="tl-travel">
             {isEditing ? (
-                <div className="travel-time-edit">
-                    <input
-                        type="text"
-                        value={tempTime}
-                        onChange={(e) => setTempTime(e.target.value)}
-                        placeholder="예: 30분, 1시간"
-                        className="travel-time-input"
-                        autoFocus
-                    />
-                    <div className="travel-time-actions">
-                        <button onClick={handleSave} className="travel-time-save-btn">
-                            저장
-                        </button>
-                        <button onClick={handleCancel} className="travel-time-cancel-btn">
-                            취소
-                        </button>
+                <>
+                    <span className="tl-travel-icon" aria-hidden="true"><MdDirectionsCar /></span>
+                    <div className="tl-travel-edit">
+                        <input
+                            type="text"
+                            value={tempTime}
+                            onChange={(e) => setTempTime(e.target.value)}
+                            placeholder="예: 30분, 1시간"
+                            className="tl-travel-input"
+                            aria-label="이동 시간"
+                            autoFocus
+                        />
+                        <button onClick={handleSave} className="tl-travel-save">저장</button>
+                        <button onClick={handleCancel} className="tl-travel-cancel">취소</button>
                     </div>
-                </div>
+                </>
             ) : travelTime ? (
-                <div className="travel-time-display" onClick={handleStartEdit}>
-                    <MdDirectionsCar className="travel-time-icon" color="#4dabf7" />
-                    <span className="travel-time-text">{travelTime}</span>
-                    <button
-                        onClick={(e) => {
-                            e.stopPropagation();
-                            handleDelete();
-                        }}
-                        className="travel-time-delete-travel-time-btn"
-                    >
-                        ×
+                <>
+                    <button className="tl-travel-icon" onClick={handleStartEdit} aria-label="이동 시간 수정">
+                        <MdDirectionsCar />
                     </button>
-                </div>
+                    <span className="tl-travel-display">
+                        <button className="tl-travel-text" onClick={handleStartEdit}>{travelTime}</button>
+                        <button className="tl-travel-delete" onClick={handleDelete} aria-label="이동 시간 삭제">×</button>
+                    </span>
+                </>
             ) : (
-                <button className="travel-time-add-travel-time-btn" onClick={handleStartEdit}>
-                    + 이동 시간 입력
-                </button>
+                <>
+                    <button className="tl-travel-icon add" onClick={handleStartEdit} aria-label="이동 시간 추가">＋</button>
+                    <span className="tl-travel-display">
+                        <button className="tl-travel-text add" onClick={handleStartEdit}>이동 시간</button>
+                    </span>
+                </>
             )}
-            <div className="travel-time-line"></div>
         </div>
     );
 };

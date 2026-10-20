@@ -1,5 +1,6 @@
-// src/components/Travel/TravelChecklistTab.jsx
-import React, { useState, useEffect, forwardRef, useImperativeHandle } from 'react';
+// src/components/Travel/Checklist/TravelChecklistTab.jsx
+// 여행 체크리스트 탭 — 진행률 링 카드 → 남은 준비(항목별 카드, 중요도순) → 준비 완료(한 카드, 접힘)
+import React, { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import {
@@ -10,15 +11,21 @@ import {
   toggleChecklistItem,
   calculateProgress,
 } from '../../../services/travelChecklistService';
-import ChecklistItem from './ChecklistItem';
+import ChecklistItem, { CompletedChecklistRow } from './ChecklistItem';
+import ProgressRing from './ProgressRing';
+import { getMembers } from '../Decisions/optionScoreUtils';
 import ChecklistModal from './ChecklistModal';
 import ConfirmModal from '../../common/ConfirmModal';
-import { MdCheckCircle } from 'react-icons/md';
+import { MdChecklist } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './TravelChecklistTab.css';
 
+const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
+const COMPLETED_PREVIEW = 2; // 준비 완료는 처음엔 2개만 보이고 "N개 더 보기"로 펼침
+
 const TravelChecklistTab = forwardRef(({ trip }, ref) => {
-  const { user } = useAuthContext();
+  const { user, coupleDoc, getMemberName } = useAuthContext();
+  const [showAllCompleted, setShowAllCompleted] = useState(false);
   const { checklist, loading } = useTravelChecklist(trip.id);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
@@ -115,53 +122,26 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
 
   const items = checklist?.items || [];
   const progress = calculateProgress(items);
-  const completedCount = items.filter(item => item.completed).length;
 
   return (
     <div className="travel-checklist-tab">
-      {/* 진행률 */}
-      <div className="tct-progress-section">
-        <div className="tct-progress-header">
-          <span className="tct-progress-label">준비 진행도</span>
-          <span className="tct-progress-percent">{progress}%</span>
-        </div>
-        <div className="tct-progress-bar">
-          <div
-            className="tct-progress-fill"
-            style={{
-              width: `${progress}%`,
-              background: progress === 100
-                ? 'linear-gradient(90deg, #c8edc8, #b0e0b0)'
-                : 'linear-gradient(90deg, #ffe8ef, #ffd6e2)',
-            }}
-          />
-        </div>
-        <div className="tct-progress-text">
-          <span>{completedCount} / {items.length}개 완료</span>
-        </div>
-      </div>
-
-      {/* 항목 리스트 */}
       {items.length === 0 ? (
         <div className="tct-empty">
-          <div className="tct-empty-icon">
-            <MdCheckCircle size={40} />
-          </div>
-          <p className="tct-empty-title">모든 준비가 완료되었습니다!</p>
-          <p className="tct-empty-text">필요한 항목을 추가해보세요.</p>
+          <div className="tct-empty-icon"><MdChecklist /></div>
+          <p className="tct-empty-title">아직 준비 항목이 없어요</p>
+          <p className="tct-empty-text">＋ 버튼으로 챙길 것들을 추가해보세요.</p>
         </div>
       ) : (
-        <div className="tct-items-list">
-          {items.map(item => (
-            <ChecklistItem
-              key={item.id}
-              item={item}
-              onToggle={() => handleToggle(item.id)}
-              onEdit={handleEditItem}
-              onDelete={() => handleDelete(item.id)}
-            />
-          ))}
-        </div>
+        <ChecklistContent
+          items={items}
+          progress={progress}
+          members={getMembers(coupleDoc, getMemberName)}
+          showAllCompleted={showAllCompleted}
+          onToggleShowAll={() => setShowAllCompleted(v => !v)}
+          onToggle={handleToggle}
+          onEdit={handleEditItem}
+          onDelete={handleDelete}
+        />
       )}
 
       {/* 모달 */}
@@ -190,5 +170,86 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
 });
 
 TravelChecklistTab.displayName = 'TravelChecklistTab';
+
+const ChecklistContent = ({ items, progress, members, showAllCompleted, onToggleShowAll, onToggle, onEdit, onDelete }) => {
+  const { remaining, completed } = useMemo(() => {
+    const indexed = items.map((item, index) => ({ item, index }));
+    return {
+      // 남은 준비: 중요도 높은 순, 같으면 추가한 순서
+      remaining: indexed
+        .filter(({ item }) => !item.completed)
+        .sort((a, b) =>
+          (PRIORITY_ORDER[a.item.priority] ?? 1) - (PRIORITY_ORDER[b.item.priority] ?? 1) || a.index - b.index)
+        .map(({ item }) => item),
+      // 준비 완료: 최근에 완료한 순
+      completed: indexed
+        .filter(({ item }) => item.completed)
+        .sort((a, b) => (b.item.completedAt || 0) - (a.item.completedAt || 0))
+        .map(({ item }) => item),
+    };
+  }, [items]);
+
+  const highRemaining = remaining.filter(item => item.priority === 'high').length;
+  const summarySub = remaining.length === 0
+    ? '모든 준비를 마쳤어요!'
+    : highRemaining > 0
+      ? `중요한 준비 ${highRemaining}개가 남았어요`
+      : `남은 준비 ${remaining.length}개`;
+
+  const memberName = (uid) => members.find(m => m.uid === uid)?.name;
+  const visibleCompleted = showAllCompleted ? completed : completed.slice(0, COMPLETED_PREVIEW);
+  const hiddenCount = completed.length - COMPLETED_PREVIEW;
+
+  return (
+    <>
+      <div className="tct-summary">
+        <ProgressRing percent={progress} />
+        <div className="tct-summary-text">
+          <span className="tct-summary-title">{items.length}개 중 {completed.length}개 준비 완료</span>
+          <span className="tct-summary-sub">{summarySub}</span>
+        </div>
+      </div>
+
+      {remaining.length > 0 && (
+        <>
+          <span className="tct-label">남은 준비 {remaining.length}</span>
+          <div className="tct-remaining">
+            {remaining.map(item => (
+              <ChecklistItem
+                key={item.id}
+                item={item}
+                onToggle={() => onToggle(item.id)}
+                onEdit={onEdit}
+                onDelete={() => onDelete(item.id)}
+              />
+            ))}
+          </div>
+        </>
+      )}
+
+      {completed.length > 0 && (
+        <>
+          <span className="tct-label done">준비 완료 {completed.length}</span>
+          <div className="tct-completed">
+            {visibleCompleted.map(item => (
+              <CompletedChecklistRow
+                key={item.id}
+                item={item}
+                completerName={memberName(item.completedBy)}
+                onToggle={() => onToggle(item.id)}
+                onDelete={() => onDelete(item.id)}
+              />
+            ))}
+            {hiddenCount > 0 && (
+              <button className="tct-more" onClick={onToggleShowAll}>
+                {showAllCompleted ? '접기 ▴' : `${hiddenCount}개 더 보기 ▾`}
+              </button>
+            )}
+          </div>
+        </>
+      )}
+    </>
+  );
+};
 
 export default TravelChecklistTab;

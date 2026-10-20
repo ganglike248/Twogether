@@ -5,19 +5,18 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format, differenceInDays, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
-import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiCurrencyDollar, HiDocumentText } from 'react-icons/hi2';
-import { MdDateRange } from 'react-icons/md';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { mutateTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
-import { formatDate, convertToDate } from '../../../utils/dataUtils';
+import { convertToDate } from '../../../utils/dataUtils';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
 import { extractUrl } from '../../../utils/appLinkUtils';
-import ScheduleItem from '../Schedule/ScheduleItem';
 import ScheduleModal from '../Schedule/ScheduleModal';
-import TravelTimeInput from '../Schedule/TravelTimeInput';
+import ScheduleTimeline from '../Schedule/ScheduleTimeline';
+import DayTabs from '../Schedule/DayTabs';
+import TripDetailHeader from './TripDetailHeader';
 import TravelDecisionsTab from '../Decisions/TravelDecisionsTab';
 import TravelChecklistTab from '../Checklist/TravelChecklistTab';
 import FloatingActionMenu from '../FloatingActionMenu';
@@ -206,198 +205,71 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         checklistTabRef.current?.showChecklistModal?.();
     };
 
-    const statusMap = {
-        planning: { text: '계획중', cls: 'status-planning' },
-        confirmed: { text: '확정', cls: 'status-confirmed' },
-        ongoing: { text: '진행중', cls: 'status-ongoing' },
-        completed: { text: '완료', cls: 'status-completed' }
-    };
-    const status = statusMap[trip.status] || statusMap.planning;
-
     const currentDaySchedules = (daySchedules[activeDay] || [])
         .sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             return (a.time || '00:00').localeCompare(b.time || '00:00');
         });
 
-    const budgetPercent = totalBudget > 0 ? Math.min((usedBudget / totalBudget) * 100, 100) : 0;
-    const isOverBudget = usedBudget > totalBudget && totalBudget > 0;
-
     return (
         <div className="trip-detail-container">
 
-            {/* 헤더 */}
-            <div className="trip-detail-header">
-                <button className="td-back-btn" onClick={onBack}>
-                    <HiArrowLeft />
-                </button>
-                <h1 className="td-title">{trip.title}</h1>
-                <div className="td-actions">
-                    {onEdit && (
-                        <button className="td-action-btn edit" onClick={() => onEdit(trip)}>
-                            <HiPencil />
-                        </button>
-                    )}
-                    {onDelete && (
-                        <button className="td-action-btn delete" onClick={() => onDelete(trip.id)}>
-                            <HiTrash />
-                        </button>
-                    )}
-                </div>
-            </div>
-
-            {/* 여행 정보 카드 */}
-            <div className="trip-info-card">
-                <div className="trip-info-top">
-                    <span className={`td-status-chip ${status.cls}`}>{status.text}</span>
-                    <span className="trip-info-duration">{tripDays}일간의 여행</span>
-                </div>
-                <div className="trip-info-row">
-                    <div className="trip-info-icon-wrap">
-                        <HiCalendarDays />
-                    </div>
-                    <div className="trip-info-content">
-                        <span className="trip-info-label">여행 기간</span>
-                        <span className="trip-info-value">
-                            {formatDate(trip.startDate)} ~ {formatDate(trip.endDate)}
-                        </span>
-                    </div>
-                </div>
-                {trip.destination && (
-                    <div className="trip-info-row">
-                        <div className="trip-info-icon-wrap">
-                            <HiMapPin />
-                        </div>
-                        <div className="trip-info-content">
-                            <span className="trip-info-label">여행지</span>
-                            <span className="trip-info-value">{trip.destination}</span>
-                        </div>
-                    </div>
-                )}
-                {totalBudget > 0 && (
-                    <div className="trip-info-row">
-                        <div className="trip-info-icon-wrap">
-                            <HiCurrencyDollar />
-                        </div>
-                        <div className="trip-info-content">
-                            <span className="trip-info-label">예산</span>
-                            <span className="trip-info-value">
-                                {usedBudget.toLocaleString()} / {totalBudget.toLocaleString()}원
-                                {isOverBudget && <span className="chip-over"> 초과!</span>}
-                            </span>
-                            <div className="td-budget-bar" style={{ marginTop: '0.375rem' }}>
-                                <div
-                                    className="td-budget-progress"
-                                    style={{
-                                        width: `${budgetPercent}%`,
-                                        background: isOverBudget
-                                            ? 'linear-gradient(90deg, #ff6b6b, #ff4444)'
-                                            : 'linear-gradient(90deg, #ffb6c1, #ff9bac)'
-                                    }}
-                                />
-                            </div>
-                        </div>
-                    </div>
-                )}
-                {trip.description && (
-                    <div className="trip-info-row">
-                        <div className="trip-info-icon-wrap">
-                            <HiDocumentText />
-                        </div>
-                        <div className="trip-info-content">
-                            <span className="trip-info-label">메모</span>
-                            <span className="trip-info-value trip-description-text">{trip.description}</span>
-                        </div>
-                    </div>
-                )}
-            </div>
+            {/* 헤더 + 여행 정보 카드 */}
+            <TripDetailHeader
+                trip={trip}
+                tripDays={tripDays}
+                usedBudget={usedBudget}
+                totalBudget={totalBudget}
+                onBack={onBack}
+                onEdit={onEdit}
+                onDelete={onDelete}
+            />
 
             {/* 탭 */}
-            <div className="trip-detail-main-tabs">
+            <div className="td-tabs">
                 <button
-                    className={`td-main-tab ${activeTab === 'schedule' ? 'active' : ''}`}
+                    className={`td-tab ${activeTab === 'schedule' ? 'active' : ''}`}
                     onClick={() => setActiveTab('schedule')}
                 >
                     Day별 일정
                 </button>
                 <button
-                    className={`td-main-tab ${activeTab === 'decisions' ? 'active' : ''}`}
+                    className={`td-tab ${activeTab === 'decisions' ? 'active' : ''}`}
                     onClick={() => setActiveTab('decisions')}
                 >
-                    <span>선택 사항</span>
-                    {unscorredCount > 0 && <span className="td-main-tab-badge">{unscorredCount}</span>}
+                    선택 사항
+                    {unscorredCount > 0 && <span className="td-tab-badge">{unscorredCount}</span>}
                 </button>
                 <button
-                    className={`td-main-tab ${activeTab === 'checklist' ? 'active' : ''}`}
+                    className={`td-tab ${activeTab === 'checklist' ? 'active' : ''}`}
                     onClick={() => setActiveTab('checklist')}
                 >
-                    준비 체크리스트
+                    체크리스트
                 </button>
             </div>
 
             {/* Day별 일정 탭 */}
             {activeTab === 'schedule' && (
                 <>
-                    {/* Day 탭 */}
-                    <div className="trip-detail-day-tabs">
-                        {Array.from({ length: tripDays }, (_, i) => i + 1).map(day => (
-                            <button
-                                key={day}
-                                className={`td-day-tab ${activeDay === day ? 'active' : ''}`}
-                                onClick={() => setActiveDay(day)}
-                            >
-                                <span className="td-day-num">Day {day}</span>
-                                <span className="td-day-date">{getDayDate(day)}</span>
-                            </button>
-                        ))}
-                    </div>
-
-                    {/* 일정 영역 */}
-                    <div className="trip-detail-schedule-section">
-                <div className="td-schedule-header">
-                    <span className="td-schedule-title">Day {activeDay} 일정</span>
-                </div>
-
-                {loading ? (
-                    <div className="td-loading">
-                        <div className="td-spinner" />
-                        <p>불러오는 중...</p>
-                    </div>
-                ) : currentDaySchedules.length === 0 ? (
-                    <div className="td-empty">
-                        <div className="td-empty-icon"><MdDateRange size={48} color="#4dabf7" /></div>
-                        <p className="td-empty-text">일정이 없어요</p>
-                        <button className="td-empty-add-btn" onClick={openScheduleModal}>
-                            첫 일정 추가하기
-                        </button>
-                    </div>
-                ) : (
-                    <div className="td-schedule-list">
-                        {currentDaySchedules.map((schedule, index) => (
-                            <React.Fragment key={schedule.id}>
-                                <ScheduleItem
-                                    schedule={schedule}
-                                    onEdit={s => { setSelectedSchedule(s); openScheduleModal(); }}
-                                    onToggleComplete={handleToggleCompletion}
-                                />
-                                {index < currentDaySchedules.length - 1 && (
-                                    <TravelTimeInput
-                                        fromScheduleId={schedule.id}
-                                        toScheduleId={currentDaySchedules[index + 1].id}
-                                        initialTravelTime={
-                                            travelTimes[activeDay]?.[`${schedule.id}-${currentDaySchedules[index + 1].id}`] || ''
-                                        }
-                                        onSave={handleSaveTravelTime}
-                                    />
-                                )}
-                            </React.Fragment>
-                        ))}
-                    </div>
-                )}
-                    </div>
+                    <DayTabs
+                        tripDays={tripDays}
+                        activeDay={activeDay}
+                        onSelect={setActiveDay}
+                        getDayDate={getDayDate}
+                    />
+                    <ScheduleTimeline
+                        key={activeDay}
+                        activeDay={activeDay}
+                        schedules={currentDaySchedules}
+                        travelTimes={travelTimes[activeDay]}
+                        loading={loading}
+                        onEdit={s => { setSelectedSchedule(s); openScheduleModal(); }}
+                        onToggleComplete={handleToggleCompletion}
+                        onSaveTravelTime={handleSaveTravelTime}
+                        onAddFirst={openScheduleModal}
+                    />
                 </>
             )}
-
             {/* 선택 사항 탭 */}
             {activeTab === 'decisions' && (
                 <div className="trip-detail-decisions-section">

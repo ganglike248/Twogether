@@ -1,0 +1,204 @@
+/* src/components/Travel/Decisions/DecisionViewSheet.css — 보기 설정(필터·정렬) 시트 */
+
+.dvs-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(52, 58, 64, 0.35);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    animation: dvs-fade 0.2s ease-out;
+}
+
+@keyframes dvs-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes dvs-up { from { transform: translateY(24px); } to { transform: translateY(0); } }
+
+.dvs-sheet {
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100% - 60px);
+    background: #ffffff;
+    border-radius: 22px 22px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: dvs-up 0.25s ease-out;
+}
+
+.dvs-grabber {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #f0d4da;
+    align-self: center;
+    margin-top: 10px;
+    flex-shrink: 0;
+}
+
+.dvs-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 18px 18px 0;
+}
+
+.dvs-title {
+    font-size: 17px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.dvs-reset {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: #6C757D;
+    cursor: pointer;
+}
+
+.dvs-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: 18px 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.dvs-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.dvs-label {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+.dvs-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.dvs-chip {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 16px;
+    border: 1.5px solid rgba(255, 182, 193, 0.35);
+    background: #ffffff;
+    color: #6C757D;
+    font-family: inherit;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dvs-chip.lg {
+    height: 34px;
+    padding: 0 14px;
+    border-radius: 17px;
+    font-size: 13px;
+}
+
+.dvs-chip.on {
+    border-color: #ff9bac;
+    background: #fff0f3;
+    color: #e0606f;
+}
+
+.dvs-chip-warn { color: #d9534f; }
+
+.dvs-segment {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    background: #fdf5f7;
+    border-radius: 12px;
+    padding: 4px;
+}
+
+.dvs-segment-btn {
+    height: 34px;
+    border-radius: 9px;
+    border: none;
+    background: transparent;
+    color: #6C757D;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.dvs-segment-btn.on {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+}
+
+.dvs-switch-row {
+    position: relative;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    height: 40px;
+    font-size: 14px;
+    color: #343A40;
+    cursor: pointer;
+}
+
+.dvs-star {
+    color: #f5b400;
+    vertical-align: -2px;
+}
+
+.dvs-switch-input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.dvs-switch {
+    width: 40px;
+    height: 24px;
+    border-radius: 12px;
+    background: #e2e1df;
+    position: relative;
+    flex-shrink: 0;
+    transition: background 0.2s ease;
+}
+
+.dvs-switch::after {
+    content: '';
+    position: absolute;
+    left: 3px;
+    top: 3px;
+    width: 18px;
+    height: 18px;
+    border-radius: 50%;
+    background: #ffffff;
+    transition: transform 0.2s ease;
+}
+
+.dvs-switch.on { background: #ff9bac; }
+.dvs-switch.on::after { transform: translateX(16px); }
+
+.dvs-footer {
+    padding: 22px 18px calc(16px + env(safe-area-inset-bottom));
+    flex-shrink: 0;
+}
+
+.dvs-apply {
+    width: 100%;
+    height: 46px;
+    border-radius: 14px;
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 15px;
+    cursor: pointer;
+}

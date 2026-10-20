@@ -1,447 +1,131 @@
-// src/components/Travel/DecisionCard.jsx
-import React, { useState, useRef } from 'react';
-import { useAuthContext } from '../../../contexts/AuthContext';
-import { addScore, getUserScore, getUserComment, hasUserScored, deleteOption, updateOption, decideOption, toggleFavorite } from '../../../services/travelDecisionService';
+// src/components/Travel/Decisions/DecisionCard.jsx
+// 후보 카드(가로 스크롤 한 장) — 사진·배지·즐겨찾기, 제목·가격·⋯메뉴, 주소·설명(3줄)·링크,
+// 점수 막대 + 의견 한 줄, 하단 [일정에 추가] [확정하기 | 평가하기].
+// 실제 동작은 useDecisionActions의 actions로 위임하고, 긴 내용/점수 매기기는 상세 시트로 엶.
+import React, { useEffect, useRef, useState } from 'react';
+import { MdInfoOutline, MdMoreHoriz, MdPlace, MdStar, MdStarBorder } from 'react-icons/md';
+import { hasUserScored } from '../../../services/travelDecisionService';
 import { handleOpenLink, extractUrl } from '../../../utils/appLinkUtils';
 import { formatPriceDisplay } from '../../../utils/numberFormat';
-import EditOptionModal from './EditOptionModal';
-import ConfirmModal from '../../common/ConfirmModal';
-import ClampText from '../../common/ClampText';
-import { MdEdit, MdDelete, MdAddCircle, MdChevronLeft, MdChevronRight, MdPriorityHigh, MdStar, MdFavorite, MdPlace } from 'react-icons/md';
-import { toast } from 'react-toastify';
+import OptionPhotos, { OptionBadges } from './OptionPhotos';
+import OptionScoreBars from './OptionScoreBars';
+import { pickCommentLine } from './optionScoreUtils';
+import './OptionShared.css';
 import './DecisionCard.css';
 
-const DecisionCard = ({ option, decision, currentUserId, onAddToSchedule }) => {
-  const { coupleDoc, getMemberName } = useAuthContext();
-  const [showEditModal, setShowEditModal] = useState(false);
-  const [savingScore, setSavingScore] = useState(false);
-  const [isScoring, setIsScoring] = useState(false);
-  const [selectedScore, setSelectedScore] = useState(null);
-  const [commentText, setCommentText] = useState('');
-  const [deciding, setDeciding] = useState(false);
-  const [confirmAction, setConfirmAction] = useState(null); // 'decide' | 'delete' | null
-  const imageScrollRef = useRef(null);
+const DecisionCard = ({ decision, option, rank, members, currentUserId, actions, onOpenSheet, onAddToSchedule }) => {
+  const [menuOpen, setMenuOpen] = useState(false);
+  const menuRef = useRef(null);
 
-  // 링크 칸은 자유 입력이라 공유 문구가 통째로 저장돼 있을 수 있음 — 실제 이동은 추출한 링크로
+  const myScored = hasUserScored(option, currentUserId);
+  const isDecided = decision.status === 'decided';
+  const isDecidedOption = isDecided && decision.decidedOption === option.id;
   const linkUrl = extractUrl(option.url);
+  const commentLine = pickCommentLine(option, members, currentUserId);
 
-  const myScore = getUserScore(option, currentUserId);
-  const myComment = getUserComment(option, currentUserId);
+  // ⋯ 메뉴 바깥을 누르면 닫기
+  useEffect(() => {
+    if (!menuOpen) return undefined;
+    const close = (e) => { if (!menuRef.current?.contains(e.target)) setMenuOpen(false); };
+    document.addEventListener('pointerdown', close);
+    return () => document.removeEventListener('pointerdown', close);
+  }, [menuOpen]);
 
-  // 커플 멤버 정보 가져오기
-  const boyfriendInfo = coupleDoc?.members?.[0]
-    ? { uid: coupleDoc.members[0], name: getMemberName('boyfriend') }
-    : null;
-  const girlfriendInfo = coupleDoc?.members?.[1]
-    ? { uid: coupleDoc.members[1], name: getMemberName('girlfriend') }
-    : null;
+  const openSheet = (opts) => onOpenSheet(decision, option, opts);
+  const hasDetails = !!(option.address || option.description || option.url);
 
-  // 각 멤버의 점수 및 의견 가져오기
-  const boyfriendScore = boyfriendInfo
-    ? option.scores?.find(s => s.userId === boyfriendInfo.uid)?.score || 0
-    : 0;
-  const girlfriendScore = girlfriendInfo
-    ? option.scores?.find(s => s.userId === girlfriendInfo.uid)?.score || 0
-    : 0;
-  const boyfriendComment = boyfriendInfo
-    ? option.scores?.find(s => s.userId === boyfriendInfo.uid)?.comment || ''
-    : '';
-  const girlfriendComment = girlfriendInfo
-    ? option.scores?.find(s => s.userId === girlfriendInfo.uid)?.comment || ''
-    : '';
-
-  // 자신의 닉네임 가져오기
-  const myNickname = currentUserId === boyfriendInfo?.uid
-    ? boyfriendInfo?.name
-    : currentUserId === girlfriendInfo?.uid
-    ? girlfriendInfo?.name
-    : '나';
-
-  // 내 점수가 이미 표시되었는지 확인
-  const isMyScoreAlreadyShown =
-    (currentUserId === boyfriendInfo?.uid && boyfriendScore > 0) ||
-    (currentUserId === girlfriendInfo?.uid && girlfriendScore > 0);
-
-  // 의견 존재 여부
-  const hasAnyComment = !!(boyfriendComment || girlfriendComment || myComment);
-
-  const handleScoreSelect = async (score) => {
-    if (!score || score < 1 || score > 10) return;
-
-    setSavingScore(true);
-    try {
-      await addScore(decision.tripId, decision.id, option.id, currentUserId, score, commentText);
-      setIsScoring(false);
-      setSelectedScore(null);
-      setCommentText('');
-      toast.success(`${score}점 평가했습니다!`);
-    } catch (error) {
-      console.error('Error saving score:', error);
-      toast.error('점수 저장 중 오류가 발생했습니다.');
-    } finally {
-      setSavingScore(false);
-    }
-  };
-
-  const handleUpdateOption = async (updatedData) => {
-    try {
-      await updateOption(decision.tripId, decision.id, option.id, updatedData);
-      setShowEditModal(false);
-      toast.success('옵션이 수정되었습니다.');
-    } catch (error) {
-      console.error('Error updating option:', error);
-      toast.error('옵션 수정 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleDecide = () => {
-    setConfirmAction('decide');
-  };
-
-  const confirmDecide = async () => {
-    setConfirmAction(null);
-    setDeciding(true);
-    try {
-      await decideOption(decision.tripId, decision.id, option.id, currentUserId);
-      toast.success('확정되었습니다!');
-    } catch (error) {
-      console.error('Error deciding option:', error);
-      toast.error('확정 중 오류가 발생했습니다.');
-    } finally {
-      setDeciding(false);
-    }
-  };
-
-  const handleDeleteOption = () => {
-    setConfirmAction('delete');
-  };
-
-  const confirmDeleteOption = async () => {
-    setConfirmAction(null);
-    try {
-      await deleteOption(decision.tripId, decision.id, option.id);
-      toast.success('옵션이 삭제되었습니다.');
-    } catch (error) {
-      console.error('Error deleting option:', error);
-      toast.error('옵션 삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleToggleFavorite = async () => {
-    try {
-      await toggleFavorite(decision.tripId, decision.id, option.id);
-      toast.success(option.isFavorite ? '즐겨찾기를 해제했습니다.' : '즐겨찾기했습니다.');
-    } catch (error) {
-      console.error('Error toggling favorite:', error);
-      toast.error('즐겨찾기 처리 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleScroll = (direction) => {
-    if (imageScrollRef.current) {
-      const itemWidth = imageScrollRef.current.clientWidth;
-      imageScrollRef.current.scrollBy({
-        left: direction === 'left' ? -itemWidth : itemWidth,
-        behavior: 'smooth',
-      });
-    }
+  // 카드 아무 곳이나 누르면 상세 시트 — 단, 카드 안의 버튼/링크를 누른 경우는 그 동작만
+  const handleCardClick = (e) => {
+    if (e.target.closest('button, a, input, textarea')) return;
+    openSheet();
   };
 
   return (
-    <div className="decision-card">
-      {/* 이미지들 (가로 스크롤 갤러리) */}
-      {option.images && option.images.length > 0 && (
-        <div className="dc-images-container">
-          <div className="dc-images-scroll" ref={imageScrollRef}>
-            {option.images.map((img, idx) => (
-              <div key={idx} className="dc-image-item">
-                <img
-                  src={img}
-                  alt={`${option.title} ${idx + 1}`}
-                  className="dc-image"
-                />
-              </div>
-            ))}
-          </div>
-
-          {/* 스크롤 버튼 */}
-          {option.images.length > 1 && (
-            <>
-              <button
-                className="dc-scroll-btn dc-scroll-left"
-                onClick={() => handleScroll('left')}
-                title="왼쪽 스크롤"
-              >
-                <MdChevronLeft size={20} />
-              </button>
-              <button
-                className="dc-scroll-btn dc-scroll-right"
-                onClick={() => handleScroll('right')}
-                title="오른쪽 스크롤"
-              >
-                <MdChevronRight size={20} />
-              </button>
-            </>
-          )}
-        </div>
-      )}
-
-      {/* 헤더: 제목 + 액션 버튼 */}
-      <div className="dc-header">
-        <div className="dc-title-info">
-          <div className="dc-title-with-badge">
-            {!hasUserScored(option, currentUserId) && (
-              <span className="dc-unscored-badge" title="미평가">
-                <MdPriorityHigh size={10} />
-              </span>
-            )}
-            <h4 className="dc-title">{option.title}</h4>
-          </div>
-          {option.price && <p className="dc-price">{formatPriceDisplay(option.price)}</p>}
-        </div>
-
-        {/* 액션 버튼 (즐겨찾기 + 일정추가 + 수정 + 삭제) */}
-        <div className="dc-action-buttons">
+    <div className={`dcard ${rank === 1 ? 'top' : ''}`} onClick={handleCardClick}>
+      <OptionPhotos
+        images={option.images}
+        alt={option.title}
+        topLeft={<OptionBadges rank={rank} unscored={!myScored} />}
+        topRight={(
           <button
-            className={`dc-favorite-btn ${option.isFavorite ? 'active' : ''}`}
-            onClick={handleToggleFavorite}
-            title={option.isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}
+            className={`op-fav ${option.isFavorite ? 'on' : ''}`}
+            onClick={() => actions.toggleFavorite(decision, option)}
+            aria-label={option.isFavorite ? '즐겨찾기 해제' : '즐겨찾기'}
           >
-            <MdStar size={16} />
+            {option.isFavorite ? <MdStar /> : <MdStarBorder />}
           </button>
-          {onAddToSchedule && (
-            <button
-              className="dc-add-schedule-btn"
-              onClick={() => onAddToSchedule(option)}
-              title="일정에 추가"
-            >
-              <MdAddCircle size={16} />
+        )}
+      />
+
+      <div className="dcard-body">
+        <div className="dcard-head">
+          <div className="dcard-title-btn">
+            <span className="dcard-title">{option.title}</span>
+            {option.price && <span className="dcard-price">{formatPriceDisplay(option.price)}</span>}
+          </div>
+          <div className="dcard-menu-wrap" ref={menuRef}>
+            <button className="dcard-more" onClick={() => setMenuOpen(v => !v)} aria-label="더보기 메뉴">
+              <MdMoreHoriz />
             </button>
-          )}
-          <button
-            className="dc-edit-btn"
-            onClick={() => setShowEditModal(true)}
-            title="수정"
-          >
-            <MdEdit size={16} />
-          </button>
-          <button
-            className="dc-delete-btn"
-            onClick={handleDeleteOption}
-            title="삭제"
-          >
-            <MdDelete size={16} />
-          </button>
-        </div>
-      </div>
-
-      {/* 상세 정보: 주소 + 설명 + 링크 */}
-      {(option.address || option.description || option.url) && (
-        <div className="dc-details">
-          {option.address && (
-            <p className="dc-address">
-              <MdPlace size={13} />
-              <span>{option.address}</span>
-            </p>
-          )}
-
-          {option.description && (
-            <ClampText lines={3} className="dc-description">{option.description}</ClampText>
-          )}
-
-          {/* 링크는 <a>로 — <button>은 브라우저에 따라 줄 수 제한(line-clamp)이 안 먹음 */}
-          {option.url && (linkUrl ? (
-            <ClampText
-              as="a"
-              lines={2}
-              href={linkUrl}
-              onClick={(e) => handleOpenLink(e, linkUrl)}
-              className="dc-url-link"
-              title="링크 열기 (해당 앱으로 이동)"
-            >
-              {option.url}
-            </ClampText>
-          ) : (
-            <ClampText lines={2} className="dc-url-text">{option.url}</ClampText>
-          ))}
-        </div>
-      )}
-
-      {/* 점수 표시 + 의견 */}
-      {(boyfriendScore > 0 || girlfriendScore > 0 || myScore) && (
-        <>
-          <div className="dc-scores-display">
-            {boyfriendScore > 0 && (
-              <span className="dc-score-label">{boyfriendInfo.name}: {boyfriendScore}점</span>
-            )}
-            {girlfriendScore > 0 && (
-              <span className="dc-score-label">{girlfriendInfo.name}: {girlfriendScore}점</span>
-            )}
-            {myScore && !isMyScoreAlreadyShown && (
-              <span className="dc-score-label">{myNickname}: {myScore}점</span>
-            )}
-            <span className="dc-total-score">
-              <MdFavorite size={11} />
-              {option.totalScore || 0}/20
-            </span>
-            {myScore && !isScoring && (
-              <button
-                className="dc-score-change-inline"
-                onClick={() => {
-                  setIsScoring(true);
-                  setSelectedScore(myScore);
-                  setCommentText(myComment);
-                }}
-                disabled={savingScore}
-                title="점수 변경"
-              >
-                변경
-              </button>
+            {menuOpen && (
+              <div className="dcard-menu">
+                <button onClick={() => { setMenuOpen(false); actions.editOption(decision, option); }}>수정</button>
+                <button className="danger" onClick={() => { setMenuOpen(false); actions.requestDeleteOption(decision, option); }}>삭제</button>
+              </div>
             )}
           </div>
+        </div>
 
-          {/* 총점 미니 바: 후보 간 한눈에 비교용 */}
-          <div className="dc-total-bar-track">
-            <div
-              className="dc-total-bar-fill"
-              style={{ width: `${Math.min(100, ((option.totalScore || 0) / 20) * 100)}%` }}
-            />
-          </div>
-
-          {/* 의견 표시 (의견이 있을 때만) */}
-          {hasAnyComment && (
-            <div className="dc-comments-display">
-              {boyfriendComment && (
-                <p className="dc-comment-item">
-                  <strong>{boyfriendInfo.name}:</strong> {boyfriendComment}
-                </p>
-              )}
-              {girlfriendComment && (
-                <p className="dc-comment-item">
-                  <strong>{girlfriendInfo.name}:</strong> {girlfriendComment}
-                </p>
-              )}
-              {myComment && !isMyScoreAlreadyShown && (
-                <p className="dc-comment-item">
-                  <strong>{myNickname}:</strong> {myComment}
-                </p>
-              )}
-            </div>
-          )}
-        </>
-      )}
-
-      {/* 평가 섹션 */}
-      <div className="dc-score-section">
-        {((!myScore && !isScoring) || decision.status !== 'decided') && (
-          <div className="dc-score-action-row">
-            {!myScore && !isScoring && (
-              <button
-                className="dc-score-btn"
-                onClick={() => {
-                  setIsScoring(true);
-                  setSelectedScore(null);
-                  setCommentText('');
-                }}
-                disabled={savingScore}
-              >
-                평가하기
-              </button>
-            )}
-
-            {decision.status !== 'decided' && (
-              <button
-                className="dc-decide-btn"
-                onClick={handleDecide}
-                disabled={deciding}
-              >
-                {deciding ? '처리 중...' : '확정하기'}
-              </button>
-            )}
+        {!hasDetails && (
+          <div className="dcard-empty-info">
+            <MdInfoOutline />
+            <span>주소·설명·링크가 아직 없어요<br /><span className="dcard-empty-hint">⋯ 메뉴의 수정에서 추가할 수 있어요</span></span>
           </div>
         )}
 
-        {/* 점수 선택 그리드 */}
-        {isScoring && (
-          <div className="dc-score-selector">
-            <div className="dc-score-grid">
-              {Array.from({ length: 10 }, (_, i) => i + 1).map(score => (
-                <button
-                  key={score}
-                  className={`dc-score-option ${selectedScore === score ? 'active' : ''}`}
-                  onClick={() => setSelectedScore(score)}
-                  disabled={savingScore}
-                >
-                  {score}
-                </button>
-              ))}
-            </div>
+        {option.address && (
+          <span className="dcard-address"><MdPlace />{option.address}</span>
+        )}
 
-            {/* 의견 입력 (선택사항) */}
-            <div className="dc-comment-input-section">
-              <textarea
-                className="dc-comment-textarea"
-                placeholder="의견을 입력해주세요 (선택사항)"
-                value={commentText}
-                onChange={(e) => setCommentText(e.target.value)}
-                disabled={savingScore}
-                maxLength={200}
-              />
-              <p className="dc-comment-count">{commentText.length}/200</p>
-            </div>
-
-            {/* 저장/취소 버튼 */}
-            <div className="dc-score-actions">
-              <button
-                className="dc-score-save"
-                onClick={() => handleScoreSelect(selectedScore)}
-                disabled={savingScore || !selectedScore}
-              >
-                {savingScore ? '저장 중...' : (selectedScore ? `${selectedScore}점 저장` : '점수를 선택해주세요')}
-              </button>
-              <button
-                className="dc-score-cancel"
-                onClick={() => {
-                  setIsScoring(false);
-                  setSelectedScore(null);
-                  setCommentText('');
-                }}
-                disabled={savingScore}
-              >
-                취소
-              </button>
-            </div>
+        {option.description && (
+          <div className="dcard-desc-box">
+            <span className="dcard-desc">{option.description}</span>
+            <button className="dcard-desc-more" onClick={() => openSheet()}>전체 보기 ›</button>
           </div>
         )}
+
+        {option.url && (linkUrl ? (
+          <a href={linkUrl} className="dcard-link" onClick={(e) => handleOpenLink(e, linkUrl)}>링크 · {option.url}</a>
+        ) : (
+          <span className="dcard-link plain">링크 · {option.url}</span>
+        ))}
+
+        <div className="dcard-score">
+          <OptionScoreBars
+            option={option}
+            members={members}
+            currentUserId={currentUserId}
+            totalHighlight={rank === 1}
+            onEditMine={() => openSheet({ score: true })}
+          />
+          {commentLine && (
+            <span className="dcard-comment">{commentLine.name} · "{commentLine.comment}"</span>
+          )}
+        </div>
+
+        <div className="dcard-actions">
+          {onAddToSchedule && (
+            <button className="dcard-btn secondary" onClick={() => onAddToSchedule(option)}>일정에 추가</button>
+          )}
+          {!myScored ? (
+            <button className="dcard-btn primary" onClick={() => openSheet({ score: true })}>평가하기</button>
+          ) : isDecidedOption ? (
+            <span className="dcard-btn decided">확정됨</span>
+          ) : !isDecided ? (
+            <button className="dcard-btn primary" onClick={() => actions.requestDecide(decision, option)}>확정하기</button>
+          ) : null}
+        </div>
       </div>
-
-      {/* 수정 모달 */}
-      {showEditModal && (
-        <EditOptionModal
-          isOpen={showEditModal}
-          onClose={() => setShowEditModal(false)}
-          option={option}
-          onSave={handleUpdateOption}
-        />
-      )}
-
-      <ConfirmModal
-        isOpen={confirmAction === 'decide'}
-        title="후보 확정"
-        message="이 후보로 확정하시겠습니까?"
-        confirmText="확정"
-        danger={false}
-        onConfirm={confirmDecide}
-        onCancel={() => setConfirmAction(null)}
-      />
-      <ConfirmModal
-        isOpen={confirmAction === 'delete'}
-        title="옵션 삭제"
-        message="이 옵션을 삭제하시겠습니까?"
-        confirmText="삭제"
-        onConfirm={confirmDeleteOption}
-        onCancel={() => setConfirmAction(null)}
-      />
     </div>
   );
 };

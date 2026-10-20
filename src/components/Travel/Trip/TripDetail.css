@@ -6,290 +6,318 @@
     min-height: 100%;
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 12px;
 }
 
-/* 헤더 */
-.trip-detail-header {
-    display: flex;
+/* ===== 헤더 줄 (카드 없음) — [뒤로] [가운데 제목] [수정·삭제] ===== */
+.td-header {
+    display: grid;
+    grid-template-columns: 76px minmax(0, 1fr) 76px;
     align-items: center;
-    gap: 0.625rem;
-    background: white;
-    border-radius: var(--border-radius-lg);
-    padding: 0.875rem 1rem;
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
+    padding: 0 2px;
 }
 
-.td-back-btn {
-    width: 34px;
-    height: 34px;
+.td-header-back,
+.td-header-action {
     border-radius: 50%;
     border: 1px solid var(--card-border);
-    background: white;
+    background: #ffffff;
     display: flex;
     align-items: center;
     justify-content: center;
     cursor: pointer;
-    color: var(--color-primary);
-    font-size: 1rem;
-    flex-shrink: 0;
+    padding: 0;
     transition: background 0.15s;
 }
 
-.td-back-btn:hover { background: #fff0f3; }
+.td-header-back {
+    width: 34px;
+    height: 34px;
+    color: var(--color-primary);
+    font-size: 16px;
+}
 
-.td-title {
-    flex: 1;
-    font-size: 1rem;
+.td-header-back:active { background: #fff0f3; }
+
+.td-header-title-cell {
+    min-width: 0;
+    display: flex;
+    justify-content: center;
+}
+
+/* 제목 텍스트만 기준으로 가운데 — 상태 칩은 제목 왼쪽 바깥에 absolute로 붙음 */
+.td-header-title-wrap {
+    position: relative;
+    min-width: 0;
+    max-width: 100%;
+    display: flex;
+}
+
+.td-header-title {
+    min-width: 0;
+    margin: 0;
+    font-size: 19px;
     font-weight: 700;
     color: var(--color-gray-800);
-    margin: 0;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.td-actions {
-    display: flex;
-    gap: 0.375rem;
-    flex-shrink: 0;
+.td-title-status {
+    position: absolute;
+    right: calc(100% + 6px);
+    top: 50%;
+    transform: translateY(-50%);
+    white-space: nowrap;
+    padding: 2px 8px;
+    border-radius: 10px;
+    font-size: 11px;
+    border: 1px solid transparent;
 }
 
-.td-action-btn {
+.td-title-status.planning  { background: #fff9e6; color: #a87a10; border-color: #ffe494; }
+.td-title-status.confirmed { background: #e8f4ff; color: #2f7fb8; border-color: #b8d9f5; }
+.td-title-status.ongoing   { background: #fff0f5; color: #d94f4f; border-color: #ffb6c1; }
+.td-title-status.completed { background: #e8f5e9; color: #3f8f45; border-color: #b2dfbb; }
+
+.td-header-actions {
+    display: flex;
+    gap: 6px;
+    justify-content: flex-end;
+}
+
+.td-header-action {
     width: 32px;
     height: 32px;
-    border-radius: 50%;
-    border: 1px solid var(--card-border);
-    background: white;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    cursor: pointer;
-    font-size: 0.9rem;
-    transition: all 0.15s;
+    font-size: 14px;
 }
 
-.td-action-btn.edit { color: #81bbf5; }
-.td-action-btn.edit:hover { background: #eaf4ff; border-color: #b8d9f5; }
-.td-action-btn.delete { color: #ff9bac; }
-.td-action-btn.delete:hover { background: #fff0f3; border-color: #ffb6c1; }
+.td-header-action.edit { color: #81bbf5; }
+.td-header-action.edit:active { background: #eaf4ff; }
+.td-header-action.delete { color: #ff9bac; }
+.td-header-action.delete:active { background: #fff0f3; }
 
-/* 여행 정보 카드 */
-.trip-info-card {
-    background: white;
-    border-radius: var(--border-radius-lg);
+/* ===== 여행 정보 카드 ===== */
+.td-info-card {
+    background: #ffffff;
+    border-radius: 14px;
     border: 1px solid var(--card-border);
     box-shadow: var(--shadow-sm);
-    overflow: hidden;
 }
 
-.trip-info-top {
+.td-info-row {
     display: flex;
+    gap: 12px;
+    padding: 10px 16px;
     align-items: center;
-    justify-content: space-between;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 182, 193, 0.12);
 }
 
-.trip-info-duration {
-    font-size: 0.72rem;
-    color: var(--color-gray-500);
-    font-weight: 500;
-}
+.td-info-row + .td-info-row { border-top: 1px solid rgba(255, 182, 193, 0.08); }
 
-.trip-info-row {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.75rem;
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid rgba(255, 182, 193, 0.08);
-}
+.td-info-row.td-info-row-top { align-items: flex-start; }
 
-.trip-info-row:last-child {
-    border-bottom: none;
-}
-
-.trip-info-icon-wrap {
+.td-info-icon {
     width: 30px;
     height: 30px;
+    flex-shrink: 0;
     border-radius: 50%;
     background: rgba(255, 182, 193, 0.1);
+    color: #FF6B6B;
+    font-size: 14px;
     display: flex;
     align-items: center;
     justify-content: center;
-    color: var(--color-primary);
-    font-size: 0.875rem;
-    flex-shrink: 0;
-    margin-top: 0.1rem;
 }
 
-.trip-info-content {
-    flex: 1;
+.td-info-icon-text {
+    font-size: 13px;
+    font-weight: 700;
+}
+
+.td-info-content {
+    min-width: 0;
     display: flex;
     flex-direction: column;
-    gap: 0.15rem;
-    min-width: 0;
 }
 
-.trip-info-label {
-    font-size: 0.65rem;
-    color: var(--color-gray-500);
-    font-weight: 500;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
+.td-info-content-budget {
+    flex-grow: 1;
+    gap: 4px;
 }
 
-.trip-info-value {
-    font-size: 0.875rem;
-    font-weight: 600;
+.td-info-label {
+    font-size: 10px;
+    color: #6C757D;
+}
+
+.td-info-value {
+    font-size: 14px;
+    font-weight: 700;
     color: var(--color-gray-800);
 }
 
-.trip-description-text {
+.td-info-sub {
     font-weight: 400;
-    color: var(--color-gray-600);
+    color: #6C757D;
+}
+
+.td-info-over {
+    color: #ff6b6b;
+}
+
+.td-info-budget-bar {
+    height: 5px;
+    border-radius: 3px;
+    background: rgba(255, 182, 193, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+
+.td-info-budget-fill {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    background: linear-gradient(90deg, #ffb6c1, #ff9bac);
+    transition: width 0.4s ease;
+}
+
+.td-info-budget-fill.over { background: linear-gradient(90deg, #ff6b6b, #ff4444); }
+
+.td-info-memo {
+    font-size: 13px;
+    color: #495057;
     line-height: 1.55;
     white-space: pre-wrap;
     word-break: break-word;
 }
 
-/* 상태 칩 (공통) */
-.td-status-chip {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.25rem 0.625rem;
-    border-radius: 1rem;
-    font-size: 0.72rem;
+/* ===== 메인 탭 (Day별 일정 / 선택 사항 / 체크리스트) ===== */
+.td-tabs {
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 4px;
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid var(--card-border);
+    box-shadow: var(--shadow-sm);
+    padding: 6px;
+}
+
+.td-tab {
+    height: 38px;
+    border-radius: 12px;
+    border: 1px solid transparent;
+    background: transparent;
+    color: #6C757D;
+    font-family: inherit;
+    font-size: 13px;
     font-weight: 700;
-}
-
-.status-planning { background: #fff9e6; color: #e6a817; border: 1px solid #ffe494; }
-.status-confirmed { background: #e8f4ff; color: #3d9bdb; border: 1px solid #b8d9f5; }
-.status-ongoing   { background: #fff0f5; color: #ff6b6b; border: 1px solid #ffb6c1; }
-.status-completed { background: #e8f5e9; color: #4caf50; border: 1px solid #b2dfbb; }
-
-.chip-over {
-    color: #ff6b6b;
-    font-weight: 700;
-}
-
-/* 예산 바 */
-.td-budget-bar {
-    height: 5px;
-    background: rgba(255, 182, 193, 0.2);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.td-budget-progress {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 0.4s ease;
-}
-
-/* Day 탭 */
-.trip-detail-day-tabs {
     display: flex;
-    gap: 0.5rem;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    white-space: nowrap;
+    cursor: pointer;
+    transition: background 0.15s;
+}
+
+.td-tab.active {
+    border-color: #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+}
+
+.td-tab-badge {
+    display: inline-block;
+    min-width: 16px;
+    height: 16px;
+    padding: 0 4px;
+    border-radius: 8px;
+    background: #ff6b6b;
+    color: #ffffff;
+    font-size: 9px;
+    line-height: 16px;
+    text-align: center;
+    box-sizing: border-box;
+}
+
+.td-tab.active .td-tab-badge {
+    background: #ffffff;
+    color: #ff6b6b;
+}
+
+/* ===== 일자 버튼 — 3일 이하 꽉 채움 / 4일 이상 가로 스크롤 ===== */
+.td-days { position: relative; }
+
+.td-days.fill .td-days-track {
+    display: grid;
+    gap: 8px;
+}
+
+.td-days.scroll {
+    margin-right: -0.875rem; /* 컨테이너 오른쪽 여백까지 넘어가게 해서 다음 칸이 걸쳐 보이게 */
+}
+
+.td-days.scroll .td-days-track {
+    display: flex;
+    gap: 8px;
     overflow-x: auto;
     scrollbar-width: none;
-    padding-bottom: 2px;
+    padding-right: 0.875rem;
 }
 
-.trip-detail-day-tabs::-webkit-scrollbar { display: none; }
+.td-days.scroll .td-days-track::-webkit-scrollbar { display: none; }
 
-.td-day-tab {
+.td-days.scroll::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    top: 0;
+    bottom: 0;
+    width: 36px;
+    background: linear-gradient(90deg, rgba(253, 245, 247, 0) 0%, var(--main-bg) 85%);
+    pointer-events: none;
+}
+
+.td-days.scroll .td-day { flex: 0 0 84px; }
+
+.td-day {
+    height: 50px;
+    border-radius: 14px;
+    border: 1.5px solid var(--card-border);
+    background: #ffffff;
     display: flex;
     flex-direction: column;
     align-items: center;
-    padding: 0.5rem 0.875rem;
-    border-radius: 1rem;
-    border: 1.5px solid var(--card-border);
-    background: white;
+    justify-content: center;
+    gap: 2px;
+    font-family: inherit;
     cursor: pointer;
-    transition: all 0.15s;
-    flex-shrink: 0;
-    gap: 0.1rem;
+    transition: background 0.15s;
 }
 
-.td-day-tab:hover {
-    border-color: rgba(255, 182, 193, 0.5);
-    background: #fff8fa;
-}
-
-.td-day-tab.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+.td-day.active {
     border-color: #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
 }
 
-.td-day-num {
-    font-size: 0.78rem;
+.td-day-label {
+    font-size: 12px;
     font-weight: 700;
-    color: var(--color-gray-700);
+    color: #495057;
 }
 
-.td-day-tab.active .td-day-num { color: white; }
-
 .td-day-date {
-    font-size: 0.65rem;
-    color: var(--color-gray-500);
+    font-size: 11px;
+    color: #6C757D;
     white-space: nowrap;
 }
 
-.td-day-tab.active .td-day-date { color: rgba(255, 255, 255, 0.85); }
-
-/* 일정 섹션 */
-.trip-detail-schedule-section {
-    background: white;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-    overflow: hidden;
-    flex: 1;
-}
-
-.td-schedule-header {
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0.875rem 1rem;
-    border-bottom: 1px solid rgba(255, 182, 193, 0.15);
-}
-
-.td-schedule-title {
-    font-size: 0.875rem;
-    font-weight: 700;
-    color: var(--color-gray-800);
-}
-
-.td-add-btn {
-    display: flex;
-    align-items: center;
-    gap: 0.25rem;
-    padding: 0.35rem 0.75rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border: none;
-    border-radius: 1rem;
-    font-size: 0.78rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: opacity 0.15s;
-}
-
-.td-add-btn:hover { opacity: 0.88; }
-
-.td-add-icon { font-size: 0.85rem; }
-
-/* 일정 리스트 */
-.td-schedule-list {
-    padding: 0.625rem;
-    display: flex;
-    flex-direction: column;
-    gap: 0;
-}
+.td-day.active .td-day-label { color: #ffffff; }
+.td-day.active .td-day-date { color: rgba(255, 255, 255, 0.92); }
 
 /* 로딩/빈 상태 */
 .td-loading,
@@ -339,81 +367,14 @@
 
 .td-empty-add-btn:hover { opacity: 0.88; }
 
-/* 메인 탭 (Day별 일정, 선택 사항, 준비 체크리스트) */
-.trip-detail-main-tabs {
-    display: flex;
-    gap: 0.5rem;
-    background: white;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-    padding: 0.5rem;
-    margin-top: 0.75rem;
-}
-
-.td-main-tab {
-    flex: 1;
-    padding: 0.625rem 0.875rem;
-    background: transparent;
-    border: 1px solid transparent;
-    border-radius: 0.75rem;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-gray-600);
-    transition: all 0.15s;
-    white-space: nowrap;
-    overflow: hidden;
-    text-overflow: ellipsis;
-}
-
-.td-main-tab:hover {
-    background: rgba(255, 182, 193, 0.1);
-    color: var(--color-gray-700);
-}
-
-.td-main-tab.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border-color: #ff9bac;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.35rem;
-}
-
-.td-main-tab-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.1rem;
-    height: 1.1rem;
-    background: #ff6b6b;
-    color: white;
-    font-size: 0.55rem;
-    font-weight: 800;
-    border-radius: 50%;
-    white-space: nowrap;
-    flex-shrink: 0;
-    box-shadow: 0 1px 3px rgba(255, 107, 107, 0.35);
-}
-
-.td-main-tab.active .td-main-tab-badge {
-    background: rgba(255, 255, 255, 0.3);
-    color: white;
-}
 
 /* 선택 사항 섹션 (placeholder) */
 .trip-detail-decisions-section {
 }
 
-/* 체크리스트 섹션 (placeholder) */
+/* 체크리스트 섹션 — 카드는 탭 안에서 각자 그림 */
 .trip-detail-checklist-section {
-    background: white;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-    margin-top: 0.75rem;
+    padding-bottom: 80px; /* FAB에 마지막 카드가 가리지 않게 */
 }
 
 /* ===== 날짜 선택 모달 ===== */

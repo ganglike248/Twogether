@@ -1,141 +1,95 @@
-/* src/components/Travel/TravelDecisionsTab.css */
+/* src/components/Travel/Decisions/TravelDecisionsTab.css — 선택 사항 탭 */
 
-.travel-decisions-tab {
+.tdt {
     display: flex;
     flex-direction: column;
-    gap: 0.75rem;
+    gap: 12px;
 }
 
-/* 필터 영역 */
+.tdt-top {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 2px 2px 0;
+}
+
+.tdt-count {
+    font-size: 13px;
+    color: #6C757D;
+}
+
+.tdt-count-num { color: #343A40; }
+
+.tdt-add-topic {
+    height: 32px;
+    padding: 0 12px;
+    border-radius: 16px;
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.tdt-add-topic svg { font-size: 15px; }
+
 .tdt-filters {
     display: flex;
-    gap: 0.5rem;
-    overflow-x: auto;
-    padding-bottom: 0.25rem;
-    scrollbar-width: none;
+    gap: 6px;
+    align-items: center;
+    margin-top: -4px;
 }
 
-.tdt-filters::-webkit-scrollbar {
-    display: none;
-}
-
-.tdt-filter-btn {
-    padding: 0.45rem 0.9rem;
-    border: 1px solid var(--card-border);
-    background: white;
-    border-radius: 1rem;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 600;
-    color: var(--color-gray-600);
+.tdt-filter {
+    height: 34px;
+    padding: 0 13px;
+    border-radius: 17px;
+    border: 1.5px solid rgba(255, 182, 193, 0.28);
+    background: #ffffff;
+    color: #495057;
+    font-family: inherit;
+    font-size: 13px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
     white-space: nowrap;
-    flex-shrink: 0;
+    cursor: pointer;
 }
 
-.tdt-filter-btn:active {
-    opacity: 0.75;
-}
-
-.tdt-filter-btn.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
+.tdt-filter.on {
     border-color: #ff9bac;
+    background: #fff0f3;
+    color: #e0606f;
 }
 
-.tdt-add-btn {
-    padding: 0.45rem 0.9rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
+.tdt-filter-star { color: #f5b400; }
+
+.tdt-filter-spacer { flex-grow: 1; }
+
+.tdt-sort {
+    height: 34px;
+    padding: 0 8px;
     border: none;
-    border-radius: 1rem;
-    cursor: pointer;
-    font-size: 0.82rem;
-    font-weight: 600;
-    white-space: nowrap;
-    flex-shrink: 0;
-    margin-left: auto;
-}
-
-.tdt-add-btn:active {
-    opacity: 0.82;
-}
-
-/* 주제 필터 (가로스크롤) */
-.tdt-decision-filters {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    padding: 0.5rem 0;
-    padding-bottom: 0.25rem;
-    scrollbar-width: none;
-    margin: -0.5rem -1rem 0 -1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    -webkit-overflow-scrolling: touch;
-}
-
-.tdt-decision-filters::-webkit-scrollbar {
-    display: none;
-}
-
-.tdt-decision-filter-btn {
+    background: transparent;
+    color: #495057;
+    font-family: inherit;
+    font-size: 13px;
     display: flex;
     align-items: center;
-    gap: 0.35rem;
-    padding: 0.4rem 0.75rem;
-    background: white;
-    border: 1px solid var(--card-border);
-    border-radius: 1rem;
+    gap: 4px;
+    white-space: nowrap;
     cursor: pointer;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--color-gray-600);
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: all 0.15s;
 }
 
-.tdt-decision-filter-btn:active {
-    opacity: 0.75;
-}
-
-.tdt-decision-filter-btn.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border-color: #ff9bac;
-    box-shadow: 0 2px 6px rgba(255, 182, 193, 0.25);
-}
-
-/* 주제 필터 미평가 배지 */
-.tdt-decision-filter-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.0rem;
-    height: 1.0rem;
-    background: #ff6b6b;
-    color: white;
-    font-size: 0.5rem;
-    font-weight: 800;
-    border-radius: 50%;
-    white-space: nowrap;
-    flex-shrink: 0;
-}
-
-.tdt-decision-filter-btn.active .tdt-decision-filter-badge {
-    background: rgba(255, 255, 255, 0.35);
-}
-
-/* 확정된 주제 필터 - 초록색 */
-.tdt-decision-filter-btn.decided {
-    border-color: rgba(46, 204, 113, 0.5);
-    color: #27ae60;
-}
-
-.tdt-decision-filter-btn.decided.active {
-    background: linear-gradient(135deg, #2ecc71 0%, #27ae60 100%);
-    border-color: #27ae60;
-    color: white;
+.tdt-sections {
+    display: flex;
+    flex-direction: column;
+    gap: 22px;
+    padding-top: 4px;
 }
 
 /* 로딩 */
@@ -154,12 +108,10 @@
     border: 3px solid rgba(255, 182, 193, 0.2);
     border-top-color: #ffb6c1;
     border-radius: 50%;
-    animation: spin 0.8s linear infinite;
+    animation: tdt-spin 0.8s linear infinite;
 }
 
-@keyframes spin {
-    to { transform: rotate(360deg); }
-}
+@keyframes tdt-spin { to { transform: rotate(360deg); } }
 
 .tdt-loading p {
     font-size: 0.875rem;
@@ -199,76 +151,14 @@
     margin: 0;
 }
 
-/* 확정됨 구분선 */
-.tdt-decided-divider {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    margin: 0.25rem 0;
-}
-
-.tdt-decided-divider::before,
-.tdt-decided-divider::after {
-    content: '';
-    flex: 1;
-    height: 1px;
-    background: rgba(46, 204, 113, 0.25);
-}
-
-.tdt-decided-divider span {
-    font-size: 0.68rem;
-    font-weight: 600;
-    color: rgba(46, 204, 113, 0.6);
-    white-space: nowrap;
-}
-
-/* TOC 네비게이션 */
-.tdt-toc-nav {
-    display: flex;
-    gap: 0.4rem;
-    overflow-x: auto;
-    padding: 0.5rem 0;
-    margin: -0.5rem -1rem 0 -1rem;
-    padding-left: 1rem;
-    padding-right: 1rem;
-    scrollbar-width: none;
-    background: white;
-    border-bottom: 1px solid var(--card-border);
-    -webkit-overflow-scrolling: touch;
-}
-
-.tdt-toc-nav::-webkit-scrollbar {
-    display: none;
-}
-
-.tdt-toc-btn {
-    padding: 0.35rem 0.7rem;
-    background: var(--main-bg);
-    border: 1px solid var(--card-border);
-    border-radius: 0.6rem;
+.tdt-empty-reset {
+    margin-top: 10px;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 13px;
+    color: #e0606f;
+    text-decoration: underline;
     cursor: pointer;
-    font-size: 0.75rem;
-    font-weight: 600;
-    color: var(--color-gray-600);
-    white-space: nowrap;
-    flex-shrink: 0;
-    transition: all 0.15s;
-}
-
-.tdt-toc-btn:active {
-    opacity: 0.75;
-}
-
-.tdt-toc-btn.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border-color: #ff9bac;
-    box-shadow: 0 2px 6px rgba(255, 182, 193, 0.25);
-}
-
-/* 콘텐츠 */
-.tdt-content {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
 }

@@ -1,14 +1,9 @@
-/* src/components/Travel/TravelChecklistTab.css */
+/* src/components/Travel/Checklist/TravelChecklistTab.css — 진행률 링 카드 / 남은 준비 / 준비 완료 */
 
 .travel-checklist-tab {
     display: flex;
     flex-direction: column;
-    gap: 1rem;
-    background: white;
-    border-radius: var(--border-radius-lg);
-    border: 1px solid var(--card-border);
-    box-shadow: var(--shadow-sm);
-    padding: 1rem;
+    gap: 12px;
 }
 
 /* 로딩 */
@@ -40,132 +35,105 @@
     margin: 0;
 }
 
-/* 진행률 */
-.tct-progress-section {
+/* 진행률 카드 */
+.tct-summary {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
+    padding: 14px 16px;
+    display: flex;
+    align-items: center;
+    gap: 16px;
+}
+
+.tct-ring { flex-shrink: 0; }
+
+.tct-summary-text {
     display: flex;
     flex-direction: column;
-    gap: 0.5rem;
-    padding: 1rem;
-    background: var(--main-bg);
-    border-radius: var(--border-radius-lg);
-    border: 1px solid rgba(255, 182, 193, 0.2);
+    gap: 4px;
 }
 
-.tct-progress-header {
+.tct-summary-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #343A40;
+}
+
+.tct-summary-sub {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+/* 소제목 — 바로 아래 목록과는 8px만 띄움 */
+.tct-label {
+    font-size: 12px;
+    font-weight: 700;
+    color: #6C757D;
+    padding: 2px 4px 0;
+    margin-bottom: -4px;
+}
+
+.tct-label.done { padding-top: 4px; }
+
+.tct-remaining {
     display: flex;
-    justify-content: space-between;
-    align-items: center;
+    flex-direction: column;
+    gap: 8px;
 }
 
-.tct-progress-label {
-    font-size: 0.9rem;
-    font-weight: 700;
-    color: var(--color-gray-800);
+.tct-completed {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
+    padding: 2px 14px;
 }
 
-.tct-progress-percent {
-    font-size: 1.125rem;
-    font-weight: 700;
-    color: #ffb6c1;
-}
-
-.tct-progress-bar {
+.tct-more {
     width: 100%;
-    height: 8px;
-    background: rgba(255, 182, 193, 0.2);
-    border-radius: 999px;
-    overflow: hidden;
-}
-
-.tct-progress-fill {
-    height: 100%;
-    border-radius: 999px;
-    transition: width 0.4s ease;
-}
-
-.tct-progress-text {
-    font-size: 0.8rem;
-    color: var(--color-gray-600);
-}
-
-/* 액션 */
-.tct-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.tct-add-btn {
-    padding: 0.75rem 1rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
+    height: 38px;
+    padding: 0;
     border: none;
-    border-radius: 0.75rem;
+    border-top: 1px solid rgba(255, 182, 193, 0.12);
+    background: transparent;
+    font-family: inherit;
+    color: #6C757D;
+    font-size: 12px;
     cursor: pointer;
-    font-size: 0.9rem;
-    font-weight: 600;
-    transition: opacity 0.15s;
-    flex: 1;
-}
-
-.tct-add-btn:hover {
-    opacity: 0.88;
 }
 
 /* 빈 상태 */
 .tct-empty {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
     display: flex;
     flex-direction: column;
     align-items: center;
     justify-content: center;
-    padding: 2rem 1rem;
+    padding: 2.25rem 1rem;
     text-align: center;
 }
 
 .tct-empty-icon {
-    font-size: 2.5rem;
-    margin: 0 0 0.5rem 0;
-    color: #88c988;
+    font-size: 40px;
+    margin-bottom: 8px;
+    color: #ffb6c1;
     display: flex;
-    align-items: center;
-    justify-content: center;
 }
 
 .tct-empty-title {
-    font-size: 1rem;
+    font-size: 15px;
     font-weight: 700;
-    color: var(--color-gray-800);
-    margin: 0 0 0.25rem 0;
+    color: #343A40;
+    margin: 0 0 4px;
 }
 
 .tct-empty-text {
-    font-size: 0.875rem;
-    color: var(--color-gray-500);
+    font-size: 13px;
+    color: #6C757D;
     margin: 0;
-}
-
-/* 항목 리스트 */
-.tct-items-list {
-    display: flex;
-    flex-direction: column;
-    gap: 0.5rem;
-    max-height: 400px;
-    overflow-y: auto;
-    padding: 0.25rem;
-}
-
-.tct-items-list::-webkit-scrollbar {
-    width: 4px;
-}
-
-.tct-items-list::-webkit-scrollbar-track {
-    background: transparent;
-}
-
-.tct-items-list::-webkit-scrollbar-thumb {
-    background: rgba(255, 182, 193, 0.3);
-    border-radius: 2px;
-}
-
-.tct-items-list::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 182, 193, 0.5);
 }

@@ -1,0 +1,397 @@
+/* src/components/Travel/Decisions/OptionDetailSheet.css — 후보 상세 시트 + 점수 슬라이더 */
+
+.ods-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(52, 58, 64, 0.35);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+    z-index: 1000;
+    animation: ods-fade 0.2s ease-out;
+}
+
+@keyframes ods-fade { from { opacity: 0; } to { opacity: 1; } }
+@keyframes ods-up { from { transform: translateY(24px); } to { transform: translateY(0); } }
+
+.ods-sheet {
+    width: 100%;
+    max-width: 520px;
+    max-height: calc(100% - 60px);
+    background: #ffffff;
+    border-radius: 22px 22px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    animation: ods-up 0.25s ease-out;
+}
+
+.ods-topbar {
+    position: relative;
+    flex-shrink: 0;
+    height: 44px;
+    display: flex;
+    justify-content: center;
+}
+
+.ods-grabber {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #f0d4da;
+    margin-top: 10px;
+}
+
+.ods-close {
+    position: absolute;
+    right: 12px;
+    top: 6px;
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #f4f1f2;
+    color: #6C757D;
+    font-size: 18px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ods-scroll {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding-bottom: 12px;
+}
+
+.ods-photos {
+    margin: 0 16px;
+    border-radius: 14px;
+}
+
+.ods-head {
+    padding: 14px 18px 0;
+    display: flex;
+    align-items: flex-start;
+    gap: 6px;
+}
+
+.ods-head-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.ods-category {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+.ods-title {
+    font-size: 19px;
+    font-weight: 700;
+    color: #343A40;
+    word-break: break-word;
+}
+
+.ods-price {
+    font-size: 14px;
+    color: #FF6B6B;
+}
+
+.ods-icon-btn {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    background: #ffffff;
+    font-size: 15px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ods-icon-btn.fav { color: #ced4da; font-size: 17px; }
+.ods-icon-btn.fav.on { color: #f5b400; }
+.ods-icon-btn.edit { color: #81bbf5; }
+.ods-icon-btn.delete { color: #ff9bac; font-size: 17px; }
+
+.ods-body {
+    padding: 10px 18px 0;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ods-address {
+    font-size: 13px;
+    color: #6C757D;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.ods-address svg { color: #FF6B6B; font-size: 14px; flex-shrink: 0; }
+
+.ods-link {
+    font-size: 12px;
+    color: #3d8ed6;
+    text-decoration: none;
+    word-break: break-all;
+}
+
+.ods-link.plain { color: #6C757D; }
+
+.ods-desc {
+    background: #fff8fa;
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 12px;
+    line-height: 1.7;
+    color: #495057;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.ods-score {
+    border-top: 1px dashed rgba(255, 182, 193, 0.55);
+    padding-top: 12px;
+}
+
+.ods-scoring {
+    background: #fff8fa;
+    border: 1px solid rgba(255, 182, 193, 0.35);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.ods-sr {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip: rect(0 0 0 0);
+}
+
+.ods-comment {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.ods-comment textarea {
+    height: 64px;
+    resize: none;
+    border: 1px solid rgba(255, 182, 193, 0.4);
+    border-radius: 10px;
+    background: #ffffff;
+    padding: 9px 11px;
+    font-family: inherit;
+    font-size: 16px; /* iOS 확대 방지 */
+    color: #343A40;
+    outline: none;
+}
+
+.ods-comment textarea:focus { border-color: #ff9bac; }
+
+.ods-comment-count {
+    align-self: flex-end;
+    font-size: 10px;
+    color: #ADB5BD;
+}
+
+.ods-scoring-actions {
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 8px;
+}
+
+.ods-footer {
+    padding: 12px 16px calc(12px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+    border-top: 1px solid rgba(255, 182, 193, 0.15);
+    flex-shrink: 0;
+}
+
+.ods-footer:empty { display: none; }
+
+.ods-btn {
+    height: 34px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ods-btn:disabled { opacity: 0.6; cursor: default; }
+
+.ods-btn.secondary {
+    border: 1px solid rgba(255, 182, 193, 0.6);
+    background: #ffffff;
+    color: #6C757D;
+}
+
+.ods-btn.secondary.pink { color: #e0606f; }
+
+.ods-btn.primary {
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+}
+
+.ods-btn.decided {
+    border: 1px solid #b2dfbb;
+    background: #e8f5e9;
+    color: #3f8f45;
+    cursor: default;
+}
+
+/* ===== 점수 슬라이더 ===== */
+.ssl { display: flex; flex-direction: column; gap: 10px; }
+
+.ssl-head {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+}
+
+.ssl-label { font-size: 12px; color: #495057; }
+
+.ssl-value { font-size: 20px; color: #FF6B6B; }
+
+.ssl-value-max { font-size: 11px; color: #6C757D; }
+
+.ssl-track-wrap {
+    position: relative;
+    height: 30px;
+    margin: 0 4px;
+    display: flex;
+    align-items: center;
+}
+
+.ssl-track,
+.ssl-fill {
+    position: absolute;
+    left: 0;
+    height: 8px;
+    border-radius: 4px;
+    pointer-events: none;
+}
+
+.ssl-track { right: 0; background: rgba(255, 182, 193, 0.22); }
+.ssl-fill { background: linear-gradient(90deg, #ffb6c1, #ff9bac); }
+
+.ssl-partner {
+    position: absolute;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: var(--color-girlfriend, #b3faa4);
+    border: 2px solid #ffffff;
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+    pointer-events: none;
+}
+
+.ssl-thumb {
+    position: absolute;
+    width: 28px;
+    height: 28px;
+    border-radius: 50%;
+    background: #ffffff;
+    border: 2px solid #ff9bac;
+    box-sizing: border-box;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.28);
+    pointer-events: none;
+}
+
+.ssl-thumb.idle {
+    border-color: #f0d4da;
+    box-shadow: none;
+}
+
+.ssl-input {
+    position: absolute;
+    inset: 0;
+    width: 100%;
+    margin: 0;
+    opacity: 0;
+    cursor: pointer;
+    touch-action: pan-y;
+}
+
+.ssl-ticks {
+    display: grid;
+    grid-template-columns: repeat(10, minmax(0, 1fr));
+    margin-top: -4px;
+}
+
+.ssl-tick {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 10px;
+    color: #ADB5BD;
+    text-align: center;
+    cursor: pointer;
+}
+
+.ssl-tick.on { color: #FF6B6B; }
+
+.ssl-partner-note {
+    font-size: 11px;
+    color: #6C757D;
+    display: flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.ssl-partner-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-girlfriend, #b3faa4);
+    box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.12);
+}
+
+/* 주소·설명·링크가 하나도 없을 때 */
+.ods-empty-info {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    background: #faf9f7;
+    border-radius: 12px;
+    padding: 11px 13px;
+    font-size: 13px;
+    line-height: 1.55;
+    color: #6C757D;
+}
+
+.ods-empty-info svg {
+    flex-shrink: 0;
+    font-size: 16px;
+    color: #ADB5BD;
+    margin-top: 2px;
+}
+
+.ods-empty-hint {
+    font-size: 12px;
+    color: #ADB5BD;
+}

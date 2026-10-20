@@ -1,133 +1,97 @@
-// src/components/Travel/TravelDecisionsTab.jsx
-import React, { useState, useRef, useEffect, forwardRef, useImperativeHandle } from 'react';
+// src/components/Travel/Decisions/TravelDecisionsTab.jsx
+// 선택 사항 탭 — [비교 주제 N · ＋카테고리 추가] / [카테고리 · 즐겨찾기만 · 정렬] / 주제별 세로 섹션.
+// 후보 상세 시트(?modal=option&d=&o=)와 보기 설정 시트(?modal=decision-view)는 URL로 열고 닫음
+// (앱 모달 아키텍처: 열림 상태를 URL에서 파생, 닫기는 navigate(-1) 또는 첫 진입이면 replace).
+import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
+import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { MdAdd, MdGpsFixed, MdKeyboardArrowDown, MdStar, MdSwapVert } from 'react-icons/md';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
+import DecisionSection from './DecisionSection';
+import OptionDetailSheet from './OptionDetailSheet';
+import DecisionViewSheet from './DecisionViewSheet';
+import useDecisionActions from './useDecisionActions';
+import { getMembers } from './optionScoreUtils';
 import {
-  createDecision,
-  deleteDecision,
-  hasUserScored,
-} from '../../../services/travelDecisionService';
-import DecisionCategoryList from './DecisionCategoryList';
-import DecisionModal from './DecisionModal';
-import ConfirmModal from '../../common/ConfirmModal';
-import { MdGpsFixed } from 'react-icons/md';
-import { toast } from 'react-toastify';
+  DEFAULT_VIEW,
+  OPTION_SORTS,
+  buildVisibleTopics,
+  getRankMap,
+  getUnscoredCount,
+} from './decisionViewUtils';
 import './TravelDecisionsTab.css';
 
-const categoryLabels = {
-  accommodation: '숙소',
-  restaurant: '식당',
-  activity: '액티비티',
-  transport: '교통',
-  custom: '기타',
+const viewStorageKey = (tripId) => `twogether_decision_view_${tripId}`;
+
+// 탭을 오가도 보기 설정이 유지되도록 세션 동안만 저장(기기 간 공유할 값이 아니라 sessionStorage)
+const loadView = (tripId) => {
+  try {
+    const raw = sessionStorage.getItem(viewStorageKey(tripId));
+    return raw ? { ...DEFAULT_VIEW, ...JSON.parse(raw) } : DEFAULT_VIEW;
+  } catch {
+    return DEFAULT_VIEW;
+  }
 };
 
-const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref) => {
-  const { user } = useAuthContext();
+const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
+  const { user, coupleDoc, getMemberName } = useAuthContext();
   const { decisions, loading } = useTravelDecisions(trip.id);
-  const [showModal, setShowModal] = useState(false);
-  const [decisionToDelete, setDecisionToDelete] = useState(null);
-  const [filter, setFilter] = useState('all'); // 'all', 'deciding', 'decided'
-  const [selectedDecisionId, setSelectedDecisionId] = useState(null); // 주제 필터
-  const [activeCategory, setActiveCategory] = useState(null); // TOC 스크롤 추적
-  const categoryRefs = useRef({}); // 각 카테고리 섹션 ref
-  const contentRef = useRef(null); // 콘텐츠 컨테이너 ref
-  const tocRef = useRef(null); // TOC 네비게이션 ref
-  const decisionFilterRef = useRef(null); // 주제 필터 가로스크롤 ref
+  const [view, setView] = useState(() => loadView(trip.id));
 
-  // 상태 필터링된 선택지
-  const statusFilteredDecisions = decisions.filter(d => {
-    if (filter === 'all') return true;
-    return d.status === filter;
+  const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const modal = searchParams.get('modal');
+
+  // iOS에서 모달 여닫기 내비게이션이 겹치면 히스토리가 꼬이므로 전환 하나가 끝날 때까지 다음 요청 무시
+  const navLockRef = useRef(false);
+  useEffect(() => { navLockRef.current = false; }, [location.key]);
+  const guardedNavigate = (fn) => {
+    if (navLockRef.current) return;
+    navLockRef.current = true;
+    setTimeout(() => { navLockRef.current = false; }, 700);
+    fn();
+  };
+
+  const closeModal = () => guardedNavigate(() => {
+    if (location.key === 'default') navigate(location.pathname, { replace: true });
+    else navigate(-1);
   });
 
-  // 주제 필터링까지 적용
-  const filteredDecisions = selectedDecisionId
-    ? statusFilteredDecisions.filter(d => d.id === selectedDecisionId)
-    : statusFilteredDecisions;
+  const openOptionSheet = (decision, option, opts = {}) => guardedNavigate(() => {
+    const params = new URLSearchParams({ modal: 'option', d: decision.id, o: option.id });
+    if (opts.score) params.set('score', '1');
+    navigate(`${location.pathname}?${params.toString()}`, { state: { modal: true } });
+  });
 
-  const decidingDecisions = filteredDecisions.filter(d => d.status !== 'decided');
-  const decidedDecisions = filteredDecisions.filter(d => d.status === 'decided');
+  const openViewSheet = () => guardedNavigate(() => {
+    navigate(`${location.pathname}?modal=decision-view`, { state: { modal: true } });
+  });
 
-  // 주제별 미평가 개수 계산
-  const getDecisionUnscorredCount = (decision) => {
-    return (decision.options || []).filter(opt => !hasUserScored(opt, user.uid)).length;
-  };
+  const sheetDecision = modal === 'option' ? decisions.find(d => d.id === searchParams.get('d')) : null;
+  const sheetOption = sheetDecision ? (sheetDecision.options || []).find(o => o.id === searchParams.get('o')) : null;
 
-  // TOC 데이터 생성: 미평가 많은 순으로 정렬
-  const decisionsWithCounts = filteredDecisions
-    .map(d => ({
-      id: d.id,
-      title: d.title,
-      unscorredCount: getDecisionUnscorredCount(d),
-    }))
-    .sort((a, b) => b.unscorredCount - a.unscorredCount);
+  const { actions, modals } = useDecisionActions({
+    trip,
+    userId: user?.uid,
+    onOptionDeleted: (optionId) => { if (sheetOption?.id === optionId) closeModal(); },
+  });
 
-  // 스크롤 추적: IntersectionObserver로 현재 활성 주제 감지
-  useEffect(() => {
-    const observer = new IntersectionObserver(
-      (entries) => {
-        entries.forEach((entry) => {
-          if (entry.isIntersecting) {
-            setActiveCategory(entry.target.getAttribute('data-decision-id'));
-          }
-        });
-      },
-      { threshold: 0.3 }
-    );
-
-    Object.values(categoryRefs.current).forEach((ref) => {
-      if (ref) observer.observe(ref);
-    });
-
-    return () => observer.disconnect();
-  }, [filteredDecisions]);
-
-  // TOC 클릭 시 해당 섹션으로 스크롤
-  const handleTocClick = (decisionId) => {
-    const ref = categoryRefs.current[decisionId];
-    if (ref) {
-      ref.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveCategory(decisionId);
-    }
-  };
-
-  const handleCreateDecision = async (decisionData) => {
-    try {
-      await createDecision(trip.id, {
-        ...decisionData,
-        coupleId: trip.coupleId,
-      });
-      setShowModal(false);
-      toast.success('선택지가 추가되었습니다.');
-    } catch (error) {
-      console.error('Error creating decision:', error);
-      toast.error('선택지 추가 중 오류가 발생했습니다.');
-    }
-  };
-
-  const handleDeleteDecision = (decisionId) => {
-    setDecisionToDelete(decisionId);
-  };
-
-  const confirmDeleteDecision = async () => {
-    const decisionId = decisionToDelete;
-    setDecisionToDelete(null);
-    try {
-      await deleteDecision(trip.id, decisionId);
-      toast.success('선택지가 삭제되었습니다.');
-    } catch (error) {
-      console.error('Error deleting decision:', error);
-      toast.error('선택지 삭제 중 오류가 발생했습니다.');
-    }
-  };
-
-  // FAB 메서드 노출
   useImperativeHandle(ref, () => ({
-    showDecisionMenu: () => {
-      setShowModal(true);
-    }
-  }), []);
+    showDecisionMenu: () => actions.createTopic(),
+  }));
+
+  const applyView = (next) => {
+    setView(next);
+    try { sessionStorage.setItem(viewStorageKey(trip.id), JSON.stringify(next)); } catch { /* 저장 실패해도 화면엔 반영 */ }
+  };
+
+  const members = getMembers(coupleDoc, getMemberName);
+  const topics = useMemo(() => buildVisibleTopics(decisions, view, user?.uid), [decisions, view, user?.uid]);
+  const sortLabel = OPTION_SORTS.find(s => s.key === view.optionSort)?.label || '점수순';
+  const categoryLabel = view.topicIds
+    ? `카테고리 ${view.topicIds.filter(id => decisions.some(d => d.id === id)).length}/${decisions.length}`
+    : '카테고리 전체';
 
   if (loading) {
     return (
@@ -139,132 +103,88 @@ const TravelDecisionsTab = forwardRef(({ trip, tripDays, onAddToSchedule }, ref)
   }
 
   return (
-    <div className="travel-decisions-tab">
-      {/* 필터 */}
-      <div className="tdt-filters">
-        <button
-          className={`tdt-filter-btn ${filter === 'all' ? 'active' : ''}`}
-          onClick={() => setFilter('all')}
-        >
-          전체
-        </button>
-        <button
-          className={`tdt-filter-btn ${filter === 'deciding' ? 'active' : ''}`}
-          onClick={() => setFilter('deciding')}
-        >
-          검토 중
-        </button>
-        <button
-          className={`tdt-filter-btn ${filter === 'decided' ? 'active' : ''}`}
-          onClick={() => setFilter('decided')}
-        >
-          확정
+    <div className="tdt">
+      <div className="tdt-top">
+        <span className="tdt-count">비교 주제 <span className="tdt-count-num">{decisions.length}</span></span>
+        <button className="tdt-add-topic" onClick={actions.createTopic}>
+          <MdAdd />카테고리 추가
         </button>
       </div>
 
-      {/* 주제 필터 (가로스크롤) */}
-      {statusFilteredDecisions.length > 0 && (
-        <div className="tdt-decision-filters" ref={decisionFilterRef}>
-          {statusFilteredDecisions.map(decision => {
-            const unscorredCount = getDecisionUnscorredCount(decision);
-            const isActive = selectedDecisionId === decision.id;
-            const isDecided = decision.status === 'decided';
-            return (
-              <button
-                key={decision.id}
-                className={`tdt-decision-filter-btn ${isActive ? 'active' : ''} ${isDecided ? 'decided' : ''}`}
-                onClick={() => setSelectedDecisionId(isActive ? null : decision.id)}
-              >
-                <span>{decision.title}</span>
-                {unscorredCount > 0 && (
-                  <span className="tdt-decision-filter-badge">{unscorredCount}</span>
-                )}
-              </button>
-            );
-          })}
+      {decisions.length > 0 && (
+        <div className="tdt-filters">
+          <button className="tdt-filter on" onClick={openViewSheet}>
+            {categoryLabel}<MdKeyboardArrowDown />
+          </button>
+          <button
+            className={`tdt-filter ${view.favoritesOnly ? 'on' : ''}`}
+            onClick={() => applyView({ ...view, favoritesOnly: !view.favoritesOnly })}
+            aria-pressed={view.favoritesOnly}
+          >
+            <MdStar className="tdt-filter-star" /> 즐겨찾기만
+          </button>
+          <span className="tdt-filter-spacer" />
+          <button className="tdt-sort" onClick={openViewSheet}>
+            <MdSwapVert />{sortLabel}
+          </button>
         </div>
       )}
 
-      {/* 빈 상태 */}
-      {filteredDecisions.length === 0 ? (
+      {decisions.length === 0 ? (
         <div className="tdt-empty">
-          <div className="tdt-empty-icon">
-            <MdGpsFixed size={48} />
-          </div>
-          <p className="tdt-empty-title">
-            {filter === 'all'
-              ? '아직 선택지가 없습니다'
-              : '해당하는 선택지가 없습니다'}
-          </p>
-          <p className="tdt-empty-text">
-            숙소, 식당, 액티비티 등을 비교해보세요!
-          </p>
+          <div className="tdt-empty-icon"><MdGpsFixed size={48} /></div>
+          <p className="tdt-empty-title">아직 선택지가 없습니다</p>
+          <p className="tdt-empty-text">숙소, 식당, 액티비티 등을 비교해보세요!</p>
+        </div>
+      ) : topics.length === 0 ? (
+        <div className="tdt-empty">
+          <p className="tdt-empty-title">조건에 맞는 후보가 없어요</p>
+          <button className="tdt-empty-reset" onClick={() => applyView(DEFAULT_VIEW)}>보기 설정 초기화</button>
         </div>
       ) : (
-        <>
-          <div className="tdt-content" ref={contentRef}>
-            {decidingDecisions.map((decision) => (
-              <div
-                key={decision.id}
-                ref={(el) => { if (el) categoryRefs.current[decision.id] = el; }}
-                data-decision-id={decision.id}
-                className="tdt-decision-item"
-              >
-                <DecisionCategoryList
-                  isDecisionItem={true}
-                  category={decision.id}
-                  decisions={[decision]}
-                  currentUserId={user?.uid}
-                  tripId={trip.id}
-                  onDelete={handleDeleteDecision}
-                  onAddToSchedule={onAddToSchedule}
-                />
-              </div>
-            ))}
-            {decidedDecisions.length > 0 && decidingDecisions.length > 0 && (
-              <div className="tdt-decided-divider"><span>확정됨</span></div>
-            )}
-            {decidedDecisions.map((decision) => (
-              <div
-                key={`decided-${decision.id}`}
-                ref={(el) => { if (el) categoryRefs.current[decision.id] = el; }}
-                data-decision-id={decision.id}
-                className="tdt-decision-item"
-              >
-                <DecisionCategoryList
-                  isDecisionItem={true}
-                  category={decision.id}
-                  decisions={[decision]}
-                  currentUserId={user?.uid}
-                  tripId={trip.id}
-                  onDelete={handleDeleteDecision}
-                  onAddToSchedule={onAddToSchedule}
-                />
-              </div>
-            ))}
-          </div>
-        </>
+        <div className="tdt-sections">
+          {topics.map(({ decision, options }) => (
+            <DecisionSection
+              key={decision.id}
+              decision={decision}
+              options={options}
+              rankMap={getRankMap(decision.options)}
+              unscoredCount={getUnscoredCount(decision, user?.uid)}
+              members={members}
+              currentUserId={user?.uid}
+              actions={actions}
+              onOpenSheet={openOptionSheet}
+              onAddToSchedule={onAddToSchedule}
+            />
+          ))}
+        </div>
       )}
 
-      {/* 모달 */}
-      {showModal && (
-        <DecisionModal
-          isOpen={showModal}
-          onClose={() => setShowModal(false)}
-          tripId={trip.id}
-          coupleId={trip.coupleId}
-          onSave={handleCreateDecision}
+      {/* 시트 → 확인/편집 모달 순서로 렌더 — 같은 z-index면 나중 것이 위에 와서 시트 위에 모달이 뜸 */}
+      {sheetDecision && sheetOption && (
+        <OptionDetailSheet
+          key={sheetOption.id}
+          decision={sheetDecision}
+          option={sheetOption}
+          rank={getRankMap(sheetDecision.options)[sheetOption.id]}
+          members={members}
+          currentUserId={user?.uid}
+          actions={actions}
+          startScoring={searchParams.get('score') === '1'}
+          onAddToSchedule={onAddToSchedule}
+          onClose={closeModal}
         />
       )}
-
-      <ConfirmModal
-        isOpen={!!decisionToDelete}
-        title="선택지 삭제"
-        message="이 선택지를 삭제하시겠습니까?"
-        confirmText="삭제"
-        onConfirm={confirmDeleteDecision}
-        onCancel={() => setDecisionToDelete(null)}
-      />
+      {modal === 'decision-view' && (
+        <DecisionViewSheet
+          decisions={decisions}
+          userId={user?.uid}
+          view={view}
+          onApply={(next) => { applyView(next); closeModal(); }}
+          onClose={closeModal}
+        />
+      )}
+      {modals}
     </div>
   );
 });

@@ -1,134 +1,131 @@
-/* src/components/Travel/ChecklistItem.css */
+/* src/components/Travel/Checklist/ChecklistItem.css — 남은 준비 카드 + 준비 완료 줄 */
 
-.checklist-item {
-    display: flex;
-    gap: 0.75rem;
-    align-items: flex-start;
-    padding: 0.75rem;
-    background: white;
-    border: 1px solid var(--card-border);
-    border-radius: 0.75rem;
-    transition: all 0.15s;
-}
-
-.checklist-item:hover {
-    background: var(--main-bg);
-    border-color: rgba(255, 182, 193, 0.3);
-}
-
-.checklist-item.completed {
-    opacity: 0.7;
-}
-
-.checklist-item.completed .ci-title {
-    text-decoration: line-through;
-    color: var(--color-gray-500);
-}
-
-/* 체크박스 */
-.ci-checkbox {
-    width: 20px;
-    height: 20px;
-    border-radius: 0.4rem;
-    border: 2px solid var(--card-border);
-    cursor: pointer;
-    accent-color: #ff9bac;
-    flex-shrink: 0;
-    margin-top: 0.2rem;
-}
-
-.ci-checkbox:hover {
-    border-color: #ffc4ce;
-}
-
-.ci-checkbox:checked {
-    background: linear-gradient(135deg, #ffd1dc 0%, #ffbcca 100%);
-    border-color: #ffbcca;
-}
-
-/* 콘텐츠 */
-.ci-content {
-    flex: 1;
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-}
-
-.ci-header {
-    display: flex;
-    justify-content: space-between;
+.ci-card {
+    background: #ffffff;
+    border-radius: 14px;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
+    padding: 12px 14px;
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
     align-items: center;
-    gap: 0.5rem;
 }
 
-.ci-title {
-    font-size: 0.95rem;
-    font-weight: 600;
-    color: var(--color-gray-800);
-    margin: 0;
-}
-
-.ci-priority {
-    font-size: 0.7rem;
-    font-weight: 700;
-    padding: 0.2rem 0.5rem;
-    background: rgba(0, 0, 0, 0.05);
-    border-radius: 0.3rem;
-    white-space: nowrap;
-}
-
-.ci-description {
-    font-size: 0.8rem;
-    color: var(--color-gray-600);
-    margin: 0;
-}
-
-.ci-completed-info {
-    font-size: 0.75rem;
-    color: #88c988;
-    margin: 0;
-    font-weight: 600;
-}
-
-.ci-due-date {
-    font-size: 0.75rem;
-    color: #e67e22;
-    margin: 0;
-    font-weight: 600;
-}
-
-/* 액션 버튼 */
-.ci-actions {
-    display: flex;
-    gap: 0.25rem;
-    flex-shrink: 0;
-}
-
-.ci-edit-btn,
-.ci-delete-btn {
-    width: 24px;
-    height: 24px;
-    border-radius: 50%;
-    border: 1px solid transparent;
+/* 체크 원 — 보이는 원은 22px, 누르는 영역은 30px */
+.ci-check {
+    width: 30px;
+    height: 30px;
+    margin-left: -4px;
+    padding: 0 0 0 4px;
+    border: none;
     background: transparent;
+    display: flex;
+    align-items: center;
     cursor: pointer;
-    color: var(--color-gray-400);
-    font-size: 0.75rem;
+}
+
+.ci-check-circle {
+    width: 22px;
+    height: 22px;
+    border-radius: 50%;
+    border: 1.5px solid #ffb6c1;
+    box-sizing: border-box;
     display: flex;
     align-items: center;
     justify-content: center;
-    transition: all 0.15s;
-    flex-shrink: 0;
 }
 
-.ci-edit-btn:hover {
-    background: rgba(52, 152, 219, 0.1);
-    border-color: #3498db;
-    color: #3498db;
+.ci-check-circle.done {
+    border: none;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
 }
 
-.ci-delete-btn:hover {
-    background: #fff0f3;
-    border-color: #ff6b6b;
-    color: #ff6b6b;
+.ci-text {
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.ci-title {
+    font-size: 15px;
+    font-weight: 700;
+    color: #343A40;
+    word-break: break-word;
+}
+
+.ci-sub {
+    font-size: 12px;
+    color: #6C757D;
+    line-height: 1.45;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.ci-side {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    margin-left: 6px;
+}
+
+.ci-priority {
+    font-size: 11px;
+    padding: 3px 8px;
+    border-radius: 6px;
+    white-space: nowrap;
+}
+
+.ci-priority.high { background: #fff0f3; color: #d9534f; }
+.ci-priority.medium { background: #fff4e6; color: #b06a12; }
+.ci-priority.low { background: #eef6ff; color: #2f7fb8; }
+
+.ci-icon-btn {
+    width: 26px;
+    height: 26px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: transparent;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.ci-icon-btn.edit { color: #81bbf5; font-size: 14px; }
+.ci-icon-btn.delete { color: #ff9bac; font-size: 16px; }
+.ci-icon-btn.done-delete { color: #ced4da; font-size: 15px; width: 24px; height: 24px; }
+
+/* ===== 준비 완료 줄 ===== */
+.ci-done-row {
+    display: grid;
+    grid-template-columns: 30px minmax(0, 1fr) auto;
+    align-items: center;
+    min-height: 44px;
+}
+
+.ci-done-row + .ci-done-row { border-top: 1px solid rgba(255, 182, 193, 0.12); }
+
+.ci-done-title {
+    min-width: 0;
+    font-size: 14px;
+    color: #ADB5BD;
+    text-decoration: line-through;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ci-done-side {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    margin-left: 8px;
+}
+
+.ci-done-meta {
+    font-size: 11px;
+    color: #ADB5BD;
+    white-space: nowrap;
 }

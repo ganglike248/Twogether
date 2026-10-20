@@ -1,119 +1,119 @@
-/* src/components/Travel/TravelTimeInput.css */
-.travel-time-container {
-    display: flex;
-    flex-direction: column;
+/* src/components/Travel/Schedule/TravelTimeInput.css
+   일정 사이 이동 구간 — 레일(세로선) 위 20px 동그라미 + 시간 텍스트 */
+
+.tl-travel {
+    display: grid;
+    grid-template-columns: 20px minmax(0, 1fr);
+    gap: 12px;
     align-items: center;
-    margin: 0.5rem 0;
+    padding: 12px 0;
     position: relative;
 }
 
-.travel-time-line {
-    width: 2px;
-    height: 10px;
-    background: linear-gradient(to bottom, #ddd 0%, #ff6b8a 50%, #ddd 100%);
-}
-
-.travel-time-edit {
+.tl-travel-icon {
+    position: relative;
+    z-index: 1;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid #cfe5ff;
+    background: #eef6ff;
+    box-sizing: border-box;
+    color: #3d8ed6;
+    font-size: 12px;
     display: flex;
-    flex-direction: column;
     align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 107, 138, 0.05);
-    padding: 0.75rem;
-    border-radius: 12px;
-    border: 1px solid rgba(255, 107, 138, 0.2);
+    justify-content: center;
+    cursor: pointer;
 }
 
-.travel-time-input {
-    padding: 0.5rem 0.75rem;
-    border: 1px solid rgba(255, 107, 138, 0.3);
-    border-radius: 8px;
-    font-size: 0.85rem;
+.tl-travel-icon.add {
+    border: 1px dashed #c9ced3;
+    background: #ffffff;
+    color: #ADB5BD;
+    font-size: 12px;
+    line-height: 1;
+}
+
+.tl-travel-display {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.tl-travel-text {
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    font-size: 12px;
+    color: #3d8ed6;
+    cursor: pointer;
+    text-align: left;
+}
+
+.tl-travel-text.add { color: #ADB5BD; }
+
+.tl-travel-delete {
+    width: 18px;
+    height: 18px;
+    padding: 0;
+    border: none;
+    border-radius: 50%;
+    background: #f1f3f5;
+    color: #868e96;
+    font-size: 11px;
+    line-height: 1;
+    cursor: pointer;
+    flex-shrink: 0;
+}
+
+/* 입력 중 */
+.tl-travel-edit {
+    display: flex;
+    align-items: center;
+    gap: 6px;
+    min-width: 0;
+}
+
+.tl-travel-input {
+    flex: 1;
+    min-width: 0;
+    height: 34px;
+    padding: 0 10px;
+    border: 1px solid rgba(255, 155, 172, 0.55);
+    border-radius: 10px;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 16px; /* iOS 확대 방지 — 16px 미만 금지 */
+    color: #343A40;
     outline: none;
-    text-align: center;
-    min-width: 120px;
     box-sizing: border-box;
 }
 
-.travel-time-input:focus {
-    border-color: #ff6b8a;
-    box-shadow: 0 0 0 2px rgba(255, 107, 138, 0.1);
-}
+.tl-travel-input:focus { border-color: #ff9bac; }
 
-.travel-time-actions {
-    display: flex;
-    gap: 0.5rem;
-}
-
-.travel-time-save-btn,
-.travel-time-cancel-btn {
-    padding: 0.4rem 0.8rem;
-    border: none;
-    border-radius: 6px;
-    font-size: 0.8rem;
+.tl-travel-save,
+.tl-travel-cancel {
+    flex-shrink: 0;
+    height: 34px;
+    padding: 0 10px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 12px;
     cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    min-height: 32px;
-    touch-action: manipulation;
 }
 
-.travel-time-save-btn {
-    background: #ff6b8a;
-    color: white;
+.tl-travel-save {
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
 }
 
-.travel-time-cancel-btn {
-    background: #f5f5f5;
-    color: #666;
-}
-
-.travel-time-display {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    background: rgba(255, 107, 138, 0.08);
-    padding: 0.5rem 0.75rem;
-    border-radius: 20px;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    border: 1px solid rgba(255, 107, 138, 0.15);
-    position: relative;
-    touch-action: manipulation;
-}
-
-.travel-time-icon {
-    font-size: 0.9rem;
-}
-
-.travel-time-text {
-    font-size: 0.85rem;
-    color: #ff6b8a;
-    font-weight: 500;
-}
-
-.travel-time-delete-travel-time-btn {
-    background: none;
-    border: none;
-    color: #999;
-    font-size: 1.2rem;
-    cursor: pointer;
-    padding: 0;
-    margin-left: 0.25rem;
-    line-height: 1;
-    touch-action: manipulation;
-}
-
-.travel-time-add-travel-time-btn {
-    background: rgba(255, 107, 138, 0.05);
-    border: 1px dashed rgba(255, 107, 138, 0.3);
-    color: #ff6b8a;
-    padding: 0.5rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.8rem;
-    cursor: pointer;
-    transition: all 0.2s ease;
-    font-weight: 500;
-    min-height: 36px;
-    touch-action: manipulation;
+.tl-travel-cancel {
+    border: 1px solid rgba(255, 182, 193, 0.6);
+    background: #ffffff;
+    color: #6C757D;
 }

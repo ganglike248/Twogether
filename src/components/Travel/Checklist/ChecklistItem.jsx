@@ -1,84 +1,70 @@
-// src/components/Travel/ChecklistItem.jsx
+// src/components/Travel/Checklist/ChecklistItem.jsx
+// 체크리스트 항목 — 남은 준비는 항목마다 카드 한 장(ChecklistItem),
+// 준비 완료는 한 카드 안에 줄로 나열(CompletedChecklistRow, 누가·언제 완료했는지 표시)
 import React from 'react';
-import { formatDistanceToNow } from 'date-fns';
-import { ko } from 'date-fns/locale';
-import { MdEdit, MdClose, MdCheckCircle } from 'react-icons/md';
+import { format } from 'date-fns';
+import { MdClose, MdEdit } from 'react-icons/md';
 import './ChecklistItem.css';
 
-const priorityConfig = {
-  high: { label: '높음', color: '#ff6b6b' },
-  medium: { label: '중간', color: '#ffa940' },
-  low: { label: '낮음', color: '#4dabf7' },
+const PRIORITY = {
+  high: { label: '높음', className: 'high' },
+  medium: { label: '중간', className: 'medium' },
+  low: { label: '낮음', className: 'low' },
 };
 
-const ChecklistItem = ({ item, onToggle, onDelete, onEdit }) => {
-  const priorityInfo = priorityConfig[item.priority] || priorityConfig.medium;
+const CheckMark = () => (
+  <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="#ffffff" strokeWidth="3" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d="M5 12l5 5 9-10" />
+  </svg>
+);
 
-  const getCompletedInfo = () => {
-    if (!item.completed) return null;
-    const timeAgo = formatDistanceToNow(new Date(item.completedAt), {
-      locale: ko,
-      addSuffix: true,
-    });
-    return timeAgo;
-  };
+const ChecklistItem = ({ item, onToggle, onDelete, onEdit }) => {
+  const priority = PRIORITY[item.priority] || PRIORITY.medium;
+  const subParts = [
+    item.dueDate ? `${format(new Date(item.dueDate), 'MM.dd')}까지` : null,
+    item.description || null,
+  ].filter(Boolean);
 
   return (
-    <div className={`checklist-item ${item.completed ? 'completed' : ''}`}>
-      {/* 체크박스 */}
-      <input
-        type="checkbox"
-        className="ci-checkbox"
-        checked={item.completed}
-        onChange={onToggle}
-      />
-
-      {/* 콘텐츠 */}
-      <div className="ci-content">
-        <div className="ci-header">
-          <h4 className="ci-title">{item.title}</h4>
-          {item.priority && (
-            <span className="ci-priority" style={{ color: priorityInfo.color }}>
-              {priorityInfo.label}
-            </span>
-          )}
-        </div>
-
-        {item.description && (
-          <p className="ci-description">{item.description}</p>
-        )}
-
-        {item.completed && (
-          <p className="ci-completed-info">
-            <MdCheckCircle style={{ display: 'inline', marginRight: '0.25rem', fontSize: '0.875rem' }} />
-            {getCompletedInfo()}
-          </p>
-        )}
-
-        {item.dueDate && !item.completed && (
-          <p className="ci-due-date">
-            마감: {new Date(item.dueDate).toLocaleDateString('ko-KR')}
-          </p>
-        )}
+    <div className="ci-card">
+      <button className="ci-check" onClick={onToggle} aria-label={`${item.title} 완료로 표시`}>
+        <span className="ci-check-circle" />
+      </button>
+      <div className="ci-text">
+        <span className="ci-title">{item.title}</span>
+        {subParts.length > 0 && <span className="ci-sub">{subParts.join(' · ')}</span>}
       </div>
-
-      {/* 액션 버튼 */}
-      <div className="ci-actions">
-        <button
-          className="ci-edit-btn"
-          onClick={() => onEdit(item)}
-          title="수정"
-        >
+      <span className="ci-side">
+        <span className={`ci-priority ${priority.className}`}>{priority.label}</span>
+        <button className="ci-icon-btn edit" onClick={() => onEdit(item)} aria-label="수정">
           <MdEdit />
         </button>
-        <button
-          className="ci-delete-btn"
-          onClick={onDelete}
-          title="삭제"
-        >
+        <button className="ci-icon-btn delete" onClick={onDelete} aria-label="삭제">
           <MdClose />
         </button>
-      </div>
+      </span>
+    </div>
+  );
+};
+
+export const CompletedChecklistRow = ({ item, completerName, onToggle, onDelete }) => {
+  const meta = [
+    completerName || null,
+    item.completedAt ? format(new Date(item.completedAt), 'MM.dd') : null,
+  ].filter(Boolean).join(' · ');
+
+  return (
+    <div className="ci-done-row">
+      <button className="ci-check" onClick={onToggle} aria-label={`${item.title} 완료 취소`}>
+        <span className="ci-check-circle done"><CheckMark /></span>
+      </button>
+      <span className="ci-done-title">{item.title}</span>
+      <span className="ci-done-side">
+        {meta && <span className="ci-done-meta">{meta}</span>}
+        <button className="ci-icon-btn done-delete" onClick={onDelete} aria-label="삭제">
+          <MdClose />
+        </button>
+      </span>
     </div>
   );
 };

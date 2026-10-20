@@ -1,554 +1,243 @@
-/* src/components/Travel/DecisionCard.css */
+/* src/components/Travel/Decisions/DecisionCard.css — 후보 카드 (가로 스크롤 280px) */
 
-.decision-card {
+.dcard {
+    flex: 0 0 280px;
+    background: #ffffff;
+    border-radius: 14px;
+    overflow: hidden;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    box-shadow: 0 1px 4px rgba(255, 107, 107, 0.08);
     display: flex;
     flex-direction: column;
-    /* 묶음(이미지 / 헤더 / 상세 / 점수 / 평가) 사이 간격 — 묶음 안쪽은 각자 더 촘촘하게 */
-    gap: 0.6rem;
-    background: #fdf5f7;
-    border: 1px solid #ffd9d9;
-    border-radius: var(--border-radius-lg);
-    padding: 0.6rem 0.65rem;
-    box-shadow: none;
+    scroll-snap-align: start;
 }
 
-.decision-card:active {
-    opacity: 0.94;
+.dcard { cursor: pointer; }
+
+.dcard.top {
+    border: 1.5px solid #ff9bac;
+    box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
 }
 
-/* ===== 이미지들 (가로 스크롤 갤러리) ===== */
-.dc-images-container {
-    position: relative;
-    width: calc(100% + 1.3rem);
-    margin: -0.6rem -0.65rem 0 -0.65rem;
-    border-radius: var(--border-radius-lg) var(--border-radius-lg) 0 0;
-    overflow: hidden;
-    background: var(--main-bg);
-}
-
-.dc-images-scroll {
+.dcard-body {
+    padding: 12px 14px 14px;
     display: flex;
-    overflow-x: auto;
-    scroll-behavior: smooth;
-    height: 250px;
-    scrollbar-width: none;
+    flex-direction: column;
+    gap: 9px;
+    flex-grow: 1;
 }
 
-.dc-images-scroll::-webkit-scrollbar {
-    display: none;
-}
-
-.dc-image-item {
-    flex: 0 0 100%;
-    height: 250px;
-    overflow: hidden;
-    background: var(--main-bg);
-}
-
-.dc-image {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
-}
-
-/* 스크롤 버튼 */
-.dc-scroll-btn {
-    position: absolute;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 26px;
-    height: 26px;
-    border: none;
-    background: rgba(255, 255, 255, 0.88);
-    border-radius: 50%;
-    cursor: pointer;
+.dcard-head {
     display: flex;
-    align-items: center;
-    justify-content: center;
-    color: var(--color-gray-600);
-    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.12);
-    z-index: 10;
-}
-
-.dc-scroll-btn:active {
-    opacity: 0.7;
-}
-
-.dc-scroll-left  { left: 0.4rem; }
-.dc-scroll-right { right: 0.4rem; }
-
-/* ===== 헤더 ===== */
-.dc-header {
-    display: flex;
-    justify-content: space-between;
     align-items: flex-start;
-    gap: 0.4rem;
+    gap: 6px;
 }
 
-.dc-title-info {
-    display: flex;
-    flex-direction: column;
-    gap: 0.1rem;
-    flex: 1;
+.dcard-title-btn {
+    flex-grow: 1;
     min-width: 0;
-}
-
-.dc-title-with-badge {
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
-}
-
-.dc-unscored-badge {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    width: 1.2rem;
-    height: 1.2rem;
-    background: #ff6b6b;
-    color: white;
-    font-size: 0.58rem;
-    font-weight: 800;
-    border-radius: 50%;
-    white-space: nowrap;
-    flex-shrink: 0;
-    box-shadow: 0 2px 4px rgba(255, 107, 107, 0.3);
-}
-
-.dc-title {
-    font-size: 0.85rem;
-    font-weight: 700;
-    color: var(--color-gray-800);
-    margin: 0;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-}
-
-.dc-price {
-    font-size: 0.72rem;
-    font-weight: 600;
-    color: #e67e22;
-    margin: 0;
-}
-
-/* ===== 액션 버튼들: 기본부터 각 의미 색상 ===== */
-.dc-action-buttons {
-    display: flex;
-    gap: 0.2rem;
-    flex-shrink: 0;
-}
-
-.dc-favorite-btn,
-.dc-add-schedule-btn,
-.dc-edit-btn,
-.dc-delete-btn {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    width: 24px;
-    height: 24px;
     padding: 0;
     border: none;
-    border-radius: 0.3rem;
-    cursor: pointer;
-}
-
-.dc-favorite-btn {
-    background: rgba(255, 182, 193, 0.1);
-    color: #ffb6c1;
-}
-
-.dc-favorite-btn.active {
-    background: rgba(255, 193, 7, 0.15);
-    color: #ffc107;
-}
-
-.dc-favorite-btn:active {
-    opacity: 0.65;
-}
-
-.dc-add-schedule-btn {
-    background: rgba(46, 204, 113, 0.1);
-    color: #2ecc71;
-}
-
-.dc-edit-btn {
-    background: rgba(52, 152, 219, 0.1);
-    color: #3498db;
-}
-
-.dc-delete-btn {
-    background: rgba(231, 76, 60, 0.08);
-    color: #e74c3c;
-}
-
-.dc-add-schedule-btn:active,
-.dc-edit-btn:active,
-.dc-delete-btn:active {
-    opacity: 0.65;
-}
-
-/* ===== 상세 정보 묶음: 주소 + 설명 + 링크 ===== */
-.dc-details {
-    display: flex;
-    flex-direction: column;
-    gap: 0.3rem;
-}
-
-.dc-address {
-    display: flex;
-    align-items: flex-start;
-    gap: 0.2rem;
-    margin: 0;
-    font-size: 0.75rem;
-    color: var(--color-gray-700);
-    line-height: 1.4;
-}
-
-.dc-address svg {
-    flex-shrink: 0;
-    margin-top: 0.1rem;
-    color: var(--color-primary);
-}
-
-/* ===== 설명 ===== */
-.dc-description {
-    font-size: 0.75rem;
-    color: var(--color-gray-700);
-    margin: 0;
-    white-space: pre-line;
-    line-height: 1.45;
-}
-
-/* ===== URL 링크 ===== */
-.dc-url-link {
-    font-size: 0.72rem;
-    color: #3498db;
-    text-decoration: none;
-    word-break: break-all;
-    display: block;
-    background: rgba(52, 152, 219, 0.06);
-    border: none;
-    padding: 0.25rem 0.4rem;
-    border-radius: 0.25rem;
+    background: transparent;
+    font-family: inherit;
     text-align: left;
-    font-family: inherit;
+    display: flex;
+    flex-direction: column;
+    gap: 3px;
+}
+
+.dcard-title {
+    font-size: 16px;
+    font-weight: 700;
+    color: #343A40;
+    word-break: break-word;
+}
+
+.dcard-price {
+    font-size: 14px;
+    color: #FF6B6B;
+}
+
+.dcard-menu-wrap { position: relative; flex-shrink: 0; }
+
+.dcard-more {
+    width: 32px;
+    height: 32px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    background: #ffffff;
+    color: #6C757D;
+    font-size: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
     cursor: pointer;
 }
 
-.dc-url-link:active {
-    opacity: 0.7;
-}
-
-/* 링크 칸에 http(s) 주소가 없는 자유 텍스트만 있을 때 — 누를 수 없는 일반 글 */
-.dc-url-text {
-    font-size: 0.72rem;
-    color: var(--color-gray-600);
-    word-break: break-all;
-    margin: 0;
-}
-
-/* ===== 점수 표시 ===== */
-.dc-scores-display {
-    display: flex;
-    gap: 0.4rem;
-    align-items: center;
-    font-size: 0.72rem;
-    flex-wrap: wrap;
-    padding: 0.35rem 0.5rem;
-    background: var(--main-bg);
-    border-radius: 0.8rem;
-}
-
-.dc-score-label {
-    font-weight: 600;
-    color: var(--color-gray-600);
-    white-space: nowrap;
-}
-
-.dc-total-score {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.2rem;
-    padding: 0.1rem 0.5rem;
-    background: rgba(255, 107, 129, 0.1);
-    border-radius: 999px;
-    font-weight: 700;
-    color: #ff6b81;
-    white-space: nowrap;
-}
-
-/* 총점 미니 바: 후보 간 한눈에 비교 — 바로 위 점수 표시와 한 묶음으로 보이도록 카드 gap을 상쇄 */
-.dc-total-bar-track {
-    margin-top: -0.3rem;
-    height: 5px;
-    border-radius: 999px;
-    background: rgba(255, 182, 193, 0.18);
+.dcard-menu {
+    position: absolute;
+    right: 0;
+    top: 36px;
+    z-index: 5;
+    min-width: 96px;
+    background: #ffffff;
+    border: 1px solid rgba(255, 182, 193, 0.35);
+    border-radius: 12px;
+    box-shadow: 0 6px 18px rgba(52, 58, 64, 0.12);
     overflow: hidden;
+    display: flex;
+    flex-direction: column;
 }
 
-.dc-total-bar-fill {
-    height: 100%;
-    border-radius: 999px;
-    background: linear-gradient(90deg, #ffb6c1 0%, #ff6b81 100%);
-    transition: width 0.3s ease;
-}
-
-/* 점수 변경 버튼: 텍스트 링크 스타일로 통일(핑크 톤) */
-.dc-score-change-inline {
-    margin-left: auto;
-    padding: 0.15rem 0.3rem;
-    background: none;
+.dcard-menu button {
+    height: 40px;
+    padding: 0 14px;
     border: none;
-    color: var(--color-primary);
-    font-size: 0.67rem;
-    font-weight: 600;
-    text-decoration: underline;
-    cursor: pointer;
-    flex-shrink: 0;
-}
-
-.dc-score-change-inline:active:not(:disabled) {
-    opacity: 0.7;
-}
-
-.dc-score-change-inline:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* ===== 평가 섹션 ===== */
-.dc-score-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding-top: 0.35rem;
-}
-
-.dc-score-action-row {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.dc-score-btn {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.72rem;
-    border-radius: 1.1rem;
-    cursor: pointer;
-    font-weight: 600;
-    border: none;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-}
-
-.dc-score-btn:active:not(:disabled) {
-    opacity: 0.82;
-}
-
-.dc-score-btn:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
-}
-
-/* ===== 점수 선택 그리드 ===== */
-.dc-score-selector {
-    display: flex;
-    flex-direction: column;
-    gap: 0.35rem;
-    padding: 0.5rem;
-    background: var(--main-bg);
-    border-radius: 0.9rem;
-    border: 1px solid rgba(255, 182, 193, 0.2);
-}
-
-.dc-score-grid {
-    display: grid;
-    grid-template-columns: repeat(5, 1fr);
-    gap: 0.3rem;
-}
-
-.dc-score-option {
-    width: 100%;
-    padding: 0.32rem 0;
-    font-size: 0.72rem;
-    font-weight: 700;
-    background: white;
-    border: 1.5px solid #ffd9e2;
-    border-radius: 0.6rem;
-    color: var(--color-gray-500);
-    cursor: pointer;
-    transition: background 0.12s ease, border-color 0.12s ease;
-}
-
-.dc-score-option.active {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border-color: #ff9bac;
-}
-
-.dc-score-option:active:not(:disabled) {
-    opacity: 0.7;
-}
-
-.dc-score-option:disabled {
-    opacity: 0.45;
-    cursor: not-allowed;
-}
-
-.dc-score-cancel {
-    flex: 0 0 auto;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.68rem;
-    background: rgba(0,0,0,0.04);
-    border: 1px solid var(--card-border);
-    color: var(--color-gray-500);
-    border-radius: 1rem;
-    cursor: pointer;
-    font-weight: 600;
-}
-
-.dc-score-cancel:active:not(:disabled) {
-    opacity: 0.7;
-}
-
-.dc-score-cancel:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-/* 확정 버튼: 기본부터 녹색. margin-left:auto로 평가하기 버튼이 없어도 항상 행의 오른쪽 끝에 붙음 */
-.dc-decide-btn {
-    flex: 0 0 auto;
-    margin-left: auto;
-    padding: 0.3rem 0.7rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: rgba(46, 204, 113, 0.1);
-    border: 1px solid rgba(46, 204, 113, 0.45);
-    color: #27ae60;
-    border-radius: 1rem;
-    cursor: pointer;
-}
-
-.dc-decide-btn:active:not(:disabled) {
-    opacity: 0.7;
-}
-
-.dc-decide-btn:disabled {
-    opacity: 0.5;
-    cursor: not-allowed;
-}
-
-.dc-decided-badge {
-    display: inline-flex;
-    align-items: center;
-    padding: 0.28rem 0.65rem;
-    background: rgba(46, 204, 113, 0.1);
-    border: 1px solid rgba(46, 204, 113, 0.3);
-    color: #27ae60;
-    font-size: 0.72rem;
-    font-weight: 700;
-    border-radius: 0.35rem;
-}
-
-/* ===== 의견 표시 섹션 ===== */
-.dc-comments-display {
-    display: flex;
-    flex-direction: column;
-    gap: 0.25rem;
-    font-size: 0.72rem;
-    padding: 0.4rem 0.45rem;
-    background: rgba(255, 182, 193, 0.08);
-    border-radius: 0.3rem;
-    border-left: 2px solid #ffb6c1;
-}
-
-.dc-comment-item {
-    margin: 0;
-    color: var(--color-gray-600);
-    line-height: 1.4;
-    white-space: pre-line;
-}
-
-.dc-comment-item strong {
-    color: var(--color-gray-700);
-    font-weight: 600;
-}
-
-/* ===== 의견 입력 섹션 ===== */
-.dc-comment-input-section {
-    display: flex;
-    flex-direction: column;
-    gap: 0.2rem;
-}
-
-.dc-comment-textarea {
-    width: 100%;
-    min-height: 44px;
-    padding: 0.3rem 0.5rem;
-    font-size: 0.72rem;
+    background: #ffffff;
     font-family: inherit;
-    border: 1px solid #ffb6c1;
-    border-radius: 0.75rem;
-    resize: vertical;
-    color: var(--color-gray-700);
-}
-
-.dc-comment-textarea::placeholder {
-    color: var(--color-gray-300);
-}
-
-.dc-comment-textarea:focus {
-    outline: none;
-    border-color: #ff9bac;
-    box-shadow: 0 0 0 2px rgba(255, 182, 193, 0.2);
-}
-
-.dc-comment-textarea:disabled {
-    background: var(--main-bg);
-    cursor: not-allowed;
-    opacity: 0.6;
-}
-
-.dc-comment-count {
-    font-size: 0.65rem;
-    color: var(--color-gray-400);
-    margin: 0;
-    text-align: right;
-}
-
-/* ===== 평가 액션 버튼들 ===== */
-.dc-score-actions {
-    display: flex;
-    gap: 0.3rem;
-    justify-content: flex-end;
-}
-
-.dc-score-save {
-    flex: 1 1 auto;
-    min-width: 0;
-    padding: 0.3rem 0.65rem;
-    font-size: 0.72rem;
-    font-weight: 600;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: white;
-    border: none;
-    border-radius: 1rem;
+    font-size: 13px;
+    color: #343A40;
+    text-align: left;
     cursor: pointer;
+}
+
+.dcard-menu button + button { border-top: 1px solid rgba(255, 182, 193, 0.15); }
+.dcard-menu button.danger { color: #e74c3c; }
+
+.dcard-address {
+    font-size: 13px;
+    color: #6C757D;
+    display: flex;
+    gap: 5px;
+    align-items: center;
+}
+
+.dcard-address svg {
+    flex-shrink: 0;
+    color: #FF6B6B;
+    font-size: 14px;
+}
+
+.dcard-desc-box {
+    background: #fff8fa;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.dcard-desc {
+    font-size: 10px;
+    line-height: 1.55;
+    color: #495057;
+    display: -webkit-box;
+    -webkit-line-clamp: 3;
+    -webkit-box-orient: vertical;
+    overflow: hidden;
+    white-space: pre-line;
+    word-break: break-word;
+}
+
+.dcard-desc-more {
+    align-self: flex-end;
+    padding: 0;
+    border: none;
+    background: transparent;
+    font-family: inherit;
+    color: #e0606f;
+    font-size: 12px;
+    cursor: pointer;
+}
+
+.dcard-link {
+    font-size: 12px;
+    color: #3d8ed6;
+    text-decoration: none;
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
 }
 
-.dc-score-save:active:not(:disabled) {
-    opacity: 0.82;
+.dcard-link.plain { color: #6C757D; }
+
+.dcard-score {
+    border-top: 1px dashed rgba(255, 182, 193, 0.55);
+    padding-top: 11px;
+    display: flex;
+    flex-direction: column;
+    gap: 9px;
+    margin-top: auto; /* 카드 높이가 달라도 점수·버튼 영역은 아래에 맞춤 */
 }
 
-.dc-score-save:disabled {
-    opacity: 0.55;
-    cursor: not-allowed;
+.dcard-comment {
+    font-size: 11px;
+    color: #6C757D;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.dcard-actions {
+    display: grid;
+    grid-auto-flow: column;
+    grid-auto-columns: minmax(0, 1fr);
+    gap: 8px;
+    padding-top: 2px;
+}
+
+.dcard-btn {
+    height: 34px;
+    border-radius: 10px;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+}
+
+.dcard-btn.secondary {
+    border: 1px solid rgba(255, 182, 193, 0.6);
+    background: #ffffff;
+    color: #e0606f;
+}
+
+.dcard-btn.primary {
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+}
+
+.dcard-btn.decided {
+    border: 1px solid #b2dfbb;
+    background: #e8f5e9;
+    color: #3f8f45;
+    cursor: default;
+}
+
+/* 주소·설명·링크가 하나도 없을 때 */
+.dcard-empty-info {
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+    background: #faf9f7;
+    border-radius: 10px;
+    padding: 10px 11px;
+    font-size: 12px;
+    line-height: 1.5;
+    color: #6C757D;
+}
+
+.dcard-empty-info svg {
+    flex-shrink: 0;
+    font-size: 15px;
+    color: #ADB5BD;
+    margin-top: 1px;
+}
+
+.dcard-empty-hint {
+    font-size: 11px;
+    color: #ADB5BD;
 }

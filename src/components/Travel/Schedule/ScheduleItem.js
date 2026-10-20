@@ -1,11 +1,12 @@
 // src/components/Travel/ScheduleItem.js
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
-import { MdCheck, MdLocationOn, MdAttachMoney } from 'react-icons/md';
-import { HiChevronRight } from 'react-icons/hi2';
+import { MdCheck, MdLocationOn } from 'react-icons/md';
 import './ScheduleItem.css';
 
-const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
+// 타임라인의 한 일정 — 왼쪽 동그라미가 곧 완료 체크 버튼, 시간은 제목 왼쪽 같은 줄.
+// isFirst/isLast는 세로 연결선을 동그라미 중심에서 시작/끝내기 위한 위치 정보.
+const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isLast = false }) => {
     const formatTime = (time) => {
         if (!time) return '';
         try {
@@ -56,51 +57,53 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete }) => {
         }
     };
 
+    const timeText = schedule.time
+        ? `${formatTime(schedule.time)}${schedule.endTime ? ` – ${formatTime(schedule.endTime)}` : ''}`
+        : '';
+    const hasLocation = !!(schedule.location || '').trim();
+    const hasCost = schedule.cost > 0;
+
+    const railClass = [isFirst && 'tl-first', isLast && 'tl-last'].filter(Boolean).join(' ');
+
     return (
         <div
-            className={`schedule-item ${schedule.completed ? 'schedule-item-completed' : ''}`}
+            className={`tl-item ${schedule.completed ? 'tl-item-done' : ''} ${railClass}`}
             onClick={() => onEdit(schedule)}
         >
             <button
-                className={`schedule-item-checkbox ${schedule.completed ? 'checked' : ''}`}
+                className={`tl-check ${schedule.completed ? 'checked' : ''}`}
                 onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
                 aria-label={schedule.completed ? '완료 취소' : '완료'}
             >
-                {schedule.completed && <MdCheck size={16} />}
+                {schedule.completed && <MdCheck />}
             </button>
 
-            <div className="schedule-item-body">
-                {schedule.time && (
-                    <div className="schedule-item-time">
-                        {formatTime(schedule.time)}
-                        {schedule.endTime && ` - ${formatTime(schedule.endTime)}`}
+            <div className="tl-body">
+                <div className="tl-headline">
+                    {timeText && <span className="tl-time">{timeText}</span>}
+                    <h3 className="tl-title">{schedule.title}</h3>
+                </div>
+                {(schedule.description || '').trim() && (
+                    <p className="tl-desc">{schedule.description}</p>
+                )}
+                {(hasLocation || hasCost) && (
+                    <div className="tl-meta">
+                        {hasLocation && (
+                            <button
+                                className="tl-location"
+                                onClick={handleLocationClick}
+                                title="네이버 지도에서 보기"
+                            >
+                                <MdLocationOn className="tl-location-icon" />
+                                <span className="tl-location-text">{schedule.location}</span>
+                            </button>
+                        )}
+                        {hasCost && (
+                            <span className="tl-cost">{Number(schedule.cost).toLocaleString()}원</span>
+                        )}
                     </div>
                 )}
-                <h3 className={`schedule-item-title ${schedule.completed ? 'schedule-item-strikethrough' : ''}`}>
-                    {schedule.title}
-                </h3>
-                {(schedule.description || '').trim() && (
-                    <p className="schedule-item-description">{schedule.description}</p>
-                )}
-                {(schedule.location || '').trim() && (
-                    <button
-                        className="schedule-item-location"
-                        onClick={handleLocationClick}
-                        title="네이버 지도에서 보기"
-                    >
-                        <MdLocationOn className="schedule-item-meta-icon" />
-                        <span className="schedule-item-location-text">{schedule.location}</span>
-                    </button>
-                )}
-                {schedule.cost > 0 && (
-                    <p className="schedule-item-cost">
-                        <MdAttachMoney className="schedule-item-meta-icon" />
-                        {schedule.cost.toLocaleString()}원
-                    </p>
-                )}
             </div>
-
-            <HiChevronRight className="schedule-item-chevron" />
         </div>
     );
 };
