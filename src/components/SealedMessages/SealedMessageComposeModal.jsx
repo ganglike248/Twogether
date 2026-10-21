@@ -8,6 +8,7 @@ import { createSealedMessage } from '../../services/sealedMessageService';
 import { ensureBrowserDisplayableImage } from '../../utils/imageUtils';
 import UnlockTimePicker from './UnlockTimePicker';
 import './sealed-message-modal.css';
+import AutoGrowTextarea from '../common/AutoGrowTextarea';
 
 // 예약 시각 기본값: 지금부터 1시간 뒤를 가장 가까운 15분 단위로 올림 (checkSealedMessages가 15분마다만 돎)
 const defaultUnlockAtLocal = () => {
@@ -105,7 +106,7 @@ const SealedMessageComposeModal = ({ onClose }) => {
             onChange={(e) => setTitle(e.target.value)}
             maxLength={50}
           />
-          <textarea
+          <AutoGrowTextarea
             className="sm-modal-textarea"
             placeholder="파트너에게 전할 이야기를 적어보세요"
             value={content}

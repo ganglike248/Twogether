@@ -113,31 +113,6 @@
 
 .dvs-chip-warn { color: #d9534f; }
 
-.dvs-segment {
-    display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
-    gap: 4px;
-    background: #fdf5f7;
-    border-radius: 12px;
-    padding: 4px;
-}
-
-.dvs-segment-btn {
-    height: 34px;
-    border-radius: 9px;
-    border: none;
-    background: transparent;
-    color: #6C757D;
-    font-family: inherit;
-    font-size: 13px;
-    cursor: pointer;
-}
-
-.dvs-segment-btn.on {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
-    color: #ffffff;
-}
-
 .dvs-switch-row {
     position: relative;
     display: flex;
@@ -148,6 +123,13 @@
     color: #343A40;
     cursor: pointer;
 }
+
+.dvs-decided-icon {
+    color: #3f8f45;
+    vertical-align: -2px;
+}
+
+.dvs-label-hint { color: #ADB5BD; }
 
 .dvs-star {
     color: #f5b400;

@@ -1,8 +1,10 @@
 // src/components/Travel/Decisions/DecisionSection.jsx
-// 비교 주제(카테고리) 하나 — 소제목 + 후보 카드 가로 스크롤(맨 끝 "＋ 후보 추가" 카드) + 페이지 점.
-// 확정된 주제는 확정 후보 한 줄로 접히고, 눌러서 후보 목록을 다시 펼칠 수 있음.
+// 비교 주제(카테고리) 하나 — 흰 카드 안에 [제목 + 요약 바](누르면 접고 펼침) + 후보 카드 가로 스크롤
+// (맨 끝 "＋ 후보 추가" 카드) + 페이지 점. 접힌 상태에서도 바의 요약(후보 수·확정·평가 필요)으로 내용을 가늠할 수 있음.
+// 확정은 후보 단위(여러 개 가능) — 확정해도 다른 후보를 숨기지 않고, 확정 후보가 맨 앞에 초록으로 표시됨.
 import React, { useState } from 'react';
-import { MdAdd, MdClose, MdEdit, MdImage } from 'react-icons/md';
+import { MdAdd, MdClose, MdEdit, MdKeyboardArrowDown } from 'react-icons/md';
+import { getDecidedCount } from '../../../services/travelDecisionService';
 import DecisionCard from './DecisionCard';
 import './DecisionSection.css';
 
@@ -58,68 +60,58 @@ const DecisionSection = ({
   actions,
   onOpenSheet,
   onAddToSchedule,
+  scheduledDaysByOption,
+  open,
+  onToggle,
 }) => {
-  const [expanded, setExpanded] = useState(false);
-  const isDecided = decision.status === 'decided';
-  const decidedOption = isDecided ? (decision.options || []).find(o => o.id === decision.decidedOption) : null;
+  const decidedCount = getDecidedCount(decision);
+  const total = (decision.options || []).length;
+  const cardProps = { members, currentUserId, actions, onOpenSheet, onAddToSchedule, scheduledDaysByOption };
 
-  const cardProps = { members, currentUserId, actions, onOpenSheet, onAddToSchedule };
-
-  const topicButtons = (
-    <>
-      <button className="dsec-icon-btn edit" onClick={() => actions.editTopic(decision)} aria-label="주제 수정">
-        <MdEdit />
-      </button>
-      <button className="dsec-icon-btn delete" onClick={() => actions.requestDeleteTopic(decision)} aria-label="주제 삭제">
-        <MdClose />
-      </button>
-    </>
-  );
-
-  if (isDecided && decidedOption) {
-    return (
-      <section className="dsec">
-        <div className="dsec-head">
-          <span className="dsec-title">{decision.title}</span>
-          <span className="dsec-decided-chip">확정</span>
-          <span className="dsec-spacer" />
-          {topicButtons}
-        </div>
-        {decision.description && <p className="dsec-desc">{decision.description}</p>}
-        <div className="dsec-decided-row">
-          <button className="dsec-decided-main" onClick={() => setExpanded(v => !v)} aria-expanded={expanded}>
-            {decidedOption.images?.[0]
-              ? <img className="dsec-decided-thumb" src={decidedOption.images[0]} alt={decidedOption.title} />
-              : <span className="dsec-decided-thumb empty"><MdImage /></span>}
-            <span className="dsec-decided-info">
-              <span className="dsec-decided-title">{decidedOption.title}</span>
-              <span className="dsec-decided-sub">
-                {(decidedOption.totalScore || 0) > 0 && `${decidedOption.totalScore} / 20 · `}
-                후보 {(decision.options || []).length}개 중 확정
-              </span>
-            </span>
-          </button>
-          <button className="dsec-decided-change" onClick={() => actions.undecide(decision)}>변경</button>
-        </div>
-        {expanded && (
-          <CardRow decision={decision} options={options} rankMap={rankMap} cardProps={cardProps} actions={actions} />
-        )}
-      </section>
-    );
-  }
+  // 바 아무 곳이나 누르면 접기/펼치기 — 수정·삭제 버튼은 제외
+  const handleBarClick = (e) => {
+    if (e.target.closest('.dsec-icon-btn')) return;
+    onToggle();
+  };
 
   return (
-    <section className="dsec">
-      <div className="dsec-head">
-        <span className="dsec-title">{decision.title}</span>
-        {unscoredCount > 0
-          ? <span className="dsec-count warn">내 평가 필요 {unscoredCount}</span>
-          : <span className="dsec-count">후보 {(decision.options || []).length}</span>}
-        <span className="dsec-spacer" />
-        {topicButtons}
+    <section className={`dsec ${open ? 'open' : ''}`}>
+      <div
+        className="dsec-bar"
+        onClick={handleBarClick}
+        role="button"
+        tabIndex={0}
+        aria-expanded={open}
+        onKeyDown={(e) => { if (e.target === e.currentTarget && (e.key === 'Enter' || e.key === ' ')) { e.preventDefault(); onToggle(); } }}
+      >
+        <span className="dsec-bar-text">
+          <span className="dsec-title">{decision.title}</span>
+          <span className="dsec-summary">
+            {total === 0 ? '아직 후보가 없어요' : (
+              <>
+                후보 {total}
+                {decidedCount > 0 && <> · <span className="dsec-summary-ok">확정 {decidedCount}</span></>}
+                {unscoredCount > 0
+                  ? <> · <span className="dsec-summary-warn">평가 필요 {unscoredCount}</span></>
+                  : <> · 평가 다 했어요</>}
+              </>
+            )}
+          </span>
+        </span>
+        <button className="dsec-icon-btn edit" onClick={() => actions.editTopic(decision)} aria-label="주제 수정">
+          <MdEdit />
+        </button>
+        <button className="dsec-icon-btn delete" onClick={() => actions.requestDeleteTopic(decision)} aria-label="주제 삭제">
+          <MdClose />
+        </button>
+        <MdKeyboardArrowDown className="dsec-chevron" aria-hidden="true" />
       </div>
-      {decision.description && <p className="dsec-desc">{decision.description}</p>}
-      <CardRow decision={decision} options={options} rankMap={rankMap} cardProps={cardProps} actions={actions} />
+      {open && (
+        <div className="dsec-body">
+          {decision.description && <p className="dsec-desc">{decision.description}</p>}
+          <CardRow decision={decision} options={options} rankMap={rankMap} cardProps={cardProps} actions={actions} />
+        </div>
+      )}
     </section>
   );
 };

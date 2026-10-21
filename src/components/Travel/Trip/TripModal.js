@@ -6,6 +6,7 @@ import './TripModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
 import { convertToDate } from '../../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
+import AutoGrowTextarea from '../../common/AutoGrowTextarea';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     const [formData, setFormData] = useState({
@@ -236,7 +237,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                             <label className="trip-modal-form-label" htmlFor="trip-description">
                                 설명
                             </label>
-                            <textarea
+                            <AutoGrowTextarea
                                 id="trip-description"
                                 value={formData.description}
                                 onChange={(e) => handleChange('description', e.target.value)}

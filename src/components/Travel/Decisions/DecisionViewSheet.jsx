@@ -1,12 +1,12 @@
 // src/components/Travel/Decisions/DecisionViewSheet.jsx
-// 보기 설정 시트 — 카테고리(비교 주제) 필터·상태·즐겨찾기만 + 카테고리/후보 정렬.
+// 보기 설정 시트 — 카테고리(비교 주제) 필터·확정만·즐겨찾기만 + 카테고리/후보 정렬.
 // 시트 안에서 고른 값은 "적용하기"를 눌러야 반영됨(초기화는 시트 안 값만 기본값으로).
 import React, { useState } from 'react';
-import { MdStar } from 'react-icons/md';
+import { MdCheckCircle, MdStar } from 'react-icons/md';
+import { getDecidedCount } from '../../../services/travelDecisionService';
 import {
   DEFAULT_VIEW,
   OPTION_SORTS,
-  STATUS_FILTERS,
   TOPIC_SORTS,
   getUnscoredCount,
 } from './decisionViewUtils';
@@ -52,12 +52,12 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
                 {decisions.map(d => {
                   const on = draft.topicIds.includes(d.id);
                   const unscored = getUnscoredCount(d, userId);
+                  const decided = getDecidedCount(d);
                   return (
                     <button key={d.id} className={`dvs-chip lg ${on ? 'on' : ''}`} onClick={() => toggleTopic(d.id)}>
                       {on && '✓ '}{d.title}
-                      {d.status === 'decided'
-                        ? ' · 확정'
-                        : unscored > 0 && <span className="dvs-chip-warn"> · 평가 {unscored}</span>}
+                      {decided > 0 && ` · 확정 ${decided}`}
+                      {unscored > 0 && <span className="dvs-chip-warn"> · 평가 {unscored}</span>}
                     </button>
                   );
                 })}
@@ -66,18 +66,17 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
           )}
 
           <div className="dvs-group">
-            <span className="dvs-label">상태</span>
-            <div className="dvs-segment">
-              {STATUS_FILTERS.map(s => (
-                <button
-                  key={s.key}
-                  className={`dvs-segment-btn ${draft.status === s.key ? 'on' : ''}`}
-                  onClick={() => set({ status: s.key })}
-                >
-                  {s.label}
-                </button>
-              ))}
-            </div>
+            <span className="dvs-label">보기</span>
+            <label className="dvs-switch-row">
+              <span><MdCheckCircle className="dvs-decided-icon" /> 확정한 후보만 보기</span>
+              <input
+                type="checkbox"
+                className="dvs-switch-input"
+                checked={draft.decidedOnly}
+                onChange={(e) => set({ decidedOnly: e.target.checked })}
+              />
+              <span className={`dvs-switch ${draft.decidedOnly ? 'on' : ''}`} aria-hidden="true" />
+            </label>
             <label className="dvs-switch-row">
               <span><MdStar className="dvs-star" /> 즐겨찾기한 후보만 보기</span>
               <input
@@ -106,7 +105,7 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
           </div>
 
           <div className="dvs-group">
-            <span className="dvs-label">후보 순서</span>
+            <span className="dvs-label">후보 순서 <span className="dvs-label-hint">· 확정한 후보는 항상 맨 앞</span></span>
             <div className="dvs-chips">
               {OPTION_SORTS.map(s => (
                 <button

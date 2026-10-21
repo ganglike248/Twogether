@@ -16,22 +16,35 @@ import { db } from '../firebase';
 // options 배열을 읽고-수정-쓰는 작업은 반드시 트랜잭션으로 — 그냥 getDoc → updateDoc으로 하면
 // 두 사람이 거의 동시에 점수를 매기거나 옵션을 고칠 때 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로
 // 덮어써 버림(2026-10-12 발견/수정). mutate(options)가 null을 반환하면 쓰기 없이 종료.
-const mutateOptions = async (tripId, decisionId, mutate) => {
+const mutateOptions = async (tripId, decisionId, mutate, extraFields = null) => {
   const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
   await runTransaction(db, async (transaction) => {
     const decisionSnap = await transaction.get(decisionRef);
     if (!decisionSnap.exists()) {
       throw new Error('Decision not found');
     }
-    const updatedOptions = mutate([...(decisionSnap.data().options || [])]);
+    const data = decisionSnap.data();
+    const updatedOptions = mutate([...(data.options || [])], data);
     if (!updatedOptions) return;
     transaction.update(decisionRef, {
       options: updatedOptions,
+      ...(extraFields ? extraFields(data) : {}),
       updatedAt: serverTimestamp(),
     });
   });
 };
 
+/**
+ * 후보가 확정됐는지 — v1.0.16부터 확정은 후보마다(여러 개 가능) `option.isDecided`로 저장.
+ * 그 전엔 주제 문서에 `status: 'decided'` + `decidedOption`(하나만)으로 저장했으므로 그 값도 확정으로 인정.
+ */
+export const isOptionDecided = (decision, option) => (
+  !!option.isDecided
+  || (decision.status === 'decided' && decision.decidedOption === option.id)
+);
+
+export const getDecidedCount = (decision) =>
+  (decision.options || []).filter(opt => isOptionDecided(decision, opt)).length;
 
 /**
  * 선택지(decision) 생성
@@ -106,30 +119,36 @@ export const addScore = async (tripId, decisionId, optionId, userId, score, comm
 };
 
 /**
- * 선택지 확정
+ * 후보 확정/확정 취소 (후보마다 따로, 여러 개 확정 가능)
+ * 예전 방식(주제 문서의 decidedOption 하나)으로 확정돼 있던 주제는 이때 후보 단위로 옮기고 주제 쪽 값은 비움.
+ * 배열 안이라 serverTimestamp() 대신 Date.now() 사용(travelChecklistService와 같은 제약).
  */
-export const decideOption = async (tripId, decisionId, optionId, userId) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  await updateDoc(decisionRef, {
-    status: 'decided',
-    decidedOption: optionId,
-    decidedAt: serverTimestamp(),
-    decidedBy: userId,
-  });
-};
-
-/**
- * 선택지 확정 취소 (다시 검토 중으로)
- */
-export const undecideDecision = async (tripId, decisionId) => {
-  const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  await updateDoc(decisionRef, {
-    status: 'deciding',
-    decidedOption: null,
-    decidedAt: null,
-    decidedBy: null,
-    updatedAt: serverTimestamp(),
-  });
+export const setOptionDecided = async (tripId, decisionId, optionId, userId, decided) => {
+  await mutateOptions(
+    tripId,
+    decisionId,
+    (options, data) => {
+      const legacyId = data.status === 'decided' ? data.decidedOption : null;
+      return options.map(opt => {
+        let next = opt;
+        if (legacyId && opt.id === legacyId && !opt.isDecided) {
+          next = {
+            ...opt,
+            isDecided: true,
+            decidedBy: data.decidedBy || null,
+            decidedAt: data.decidedAt?.toMillis?.() ?? null,
+          };
+        }
+        if (opt.id !== optionId) return next;
+        return decided
+          ? { ...next, isDecided: true, decidedBy: userId, decidedAt: Date.now() }
+          : { ...next, isDecided: false, decidedBy: null, decidedAt: null };
+      });
+    },
+    (data) => (data.status === 'decided' || data.decidedOption
+      ? { status: 'deciding', decidedOption: null, decidedAt: null, decidedBy: null }
+      : {}),
+  );
 };
 
 /**

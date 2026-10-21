@@ -128,13 +128,12 @@
 .ofs-input.link { color: #3d8ed6; }
 
 .ofs-textarea {
-    height: 120px;
-    resize: none;
+    min-height: 120px; /* 내용이 많으면 AutoGrowTextarea가 더 늘림 */
     padding: 11px 12px;
     line-height: 1.55;
 }
 
-.ofs-textarea.tall { height: 140px; }
+.ofs-textarea.tall { min-height: 140px; }
 
 .ofs-price-wrap {
     position: relative;
@@ -184,17 +183,23 @@
 .ofs-photo {
     flex: 0 0 112px;
     height: 84px;
+    box-sizing: border-box;
     border-radius: 12px;
-    background: #eef2f7;
+    background: #fff0f3;
+    border: 1px solid rgba(255, 182, 193, 0.4);
     position: relative;
     overflow: hidden;
 }
 
 .ofs-photo img {
-    width: 100%;
+    position: absolute;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
     height: 100%;
-    object-fit: cover;
-    display: block;
+    width: auto;
+    max-width: none;
+    display: block; /* 세로 길이에 맞춤 — 카드 사진과 같은 규칙 */
 }
 
 .ofs-photo-main {

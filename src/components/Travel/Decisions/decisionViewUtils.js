@@ -1,6 +1,6 @@
 // src/components/Travel/Decisions/decisionViewUtils.js
 // 선택 사항 탭의 보기 설정(필터·정렬)과 순위 계산 — Firebase 의존 없는 순수 함수만 둠
-import { getTopOptions, hasUserScored } from '../../../services/travelDecisionService';
+import { getTopOptions, hasUserScored, isOptionDecided } from '../../../services/travelDecisionService';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
 
 export const TOPIC_SORTS = [
@@ -17,15 +17,9 @@ export const OPTION_SORTS = [
   { key: 'recent', label: '최근 추가순' },
 ];
 
-export const STATUS_FILTERS = [
-  { key: 'all', label: '전체' },
-  { key: 'deciding', label: '검토 중' },
-  { key: 'decided', label: '확정' },
-];
-
 export const DEFAULT_VIEW = {
   topicIds: null, // null = 전체 카테고리(비교 주제)
-  status: 'all',
+  decidedOnly: false,
   favoritesOnly: false,
   topicSort: 'unscored',
   optionSort: 'score',
@@ -52,7 +46,8 @@ const priceNumber = (price) => {
   return Number.isFinite(n) && n > 0 ? n : Infinity; // 숫자가 아닌 가격/빈 값은 뒤로
 };
 
-export const sortOptions = (options, sortKey, userId) => {
+// 확정한 후보는 어떤 정렬이든 항상 맨 앞(사용자 결정), 그 안에서 고른 정렬을 따름
+export const sortOptions = (decision, options, sortKey, userId) => {
   // 옵션에는 생성 시각 필드가 없어서 배열에 추가된 순서(뒤가 최신)를 기준으로 씀
   const indexed = (options || []).map((opt, index) => ({ opt, index }));
   const byScore = (a, b) => (b.opt.totalScore || 0) - (a.opt.totalScore || 0) || a.index - b.index;
@@ -73,7 +68,13 @@ export const sortOptions = (options, sortKey, userId) => {
     recent: (a, b) => b.index - a.index,
   };
 
-  return indexed.sort(comparators[sortKey] || byScore).map(({ opt }) => opt);
+  const compare = comparators[sortKey] || byScore;
+  const decidedFirst = (a, b) => {
+    const da = isOptionDecided(decision, a.opt);
+    const db = isOptionDecided(decision, b.opt);
+    return da === db ? compare(a, b) : (da ? -1 : 1);
+  };
+  return indexed.sort(decidedFirst).map(({ opt }) => opt);
 };
 
 export const sortTopics = (decisions, sortKey, userId) => {
@@ -86,25 +87,19 @@ export const sortTopics = (decisions, sortKey, userId) => {
   return list.sort(comparators[sortKey] || comparators.unscored);
 };
 
-// 화면에 보일 주제 목록 — 검토 중이 위, 확정이 아래. 즐겨찾기만 보기일 때 남는 후보가 없는 주제는 숨김
+// 화면에 보일 주제 목록 — 즐겨찾기만/확정만 보기일 때 남는 후보가 없는 주제는 숨김
+// (예전엔 확정된 주제를 맨 아래로 보내고 한 줄로 접었지만, 확정이 후보 단위가 되면서 없앰)
 export const buildVisibleTopics = (decisions, view, userId) => {
-  const filtered = decisions.filter(d => {
-    if (view.topicIds && !view.topicIds.includes(d.id)) return false;
-    if (view.status !== 'all' && (d.status === 'decided' ? 'decided' : 'deciding') !== view.status) return false;
-    return true;
-  });
+  const filtered = decisions.filter(d => !view.topicIds || view.topicIds.includes(d.id));
+  const narrowing = view.favoritesOnly || view.decidedOnly;
 
-  const withOptions = sortTopics(filtered, view.topicSort, userId)
+  return sortTopics(filtered, view.topicSort, userId)
     .map(d => {
-      const options = view.favoritesOnly ? (d.options || []).filter(o => o.isFavorite) : (d.options || []);
-      return { decision: d, options: sortOptions(options, view.optionSort, userId) };
+      const options = (d.options || []).filter(o =>
+        (!view.favoritesOnly || o.isFavorite) && (!view.decidedOnly || isOptionDecided(d, o)));
+      return { decision: d, options: sortOptions(d, options, view.optionSort, userId) };
     })
-    .filter(t => !view.favoritesOnly || t.options.length > 0);
-
-  return [
-    ...withOptions.filter(t => t.decision.status !== 'decided'),
-    ...withOptions.filter(t => t.decision.status === 'decided'),
-  ];
+    .filter(t => !narrowing || t.options.length > 0);
 };
 
 // "서연은" / "민준은" — 받침 유무로 은/는 선택(한글 아닌 이름은 은(는))

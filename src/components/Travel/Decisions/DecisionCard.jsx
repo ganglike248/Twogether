@@ -1,25 +1,29 @@
 // src/components/Travel/Decisions/DecisionCard.jsx
 // 후보 카드(가로 스크롤 한 장) — 사진·배지·즐겨찾기, 제목·가격·⋯메뉴, 주소·설명(3줄)·링크,
-// 점수 막대 + 의견 한 줄, 하단 [일정에 추가] [확정하기 | 평가하기].
+// 점수 막대 + 의견 한 줄, 하단 [일정에 추가] [평가하기 | 확정하기 | ✓ 확정됨].
+// 확정은 후보마다 따로(여러 개 가능) — 확정된 카드는 초록 테두리 + "✓ 확정" 배지, 섹션 맨 앞에 정렬됨.
 // 실제 동작은 useDecisionActions의 actions로 위임하고, 긴 내용/점수 매기기는 상세 시트로 엶.
 import React, { useEffect, useRef, useState } from 'react';
 import { MdInfoOutline, MdMoreHoriz, MdPlace, MdStar, MdStarBorder } from 'react-icons/md';
-import { hasUserScored } from '../../../services/travelDecisionService';
+import { hasUserScored, isOptionDecided } from '../../../services/travelDecisionService';
 import { handleOpenLink, extractUrl } from '../../../utils/appLinkUtils';
 import { formatPriceDisplay } from '../../../utils/numberFormat';
 import OptionPhotos, { OptionBadges } from './OptionPhotos';
 import OptionScoreBars from './OptionScoreBars';
 import { pickCommentLine } from './optionScoreUtils';
+import ScheduledDaysChip from './ScheduledDaysChip';
 import './OptionShared.css';
 import './DecisionCard.css';
 
-const DecisionCard = ({ decision, option, rank, members, currentUserId, actions, onOpenSheet, onAddToSchedule }) => {
+const DecisionCard = ({
+  decision, option, rank, members, currentUserId, actions, onOpenSheet, onAddToSchedule, scheduledDaysByOption,
+}) => {
   const [menuOpen, setMenuOpen] = useState(false);
   const menuRef = useRef(null);
 
   const myScored = hasUserScored(option, currentUserId);
-  const isDecided = decision.status === 'decided';
-  const isDecidedOption = isDecided && decision.decidedOption === option.id;
+  const decided = isOptionDecided(decision, option);
+  const scheduledDays = scheduledDaysByOption?.[option.id];
   const linkUrl = extractUrl(option.url);
   const commentLine = pickCommentLine(option, members, currentUserId);
 
@@ -41,11 +45,11 @@ const DecisionCard = ({ decision, option, rank, members, currentUserId, actions,
   };
 
   return (
-    <div className={`dcard ${rank === 1 ? 'top' : ''}`} onClick={handleCardClick}>
+    <div className={`dcard ${decided ? 'decided' : rank === 1 ? 'top' : ''}`} onClick={handleCardClick}>
       <OptionPhotos
         images={option.images}
         alt={option.title}
-        topLeft={<OptionBadges rank={rank} unscored={!myScored} />}
+        topLeft={<OptionBadges rank={rank} unscored={!myScored} decided={decided} />}
         topRight={(
           <button
             className={`op-fav ${option.isFavorite ? 'on' : ''}`}
@@ -62,6 +66,7 @@ const DecisionCard = ({ decision, option, rank, members, currentUserId, actions,
           <div className="dcard-title-btn">
             <span className="dcard-title">{option.title}</span>
             {option.price && <span className="dcard-price">{formatPriceDisplay(option.price)}</span>}
+            <ScheduledDaysChip days={scheduledDays} />
           </div>
           <div className="dcard-menu-wrap" ref={menuRef}>
             <button className="dcard-more" onClick={() => setMenuOpen(v => !v)} aria-label="더보기 메뉴">
@@ -115,15 +120,15 @@ const DecisionCard = ({ decision, option, rank, members, currentUserId, actions,
 
         <div className="dcard-actions">
           {onAddToSchedule && (
-            <button className="dcard-btn secondary" onClick={() => onAddToSchedule(option)}>일정에 추가</button>
+            <button className="dcard-btn secondary" onClick={() => onAddToSchedule(decision, option)}>일정에 추가</button>
           )}
-          {!myScored ? (
+          {decided ? (
+            <button className="dcard-btn decided" onClick={() => actions.toggleDecided(decision, option)}>✓ 확정됨</button>
+          ) : !myScored ? (
             <button className="dcard-btn primary" onClick={() => openSheet({ score: true })}>평가하기</button>
-          ) : isDecidedOption ? (
-            <span className="dcard-btn decided">확정됨</span>
-          ) : !isDecided ? (
-            <button className="dcard-btn primary" onClick={() => actions.requestDecide(decision, option)}>확정하기</button>
-          ) : null}
+          ) : (
+            <button className="dcard-btn primary" onClick={() => actions.toggleDecided(decision, option)}>확정하기</button>
+          )}
         </div>
       </div>
     </div>

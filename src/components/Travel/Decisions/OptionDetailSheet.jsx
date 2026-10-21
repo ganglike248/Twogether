@@ -3,15 +3,17 @@
 // 열림 상태는 TravelDecisionsTab이 URL(?modal=option&d=&o=)로 관리하고 이 컴포넌트는 표시만 담당.
 import React, { useState } from 'react';
 import { MdClose, MdDeleteOutline, MdEdit, MdInfoOutline, MdPlace, MdStar, MdStarBorder } from 'react-icons/md';
-import { getUserComment, getUserScore } from '../../../services/travelDecisionService';
+import { getUserComment, getUserScore, isOptionDecided } from '../../../services/travelDecisionService';
 import { handleOpenLink, extractUrl } from '../../../utils/appLinkUtils';
 import { formatPriceDisplay } from '../../../utils/numberFormat';
 import OptionPhotos, { OptionBadges } from './OptionPhotos';
 import OptionScoreBars from './OptionScoreBars';
 import { findScore } from './optionScoreUtils';
 import ScoreSlider from './ScoreSlider';
+import ScheduledDaysChip from './ScheduledDaysChip';
 import './OptionShared.css';
 import './OptionDetailSheet.css';
+import AutoGrowTextarea from '../../common/AutoGrowTextarea';
 
 const COMMENT_MAX = 200;
 
@@ -24,6 +26,7 @@ const OptionDetailSheet = ({
   actions,
   startScoring,
   onAddToSchedule,
+  scheduledDays,
   onClose,
 }) => {
   const myScore = getUserScore(option, currentUserId);
@@ -41,8 +44,7 @@ const OptionDetailSheet = ({
     : null;
 
   const linkUrl = extractUrl(option.url);
-  const isDecided = decision.status === 'decided';
-  const isDecidedOption = isDecided && decision.decidedOption === option.id;
+  const decided = isOptionDecided(decision, option);
   const linkLabel = /naver/i.test(linkUrl || '') ? '네이버지도에서 열기 ›' : '링크 열기 ›';
 
   // iOS ghost click이 열리자마자 배경에 떨어져 바로 닫히는 것 방지(캘린더 모달과 같은 300ms 가드)
@@ -79,7 +81,7 @@ const OptionDetailSheet = ({
             className="ods-photos"
             images={option.images}
             alt={option.title}
-            topLeft={<OptionBadges rank={rank} unscored={myScore == null} />}
+            topLeft={<OptionBadges rank={rank} unscored={myScore == null} decided={decided} />}
           />
 
           <div className="ods-head">
@@ -87,6 +89,7 @@ const OptionDetailSheet = ({
               <span className="ods-category">{decision.title}</span>
               <span className="ods-title">{option.title}</span>
               {option.price && <span className="ods-price">{formatPriceDisplay(option.price)}</span>}
+              <ScheduledDaysChip days={scheduledDays} />
             </div>
             <button
               className={`ods-icon-btn fav ${option.isFavorite ? 'on' : ''}`}
@@ -138,7 +141,7 @@ const OptionDetailSheet = ({
                 <ScoreSlider value={score} onChange={setScore} partner={partner} />
                 <label className="ods-comment">
                   <span className="ods-sr">의견</span>
-                  <textarea
+                  <AutoGrowTextarea
                     value={comment}
                     onChange={(e) => setComment(e.target.value.slice(0, COMMENT_MAX))}
                     placeholder="의견을 입력해주세요 (선택사항)"
@@ -164,15 +167,17 @@ const OptionDetailSheet = ({
           </div>
         </div>
 
+        {/* 닫기 / 일정에 추가 / 확정하기(확정 후엔 "✓ 확정됨", 누르면 확정 취소 확인) */}
         <div className="ods-footer">
+          <button className="ods-btn secondary" onClick={onClose}>닫기</button>
           {onAddToSchedule && (
-            <button className="ods-btn secondary pink" onClick={() => onAddToSchedule(option)}>일정에 추가</button>
+            <button className="ods-btn secondary pink" onClick={() => onAddToSchedule(decision, option)}>일정에 추가</button>
           )}
-          {isDecidedOption ? (
-            <span className="ods-btn decided">확정됨</span>
-          ) : !isDecided ? (
-            <button className="ods-btn primary" onClick={() => actions.requestDecide(decision, option)}>확정하기</button>
-          ) : null}
+          {decided ? (
+            <button className="ods-btn decided" onClick={() => actions.toggleDecided(decision, option)}>✓ 확정됨</button>
+          ) : (
+            <button className="ods-btn primary" onClick={() => actions.toggleDecided(decision, option)}>확정하기</button>
+          )}
         </div>
       </div>
     </div>

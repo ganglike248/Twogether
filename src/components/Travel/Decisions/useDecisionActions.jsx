@@ -7,11 +7,11 @@ import {
   addOption,
   addScore,
   createDecision,
-  decideOption,
   deleteDecision,
   deleteOption,
+  isOptionDecided,
+  setOptionDecided,
   toggleFavorite,
-  undecideDecision,
   updateDecision,
   updateOption,
 } from '../../../services/travelDecisionService';
@@ -19,8 +19,10 @@ import ConfirmModal from '../../common/ConfirmModal';
 import OptionFormSheet from './OptionFormSheet';
 import DecisionModal from './DecisionModal';
 
-const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
-  const [confirm, setConfirm] = useState(null); // { type: 'decide'|'deleteOption'|'deleteTopic', decision, option }
+// scheduledDaysByOption: { [optionId]: [day...] } — 이미 일정에 들어간 후보는 확정 후 "일정에 추가할까요?"를 건너뜀
+const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOption = {}, onAddToSchedule }) => {
+  // { type: 'undecide'|'askSchedule'|'deleteOption'|'deleteTopic', decision, option }
+  const [confirm, setConfirm] = useState(null);
   const [editing, setEditing] = useState(null); // { decision, option }
   const [addingTo, setAddingTo] = useState(null); // decision
   const [topicModal, setTopicModal] = useState(null); // { mode: 'create' } | { mode: 'edit', decision }
@@ -48,12 +50,21 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
       `${score}점 평가했습니다!`,
       '점수 저장 중 오류가 발생했습니다.',
     ),
-    undecide: (decision) => run(
-      () => undecideDecision(trip.id, decision.id),
-      '확정이 취소되었습니다.',
-      '취소 중 오류가 발생했습니다.',
-    ),
-    requestDecide: (decision, option) => setConfirm({ type: 'decide', decision, option }),
+    // 확정은 여러 개 가능하고 되돌릴 수 있어서 확인 없이 바로 — 대신 일정에 아직 없으면 이어서 추가할지 물어봄.
+    // 확정 취소만 확인을 거침
+    toggleDecided: async (decision, option) => {
+      if (isOptionDecided(decision, option)) {
+        setConfirm({ type: 'undecide', decision, option });
+        return;
+      }
+      const alreadyScheduled = (scheduledDaysByOption[option.id] || []).length > 0;
+      const ok = await run(
+        () => setOptionDecided(trip.id, decision.id, option.id, userId, true),
+        alreadyScheduled || !onAddToSchedule ? '확정했어요!' : null,
+        '확정 중 오류가 발생했습니다.',
+      );
+      if (ok && !alreadyScheduled && onAddToSchedule) setConfirm({ type: 'askSchedule', decision, option });
+    },
     requestDeleteOption: (decision, option) => setConfirm({ type: 'deleteOption', decision, option }),
     requestDeleteTopic: (decision) => setConfirm({ type: 'deleteTopic', decision }),
     editOption: (decision, option) => setEditing({ decision, option }),
@@ -65,8 +76,14 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
   const handleConfirm = async () => {
     const { type, decision, option } = confirm;
     setConfirm(null);
-    if (type === 'decide') {
-      await run(() => decideOption(trip.id, decision.id, option.id, userId), '확정되었습니다!', '확정 중 오류가 발생했습니다.');
+    if (type === 'undecide') {
+      await run(
+        () => setOptionDecided(trip.id, decision.id, option.id, userId, false),
+        '확정을 취소했어요.',
+        '확정 취소 중 오류가 발생했습니다.',
+      );
+    } else if (type === 'askSchedule') {
+      onAddToSchedule(decision, option);
     } else if (type === 'deleteOption') {
       const ok = await run(() => deleteOption(trip.id, decision.id, option.id), '옵션이 삭제되었습니다.', '옵션 삭제 중 오류가 발생했습니다.');
       if (ok) onOptionDeleted?.(option.id);
@@ -112,7 +129,14 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
   };
 
   const confirmCopy = {
-    decide: { title: '후보 확정', message: '이 후보로 확정하시겠습니까?', confirmText: '확정', danger: false },
+    undecide: { title: '확정 취소', message: '이 후보의 확정을 취소할까요?', confirmText: '확정 취소', danger: true },
+    askSchedule: {
+      title: '확정했어요!',
+      message: '이 후보를 일정에도 바로 추가할까요?',
+      confirmText: '일정에 추가',
+      cancelText: '나중에',
+      danger: false,
+    },
     deleteOption: { title: '옵션 삭제', message: '이 옵션을 삭제하시겠습니까?', confirmText: '삭제', danger: true },
     deleteTopic: { title: '선택지 삭제', message: '이 선택지를 삭제하시겠습니까?', confirmText: '삭제', danger: true },
   };

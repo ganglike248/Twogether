@@ -9,6 +9,7 @@ import RecurrenceFields from './RecurrenceFields';
 import RecurrenceScopeModal from './RecurrenceScopeModal';
 import { generateOccurrenceDates, RecurrenceLimitError } from '../../utils/recurrenceRules';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import AutoGrowTextarea from '../common/AutoGrowTextarea';
 
 const DEFAULT_RECURRENCE = {
   enabled: false,
@@ -406,7 +407,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
             </label>
           </div>
 
-          <textarea
+          <AutoGrowTextarea
             className="sheet-desc-input"
             value={description}
             onChange={(e) => setDescription(e.target.value)}

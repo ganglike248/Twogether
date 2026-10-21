@@ -115,12 +115,19 @@
     justify-content: center;
 }
 
+.pas-preview.loaded {
+    background: #fff0f3; /* 세로로 긴 사진의 양옆 빈 공간은 연핑크 */
+    border: 1px solid rgba(255, 182, 193, 0.3);
+}
+
 .pas-preview-img {
     position: absolute;
-    inset: 0;
-    width: 100%;
+    left: 50%;
+    top: 0;
+    transform: translateX(-50%);
     height: 100%;
-    object-fit: cover;
+    width: auto;
+    max-width: none; /* 세로 길이에 맞춤 — 카드 사진과 같은 규칙 */
     visibility: hidden;
 }
 

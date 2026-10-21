@@ -29,7 +29,7 @@
 .ods-topbar {
     position: relative;
     flex-shrink: 0;
-    height: 44px;
+    height: 58px; /* 닫기 버튼이 둥근 모서리에 붙지 않게 아래로 내린 만큼 */
     display: flex;
     justify-content: center;
 }
@@ -44,8 +44,8 @@
 
 .ods-close {
     position: absolute;
-    right: 12px;
-    top: 6px;
+    right: 16px; /* 아래 사진의 오른쪽 끝과 맞춤 */
+    top: 16px;
     width: 32px;
     height: 32px;
     padding: 0;
@@ -69,6 +69,7 @@
 
 .ods-photos {
     margin: 0 16px;
+    border: 1px solid rgba(255, 182, 193, 0.3);
     border-radius: 14px;
 }
 
@@ -191,8 +192,7 @@
 }
 
 .ods-comment textarea {
-    height: 64px;
-    resize: none;
+    min-height: 64px;
     border: 1px solid rgba(255, 182, 193, 0.4);
     border-radius: 10px;
     background: #ffffff;
@@ -227,7 +227,11 @@
     flex-shrink: 0;
 }
 
-.ods-footer:empty { display: none; }
+.ods-footer .ods-btn {
+    height: 44px;
+    border-radius: 12px;
+    font-size: 14px;
+}
 
 .ods-btn {
     height: 34px;
@@ -260,7 +264,6 @@
     border: 1px solid #b2dfbb;
     background: #e8f5e9;
     color: #3f8f45;
-    cursor: default;
 }
 
 /* ===== 점수 슬라이더 ===== */

@@ -4,7 +4,7 @@
 // (앱 모달 아키텍처: 열림 상태를 URL에서 파생, 닫기는 navigate(-1) 또는 첫 진입이면 replace).
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
 import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
-import { MdAdd, MdGpsFixed, MdKeyboardArrowDown, MdStar, MdSwapVert } from 'react-icons/md';
+import { MdAdd, MdCheckCircle, MdGpsFixed, MdKeyboardArrowDown, MdStar, MdSwapVert } from 'react-icons/md';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import DecisionSection from './DecisionSection';
@@ -22,21 +22,35 @@ import {
 import './TravelDecisionsTab.css';
 
 const viewStorageKey = (tripId) => `twogether_decision_view_${tripId}`;
+const openStorageKey = (tripId) => `twogether_decision_open_${tripId}`;
+
+// 주제별 접힘 상태 { [decisionId]: true|false } — 사용자가 직접 접거나 편 주제만 기록(세션 동안 유지)
+const loadOpenMap = (tripId) => {
+  try {
+    return JSON.parse(sessionStorage.getItem(openStorageKey(tripId)) || '{}');
+  } catch {
+    return {};
+  }
+};
 
 // 탭을 오가도 보기 설정이 유지되도록 세션 동안만 저장(기기 간 공유할 값이 아니라 sessionStorage)
 const loadView = (tripId) => {
   try {
     const raw = sessionStorage.getItem(viewStorageKey(tripId));
-    return raw ? { ...DEFAULT_VIEW, ...JSON.parse(raw) } : DEFAULT_VIEW;
+    if (!raw) return DEFAULT_VIEW;
+    // 예전 버전의 상태 필터(status: 'decided' 등)는 없어진 값이라 버림 — 남아 있으면 화면이 비어 보일 수 있음
+    const { status: _legacyStatus, ...saved } = JSON.parse(raw);
+    return { ...DEFAULT_VIEW, ...saved };
   } catch {
     return DEFAULT_VIEW;
   }
 };
 
-const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
+const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByOption }, ref) => {
   const { user, coupleDoc, getMemberName } = useAuthContext();
   const { decisions, loading } = useTravelDecisions(trip.id);
   const [view, setView] = useState(() => loadView(trip.id));
+  const [openMap, setOpenMap] = useState(() => loadOpenMap(trip.id));
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -75,6 +89,8 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
     trip,
     userId: user?.uid,
     onOptionDeleted: (optionId) => { if (sheetOption?.id === optionId) closeModal(); },
+    scheduledDaysByOption,
+    onAddToSchedule,
   });
 
   useImperativeHandle(ref, () => ({
@@ -84,6 +100,23 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
   const applyView = (next) => {
     setView(next);
     try { sessionStorage.setItem(viewStorageKey(trip.id), JSON.stringify(next)); } catch { /* 저장 실패해도 화면엔 반영 */ }
+  };
+
+  // 직접 접거나 편 적 없는 주제의 기본값: 맨 위 주제·내가 평가할 후보가 있는 주제·후보가 없는 주제(바로 추가하도록)는
+  // 펼침, 나머지는 접음.
+  // 즐겨찾기만/확정만 보기 중엔 걸러진 후보가 바로 보이도록 전부 펼침
+  const narrowing = view.favoritesOnly || view.decidedOnly;
+  const isTopicOpen = (decision, index) => {
+    if (narrowing) return true;
+    if (openMap[decision.id] !== undefined) return openMap[decision.id];
+    return index === 0 || getUnscoredCount(decision, user?.uid) > 0 || (decision.options || []).length === 0;
+  };
+
+  const toggleTopic = (decision, index) => {
+    if (narrowing) return;
+    const next = { ...openMap, [decision.id]: !isTopicOpen(decision, index) };
+    setOpenMap(next);
+    try { sessionStorage.setItem(openStorageKey(trip.id), JSON.stringify(next)); } catch { /* 저장 실패해도 화면엔 반영 */ }
   };
 
   const members = getMembers(coupleDoc, getMemberName);
@@ -123,6 +156,13 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
           >
             <MdStar className="tdt-filter-star" /> 즐겨찾기만
           </button>
+          <button
+            className={`tdt-filter ${view.decidedOnly ? 'on' : ''}`}
+            onClick={() => applyView({ ...view, decidedOnly: !view.decidedOnly })}
+            aria-pressed={view.decidedOnly}
+          >
+            <MdCheckCircle className="tdt-filter-decided" /> 확정만
+          </button>
           <span className="tdt-filter-spacer" />
           <button className="tdt-sort" onClick={openViewSheet}>
             <MdSwapVert />{sortLabel}
@@ -143,9 +183,11 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
         </div>
       ) : (
         <div className="tdt-sections">
-          {topics.map(({ decision, options }) => (
+          {topics.map(({ decision, options }, index) => (
             <DecisionSection
               key={decision.id}
+              open={isTopicOpen(decision, index)}
+              onToggle={() => toggleTopic(decision, index)}
               decision={decision}
               options={options}
               rankMap={getRankMap(decision.options)}
@@ -155,6 +197,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
               actions={actions}
               onOpenSheet={openOptionSheet}
               onAddToSchedule={onAddToSchedule}
+              scheduledDaysByOption={scheduledDaysByOption}
             />
           ))}
         </div>
@@ -172,6 +215,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule }, ref) => {
           actions={actions}
           startScoring={searchParams.get('score') === '1'}
           onAddToSchedule={onAddToSchedule}
+          scheduledDays={scheduledDaysByOption?.[sheetOption.id]}
           onClose={closeModal}
         />
       )}

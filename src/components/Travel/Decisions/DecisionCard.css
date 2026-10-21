@@ -14,10 +14,18 @@
 
 .dcard { cursor: pointer; }
 
+.dcard.decided {
+    border: 1.5px solid #7cc285;
+    box-shadow: 0 2px 8px rgba(63, 143, 69, 0.15);
+}
+
 .dcard.top {
     border: 1.5px solid #ff9bac;
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
 }
+
+/* 흰 사진 여백이 카드 본문과 이어져 보이지 않게 경계선 */
+.dcard > .op-photos { border-bottom: 1px solid rgba(255, 182, 193, 0.22); }
 
 .dcard-body {
     padding: 12px 14px 14px;
@@ -214,7 +222,6 @@
     border: 1px solid #b2dfbb;
     background: #e8f5e9;
     color: #3f8f45;
-    cursor: default;
 }
 
 /* 주소·설명·링크가 하나도 없을 때 */

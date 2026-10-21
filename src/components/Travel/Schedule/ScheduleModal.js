@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import { toast } from 'react-toastify';
 import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
+import AutoGrowTextarea from '../../common/AutoGrowTextarea';
 const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
     const [formData, setFormData] = useState({
         time: '',
@@ -147,7 +148,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
                             <label className="schedule-modal-form-label" htmlFor="schedule-description">
                                 설명
                             </label>
-                            <textarea
+                            <AutoGrowTextarea
                                 id="schedule-description"
                                 value={formData.description}
                                 onChange={(e) => handleChange('description', e.target.value)}

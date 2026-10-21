@@ -20,6 +20,7 @@ import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '..
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
 import EmptyState from '../common/EmptyState';
+import AutoGrowTextarea from '../common/AutoGrowTextarea';
 
 const BucketItem = React.memo(({
   item,
@@ -514,7 +515,7 @@ function BucketListPage() {
           value={addForm.title}
           onChange={e => setAddForm(f => ({ ...f, title: e.target.value }))}
         />
-        <textarea
+        <AutoGrowTextarea
           className="bucket-modal-textarea"
           placeholder="내용 (선택사항)"
           value={addForm.content}
@@ -594,7 +595,7 @@ function BucketListPage() {
           onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
         />
         <label className="bucket-selector-label">내용</label>
-        <textarea
+        <AutoGrowTextarea
           className="bucket-modal-textarea"
           placeholder="내용"
           value={editForm.content}

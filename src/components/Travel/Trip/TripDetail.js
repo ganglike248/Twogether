@@ -1,5 +1,5 @@
 // src/components/Travel/TripDetail.js
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { format, differenceInDays, addDays } from 'date-fns';
@@ -56,6 +56,21 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
 
     const { schedules, loading } = useTripSchedules(trip.id);
     const { decisions } = useTravelDecisions(trip.id);
+
+    // 후보 → 그 후보로 만든 일정이 있는 날 목록(카드/상세의 "Day N 일정" 표시용). 일정 항목의 sourceOptionId로 거꾸로
+    // 계산하므로 일정을 지우면 표시도 같이 사라짐
+    const scheduledDaysByOption = useMemo(() => {
+        const map = {};
+        schedules.forEach(({ day, schedules: items }) => {
+            (items || []).forEach(item => {
+                if (!item.sourceOptionId) return;
+                const days = map[item.sourceOptionId] || (map[item.sourceOptionId] = []);
+                if (!days.includes(day)) days.push(day);
+            });
+        });
+        Object.values(map).forEach(days => days.sort((a, b) => a - b));
+        return map;
+    }, [schedules]);
 
     // 미평가 개수 계산
     const unscorredCount = decisions.reduce((count, decision) => {
@@ -119,11 +134,15 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             // eslint-disable-next-line react-hooks/purity
             const newId = `schedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             // 화면이 들고 있던 목록이 아니라 서버 최신 목록에 이 변경만 적용(동시 수정 유실 방지)
+            // 후보에서 만든 새 일정이면 어느 후보인지 남김(선택 사항의 "Day N 일정" 표시) — 모달 폼엔 없는 값이라
+            // 모달을 열 때 넘긴 미리 채움 데이터(selectedSchedule)에서 가져옴
+            const sourceOptionId = !scheduleData.id ? selectedSchedule?.sourceOptionId : undefined;
             await mutateTripSchedule(trip.id, activeDay, (current) => (
                 scheduleData.id && current.find(s => s.id === scheduleData.id)
-                    // 완료 여부는 모달에서 편집하는 값이 아니라서 서버 최신 값을 유지(그 사이 상대가 체크했을 수 있음)
-                    ? current.map(s => s.id === scheduleData.id ? { ...scheduleData, completed: s.completed } : s)
-                    : [...current, { ...scheduleData, id: newId }]
+                    // 완료 여부는 모달에서 편집하는 값이 아니라서 서버 최신 값을 유지(그 사이 상대가 체크했을 수 있음).
+                    // 폼에 없는 값(sourceOptionId 등)도 지워지지 않게 기존 항목 위에 덮어씀
+                    ? current.map(s => s.id === scheduleData.id ? { ...s, ...scheduleData, completed: s.completed } : s)
+                    : [...current, { ...scheduleData, id: newId, ...(sourceOptionId ? { sourceOptionId } : {}) }]
             ));
             closeScheduleModal();
             setOptionForSchedule(null);
@@ -134,7 +153,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
 
-    const handleAddOptionToSchedule = (option) => {
+    const handleAddOptionToSchedule = (decision, option) => {
         setOptionForSchedule(option);
         setShowDaySelector(true);
     };
@@ -155,6 +174,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             cost: /^\d+$/.test(priceNumber) ? priceNumber : '',
             time: '',
             endTime: '',
+            sourceOptionId: optionForSchedule.id,
         };
 
         setSelectedSchedule(scheduleData);
@@ -278,6 +298,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                         trip={trip}
                         tripDays={tripDays}
                         onAddToSchedule={handleAddOptionToSchedule}
+                        scheduledDaysByOption={scheduledDaysByOption}
                     />
                 </div>
             )}

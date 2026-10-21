@@ -46,7 +46,7 @@
 
 .tdt-filter {
     height: 34px;
-    padding: 0 13px;
+    padding: 0 11px;
     border-radius: 17px;
     border: 1.5px solid rgba(255, 182, 193, 0.28);
     background: #ffffff;
@@ -67,6 +67,7 @@
 }
 
 .tdt-filter-star { color: #f5b400; }
+.tdt-filter-decided { color: #3f8f45; }
 
 .tdt-filter-spacer { flex-grow: 1; }
 
@@ -88,7 +89,7 @@
 .tdt-sections {
     display: flex;
     flex-direction: column;
-    gap: 22px;
+    gap: 10px;
     padding-top: 4px;
 }
 

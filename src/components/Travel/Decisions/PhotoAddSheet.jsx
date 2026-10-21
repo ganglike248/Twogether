@@ -69,7 +69,7 @@ const PhotoAddSheet = ({ existing, onAdd, onClose }) => {
 
         <div className="pas-field">
           <span className="pas-label">미리보기</span>
-          <div className="pas-preview">
+          <div className={`pas-preview ${status === 'loaded' ? 'loaded' : ''}`}>
             {url ? (
               <img
                 key={url}

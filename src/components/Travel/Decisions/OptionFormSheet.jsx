@@ -13,6 +13,7 @@ import { fetchLinkPreview } from '../../../services/linkPreviewService';
 import LinkFillCard from './LinkFillCard';
 import PhotoAddSheet from './PhotoAddSheet';
 import './OptionFormSheet.css';
+import AutoGrowTextarea from '../../common/AutoGrowTextarea';
 
 const EMPTY_FORM = { title: '', url: '', address: '', description: '', price: '', images: [] };
 
@@ -206,7 +207,7 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
 
           <label className="ofs-field">
             <span className="ofs-label">설명</span>
-            <textarea
+            <AutoGrowTextarea
               className={`ofs-textarea ${isEdit ? 'tall' : ''}`}
               value={formData.description}
               onChange={(e) => setField('description', e.target.value)}

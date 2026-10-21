@@ -627,12 +627,25 @@ utils/
 - **SealedMessagesPage** (`src/components/SealedMessages/`) — 봉인 편지함(`/letters`). 로드맵 1번 항목, v0.4.22 완료. 상세는 "봉인 편지함" 트랩 섹션 참고
 - **NotificationSettingsPage** (`src/components/Settings/NotificationSettingsPage.jsx`) — 알림 설정(`/notification-settings`). v0.4.22부터 모달 아닌 별도 페이지로 전환, 카테고리별 소제목 섹션
 - **TravelDecisionsTab** (`src/components/Travel/Decisions/`) — 여행 탭의 "선택 사항" 기능. 숙소/식당/액티비티 등 후보를 비교·평가·확정하는 플로우.
-  - `travelDecisions` subcollection (`trips/{tripId}/travelDecisions`): `status('deciding'|'decided')`, `decidedOption`, `options[{id,title,price,images[],url,scores[{userId,score}],totalScore}]`
-  - `DecisionCategoryList`: 카테고리별 그룹 렌더. `TravelDecisionsTab`에서 deciding/decided를 분리해 렌더링 — decided는 구분선(`tdt-decided-divider`) 아래 맨 하단에 표시
-  - `DecisionCard`: 개별 후보 카드. `decision.status === 'decided'`면 확정 섹션(확정하기/확정됨 배지) 숨김
-  - `DecisionTopPick`: 점수 합계 기준 상위 후보 미리보기 (검토 중 상태에서만 표시)
-  - 확정 시: 상단에 "확정됨" 배너(이미지·점수·합계 표시), 후보 목록은 기본 접힘. "변경하기"는 텍스트 링크
-  - `undecideDecision()` — `travelDecisionService.js`에 추가됨 (status→'deciding', decidedOption→null)
+  v1.0.14에 리디자인(주제별 `DecisionSection` + 가로 스크롤 `DecisionCard`, 상세 `OptionDetailSheet`(`?modal=option&d=&o=`),
+  보기 설정 `DecisionViewSheet`(`?modal=decision-view`), 동작/모달은 `useDecisionActions`에 모음).
+  - `travelDecisions` subcollection (`trips/{tripId}/travelDecisions`): `options[{id,title,price,address,images[],url,description,
+    scores[{userId,score,comment}],totalScore,isFavorite,isDecided,decidedBy,decidedAt(ms)}]`
+  - **확정은 후보 단위, 여러 개 가능 (v1.0.16~)** — 예전엔 주제 문서의 `status: 'decided'` + `decidedOption`(하나)로 저장했고
+    확정되면 나머지 후보를 한 줄로 접어 숨겼는데, "숨겨진 걸 모름/일정에 넣었다고 확정은 아님"이라는 피드백으로 바꿈(사용자 결정).
+    판정은 반드시 `isOptionDecided(decision, option)`(예전 방식 값도 확정으로 인정)을 쓸 것 — 예전 데이터는
+    `setOptionDecided()`가 그 주제를 처음 수정할 때 후보 단위로 옮기고 주제 쪽 값은 비움(트랜잭션 `mutateOptions`의 `extraFields`).
+    확정한 후보는 숨기지 않고 초록 테두리 + "✓ 확정" 배지 + 어떤 정렬이든 섹션 맨 앞(사용자 결정). 확정은 확인 없이 바로,
+    확정 취소만 확인. 확정 직후 그 후보로 만든 일정이 없으면 "일정에도 바로 추가할까요?"(ConfirmModal)로 이어짐.
+  - **"Day N 일정" 표시**: 후보에서 만든 일정 항목에 `sourceOptionId`를 남기고(`TripDetail.handleSaveSchedule` — 미리 채움 데이터
+    `selectedSchedule.sourceOptionId`에서 가져옴), `TripDetail`이 `tripSchedules`에서 거꾸로 `scheduledDaysByOption`을 계산해
+    내려줌 — 일정을 지우면 표시도 같이 사라짐. 일정 수정은 기존 항목 위에 덮어써서(`{...s, ...scheduleData}`) 이 값이 유지됨.
+  - 상세 시트 하단은 [닫기] [일정에 추가] [확정하기 | ✓ 확정됨] — 하단에 닫기가 없으면 사용자가 뒤로 가기 어렵다는 피드백.
+  - 주제(`DecisionSection`)는 흰 카드 + 접히는 바(제목 + "후보 N · 확정 M · 평가 필요 K" 요약) — 주제 구분/제목이 안 보인다는
+    피드백으로 시안 4개 중 사용자가 고른 D안. 기본은 맨 위·평가 필요·후보 없는 주제만 펼침, 직접 접고 편 상태는
+    sessionStorage(`twogether_decision_open_{tripId}`)에 기억. 즐겨찾기만/확정만 보기 중엔 전부 펼침(접기 비활성).
+- 모달의 여러 줄 입력칸은 공용 `common/AutoGrowTextarea.jsx` — 칸 안 스크롤 없이 내용만큼 세로로 늘어남(최소 높이는 CSS
+  min-height/rows). 새 모달에 설명/내용 칸을 만들 때도 `<textarea>` 대신 이걸 쓸 것.
 
 ## 주요 서비스 패턴 주의사항
 
