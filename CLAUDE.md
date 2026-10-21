@@ -323,7 +323,7 @@ Play Store/App Store 실기기 테스트 중 발견된 Capacitor 네이티브 �
 **바닥에 붙는 모달(bottom-sheet)들이 안드로이드 제스처 내비바와 겹치던 문제 (v0.4.26~)**: 하단
 내비게이션바(`Navigation.css`)는 처음부터 `env(safe-area-inset-bottom)`을 반영했지만, `align-items:
 flex-end`로 화면 바닥에 붙는 모달 12개(BucketList/ChecklistModal/ScheduleModal/WheelModal/
-SealedMessage/TripModal/DecisionModal/AddOptionModal/EditOptionModal/CycleSettingsModal/
+SealedMessage/TripModal/DecisionModal/OptionFormSheet(예전 Add/EditOptionModal)/CycleSettingsModal/
 EventTypeColorSettingsModal/NotificationPrimingModal)의 footer/actions 요소는 이 처리가 빠져 있어서
 버튼이 제스처 내비바 뒤로 깔렸음. 각 footer 요소에 `padding-bottom`(또는 `padding` calc)으로 safe-area
 여백을 추가해 해결. `EventModal`/`ChangePasswordModal` 등 화면 중앙에 뜨는 모달은 애초에 바닥에 안 붙어서
@@ -682,7 +682,11 @@ utils/
 의존성 배열 `[trip.id, activeDay]` — daySchedules 변경과 무관하게 실시간 업데이트.
 
 ### 여행 선택 사항 — 링크 자동 추출 (v1.0.13~)
-"새로운 옵션 추가"(`AddOptionModal.jsx`)에만 적용(사용자 결정 — "옵션 수정"엔 자동 추출 없음, 링크 자유 입력/주소 칸만).
+"후보 추가"에만 적용(사용자 결정 — "후보 수정"엔 자동 추출 없음, 링크 자유 입력/주소 칸만).
+v1.0.15부터 추가/수정 모달은 `OptionFormSheet.jsx`(mode `add`|`edit`) 하나로 통합 — 추가 모드 상단의
+`LinkFillCard.jsx`(입력값이 곧 저장 `url`, 불러오기 성공 시 파란 요약 + "✎ 수정", 실패 시 안내 + 다시 불러오기 —
+실패해도 링크는 저장됨)와 사진 주소 붙여넣기 서브시트 `PhotoAddSheet.jsx`(미리보기 로드 성공해야 추가 가능)로 분리.
+필드 순서는 사진 → 제목* → 설명 → 링크(수정만) → 주소 → 가격(사용자 지정).
 - 링크 칸은 `type="text"` 자유 입력 — `type="url"`이면 공유 문구가 섞일 때 브라우저가 저장 자체를 막았음. 표시/클릭은
   `appLinkUtils.extractUrl()`로 http(s) 부분만 추출해서 씀(카드·일정 옮기기 모두).
 - 붙여넣기 판별은 `src/utils/sharedTextParser.js` — 네이버지도 공유 문구는 줄 단위(`[네이버지도]`/상호명/주소/링크).
@@ -696,7 +700,8 @@ utils/
   읽음. **공식 API가 아니라 네이버 구조 변경 시 깨질 수 있음** — 실패하면 OG 결과로 폴백하도록 돼 있음.
 - 이 함수는 웹(Hosting) 배포만으론 반영 안 됨 — `npx firebase-tools deploy --only functions:fetchLinkPreview` 필요.
 - 후보에 `address` 필드 추가 → 일정에 추가 시 `location`으로, 순수 숫자 `price` → `cost`로 옮김(`TripDetail.js`의
-  `handleDaySelected`). 카드의 긴 설명(3줄)/링크(2줄)는 공용 `common/ClampText.jsx`(넘칠 때만 펼치기 아이콘).
+  `handleDaySelected`). 카드의 긴 설명은 3줄 말줄임 + "전체 보기"/카드 탭 → 후보 상세 시트(`OptionDetailSheet`)에서 전문 표시
+  (예전 펼치기용 `common/ClampText.jsx`는 v1.0.15에서 삭제).
 
 ### 생리주기 기능 제거 (2026-10-02)
 Google Play "건강 앱 선언" 정책 반려(선언한 '생리 추적' 기능을 심사자가 확인하지 못함 — 기본 꺼짐 + 스토어

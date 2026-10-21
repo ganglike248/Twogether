@@ -1,0 +1,443 @@
+/* src/components/Travel/Decisions/OptionFormSheet.css — 후보 추가/수정 시트 + 링크 자동 채우기 카드
+   입력칸은 어디서나 같은 모양: 위에 12px 회색 라벨, 아래 흰 46px 박스(분홍 1px 테두리, radius 12, 16px 글자 — iOS 확대 방지) */
+
+.ofs-overlay {
+    position: fixed;
+    inset: 0;
+    z-index: 1100; /* 후보 상세 시트(1000) 위에서도 열림 */
+    background: rgba(52, 58, 64, 0.35);
+    display: flex;
+    align-items: flex-end;
+    justify-content: center;
+}
+
+.ofs-sheet {
+    width: 100%;
+    max-width: 520px;
+    height: calc(100% - 50px);
+    background: #ffffff;
+    border-radius: 22px 22px 0 0;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    color: #343A40;
+}
+
+.ofs-grabber {
+    width: 36px;
+    height: 4px;
+    border-radius: 2px;
+    background: #f0d4da;
+    align-self: center;
+    margin-top: 10px;
+    flex-shrink: 0;
+}
+
+.ofs-header {
+    display: grid;
+    grid-template-columns: 40px minmax(0, 1fr) 40px;
+    align-items: center;
+    padding: 8px 14px 0;
+    flex-shrink: 0;
+}
+
+.ofs-header-text {
+    text-align: center;
+    display: flex;
+    flex-direction: column;
+    gap: 1px;
+    min-width: 0;
+}
+
+.ofs-header-title {
+    font-size: 17px;
+    font-weight: 700;
+}
+
+.ofs-header-sub {
+    font-size: 12px;
+    color: #6C757D;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.ofs-close {
+    justify-self: end;
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    border-radius: 50%;
+    border: 1px solid rgba(255, 182, 193, 0.28);
+    background: #ffffff;
+    color: #6C757D;
+    font-family: inherit;
+    font-size: 17px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ofs-scroll {
+    flex-grow: 1;
+    overflow-y: auto;
+    padding: 14px 16px 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+/* ===== 공용 입력칸 ===== */
+.ofs-field {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.ofs-label {
+    font-size: 12px;
+    color: #6C757D;
+}
+
+.ofs-label-count { color: #ADB5BD; }
+.ofs-required { color: #FF6B6B; }
+
+.ofs-input,
+.ofs-textarea {
+    width: 100%;
+    box-sizing: border-box;
+    border: 1px solid rgba(255, 182, 193, 0.6);
+    border-radius: 12px;
+    background: #ffffff;
+    font-family: inherit;
+    font-size: 16px;
+    color: #343A40;
+    outline: none;
+}
+
+.ofs-input {
+    height: 46px;
+    padding: 0 12px;
+}
+
+.ofs-input:focus,
+.ofs-textarea:focus { border: 1.5px solid #ff9bac; }
+
+.ofs-input::placeholder,
+.ofs-textarea::placeholder { color: #b7bdc3; }
+
+.ofs-input.link { color: #3d8ed6; }
+
+.ofs-textarea {
+    height: 120px;
+    resize: none;
+    padding: 11px 12px;
+    line-height: 1.55;
+}
+
+.ofs-textarea.tall { height: 140px; }
+
+.ofs-price-wrap {
+    position: relative;
+    display: flex;
+}
+
+.ofs-input.price { padding-right: 30px; }
+
+.ofs-price-unit {
+    position: absolute;
+    right: 12px;
+    top: 50%;
+    transform: translateY(-50%);
+    font-size: 13px;
+    color: #ADB5BD;
+    pointer-events: none;
+}
+
+.ofs-price-unit.filled { color: #6C757D; }
+
+.ofs-divider {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    color: #ADB5BD;
+    font-size: 11px;
+}
+
+.ofs-divider span {
+    flex-grow: 1;
+    height: 1px;
+    background: #f1e6e8;
+}
+
+/* ===== 사진 줄 ===== */
+.ofs-photos {
+    display: flex;
+    gap: 8px;
+    overflow-x: auto;
+    margin-right: -16px;
+    padding-right: 16px;
+    scrollbar-width: none;
+}
+
+.ofs-photos::-webkit-scrollbar { display: none; }
+
+.ofs-photo {
+    flex: 0 0 112px;
+    height: 84px;
+    border-radius: 12px;
+    background: #eef2f7;
+    position: relative;
+    overflow: hidden;
+}
+
+.ofs-photo img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
+}
+
+.ofs-photo-main {
+    position: absolute;
+    left: 6px;
+    top: 6px;
+    background: rgba(0, 0, 0, 0.45);
+    color: #ffffff;
+    border-radius: 6px;
+    padding: 1px 6px;
+    font-size: 10px;
+}
+
+.ofs-photo-remove {
+    position: absolute;
+    right: 5px;
+    top: 5px;
+    width: 22px;
+    height: 22px;
+    padding: 0;
+    border-radius: 50%;
+    border: none;
+    background: rgba(255, 255, 255, 0.95);
+    color: #6C757D;
+    font-family: inherit;
+    font-size: 12px;
+    line-height: 1;
+    cursor: pointer;
+}
+
+.ofs-photo-add {
+    flex: 0 0 112px;
+    height: 84px;
+    border-radius: 12px;
+    border: 1.5px dashed rgba(255, 155, 172, 0.6);
+    background: #fffafb;
+    color: #e0606f;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.ofs-photo-add-plus {
+    font-size: 18px;
+    line-height: 1;
+}
+
+/* ===== 하단 버튼 (취소 1 : 저장 2) ===== */
+.ofs-footer {
+    flex-shrink: 0;
+    padding: 12px 16px calc(16px + env(safe-area-inset-bottom));
+    display: grid;
+    grid-template-columns: 1fr 2fr;
+    gap: 8px;
+    border-top: 1px solid rgba(255, 182, 193, 0.15);
+}
+
+.ofs-btn {
+    height: 44px;
+    border-radius: 12px;
+    font-family: inherit;
+    font-size: 14px;
+    cursor: pointer;
+}
+
+.ofs-btn.cancel {
+    border: 1px solid rgba(255, 182, 193, 0.6);
+    background: #ffffff;
+    color: #6C757D;
+}
+
+.ofs-btn.submit {
+    border: 1px solid #ff9bac;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+}
+
+.ofs-btn.submit:disabled {
+    border-color: transparent;
+    background: #f7c6cf;
+    cursor: default;
+}
+
+/* ===== 링크로 자동 채우기 카드 (LinkFillCard) ===== */
+.lfc {
+    background: linear-gradient(135deg, #fff3f5 0%, #ffeef2 100%);
+    border: 1px solid rgba(255, 155, 172, 0.45);
+    border-radius: 16px;
+    padding: 14px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.lfc-head {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lfc-icon,
+.lfc-done-icon {
+    width: 34px;
+    height: 34px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #ffffff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.lfc-icon { color: #FF6B6B; }
+
+.lfc-head-text,
+.lfc-fail-text {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lfc-title {
+    font-size: 15px;
+    color: #343A40;
+}
+
+.lfc-desc {
+    font-size: 11px;
+    color: #6C757D;
+}
+
+.ofs-input.lfc-input { border-color: rgba(255, 155, 172, 0.55); }
+
+.lfc-fetch {
+    height: 40px;
+    border-radius: 10px;
+    border: none;
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+    font-family: inherit;
+    font-size: 13px;
+    cursor: pointer;
+}
+
+.lfc-fetch:disabled {
+    background: #f7c6cf;
+    cursor: default;
+}
+
+.lfc-fetch.retry {
+    border: 1px solid rgba(255, 155, 172, 0.6);
+    background: #ffffff;
+    color: #e0606f;
+}
+
+.lfc-fetch.retry:disabled { opacity: 0.6; }
+
+.lfc-fail {
+    background: #fff8e8;
+    border: 1px solid #ffe2a8;
+    border-radius: 10px;
+    padding: 9px 11px;
+    display: flex;
+    gap: 8px;
+    align-items: flex-start;
+}
+
+.lfc-fail-icon {
+    width: 18px;
+    height: 18px;
+    flex-shrink: 0;
+    border-radius: 50%;
+    background: #f2a93b;
+    color: #ffffff;
+    font-size: 11px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin-top: 1px;
+}
+
+.lfc-fail-title {
+    font-size: 13px;
+    color: #8a5a10;
+}
+
+.lfc-fail-sub {
+    font-size: 11px;
+    color: #9a6a20;
+    line-height: 1.5;
+}
+
+/* 불러온 뒤 — 파란 요약 카드 */
+.lfc-done {
+    background: #f2f8ff;
+    border: 1px solid #cfe5ff;
+    border-radius: 16px;
+    padding: 12px 14px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.lfc-done-icon { color: #3d8ed6; }
+
+.lfc-done-text {
+    flex-grow: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+}
+
+.lfc-done-title {
+    font-size: 14px;
+    color: #2f6aa8;
+}
+
+.lfc-done-sub {
+    font-size: 11px;
+    color: #5b7fa8;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+.lfc-done-edit {
+    flex-shrink: 0;
+    height: 30px;
+    padding: 0 10px;
+    border-radius: 15px;
+    border: 1px solid #cfe5ff;
+    background: #ffffff;
+    color: #3d8ed6;
+    font-family: inherit;
+    font-size: 12px;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}

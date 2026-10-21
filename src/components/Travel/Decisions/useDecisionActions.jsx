@@ -16,15 +16,13 @@ import {
   updateOption,
 } from '../../../services/travelDecisionService';
 import ConfirmModal from '../../common/ConfirmModal';
-import AddOptionModal from './AddOptionModal';
-import EditOptionModal from './EditOptionModal';
+import OptionFormSheet from './OptionFormSheet';
 import DecisionModal from './DecisionModal';
 
 const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
   const [confirm, setConfirm] = useState(null); // { type: 'decide'|'deleteOption'|'deleteTopic', decision, option }
   const [editing, setEditing] = useState(null); // { decision, option }
   const [addingTo, setAddingTo] = useState(null); // decision
-  const [addingOption, setAddingOption] = useState(false);
   const [topicModal, setTopicModal] = useState(null); // { mode: 'create' } | { mode: 'edit', decision }
 
   const run = async (task, successMsg, errorMsg) => {
@@ -78,9 +76,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
   };
 
   const handleAddOption = async (optionData) => {
-    setAddingOption(true);
     const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '옵션이 추가되었습니다.', '옵션 추가 중 오류가 발생했습니다.');
-    setAddingOption(false);
     if (ok) setAddingTo(null);
   };
 
@@ -124,18 +120,20 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted }) => {
   const modals = (
     <>
       {addingTo && (
-        <AddOptionModal
-          isOpen
+        <OptionFormSheet
+          mode="add"
+          topicTitle={addingTo.title}
           onClose={() => setAddingTo(null)}
           onSave={handleAddOption}
-          loading={addingOption}
         />
       )}
       {editing && (
-        <EditOptionModal
-          isOpen
-          onClose={() => setEditing(null)}
+        <OptionFormSheet
+          key={editing.option.id}
+          mode="edit"
+          topicTitle={editing.decision.title}
           option={editing.option}
+          onClose={() => setEditing(null)}
           onSave={handleUpdateOption}
         />
       )}
