@@ -28,6 +28,7 @@ const CoupleInfoPage = lazy(() => import('./components/CoupleInfo/CoupleInfoPage
 const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
 const SealedMessagesPage = lazy(() => import('./components/SealedMessages/SealedMessagesPage'));
 const NotificationSettingsPage = lazy(() => import('./components/Settings/NotificationSettingsPage'));
+const DataBackupPage = lazy(() => import('./components/Settings/DataBackupPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
@@ -137,6 +138,11 @@ const router = createBrowserRouter([
         path: '/notification-settings',
         element: <ProtectedRoute key="notification-settings"><Layout><NotificationSettingsPage /></Layout></ProtectedRoute>,
         key: 'notification-settings',
+      },
+      {
+        path: '/data-backup',
+        element: <ProtectedRoute key="data-backup"><Layout><DataBackupPage /></Layout></ProtectedRoute>,
+        key: 'data-backup',
       },
       { path: '*', element: <NotFoundPage />, key: 'not-found' },
     ],

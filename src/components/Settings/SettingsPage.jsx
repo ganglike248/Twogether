@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { HiInformationCircle } from 'react-icons/hi2';
-import { MdPalette, MdNotifications } from 'react-icons/md';
+import { MdPalette, MdNotifications, MdBackup } from 'react-icons/md';
 import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
 import './SettingsPage.css';
 
@@ -47,6 +47,16 @@ const SettingsPage = () => {
       >
         <MdNotifications className="profile-cycle-btn-icon" color="#ff8787" />
         <span className="profile-cycle-btn-text">알림 설정</span>
+        <span className="profile-cycle-btn-arrow">›</span>
+      </button>
+
+      {/* 데이터 백업 (내보내기/가져오기) */}
+      <button
+        className="profile-cycle-btn"
+        onClick={() => navigate('/data-backup')}
+      >
+        <MdBackup className="profile-cycle-btn-icon" color="#4dabf7" />
+        <span className="profile-cycle-btn-text">데이터 백업</span>
         <span className="profile-cycle-btn-arrow">›</span>
       </button>
 

@@ -173,7 +173,13 @@ exports.onEventCreate = functions.firestore
   .document('events/{eventId}')
   .onCreate(async (snap, context) => {
     try {
-      const { coupleId, createdBy, title, recurrence } = snap.data();
+      const { coupleId, createdBy, title, recurrence, restoredAt } = snap.data();
+      if (restoredAt) {
+        // 데이터 백업 "가져오기"로 되살린 문서(src/services/backup/backupRestore.js) — 새로 추가한 일정이
+        // 아니라서 알림 대상 아님(안 막으면 복원한 일정 수만큼 파트너에게 알림이 쏟아짐)
+        console.log(`[onEventCreate] skip: 백업 복원 문서 (eventId=${context.params.eventId})`);
+        return;
+      }
       if (!coupleId || !createdBy) {
         console.log(`[onEventCreate] skip: coupleId/createdBy 없음 (coupleId=${coupleId}, createdBy=${createdBy})`);
         return;
@@ -247,7 +253,11 @@ exports.onEventSeriesCreate = functions.firestore
   .document('eventSeries/{seriesId}')
   .onCreate(async (snap, context) => {
     try {
-      const { coupleId, createdBy, title, isPersonal } = snap.data();
+      const { coupleId, createdBy, title, isPersonal, restoredAt } = snap.data();
+      if (restoredAt) {
+        console.log(`[onEventSeriesCreate] skip: 백업 복원 문서 (seriesId=${context.params.seriesId})`);
+        return;
+      }
       if (isPersonal || !coupleId || !createdBy) {
         console.log(`[onEventSeriesCreate] skip: isPersonal=${isPersonal}, coupleId=${coupleId}, createdBy=${createdBy}`);
         return;
@@ -418,7 +428,11 @@ exports.onSealedMessageCreate = functions.firestore
   .document('sealedMessages/{messageId}')
   .onCreate(async (snap, context) => {
     try {
-      const { authorUid, recipientUid, title } = snap.data();
+      const { authorUid, recipientUid, title, restoredAt } = snap.data();
+      if (restoredAt) {
+        console.log(`[onSealedMessageCreate] skip: 백업 복원 문서 (messageId=${context.params.messageId})`);
+        return;
+      }
       if (!recipientUid) {
         console.log(`[onSealedMessageCreate] skip: recipientUid 없음 (messageId=${context.params.messageId})`);
         return;
@@ -445,6 +459,9 @@ exports.onSealedMessageUpdate = functions.firestore
       const before = change.before.data();
       const after = change.after.data();
       if (before.isUnlocked || !after.isUnlocked) return; // false → true 전환만 대상
+      // 백업 복원 시 "원래 공개돼 있던 편지"를 되살리는 공개 전환 — 실제 공개 이벤트가 아님.
+      // 규칙상 공개된 편지는 더 수정할 수 없어서 이 표시가 이후의 진짜 공개를 가릴 일은 없음.
+      if (after.restoredUnlock === true) return;
 
       const { recipientUid, title } = after;
       if (!recipientUid) return;

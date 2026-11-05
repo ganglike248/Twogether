@@ -450,6 +450,29 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
 (반복 토글/제출 플로우), `firestore.rules`(`eventSeries` 블록), `functions/index.js`(`onEventSeriesCreate`,
 `onEventCreate`/`onEventUpdate`의 인스턴스 스킵 분기).
 
+### 데이터 백업 — 내보내기/가져오기 (`/data-backup`)
+설정 → 데이터 백업. 사용자 결정 사양: **같은 커플 백업/복원 전용**(다른 커플 파일은 거부), **없는 것만 추가**(이미 있는
+문서는 절대 덮어쓰지 않음), **사진은 링크만**, **웹 전용**(네이티브 웹뷰는 Blob 다운로드 불가 — 파일 저장 플러그인
+미설치라 안내 문구 + 기본 브라우저로 여는 "웹에서 데이터 백업 열기" 링크 버튼만 표시). 로직은 `src/services/backup/`(`backupFormat` 형식·Timestamp 태그 `{"__ts":[s,ns]}` /
+`backupReader` 서버 읽기 / `backupExport` 다운로드 / `backupRestore` 계획+실행), 화면은 `Settings/DataBackupPage.jsx`.
+- 복원은 **원래 문서 ID 그대로** `set` — 여행↔캘린더(`calendarEventId`)·일정표(`tripId`)·반복(`seriesId`)·
+  후보→일정(`sourceOptionId`) 연결을 다시 이을 필요가 없음. 대신 비교는 반드시 `getDocsFromServer`(캐시로 비교하면
+  서버에 있는 문서를 "없음"으로 오판해 덮어씀). 문서 단위라 문서 안 배열 항목 하나만 지운 건 안 되살아남(화면에 안내).
+- **합치기만 함** — 백업 후 새로 추가한 항목은 그대로 두고 빠진 것만 되살림(같은 내용을 손으로 다시 만든 건 ID가
+  달라 중복될 수 있음, 제목/날짜로 병합 안 함). "백업 시점으로 교체" 모드와 "새 커플(새 상대)로 이사"는 사용자가
+  설명 듣고 **지금 방식이 좋다고 확정**(2026-11-05) — 요청 없으면 다시 제안하지 말 것. 커플 설정은 빈 값만 채우고
+  버킷 카테고리는 id 기준 병합.
+- 여행을 먼저 커밋한 뒤 세부 내용(일정표/이동시간/선택 사항/체크리스트) — 규칙의 `exists()`는 같은 배치 쓰기를 못 봄.
+- 봉인 편지: 규칙상 작성자 본인만 + 봉인 상태로만 생성 가능 → 내 편지만, 한 통씩(상위 문서 → 내용 → 원래 공개됐으면
+  공개 전환). 파트너가 내보낸 파일엔 내 봉인 편지 내용이 없으므로 그런 편지는 건너뜀(빈 편지 방지).
+- eventSeries 쿼리는 `isPersonal`까지 동등 조건 필요(개인 시리즈도 `coupleId`를 갖고 있어 coupleId만으론 list 거부).
+- ⚠ **복원 문서엔 `restoredAt`, 공개 전환엔 `restoredUnlock: true`** → `onEventCreate`/`onEventSeriesCreate`/
+  `onSealedMessageCreate`/`onSealedMessageUpdate`가 알림을 건너뜀. **Functions를 Hosting보다 먼저 배포할 것** —
+  웹만 배포된 상태로 복원하면 복원한 일정 수만큼 파트너에게 알림이 쏟아짐.
+- 검증: Auth/Firestore/Functions 에뮬레이터 + 실제 rules로 내보내기→삭제→복원→재복원 0개→파트너 복원→다른 커플 거부,
+  트리거 skip 로그까지 확인함(설정 파일은 프로젝트 루트 안에 있어야 함 — 밖이면 "outside of project directory").
+  로컬 8080은 Docker가 점유 중일 수 있어 Firestore 에뮬레이터 포트를 바꿔야 할 수 있음.
+
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
 
@@ -538,6 +561,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /settings          → SettingsPage (이벤트 색상 설정 등)
 /letters           → SealedMessagesPage (봉인 편지함)
 /notification-settings → NotificationSettingsPage (알림 설정, v0.4.22부터 모달 아닌 별도 페이지)
+/data-backup       → DataBackupPage (데이터 백업 내보내기/가져오기, 웹 전용)
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
 /terms             → TermsPage (로그인 불필요 — 이용약관, PrivacyPage와 동일 패턴)
 /account-deletion  → AccountDeletionPage (로그인 불필요 — 계정/데이터 삭제 요청 안내, Google Play 계정 삭제 URL 요건 충족용)

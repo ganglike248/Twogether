@@ -1,0 +1,208 @@
+/* src/components/Settings/DataBackupPage.css — 헤더/섹션 톤은 NotificationSettingsPage(.nsp-*)와 맞춤 */
+
+.dbp-page {
+  padding: 0 1rem 5rem;
+}
+
+.dbp-header {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-top: 0.875rem;
+  margin-bottom: 1rem;
+}
+
+.dbp-back-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 28px;
+  height: 28px;
+  border: none;
+  border-radius: 50%;
+  background: none;
+  color: #888;
+  font-size: 1rem;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s, color 0.15s;
+}
+
+.dbp-back-btn:hover {
+  background: #f5f5f5;
+  color: #444;
+}
+
+.dbp-section {
+  background: #fff;
+  border-radius: 1rem;
+  padding: 0.9rem 1rem 1rem;
+  margin-bottom: 0.75rem;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.03);
+}
+
+.dbp-section-title {
+  font-size: 0.7rem;
+  font-weight: 700;
+  color: #ffb6b9;
+  letter-spacing: 0.06em;
+  margin-bottom: 0.5rem;
+}
+
+.dbp-title {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #444;
+}
+
+.dbp-desc {
+  font-size: 0.8rem;
+  color: #888;
+  line-height: 1.5;
+  margin: 0.3rem 0 0;
+}
+
+.dbp-url {
+  margin: 0.6rem 0 0;
+  font-size: 0.8rem;
+  color: #555;
+  word-break: break-all;
+}
+
+.dbp-web-link {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  text-decoration: none;
+  box-sizing: border-box;
+}
+
+.dbp-web-link + .dbp-url {
+  margin-top: 0.5rem;
+  text-align: center;
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.dbp-notes {
+  margin: 0.5rem 0 0;
+  padding-left: 1.1rem;
+  font-size: 0.75rem;
+  color: #aaa;
+  line-height: 1.55;
+}
+
+.dbp-notes li + li {
+  margin-top: 0.15rem;
+}
+
+.dbp-btn {
+  width: 100%;
+  margin-top: 0.9rem;
+}
+
+.dbp-file-input {
+  display: none;
+}
+
+.dbp-status {
+  margin-top: 0.9rem;
+  font-size: 0.8rem;
+  color: #888;
+}
+
+/* ─── 복원 미리보기 ─── */
+.dbp-plan {
+  margin-top: 0.9rem;
+  border-top: 1px dashed #f0e0e4;
+  padding-top: 0.8rem;
+}
+
+.dbp-plan-file {
+  display: flex;
+  flex-direction: column;
+  gap: 0.1rem;
+  margin-bottom: 0.6rem;
+}
+
+.dbp-plan-file-name {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: #555;
+  word-break: break-all;
+}
+
+.dbp-plan-file-date {
+  font-size: 0.72rem;
+  color: #aaa;
+}
+
+.dbp-plan-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.dbp-plan-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 0.75rem;
+  padding: 0.45rem 0;
+  font-size: 0.85rem;
+  color: #555;
+}
+
+.dbp-plan-row + .dbp-plan-row {
+  border-top: 1px solid #f8f0f3;
+}
+
+.dbp-plan-label {
+  min-width: 0;
+}
+
+.dbp-plan-count {
+  flex-shrink: 0;
+  color: #888;
+}
+
+.dbp-num {
+  color: var(--color-primary);
+  font-weight: 700;
+  margin-right: 0.1rem;
+}
+
+.dbp-notes--muted {
+  margin-top: 0.6rem;
+}
+
+.dbp-plan-actions {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.9rem;
+}
+
+.dbp-plan-actions .btn {
+  flex: 1;
+}
+
+.dbp-progress {
+  margin-top: 0.9rem;
+}
+
+.dbp-progress-bar {
+  height: 6px;
+  border-radius: 3px;
+  background: #f5e6ea;
+  overflow: hidden;
+}
+
+.dbp-progress-fill {
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.2s;
+}
+
+.dbp-progress .dbp-status {
+  margin-top: 0.5rem;
+}
