@@ -106,11 +106,12 @@ service cloud.firestore {
       allow delete: if isAuthenticated() && isSeriesOwner(resource.data);
     }
 
+    // ⚠ 예전엔 read에 `resource.data.coupleId == null ||` 조건이 있어서 커플 정보 없는 기록은 로그인한 누구나
+    // (where coupleId == null 쿼리로 전체 목록까지) 읽을 수 있었음. 운영 데이터에 해당 기록은 0건이었고(2026-11-06 확인),
+    // create도 isCoupleMe를 요구해 새로 생길 수도 없지만, 코드 실수 하나로 바로 열리는 구조라 막음.
+    // 앱의 조회(getEditLogs, 백업)는 전부 where('coupleId','==',...)를 걸고 있어 영향 없음.
     match /edit_logs/{docId} {
-      allow read: if isAuthenticated() && (
-        resource.data.coupleId == null ||
-        isCoupleMe(resource.data.coupleId)
-      );
+      allow read: if isAuthenticated() && isCoupleMe(resource.data.coupleId);
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId);
       allow update: if false;

@@ -118,20 +118,40 @@ export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleI
   }
 };
 
+// 한 배치 안전 상한(Firestore 배치 한도 500 — 여행 문서 + 캘린더 이벤트 자리 여유)
+const DELETE_BATCH_LIMIT = 450;
+
 export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) => {
   const tripRef = doc(db, 'trips', tripId);
   const tripSnap = await getDoc(tripRef);
   const calendarEventId = tripSnap.exists() ? tripSnap.data().calendarEventId : null;
 
-  const [schedulesSnap, travelTimesSnap] = await Promise.all([
+  // ⚠ 여행 하위 데이터는 반드시 여행 문서와 같이(또는 먼저) 지울 것 — 예전엔 일정표/이동시간만 지우고
+  // trips/{id}/travelDecisions·checklists 서브컬렉션은 남겼는데, 이 둘의 규칙은 exists(trips/{id})로
+  // 권한을 확인해서 여행이 지워진 뒤엔 앱에서 영영 읽지도 지우지도 못하는 데이터가 됐음(사용자는 지웠다고
+  // 생각한 후보 가격·주소·메모가 남음). 규칙의 exists()는 배치 실행 전 상태를 보므로 같은 배치에 넣어도 통과함.
+  const [schedulesSnap, travelTimesSnap, decisionsSnap, checklistsSnap] = await Promise.all([
     getDocs(query(collection(db, 'tripSchedules'), where('tripId', '==', tripId))),
     getDocs(query(collection(db, 'travelTimes'), where('tripId', '==', tripId))),
+    getDocs(collection(db, 'trips', tripId, 'travelDecisions')),
+    getDocs(collection(db, 'trips', tripId, 'checklists')),
   ]);
+  const childRefs = [schedulesSnap, travelTimesSnap, decisionsSnap, checklistsSnap]
+    .flatMap((snap) => snap.docs.map((d) => d.ref));
+
+  // 보통은 한 배치(원자적)로 끝남. 하위 데이터가 아주 많을 때만 하위부터 나눠 지운 뒤(여행이 아직 있어야
+  // 규칙을 통과하므로 순서 중요) 마지막에 여행 문서를 지움
+  let remaining = childRefs;
+  while (remaining.length > DELETE_BATCH_LIMIT) {
+    const chunkBatch = writeBatch(db);
+    remaining.slice(0, DELETE_BATCH_LIMIT).forEach((ref) => chunkBatch.delete(ref));
+    await chunkBatch.commit();
+    remaining = remaining.slice(DELETE_BATCH_LIMIT);
+  }
 
   const batch = writeBatch(db);
+  remaining.forEach((ref) => batch.delete(ref));
   batch.delete(tripRef);
-  schedulesSnap.docs.forEach(d => batch.delete(d.ref));
-  travelTimesSnap.docs.forEach(d => batch.delete(d.ref));
 
   if (calendarEventId) {
     // 신규 여행: calendarEventId로 직접 삭제

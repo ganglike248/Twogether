@@ -484,6 +484,10 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
 `useCalendarData.js`의 events 구독에서 **travel eventType을 필터링해야 함** — 그렇지 않으면 calendar에서 같은 여행이 2번 표시됨.  
 현재 `snapshot.docs.filter(doc => doc.data().eventType !== 'travel')`로 처리 중.  
 trips 컬렉션에서만 여행 이벤트를 FullCalendar 형식으로 변환하여 표시.
+**여행 삭제(`tripService.deleteTrip`)는 하위 데이터를 전부 같이 지움**(v1.0.18~): 일정표·이동시간에 더해
+`trips/{id}/travelDecisions`·`checklists` 서브컬렉션까지. 예전엔 서브컬렉션을 남겼는데, 그 규칙이 `exists(trips/{id})`로
+권한을 확인해서 여행이 지워진 뒤엔 앱에서 영영 읽지도 지우지도 못하는 데이터가 됐음. 규칙의 `exists()`는 배치 실행
+전 상태를 보므로 같은 배치에 넣어도 통과함(에뮬레이터 확인). 여행 아래에 새 서브컬렉션을 추가하면 여기도 같이 넣을 것.
 
 ### 색상 설정 시스템
 이벤트 타입별 색상(`boyfriend`/`girlfriend`/`personal`)은 Firestore `couples/{coupleId}` 문서의 `eventTypeColors` 필드에 저장됨. CSS 변수(`--color-boyfriend`, `--color-girlfriend`, `--color-personal`)로 앱 전체에 적용.  
@@ -586,6 +590,7 @@ travelTimes             → tripId, day, fromScheduleId, toScheduleId, travelTim
                           ※ subscribeTravelTimes(tripId, day)로 실시간 구독
 bucketlists             → coupleId, title, category, completed, completedAt
 edit_logs               → eventId, coupleId, action, changes, userId, timestamp  (eventId 기반 조회)
+                          ※ 읽기는 isCoupleMe(coupleId)만 — 예전 `coupleId == null`이면 누구나 읽기 허용 조건은 v1.0.18에서 제거
 sealedMessages           → coupleId, authorUid, recipientUid, title, unlockAt(Timestamp|null),
                           isUnlocked, unlockedAt, createdAt
                           ※ 내용은 이 문서에 없음 — sealedMessages/{id}/private/content 서브문서에
