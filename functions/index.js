@@ -117,6 +117,23 @@ exports.onCoupleUpdate = functions.firestore
 
       // 새로 추가된 멤버 찾기
       const addedMembers = newMembers.filter(uid => !oldMembers.includes(uid));
+      // 빠진 멤버(커플 연결 해제 — coupleLifecycle.leaveCouple이 members를 비움) — 이 커플을 claims에서 제거.
+      // ⚠ 안 지우면 Storage 규칙(hasCoupleIdAccess)이 claim만 보고 판단해서 헤어진 뒤에도 예전 커플의
+      // 홈 사진·편지 사진에 계속 접근할 수 있음. (이미 발급된 ID 토큰은 최대 1시간 유효 — 그 사이는 감수)
+      const removedMembers = oldMembers.filter(uid => !newMembers.includes(uid));
+      for (const uid of removedMembers) {
+        try {
+          const existing = (await auth.getUser(uid)).customClaims || {};
+          await auth.setCustomUserClaims(uid, {
+            ...existing,
+            coupleIds: (existing.coupleIds || []).filter((id) => id !== coupleId),
+          });
+          console.log(`[onCoupleUpdate] coupleId=${coupleId} uid=${uid} claims에서 제거`);
+        } catch (err) {
+          // 회원 탈퇴로 계정이 이미 지워진 경우 등 — 무시해도 됨
+          console.warn(`[onCoupleUpdate] claims 제거 실패 uid=${uid}: ${err.code || err.message}`);
+        }
+      }
 
       if (addedMembers.length === 0) {
         return; // 멤버 추가 없음
@@ -463,8 +480,15 @@ exports.onSealedMessageUpdate = functions.firestore
       // 규칙상 공개된 편지는 더 수정할 수 없어서 이 표시가 이후의 진짜 공개를 가릴 일은 없음.
       if (after.restoredUnlock === true) return;
 
-      const { recipientUid, title } = after;
+      const { recipientUid, title, coupleId } = after;
       if (!recipientUid) return;
+      // 커플 연결이 해제된 뒤에도 예약 공개(checkSealedMessages)는 시간이 되면 편지를 열기 때문에,
+      // 확인 안 하면 헤어진 상대에게 "봉인 편지가 공개됐어요" 알림이 가버림 — 아직 멤버일 때만 발송
+      const coupleSnap = coupleId ? await db.collection('couples').doc(coupleId).get() : null;
+      if (!(coupleSnap?.data()?.members || []).includes(recipientUid)) {
+        console.log(`[onSealedMessageUpdate] skip: 받는 사람이 더 이상 커플 멤버가 아님 (coupleId=${coupleId})`);
+        return;
+      }
 
       await sendPushToUser(recipientUid, {
         title: '봉인 편지가 공개됐어요',
@@ -761,5 +785,74 @@ exports.fetchLinkPreview = functions
       }
       console.warn(`[fetchLinkPreview] 실패: ${error.message}`);
       throw new functions.https.HttpsError('unavailable', '링크 정보를 불러오지 못했어요. 직접 입력해주세요.');
+    }
+  });
+
+// ✅ 커플 연결 해제 / 해제 취소 / 이전 커플 기록 / 회원 탈퇴 / 보관 기간 지난 커플 삭제
+// 로직과 정책 설명은 coupleLifecycle.js 참고. 규칙상 클라이언트가 할 수 없는 작업(members 변경,
+// 상대 사용자 문서·상대가 쓴 편지 수정, 로그인 계정 삭제)이라 전부 Admin SDK로 처리.
+const { createCoupleLifecycle, LifecycleError } = require('./coupleLifecycle');
+
+const lifecycle = createCoupleLifecycle({
+  db, auth, bucket: admin.storage().bucket(), FieldValue, Timestamp,
+});
+
+const requireAuth = (context) => {
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+  return context.auth.uid;
+};
+
+const toHttpsError = (error, logTag) => {
+  if (error instanceof LifecycleError) {
+    return new functions.https.HttpsError(error.code, error.message, error.reason ? { reason: error.reason } : undefined);
+  }
+  console.error(`[${logTag}] Error:`, error);
+  return new functions.https.HttpsError('internal', '처리 중 문제가 생겼어요. 잠시 후 다시 시도해주세요.');
+};
+
+const lifecycleCallable = (logTag, handler, options = {}) => functions
+  .runWith({ timeoutSeconds: options.timeoutSeconds || 60, memory: options.memory || '256MB' })
+  .https.onCall(async (data, context) => {
+    const uid = requireAuth(context);
+    try {
+      return await handler(uid, data || {}, context);
+    } catch (error) {
+      throw toHttpsError(error, logTag);
+    }
+  });
+
+exports.leaveCouple = lifecycleCallable('leaveCouple', async (uid) => {
+  const { coupleId } = await lifecycle.leaveCouple(uid, 'leave');
+  console.log(`[leaveCouple] uid=${uid} coupleId=${coupleId} 해제`);
+  return { coupleId };
+});
+
+exports.cancelLeaveCouple = lifecycleCallable('cancelLeaveCouple', async (uid, data) => (
+  lifecycle.cancelLeave(uid, data.coupleId)
+));
+
+exports.listFormerCouples = lifecycleCallable('listFormerCouples', async (uid) => ({
+  couples: await lifecycle.listFormerCouples(uid),
+}));
+
+exports.exportFormerCoupleRecord = lifecycleCallable('exportFormerCoupleRecord', async (uid, data) => (
+  lifecycle.exportFormerCouple(uid, data.coupleId)
+), { timeoutSeconds: 120, memory: '512MB' });
+
+exports.deleteMyAccount = lifecycleCallable('deleteMyAccount', async (uid, data, context) => (
+  lifecycle.deleteAccount(uid, context.auth.token.auth_time)
+), { timeoutSeconds: 300, memory: '512MB' });
+
+// 매일 04:00 KST — 보관 기간(30일) 지난 해제 커플 데이터 삭제
+exports.purgeDissolvedCouples = functions
+  .runWith({ timeoutSeconds: 540, memory: '512MB' })
+  .pubsub.schedule('0 4 * * *')
+  .timeZone('Asia/Seoul')
+  .onRun(async () => {
+    try {
+      const count = await lifecycle.purgeExpired();
+      console.log(`[purgeDissolvedCouples] 대상 ${count}건 처리`);
+    } catch (error) {
+      console.error('[purgeDissolvedCouples] Error:', error);
     }
   });

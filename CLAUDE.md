@@ -473,6 +473,22 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
   트리거 skip 로그까지 확인함(설정 파일은 프로젝트 루트 안에 있어야 함 — 밖이면 "outside of project directory").
   로컬 8080은 Docker가 점유 중일 수 있어 Firestore 에뮬레이터 포트를 바꿔야 할 수 있음.
 
+### 커플 연결 해제 / 회원 탈퇴 (서버 단계 완료, 화면은 미구현)
+로직은 `functions/coupleLifecycle.js`(의존성 주입 — 에뮬레이터에서 모듈만 직접 불러 검증 가능), `index.js`는 콜러블
+`leaveCouple`/`cancelLeaveCouple`/`listFormerCouples`/`exportFormerCoupleRecord`/`deleteMyAccount` + 스케줄
+`purgeDissolvedCouples`(매일 04:00 KST)만 연결. 사용자 확정 정책(2026-11-06):
+- 해제는 한 명이 혼자 가능, 즉시 `members: []`(규칙의 isCoupleMe가 실패해 둘 다 차단) + `formerMembers`(**원래 순서 그대로** —
+  members[0]/[1]이 boyfriend/girlfriend라 순서가 바뀌면 역할·색상이 뒤바뀜)/`dissolvedAt`/`dissolvedBy`/`dissolveReason`/
+  `purgeAfter`(30일)/`deletedMembers`. 상대 사용자 문서에 `coupleEndedNotice`(해제·탈퇴 같은 문구), 취소 시 `coupleRestoredNotice`.
+- 30일 보관 목적은 (1) **해제한 사람만** 취소(둘 다 다른 커플 미연결 + 아무도 탈퇴 안 했을 때) (2) **예전 멤버 둘 다** 기록 파일
+  저장(`exportFormerCoupleRecord` — 봉인 편지 내용은 앱과 같은 범위, 개인 일정 제외). 탈퇴로 인한 해제도 30일 보관(취소 불가),
+  예전 멤버가 모두 탈퇴하면 즉시 삭제. 탈퇴는 최근 로그인 5분 이내(`auth_time`)만, 개인 데이터·Auth 계정은 즉시 삭제.
+- ⚠ `personal_events`와 개인 `eventSeries`에도 `coupleId`가 저장돼 있음 — 커플 삭제를 coupleId 쿼리로 하면 개인 일정까지
+  지워짐. `purgeCouple`은 이 둘을 건드리지 않음(eventSeries는 `isPersonal == false`만).
+- `onCoupleUpdate`가 빠진 멤버의 claims에서 그 커플을 제거(안 하면 Storage 규칙이 claim만 보고 예전 커플 사진 접근 허용).
+  `onSealedMessageUpdate`는 받는 사람이 아직 멤버일 때만 알림(해제 후 예약 공개 알림 차단).
+- 검증: Auth/Firestore/Functions/Storage 에뮬레이터로 해제→차단→기록→취소→재해제→취소불가→30일 삭제→탈퇴→혼자인 커플 탈퇴 44개 확인.
+
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
 
