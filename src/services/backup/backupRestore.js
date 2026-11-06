@@ -53,19 +53,31 @@ const defaultCheckImage = (url) => new Promise((resolve) => {
 export class RestoreError extends Error {}
 
 // 커플 문서에서 "비어 있는 것만" 채울 값 계산 — 미리보기(plan)와 실제 쓰기(트랜잭션 안) 양쪽에서 씀
-const computeCoupleFill = (current, backup, heroAvailable) => {
+export const computeCoupleFill = (current, backup, heroAvailable) => {
   const fields = {};
   let count = 0;
   if (!current.anniversaryDate && backup.anniversaryDate) { fields.anniversaryDate = backup.anniversaryDate; count += 1; }
   if (!current.eventTypeColors && backup.eventTypeColors) { fields.eventTypeColors = backup.eventTypeColors; count += 1; }
   if (!current.heroImageUrl && backup.heroImageUrl && heroAvailable) { fields.heroImageUrl = backup.heroImageUrl; count += 1; }
-  const currentCats = Array.isArray(current.customCategories) ? current.customCategories : [];
-  const backupCats = Array.isArray(backup.customCategories) ? backup.customCategories : [];
-  const currentIds = new Set(currentCats.map((c) => c?.id));
-  const missingCats = backupCats.filter((c) => c?.id && !currentIds.has(c.id));
-  if (missingCats.length > 0) {
-    fields.customCategories = [...currentCats, ...missingCats];
-    count += missingCats.length;
+  // 버킷 카테고리는 객체 맵 { [키]: { label, color } }로 저장됨(CategoryManagerModal) — 예전 코드는 배열로 잘못
+  // 가정해서 합치기가 항상 0건이었음(v1.0.17~v1.0.19). 혹시 배열로 저장된 데이터가 있어도 동작하도록 둘 다 처리.
+  const backupCats = backup.customCategories;
+  const currentCats = current.customCategories;
+  if (Array.isArray(backupCats) || Array.isArray(currentCats)) {
+    const cur = Array.isArray(currentCats) ? currentCats : [];
+    const ids = new Set(cur.map((c) => c?.id));
+    const missing = (Array.isArray(backupCats) ? backupCats : []).filter((c) => c?.id && !ids.has(c.id));
+    if (missing.length > 0 && (Array.isArray(currentCats) || currentCats == null)) {
+      fields.customCategories = [...cur, ...missing];
+      count += missing.length;
+    }
+  } else if (backupCats && typeof backupCats === 'object') {
+    const cur = currentCats && typeof currentCats === 'object' ? currentCats : {};
+    const missingKeys = Object.keys(backupCats).filter((k) => !(k in cur));
+    if (missingKeys.length > 0) {
+      fields.customCategories = { ...cur, ...Object.fromEntries(missingKeys.map((k) => [k, backupCats[k]])) };
+      count += missingKeys.length;
+    }
   }
   return { fields, count };
 };

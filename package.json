@@ -1,7 +1,7 @@
 {
   "name": "twogether",
   "private": true,
-  "version": "1.0.19",
+  "version": "1.0.20",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -15,7 +15,9 @@
     "@capacitor/android": "^8.4.3",
     "@capacitor/app": "^8.1.1",
     "@capacitor/core": "^8.4.3",
+    "@capacitor/filesystem": "^8.1.5",
     "@capacitor/ios": "^8.4.3",
+    "@capacitor/share": "^8.0.3",
     "@capacitor/splash-screen": "^8.0.1",
     "@capawesome/capacitor-app-update": "^8.0.3",
     "@fullcalendar/daygrid": "^6.1.20",

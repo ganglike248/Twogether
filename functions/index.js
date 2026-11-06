@@ -793,8 +793,20 @@ exports.fetchLinkPreview = functions
 // 상대 사용자 문서·상대가 쓴 편지 수정, 로그인 계정 삭제)이라 전부 Admin SDK로 처리.
 const { createCoupleLifecycle, LifecycleError } = require('./coupleLifecycle');
 
+// 해제 관련 알림은 내용을 드러내지 않는 문구로만, 알림 설정과 무관하게 발송(type 인자 없음 — 놓치면
+// 상대가 30일 안에 기록을 저장할 기회를 모르고 지나감). 사용자 결정 2026-11-06.
+const LIFECYCLE_NOTICES = {
+  dissolved: { title: '우리두리에서 확인할 소식이 있어요', body: '앱을 열어 확인해주세요', link: '/' },
+  expiring: { title: '보관 중인 기록이 곧 정리돼요', body: '3일 뒤 이전 기록이 삭제돼요. 필요하면 앱에서 저장해주세요', link: '/' },
+};
+
 const lifecycle = createCoupleLifecycle({
-  db, auth, bucket: admin.storage().bucket(), FieldValue, Timestamp,
+  db,
+  auth,
+  bucket: admin.storage().bucket(),
+  FieldValue,
+  Timestamp,
+  notify: (uid, kind) => sendPushToUser(uid, LIFECYCLE_NOTICES[kind], `coupleLifecycle:${kind}`),
 });
 
 const requireAuth = (context) => {
@@ -850,8 +862,8 @@ exports.purgeDissolvedCouples = functions
   .timeZone('Asia/Seoul')
   .onRun(async () => {
     try {
-      const count = await lifecycle.purgeExpired();
-      console.log(`[purgeDissolvedCouples] 대상 ${count}건 처리`);
+      const { purged, reminded } = await lifecycle.purgeExpired();
+      console.log(`[purgeDissolvedCouples] 삭제 ${purged}건, 3일 전 안내 ${reminded}건`);
     } catch (error) {
       console.error('[purgeDissolvedCouples] Error:', error);
     }

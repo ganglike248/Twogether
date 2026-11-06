@@ -487,7 +487,16 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
   지워짐. `purgeCouple`은 이 둘을 건드리지 않음(eventSeries는 `isPersonal == false`만).
 - `onCoupleUpdate`가 빠진 멤버의 claims에서 그 커플을 제거(안 하면 Storage 규칙이 claim만 보고 예전 커플 사진 접근 허용).
   `onSealedMessageUpdate`는 받는 사람이 아직 멤버일 때만 알림(해제 후 예약 공개 알림 차단).
-- 검증: Auth/Firestore/Functions/Storage 에뮬레이터로 해제→차단→기록→취소→재해제→취소불가→30일 삭제→탈퇴→혼자인 커플 탈퇴 44개 확인.
+- 알림(사용자 결정): 해제·탈퇴 직후 상대에게, 삭제 3일 전 탈퇴 안 한 예전 멤버에게(`expiryReminderSent`로 1번만) — 문구는
+  내용을 드러내지 않게(`index.js`의 `LIFECYCLE_NOTICES`), 알림 설정과 무관하게 발송(놓치면 기록 저장 기회를 모름).
+- **기록 파일**(사람이 읽는 HTML): `src/services/record/recordHtml.js`(순수 함수, 앱 밖에서 오프라인으로 열려도 되게 CSS 인라인·
+  사용자 입력 전부 escape), `recordExport.js`(`exportCurrentRecord` 앱이 직접 읽음 / `exportFormerRecord` 콜러블 응답을
+  `backupFormat.decodeValue`로 Timestamp 복원). JSON 백업은 가져오기 전용이고 해제 후엔 쓸 곳이 없어서 따로 만든 것.
+- **파일 저장은 `src/services/fileSave.js`의 `saveTextFile`만 쓸 것** — 웹은 Blob 다운로드, 네이티브는 `@capacitor/filesystem`
+  (캐시 폴더) + `@capacitor/share`(공유 창). 웹뷰는 `<a download>`를 무시해서 네이티브에서 아무 반응이 없음. 안드로이드 공유는
+  FileProvider + `res/xml/file_paths.xml`의 `cache-path`가 필요(있음). 공유 창 취소는 `{ cancelled: true }`(오류 아님).
+- 검증: Auth/Firestore/Functions/Storage 에뮬레이터로 해제→차단→기록(HTML 생성까지)→취소→재해제→취소불가→3일 전 안내→30일 삭제→
+  탈퇴→혼자인 커플 탈퇴 47개 확인.
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -592,7 +601,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 users/{uid}             → uid, email, displayName, coupleId
 couples/{coupleId}      → members:[uid1,uid2], inviteCode, anniversaryDate, heroImageUrl,
                           eventTypeColors:{boyfriend,girlfriend,personal},
-                          customCategories:[{id,name,color}],  (버킷리스트 카테고리 커스텀)
+                          customCategories:{ [키]: {label,color} },  (버킷리스트 카테고리 커스텀 — 배열 아님, 객체 맵)
                           ※ 읽기: 멤버(isCoupleMe)만 가능. 초대 코드 조회는 inviteCodes 컬렉션 사용
 inviteCodes/{code}      → coupleId, creatorUid, joined(bool), createdAt
                           ※ 인증된 누구나 읽기 가능. joined=true이면 코드 재사용 불가

@@ -23,7 +23,11 @@ class LifecycleError extends Error {
   }
 }
 
-const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp }) => {
+// notify(uid, kind): 'dissolved'(해제·탈퇴 직후 상대에게) | 'expiring'(삭제 3일 전, 예전 멤버에게) —
+// 잠금화면에 그대로 보이므로 문구는 index.js에서 내용을 드러내지 않게 정함(사용자 결정)
+const EXPIRY_REMINDER_DAYS = 3;
+
+const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp, notify = async () => {} }) => {
   const couplesCol = db.collection('couples');
   const usersCol = db.collection('users');
 
@@ -34,7 +38,15 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp }) => {
   // ── 연결 해제 ─────────────────────────────────────────────────────────────
   // reason: 'leave'(직접 해제, 취소 가능) | 'account_deleted'(탈퇴, 취소 불가)
   // 반환: { coupleId, solo } — solo면 상대가 없던 커플(탈퇴 시에만 허용, 호출 측이 바로 삭제함)
+  const safeNotify = (uid, kind) => notify(uid, kind).catch((e) => console.error(`[notify] ${kind} uid=${uid}`, e));
+
   const leaveCouple = async (uid, reason = 'leave') => {
+    const result = await leaveCoupleTx(uid, reason);
+    if (!result.solo && result.partnerUid) await safeNotify(result.partnerUid, 'dissolved');
+    return result;
+  };
+
+  const leaveCoupleTx = async (uid, reason) => {
     const userRef = usersCol.doc(uid);
     return db.runTransaction(async (tx) => {
       const userSnap = await tx.get(userRef);
@@ -127,6 +139,7 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp }) => {
         dissolveReason: FieldValue.delete(),
         purgeAfter: FieldValue.delete(),
         deletedMembers: FieldValue.delete(),
+        expiryReminderSent: FieldValue.delete(),
       });
       former.forEach((m) => {
         tx.update(usersCol.doc(m), {
@@ -274,14 +287,29 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp }) => {
     console.log(`[purgeCouple] coupleId=${coupleId} 삭제 완료`);
   };
 
-  // 보관 기간 지난 커플 삭제 (매일 스케줄)
+  // 매일 스케줄: 보관 기간 지난 커플 삭제 + 삭제 3일 전 안내(커플당 1번)
   const purgeExpired = async () => {
-    const snap = await couplesCol.where('purgeAfter', '<=', Timestamp.now()).get();
+    const nowMs = Date.now();
+    const horizon = Timestamp.fromMillis(nowMs + EXPIRY_REMINDER_DAYS * DAY_MS);
+    const snap = await couplesCol.where('purgeAfter', '<=', horizon).get();
+    let purged = 0;
+    let reminded = 0;
     for (const d of snap.docs) {
-      if (!d.data().dissolvedAt) continue;
-      try { await purgeCouple(d.id); } catch (e) { console.error(`[purgeExpired] coupleId=${d.id}`, e); }
+      const data = d.data();
+      if (!data.dissolvedAt) continue;
+      try {
+        if (toMillis(data.purgeAfter) <= nowMs) {
+          await purgeCouple(d.id);
+          purged += 1;
+        } else if (!data.expiryReminderSent) {
+          const alive = (data.formerMembers || []).filter((m) => !(data.deletedMembers || []).includes(m));
+          for (const m of alive) await safeNotify(m, 'expiring');
+          await d.ref.update({ expiryReminderSent: true });
+          reminded += 1;
+        }
+      } catch (e) { console.error(`[purgeExpired] coupleId=${d.id}`, e); }
     }
-    return snap.size;
+    return { purged, reminded };
   };
 
   // ── 회원 탈퇴 ─────────────────────────────────────────────────────────────
