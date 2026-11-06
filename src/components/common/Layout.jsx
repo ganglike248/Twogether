@@ -7,6 +7,7 @@ import Navigation from './Navigation';
 import useColorSync from '../../hooks/useColorSync';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { subscribeForegroundMessages, subscribeNotificationTaps } from '../../services/notificationService';
+import { dismissCoupleRestoredNotice } from '../../services/coupleLifecycleService';
 import './Layout.css';
 
 const Layout = ({ children }) => {
@@ -33,6 +34,14 @@ const Layout = ({ children }) => {
     if (!user) return;
     return subscribeNotificationTaps((link) => navigate(link));
   }, [user, navigate]);
+
+  // 상대가 "연결 해제 취소"로 다시 이어 붙였을 때 — 서버가 남긴 표시를 한 번 토스트로 알리고 지움
+  const restoredNotice = userDoc?.coupleRestoredNotice?.coupleId;
+  useEffect(() => {
+    if (!restoredNotice || !user) return;
+    toast.success('커플 연결이 다시 이어졌어요');
+    dismissCoupleRestoredNotice(user.uid).catch((e) => console.error('복구 안내 지우기 실패:', e));
+  }, [restoredNotice, user]);
 
   return (
     <div className="layout">

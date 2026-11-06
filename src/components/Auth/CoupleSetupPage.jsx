@@ -6,6 +6,11 @@ import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { getLocalDateStr } from '../../utils/dataUtils';
 import NotificationPrimingModal from '../common/NotificationPrimingModal';
+import ConfirmModal from '../common/ConfirmModal';
+import FormerCouplesPanel from '../Account/FormerCouplesPanel';
+import CoupleEndedNoticeModal from '../Account/CoupleEndedNoticeModal';
+import useFormerCouples from '../../hooks/useFormerCouples';
+import '../Account/account.css';
 import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
@@ -19,6 +24,9 @@ const CoupleSetupPage = () => {
   const [error, setError] = useState('');
   const [copied, setCopied] = useState(false);
   const [connected, setConnected] = useState(false);
+  // 연결 해제 후 30일 보관 중인 이전 커플 — 취소/기록 저장 카드, 새 커플 시작 전 경고에 씀
+  const { couples: formerCouples, loading: formerLoading, reload: reloadFormer } = useFormerCouples(!!user);
+  const [pendingAction, setPendingAction] = useState(null); // 'create' | 'join' — 경고 확인 대기
 
   // 새로고침 복구: coupleDoc이 1명이면 초대 코드를 state에 복원하여 파트너 연결 감지 유지
   useEffect(() => {
@@ -54,24 +62,21 @@ const CoupleSetupPage = () => {
     setGeneratedCode('');
   };
 
-  const handleCreateCouple = async (e) => {
-    e.preventDefault();
-    if (!anniversaryDate) { setError('연애 시작일을 입력해주세요.'); return; }
+  const doCreateCouple = async () => {
     setError('');
     setFormLoading(true);
     try {
       const { inviteCode: code } = await createCouple(user.uid, anniversaryDate);
       setGeneratedCode(code);
-    } catch (err) {
+      reloadFormer();
+    } catch {
       setError('커플 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
     } finally {
       setFormLoading(false);
     }
   };
 
-  const handleJoinCouple = async (e) => {
-    e.preventDefault();
-    if (!inviteCode.trim()) { setError('초대 코드를 입력해주세요.'); return; }
+  const doJoinCouple = async () => {
     setError('');
     setFormLoading(true);
     try {
@@ -83,6 +88,30 @@ const CoupleSetupPage = () => {
       setFormLoading(false);
     }
   };
+
+  // 보관 중인 이전 커플이 있으면 새로 연결하기 전에 한 번 알려줌(해제한 사람은 취소 기회를 잃게 됨)
+  const handleCreateCouple = (e) => {
+    e.preventDefault();
+    if (!anniversaryDate) { setError('연애 시작일을 입력해주세요.'); return; }
+    if (formerCouples.length > 0) { setPendingAction('create'); return; }
+    doCreateCouple();
+  };
+
+  const handleJoinCouple = (e) => {
+    e.preventDefault();
+    if (!inviteCode.trim()) { setError('초대 코드를 입력해주세요.'); return; }
+    if (formerCouples.length > 0) { setPendingAction('join'); return; }
+    doJoinCouple();
+  };
+
+  const confirmPendingAction = () => {
+    const action = pendingAction;
+    setPendingAction(null);
+    if (action === 'create') doCreateCouple();
+    else if (action === 'join') doJoinCouple();
+  };
+
+  const anyCancelable = formerCouples.some((c) => c.canCancel);
 
   const handleLogout = async () => {
     await signOut();
@@ -104,6 +133,12 @@ const CoupleSetupPage = () => {
           <h1 className="couple-setup-title">우리두리</h1>
           <p className="couple-setup-subtitle">커플 연결을 시작해요</p>
         </div>
+
+        {!connected && formerCouples.length > 0 && (
+          <div style={{ marginBottom: '1.25rem' }}>
+            <FormerCouplesPanel couples={formerCouples} onChanged={reloadFormer} />
+          </div>
+        )}
 
         {connected ? (
           <div className="couple-connected">
@@ -202,10 +237,25 @@ const CoupleSetupPage = () => {
             <button className="couple-setup-logout" onClick={handleLogout}>
               로그아웃
             </button>
+            <button className="couple-setup-logout" style={{ marginTop: '0.25rem' }} onClick={() => navigate('/delete-account')}>
+              회원 탈퇴
+            </button>
           </>
         )}
       </div>
       <NotificationPrimingModal />
+      <CoupleEndedNoticeModal formerCouples={formerCouples} loading={formerLoading} />
+      <ConfirmModal
+        isOpen={!!pendingAction}
+        title={pendingAction === 'join' ? '새 커플과 연결할까요?' : '새 커플을 시작할까요?'}
+        message={anyCancelable
+          ? '보관 중인 이전 기록이 있어요. 새로 연결하면 연결 해제를 취소할 수 없게 돼요.\n이전 기록은 남은 기간 동안 설정 → 데이터 백업에서 파일로 저장할 수 있어요.'
+          : '보관 중인 이전 기록은 남은 기간 동안 설정 → 데이터 백업에서 파일로 저장할 수 있어요.'}
+        confirmText="계속하기"
+        danger={false}
+        onConfirm={confirmPendingAction}
+        onCancel={() => setPendingAction(null)}
+      />
     </div>
   );
 };

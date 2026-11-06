@@ -12,6 +12,9 @@ import {
   unlink,
   deleteUser,
   getAuth,
+  EmailAuthProvider,
+  reauthenticateWithCredential,
+  reauthenticateWithPopup,
 } from 'firebase/auth';
 import {
   doc,
@@ -161,6 +164,27 @@ export const linkGoogleAccount = async () => {
     return linkWithCredential(auth.currentUser, await getNativeGoogleCredential());
   }
   return linkWithPopup(auth.currentUser, new GoogleAuthProvider());
+};
+
+// ─── 재로그인 확인 (회원 탈퇴 전, v1.0.21~) ───────────────────────
+// 서버(deleteMyAccount)가 최근 5분 안의 로그인만 허용하므로, 탈퇴 직전에 비밀번호나 구글로 한 번 더 확인함.
+// 재인증하면 ID 토큰이 새로 발급돼 auth_time이 갱신됨.
+export const getSignInProviders = () => (auth.currentUser?.providerData || []).map((p) => p.providerId);
+
+export const reauthenticateWithPassword = async (password) => {
+  const user = auth.currentUser;
+  if (!user?.email) throw new Error('로그인이 필요합니다.');
+  await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
+};
+
+export const reauthenticateWithGoogle = async () => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('로그인이 필요합니다.');
+  if (Capacitor.isNativePlatform()) {
+    await reauthenticateWithCredential(user, await getNativeGoogleCredential());
+  } else {
+    await reauthenticateWithPopup(user, new GoogleAuthProvider());
+  }
 };
 
 // 구글 계정 연동 해제 — Firebase는 마지막 남은 로그인 수단을 해제하는 것도 에러 없이

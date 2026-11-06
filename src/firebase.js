@@ -2,14 +2,15 @@
 import { initializeApp } from 'firebase/app';
 import {
   initializeFirestore,
+  connectFirestoreEmulator,
   persistentLocalCache,
   persistentMultipleTabManager,
   getFirestore,
 } from 'firebase/firestore';
-import { getAuth, initializeAuth, browserLocalPersistence } from 'firebase/auth';
+import { getAuth, initializeAuth, browserLocalPersistence, connectAuthEmulator } from 'firebase/auth';
 import { getAnalytics } from 'firebase/analytics';
-import { getStorage } from 'firebase/storage';
-import { getFunctions } from 'firebase/functions';
+import { getStorage, connectStorageEmulator } from 'firebase/storage';
+import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { Capacitor } from '@capacitor/core';
 
 const firebaseConfig = {
@@ -48,3 +49,17 @@ export const auth = Capacitor.getPlatform() === 'ios'
 export const storage = getStorage(app);
 export const functionsInstance = getFunctions(app);
 export const analytics = getAnalytics(app);
+
+// 로컬 에뮬레이터 연결 — **개발 서버 전용**(`import.meta.env.DEV`라 운영 빌드에선 코드째 빠짐). 로그인이 필요한 화면을
+// 운영 데이터와 무관하게 끝까지 눌러보는 용도(커플 연결 해제·탈퇴 화면 검증에 처음 사용, v1.0.21).
+// 사용: emulators(auth/firestore/functions/storage)를 demo 프로젝트로 띄우고
+//   VITE_USE_EMULATORS=true VITE_FIREBASE_PROJECT_ID=demo-twogether VITE_FIREBASE_STORAGE_BUCKET=demo-twogether.appspot.com npm run dev
+// 포트는 VITE_EMULATOR_FIRESTORE_PORT 등으로 바꿀 수 있음(로컬 8080을 Docker가 쓰는 경우가 있음).
+if (import.meta.env.DEV && import.meta.env.VITE_USE_EMULATORS === 'true') {
+  const env = import.meta.env;
+  connectAuthEmulator(auth, `http://127.0.0.1:${env.VITE_EMULATOR_AUTH_PORT || 9099}`, { disableWarnings: true });
+  connectFirestoreEmulator(db, '127.0.0.1', Number(env.VITE_EMULATOR_FIRESTORE_PORT || 8080));
+  connectFunctionsEmulator(functionsInstance, '127.0.0.1', Number(env.VITE_EMULATOR_FUNCTIONS_PORT || 5001));
+  connectStorageEmulator(storage, '127.0.0.1', Number(env.VITE_EMULATOR_STORAGE_PORT || 9199));
+  console.info('[firebase] 로컬 에뮬레이터에 연결됨');
+}

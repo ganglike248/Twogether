@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, useBlocker } from 'react-router-dom';
+import { useNavigate, useBlocker, useLocation, useSearchParams } from 'react-router-dom';
 import { HiUser, HiHeart, HiEnvelope, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { getLocalDateStr } from '../../utils/dataUtils';
@@ -7,6 +7,8 @@ import { doc, updateDoc } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { toast } from 'react-toastify';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import LeaveCoupleModal from '../Account/LeaveCoupleModal';
+import '../Account/account.css';
 import './CoupleInfoPage.css';
 
 const CoupleInfoPage = () => {
@@ -19,6 +21,14 @@ const CoupleInfoPage = () => {
   const [copied, setCopied] = useState(false);
 
   const isConnected = coupleDoc?.members?.length === 2;
+  // 연결 해제 확인 모달 — 앱 관례대로 열림 상태를 ?modal= 쿼리에서 파생(뒤로가기로 닫힘)
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+  const showLeaveModal = isConnected && searchParams.get('modal') === 'leave';
+  const closeLeaveModal = () => {
+    if (location.key === 'default') navigate('/couple-info', { replace: true });
+    else navigate(-1);
+  };
 
   useEffect(() => {
     if (coupleDoc) {
@@ -30,7 +40,8 @@ const CoupleInfoPage = () => {
 
   const isDirty = anniversaryDate !== origDate;
 
-  const blocker = useBlocker(isDirty);
+  // 같은 화면 안에서 ?modal=만 붙었다 떨어지는 이동(연결 해제 확인 열기/닫기)은 막지 않음
+  const blocker = useBlocker(({ currentLocation, nextLocation }) => isDirty && currentLocation.pathname !== nextLocation.pathname);
 
   useEffect(() => {
     if (blocker.state === 'blocked') {
@@ -230,6 +241,18 @@ const CoupleInfoPage = () => {
       >
         {loading ? '저장 중...' : '저장'}
       </button>
+
+      {/* 커플 연결 해제 — 맨 아래, 눈에 덜 띄는 링크로 */}
+      {isConnected && (
+        <button
+          type="button"
+          className="acc-danger-link"
+          onClick={() => navigate('/couple-info?modal=leave', { state: { modal: true } })}
+        >
+          커플 연결 해제
+        </button>
+      )}
+      <LeaveCoupleModal isOpen={showLeaveModal} onClose={closeLeaveModal} partnerName={partnerDoc?.displayName} />
 
       {/* 변경사항 미저장 모달 */}
       {showUnsavedModal && (

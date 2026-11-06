@@ -45,6 +45,7 @@ const AUTH_ERROR_MESSAGES = {
   'auth/popup-closed-by-user': '로그인 창이 닫혔습니다. 다시 시도해주세요.',
   'auth/cancelled-popup-request': '이미 진행 중인 로그인 요청이 있습니다.',
   'auth/credential-already-in-use': '이미 다른 계정에 연결된 인증 정보입니다.',
+  'auth/user-mismatch': '지금 로그인한 계정과 다른 계정이에요. 같은 계정으로 다시 확인해주세요.',
   'auth/invalid-action-code': '유효하지 않거나 만료된 링크입니다.',
   'auth/expired-action-code': '만료된 링크입니다. 다시 시도해주세요.',
 };

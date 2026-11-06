@@ -13,6 +13,8 @@ export const AuthProvider = ({ children }) => {
   const [partnerDoc, setPartnerDoc] = useState(null);
   const [authLoading, setAuthLoading] = useState(true);
   const [userDocLoading, setUserDocLoading] = useState(false);
+  // 사용자 문서 구독을 처음부터 다시 거는 신호 — 아래 커플 구독의 권한 오류 처리 참고
+  const [userSubKey, setUserSubKey] = useState(0);
 
   // Firebase Auth 상태 감지
   useEffect(() => {
@@ -63,7 +65,7 @@ export const AuthProvider = ({ children }) => {
       cancelled = true;
       unsubscribeUser();
     };
-  }, [user]);
+  }, [user, userSubKey]);
 
   // coupleId가 생기면 couples/{coupleId} 실시간 구독 — 위와 같은 이유로 서버 우선 확인 후 구독 시작
   useEffect(() => {
@@ -86,7 +88,15 @@ export const AuthProvider = ({ children }) => {
           } else {
             setCoupleDoc(null);
           }
-        }, () => setCoupleDoc(null));
+        }, (error) => {
+          setCoupleDoc(null);
+          // ⚠ 커플 연결 해제/탈퇴로 서버가 members를 비우면 이 구독이 permission-denied로 끊기는데, 같은 순간
+          // 함께 바뀐 users/{uid}(coupleId: null) 갱신까지 유실되고 그 뒤로 사용자 문서 구독이 갱신을 영영 못 받는
+          // 현상이 실제로 재현됨(에뮬레이터 E2E, 2026-11-06 — 해제한 사람은 화면이 안 넘어가고, 켜 두고 있던 상대는
+          // 안내가 안 뜸). 권한 오류 = 커플에서 빠졌다는 신호이므로 사용자 문서를 서버에서 다시 읽고 구독을 새로 검.
+          // coupleId가 그대로면 이 effect는 다시 안 돌아서(의존성이 coupleId 문자열) 무한 반복되지 않음.
+          if (error?.code === 'permission-denied') setUserSubKey((k) => k + 1);
+        });
       });
 
     return () => {

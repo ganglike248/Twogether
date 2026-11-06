@@ -1,11 +1,11 @@
 // src/components/Settings/DataBackupPage.jsx
 // 데이터 백업(/data-backup) — 커플 데이터 + 내 개인 일정을 JSON 파일로 내보내고, 같은 커플의 백업 파일에서
 // 지금 없는 항목만 되살림. 실제 로직은 src/services/backup/ (형식/읽기/내보내기/복원 모듈 분리).
-// 웹 전용: 네이티브 앱 웹뷰는 파일 다운로드를 못 해서(파일 저장 플러그인 미설치) 안내만 표시.
+// 맨 위에 사람이 읽는 "우리 기록" 파일 저장(src/services/record), 맨 아래에 보관 중인 이전 커플 기록.
+// v1.0.21부터 앱에서도 동작: 저장은 fileSave.js(앱은 공유 창), 가져오기는 웹뷰의 기본 파일 선택(<input type=file>).
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { Capacitor } from '@capacitor/core';
 import { HiArrowLeft } from 'react-icons/hi2';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -15,9 +15,10 @@ import {
   planRestore, executeRestore, RestoreError, SUMMARY_GROUPS,
 } from '../../services/backup/backupRestore';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import useRecordSave from '../../hooks/useRecordSave';
+import useFormerCouples from '../../hooks/useFormerCouples';
+import FormerCouplesPanel from '../Account/FormerCouplesPanel';
 import './DataBackupPage.css';
-
-const WEB_URL = 'https://twogether-206fb.web.app/data-backup';
 
 const toMessage = (error, fallback) => (
   error instanceof BackupFileError || error instanceof RestoreError
@@ -35,8 +36,9 @@ const formatExportedAt = (iso) => {
 const DataBackupPage = () => {
   const navigate = useNavigate();
   const { user, coupleId } = useAuthContext();
-  const isNative = Capacitor.isNativePlatform();
   const fileInputRef = useRef(null);
+  const { saving: recordSaving, saveCurrent } = useRecordSave();
+  const { couples: formerCouples } = useFormerCouples(!!user);
 
   const [exportStep, setExportStep] = useState(null); // null이면 대기 중
   // phase: idle | analyzing | ready | restoring
@@ -58,8 +60,8 @@ const DataBackupPage = () => {
     if (exportStep) return;
     setExportStep('준비 중');
     try {
-      await exportBackup({ db, coupleId, uid: user.uid, onProgress: setExportStep });
-      toast.success('백업 파일을 저장했어요');
+      const result = await exportBackup({ db, coupleId, uid: user.uid, onProgress: setExportStep });
+      if (!result.cancelled) toast.success('백업 파일을 저장했어요'); // 앱 공유 창을 닫은 경우는 조용히
     } catch (error) {
       console.error('백업 내보내기 실패:', error);
       toast.error(toMessage(error, '백업 파일을 만들지 못했어요. 잠시 후 다시 시도해주세요.'));
@@ -132,129 +134,135 @@ const DataBackupPage = () => {
         <p className="profile-section-label" style={{ margin: 0 }}>데이터 백업</p>
       </div>
 
-      {isNative ? (
-        <div className="dbp-section">
-          <div className="dbp-title">웹에서 이용해주세요</div>
-          <p className="dbp-desc">
-            백업 파일 저장·가져오기는 아직 앱에서는 지원하지 않아요. 컴퓨터나 휴대폰 브라우저에서
-            같은 계정으로 로그인한 뒤 설정 → 데이터 백업에서 이용할 수 있어요.
-          </p>
-          {/* 네이티브 웹뷰에서 외부 도메인 링크는 Capacitor가 기기 기본 브라우저로 넘겨줌
-              (PrivacyPage·여행 후보 링크와 같은 방식) — 브라우저에서 같은 계정으로 로그인하면 바로 이 페이지 */}
-          <a className="btn btn-primary dbp-btn dbp-web-link" href={WEB_URL} target="_blank" rel="noopener noreferrer">
-            웹에서 데이터 백업 열기
-          </a>
-          <p className="dbp-url">{WEB_URL}</p>
-        </div>
-      ) : (
-        <>
-          <div className="dbp-section">
-            <div className="dbp-section-title">내보내기</div>
-            <div className="dbp-title">백업 파일 저장</div>
-            <p className="dbp-desc">
-              우리 커플의 일정·여행·버킷리스트·봉인 편지·설정과 내 개인 일정을 파일 하나로 저장해요.
-            </p>
-            <ul className="dbp-notes">
-              <li>파트너의 개인 일정과, 파트너가 쓴 아직 안 열린 편지의 내용은 포함되지 않아요.</li>
-              <li>사진은 링크만 저장돼요. 원본 사진을 지우면 복원할 때 사진은 되살아나지 않아요.</li>
-            </ul>
-            <button
-              type="button"
-              className="btn btn-primary dbp-btn"
-              onClick={handleExport}
-              disabled={!!exportStep || importPhase === 'restoring'}
-            >
-              {exportStep ? `${exportStep} 불러오는 중…` : '백업 파일 저장'}
-            </button>
-          </div>
+      <div className="dbp-section">
+        <div className="dbp-section-title">기록 파일</div>
+        <div className="dbp-title">우리 기록을 한 권으로 저장</div>
+        <p className="dbp-desc">
+          함께한 일정·여행·버킷리스트·봉인 편지를 날짜순으로 정리한 문서로 저장해요. 휴대폰이나 컴퓨터 브라우저에서 바로 열어볼 수 있어요.
+        </p>
+        <button
+          type="button"
+          className="btn btn-primary dbp-btn"
+          onClick={saveCurrent}
+          disabled={!!recordSaving || !!exportStep || importPhase === 'restoring'}
+        >
+          {recordSaving ? '기록을 모으는 중…' : '기록 파일 저장'}
+        </button>
+      </div>
 
-          <div className="dbp-section">
-            <div className="dbp-section-title">가져오기</div>
-            <div className="dbp-title">백업 파일에서 되살리기</div>
-            <p className="dbp-desc">
-              지금 없는 항목만 백업 파일에서 다시 추가해요. 이미 있는 항목은 건드리지 않으니
-              여러 번 가져와도 중복되지 않아요.
-            </p>
-            <ul className="dbp-notes">
-              <li>지금 연결된 커플에서 저장한 파일만 가져올 수 있어요.</li>
-              <li>여행 일정표·체크리스트·선택 사항 주제는 통째로 없어진 경우에만 되살아나요.</li>
-            </ul>
+      <div className="dbp-section">
+        <div className="dbp-section-title">내보내기</div>
+        <div className="dbp-title">백업 파일 저장</div>
+        <p className="dbp-desc">
+          우리 커플의 일정·여행·버킷리스트·봉인 편지·설정과 내 개인 일정을 파일 하나로 저장해요.
+        </p>
+        <ul className="dbp-notes">
+          <li>파트너의 개인 일정과, 파트너가 쓴 아직 안 열린 편지의 내용은 포함되지 않아요.</li>
+          <li>사진은 링크만 저장돼요. 원본 사진을 지우면 복원할 때 사진은 되살아나지 않아요.</li>
+        </ul>
+        <button
+          type="button"
+          className="btn btn-primary dbp-btn"
+          onClick={handleExport}
+          disabled={!!exportStep || importPhase === 'restoring'}
+        >
+          {exportStep ? `${exportStep} 불러오는 중…` : '백업 파일 저장'}
+        </button>
+      </div>
 
-            <input
-              ref={fileInputRef}
-              type="file"
-              accept="application/json,.json"
-              className="dbp-file-input"
-              onChange={handleFileSelected}
-            />
+      <div className="dbp-section">
+        <div className="dbp-section-title">가져오기</div>
+        <div className="dbp-title">백업 파일에서 되살리기</div>
+        <p className="dbp-desc">
+          지금 없는 항목만 백업 파일에서 다시 추가해요. 이미 있는 항목은 건드리지 않으니
+          여러 번 가져와도 중복되지 않아요.
+        </p>
+        <ul className="dbp-notes">
+          <li>지금 연결된 커플에서 저장한 파일만 가져올 수 있어요.</li>
+          <li>여행 일정표·체크리스트·선택 사항 주제는 통째로 없어진 경우에만 되살아나요.</li>
+        </ul>
 
-            {importPhase === 'idle' && (
-              <button
-                type="button"
-                className="btn btn-secondary dbp-btn"
-                onClick={() => fileInputRef.current?.click()}
-                disabled={!!exportStep}
-              >
-                백업 파일 선택
-              </button>
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="application/json,.json"
+          className="dbp-file-input"
+          onChange={handleFileSelected}
+        />
+
+        {importPhase === 'idle' && (
+          <button
+            type="button"
+            className="btn btn-secondary dbp-btn"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={!!exportStep}
+          >
+            백업 파일 선택
+          </button>
+        )}
+
+        {importPhase === 'analyzing' && (
+          <div className="dbp-status">{importStep}…</div>
+        )}
+
+        {(importPhase === 'ready' || importPhase === 'restoring') && plan && (
+          <div className="dbp-plan">
+            <div className="dbp-plan-file">
+              <span className="dbp-plan-file-name">{backupMeta?.fileName}</span>
+              {backupMeta?.exportedAt && <span className="dbp-plan-file-date">{backupMeta.exportedAt} 저장</span>}
+            </div>
+
+            {plan.totalAdd === 0 ? (
+              <p className="dbp-desc">백업 파일의 내용이 지금 모두 있어요. 되살릴 항목이 없어요.</p>
+            ) : (
+              <ul className="dbp-plan-list">
+                {SUMMARY_GROUPS.filter((g) => plan.counts[g.key].add > 0).map((g) => (
+                  <li key={g.key} className="dbp-plan-row">
+                    <span className="dbp-plan-label">{g.label}</span>
+                    <span className="dbp-plan-count"><span className="dbp-num">{plan.counts[g.key].add}</span>개</span>
+                  </li>
+                ))}
+              </ul>
             )}
 
-            {importPhase === 'analyzing' && (
-              <div className="dbp-status">{importStep}…</div>
+            {skippedNotes.length > 0 && (
+              <ul className="dbp-notes dbp-notes--muted">
+                {skippedNotes.map((note) => <li key={note}>{note}</li>)}
+              </ul>
             )}
 
-            {(importPhase === 'ready' || importPhase === 'restoring') && plan && (
-              <div className="dbp-plan">
-                <div className="dbp-plan-file">
-                  <span className="dbp-plan-file-name">{backupMeta?.fileName}</span>
-                  {backupMeta?.exportedAt && <span className="dbp-plan-file-date">{backupMeta.exportedAt} 저장</span>}
+            {importPhase === 'restoring' ? (
+              <div className="dbp-progress">
+                <div className="dbp-progress-bar">
+                  <div
+                    className="dbp-progress-fill"
+                    style={{ width: `${progress.total ? Math.round((progress.done / progress.total) * 100) : 0}%` }}
+                  />
                 </div>
-
-                {plan.totalAdd === 0 ? (
-                  <p className="dbp-desc">백업 파일의 내용이 지금 모두 있어요. 되살릴 항목이 없어요.</p>
-                ) : (
-                  <ul className="dbp-plan-list">
-                    {SUMMARY_GROUPS.filter((g) => plan.counts[g.key].add > 0).map((g) => (
-                      <li key={g.key} className="dbp-plan-row">
-                        <span className="dbp-plan-label">{g.label}</span>
-                        <span className="dbp-plan-count"><span className="dbp-num">{plan.counts[g.key].add}</span>개</span>
-                      </li>
-                    ))}
-                  </ul>
-                )}
-
-                {skippedNotes.length > 0 && (
-                  <ul className="dbp-notes dbp-notes--muted">
-                    {skippedNotes.map((note) => <li key={note}>{note}</li>)}
-                  </ul>
-                )}
-
-                {importPhase === 'restoring' ? (
-                  <div className="dbp-progress">
-                    <div className="dbp-progress-bar">
-                      <div
-                        className="dbp-progress-fill"
-                        style={{ width: `${progress.total ? Math.round((progress.done / progress.total) * 100) : 0}%` }}
-                      />
-                    </div>
-                    <div className="dbp-status">복원하는 중이에요. 이 화면을 닫지 말아주세요.</div>
-                  </div>
-                ) : (
-                  <div className="dbp-plan-actions">
-                    <button type="button" className="btn btn-secondary" onClick={resetImport}>
-                      {plan.totalAdd === 0 ? '닫기' : '취소'}
-                    </button>
-                    {plan.totalAdd > 0 && (
-                      <button type="button" className="btn btn-primary" onClick={handleRestore}>
-                        {plan.totalAdd}개 되살리기
-                      </button>
-                    )}
-                  </div>
+                <div className="dbp-status">복원하는 중이에요. 이 화면을 닫지 말아주세요.</div>
+              </div>
+            ) : (
+              <div className="dbp-plan-actions">
+                <button type="button" className="btn btn-secondary" onClick={resetImport}>
+                  {plan.totalAdd === 0 ? '닫기' : '취소'}
+                </button>
+                {plan.totalAdd > 0 && (
+                  <button type="button" className="btn btn-primary" onClick={handleRestore}>
+                    {plan.totalAdd}개 되살리기
+                  </button>
                 )}
               </div>
             )}
           </div>
-        </>
+        )}
+      </div>
+
+      {formerCouples.length > 0 && (
+        <div className="dbp-section">
+          <div className="dbp-section-title">이전 커플 기록</div>
+          <p className="dbp-desc" style={{ marginBottom: '0.75rem' }}>연결이 해제된 커플의 기록은 30일 동안만 보관돼요.</p>
+          <FormerCouplesPanel couples={formerCouples} allowCancel={false} />
+        </div>
       )}
     </div>
   );

@@ -473,7 +473,7 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
   트리거 skip 로그까지 확인함(설정 파일은 프로젝트 루트 안에 있어야 함 — 밖이면 "outside of project directory").
   로컬 8080은 Docker가 점유 중일 수 있어 Firestore 에뮬레이터 포트를 바꿔야 할 수 있음.
 
-### 커플 연결 해제 / 회원 탈퇴 (서버 단계 완료, 화면은 미구현)
+### 커플 연결 해제 / 회원 탈퇴 (v1.0.19~v1.0.21)
 로직은 `functions/coupleLifecycle.js`(의존성 주입 — 에뮬레이터에서 모듈만 직접 불러 검증 가능), `index.js`는 콜러블
 `leaveCouple`/`cancelLeaveCouple`/`listFormerCouples`/`exportFormerCoupleRecord`/`deleteMyAccount` + 스케줄
 `purgeDissolvedCouples`(매일 04:00 KST)만 연결. 사용자 확정 정책(2026-11-06):
@@ -497,6 +497,18 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
   FileProvider + `res/xml/file_paths.xml`의 `cache-path`가 필요(있음). 공유 창 취소는 `{ cancelled: true }`(오류 아님).
 - 검증: Auth/Firestore/Functions/Storage 에뮬레이터로 해제→차단→기록(HTML 생성까지)→취소→재해제→취소불가→3일 전 안내→30일 삭제→
   탈퇴→혼자인 커플 탈퇴 47개 확인.
+- **화면**(`src/components/Account/`): 연결 해제는 커플 정보 맨 아래 → `LeaveCoupleModal`(`/couple-info?modal=leave`), 회원 탈퇴는
+  프로필 맨 아래·커플 연결 화면 → `/delete-account`(`DeleteAccountPage` — 커플 없이도 들어와야 해서 ProtectedRoute 밖, 체크박스 →
+  비밀번호/구글 재인증(`authService.reauthenticateWith*`) → `deleteMyAccount`). 커플 연결 화면에 `FormerCouplesPanel`(보관 카드:
+  기록 저장 + 해제한 사람만 취소)·`CoupleEndedNoticeModal`(상대 쪽 안내)·새 커플 시작 전 경고(`ConfirmModal`). 데이터 백업 화면은
+  앱에서도 동작(기록 파일 섹션 + 이전 커플 기록). 취소로 다시 이어지면 `Layout`이 `coupleRestoredNotice`를 토스트로 알리고 지움.
+- ⚠ **AuthContext 트랩**: 해제 순간 커플 문서 구독이 permission-denied로 끊기면서 같은 순간의 `users/{uid}` 갱신까지 유실되고
+  사용자 문서 구독이 이후 갱신을 영영 못 받는 현상이 E2E로 재현됨(해제한 사람은 화면이 안 넘어가고, 켜 두고 있던 상대는 안내가 안 뜸).
+  커플 구독의 permission-denied에서 `userSubKey`를 올려 사용자 문서를 서버에서 다시 읽고 재구독함 — 이 처리를 빼지 말 것.
+- **화면 E2E 방법**: `src/firebase.js`의 개발 서버 전용 스위치(`VITE_USE_EMULATORS=true` + `VITE_FIREBASE_PROJECT_ID=demo-twogether`,
+  포트는 `VITE_EMULATOR_*_PORT`, 운영 빌드엔 코드째 빠짐)로 `npx vite`를 에뮬레이터에 붙이고, `emulators:exec` 안에서 firebase-admin으로
+  시드 + Playwright(캐시된 `~/.npm/_npx/*/node_modules/playwright`)로 두 계정을 조작. 로컬스토리지 `twogether_notification_priming_shown`·
+  `twogether_onboarding_intro_dismissed`를 미리 넣어 첫 방문 팝업을 끌 것. 해제→안내→취소→데이터 백업→탈퇴 26개 통과(2026-11-06).
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -590,7 +602,8 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /settings          → SettingsPage (이벤트 색상 설정 등)
 /letters           → SealedMessagesPage (봉인 편지함)
 /notification-settings → NotificationSettingsPage (알림 설정, v0.4.22부터 모달 아닌 별도 페이지)
-/data-backup       → DataBackupPage (데이터 백업 내보내기/가져오기, 웹 전용)
+/data-backup       → DataBackupPage (데이터 백업 내보내기/가져오기 + 기록 파일, v1.0.21부터 앱에서도)
+/delete-account    → DeleteAccountPage (회원 탈퇴 — 로그인만 필요, 커플 없어도 접근)
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
 /terms             → TermsPage (로그인 불필요 — 이용약관, PrivacyPage와 동일 패턴)
 /account-deletion  → AccountDeletionPage (로그인 불필요 — 계정/데이터 삭제 요청 안내, Google Play 계정 삭제 URL 요건 충족용)
@@ -887,6 +900,8 @@ Mac에 Xcode(26.6)와 함께 있어서 실제 실행 가능** — `npm run build
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
   ※ 봉인 편지함(v0.4.22)은 이 기능을 기다리지 않고 `uploadSealedMessageImage`로 스코프 한정 구현함 — 이 범용 기능이 나중에 추가돼도 봉인 편지 쪽은 그대로 유지, 통합 불필요
+- 커플 연결 해제·회원 탈퇴 4단계(문서·배포) 남음: 개인정보처리방침에 해제 후 30일 보관(탈퇴 포함) 명시,
+  `AccountDeletionPage` 문구를 "앱 안에서 탈퇴 가능"으로 갱신, Play Console 데이터 삭제 항목 확인, 배포는 Functions → 규칙 → Hosting
 - 소셜 로그인 — 구글은 완료(v0.4.30, 아래 "구글 로그인" 트랩 섹션 참고). 카카오는 Firebase Auth
   기본 제공자가 아니라 별도 백엔드(Custom Token 발급용 Cloud Function 또는 Identity Platform
   OIDC) 구축이 필요해 범위가 훨씬 큼 — 아직 미착수, 장기 과제로 유지

@@ -29,6 +29,7 @@ const SettingsPage = lazy(() => import('./components/Settings/SettingsPage'));
 const SealedMessagesPage = lazy(() => import('./components/SealedMessages/SealedMessagesPage'));
 const NotificationSettingsPage = lazy(() => import('./components/Settings/NotificationSettingsPage'));
 const DataBackupPage = lazy(() => import('./components/Settings/DataBackupPage'));
+const DeleteAccountPage = lazy(() => import('./components/Account/DeleteAccountPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
@@ -78,6 +79,8 @@ const router = createBrowserRouter([
     children: [
       { path: '/login', element: <LoginPage />, key: 'login' },
       { path: '/couple-setup', element: <CoupleSetupPage />, key: 'couple-setup' },
+      // 커플이 없어도(커플 연결 화면에서도) 들어와야 해서 ProtectedRoute 밖 — 페이지가 로그인만 직접 확인
+      { path: '/delete-account', element: <DeleteAccountPage />, key: 'delete-account' },
       { path: '/privacy', element: <PrivacyPage />, key: 'privacy' },
       { path: '/terms', element: <TermsPage />, key: 'terms' },
       { path: '/account-deletion', element: <AccountDeletionPage />, key: 'account-deletion' },

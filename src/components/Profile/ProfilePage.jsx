@@ -21,6 +21,7 @@ import useHeroImage from '../../hooks/useHeroImage';
 import ChangePasswordModal from './ChangePasswordModal';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './ProfilePage.css';
+import '../Account/account.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -422,6 +423,11 @@ const ProfilePage = () => {
         </button>
 
       </form>
+
+      {/* 회원 탈퇴 — 맨 아래, 눈에 덜 띄는 링크로 (앱 안 계정 삭제 경로: App Store/Play 요건) */}
+      <button type="button" className="acc-danger-link" onClick={() => navigate('/delete-account')}>
+        회원 탈퇴
+      </button>
 
 
       {/* 저장 확인 모달 */}
