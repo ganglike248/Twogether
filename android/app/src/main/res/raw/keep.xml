@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 리소스 축소(shrinkResources)에서 지우면 안 되는 리소스.
+     @capacitor/splash-screen이 capacitor.config.ts의 androidSplashResourceName('splash')를 문자열로
+     getIdentifier() 조회해서, R8이 "안 쓰는 리소스"로 보고 지울 수 있음. 밀도별·가로세로·야간 변형 전부 보존됨. -->
+<resources xmlns:tools="http://schemas.android.com/tools"
+    tools:keep="@drawable/splash" />

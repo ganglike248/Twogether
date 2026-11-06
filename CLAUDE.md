@@ -1112,8 +1112,16 @@ Capacitor 플러그인은 리플렉션 호출이지만 `@capacitor/android`의 c
   업데이트해서 새 Missing class가 나오면 `app/build/outputs/mapping/release/missing_rules.txt`를 보고 추가.
 - `-keepattributes SourceFile,LineNumberTable`로 크래시 스택의 줄 번호 유지. 매핑 파일은 AAB의
   `BUNDLE-METADATA/.../proguard.map`에 자동 포함돼 Play Console이 알아서 역난독화함(별도 업로드 불필요).
-- `shrinkResources`는 일부러 안 켬 — 스플래시/알림 아이콘을 `getIdentifier()`로 이름 조회하는 코드가 있어
-  리소스 축소 시 런타임 누락 위험이 있는데 이득(용량)은 작음.
+- `shrinkResources`는 v1.0.23부터 켬(Play Console "리소스 축소가 사용 설정되지 않음" 권장 조치). 이름 문자열로 리소스를 찾는
+  코드는 `@capacitor/splash-screen`의 `getIdentifier("splash","drawable")` 하나뿐이라 `res/raw/keep.xml`에서 `@drawable/splash`만
+  보존(알림 아이콘은 매니페스트가 직접 참조해 자동 보존). 검증: 릴리스 번들 리소스 460→385개, splash 25개·알림 아이콘·mipmap 유지,
+  `aapt2 convert`로 AAB의 resources.pb를 풀어 스플래시 테마가 물려받는 `compat_splash_screen_no_icon_background`가 남아있음을 확인
+  (지워진 `compat_splash_screen`은 안 쓰는 IconBackground 변형 전용). 이름으로 리소스를 찾는 플러그인을 추가하면 keep.xml에도 넣을 것.
+- **Play Console의 "낮은 최적화/난독화/축소율(44%)"은 우리 설정 문제가 아님** — 릴리스 빌드의 `mapping/release/seeds.txt`를 세어보면
+  보존된 클래스 2,722개(전체 5,056개 중) 가운데 1,890개가 `firebase-auth`의 consumer 규칙 `-keep class com.google.android.gms.internal.** { *; }`,
+  563+95개가 `recaptcha`의 `-keep class com.google.android.recaptcha.**`/Play Integrity 규칙 때문(둘 다 네이티브 구글 로그인 플러그인
+  `@capacitor-firebase/authentication`이 끌고 옴). 올리려면 그 라이브러리 규칙을 무시하고 직접 좁은 규칙을 쓰거나(구글 로그인이 실기기에서
+  깨질 위험) 구글 로그인 플러그인을 firebase-auth 없는 것으로 바꿔야 함 — 권장 조치일 뿐 기한 있는 정책 경고가 아니라 보류(2026-11-06).
 - R8은 릴리즈 빌드에만 적용되므로 디버그 빌드/에뮬레이터 확인만으로는 검증이 안 됨 — 스토어 배포 전
   **내부 테스트 트랙**으로 실기기에서 구글 로그인·푸시·인앱 업데이트·뒤로가기를 한 번씩 확인할 것.
 
