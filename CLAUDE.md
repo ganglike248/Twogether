@@ -900,8 +900,8 @@ Mac에 Xcode(26.6)와 함께 있어서 실제 실행 가능** — `npm run build
 ## 남은 작업
 - 이벤트 이미지 업로드: EventModal.js 파일선택 UI → `storageService.uploadEventImage()` (미구현) → imageUrls 저장 → MemoryCard/Detail 표시 (MemoryDetail.js는 imageUrls 필드를 받지만 렌더링 미구현)
   ※ 봉인 편지함(v0.4.22)은 이 기능을 기다리지 않고 `uploadSealedMessageImage`로 스코프 한정 구현함 — 이 범용 기능이 나중에 추가돼도 봉인 편지 쪽은 그대로 유지, 통합 불필요
-- 커플 연결 해제·회원 탈퇴 4단계(문서·배포) 남음: 개인정보처리방침에 해제 후 30일 보관(탈퇴 포함) 명시,
-  `AccountDeletionPage` 문구를 "앱 안에서 탈퇴 가능"으로 갱신, Play Console 데이터 삭제 항목 확인, 배포는 Functions → 규칙 → Hosting
+- 커플 연결 해제·회원 탈퇴: 문서(개인정보처리방침 3·5항, `/account-deletion`)는 v1.0.22에서 갱신 완료. 남은 건 배포
+  (**Functions → 규칙 → Hosting 순서**)와 Play Console 데이터 보안의 계정 삭제 항목을 "앱 내 삭제 가능"으로 수정하는 수동 단계
 - 소셜 로그인 — 구글은 완료(v0.4.30, 아래 "구글 로그인" 트랩 섹션 참고). 카카오는 Firebase Auth
   기본 제공자가 아니라 별도 백엔드(Custom Token 발급용 Cloud Function 또는 Identity Platform
   OIDC) 구축이 필요해 범위가 훨씬 큼 — 아직 미착수, 장기 과제로 유지

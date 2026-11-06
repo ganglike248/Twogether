@@ -8,7 +8,7 @@ const AccountDeletionPage = () => {
         <header className="del-header">
           <div className="del-logo">우리두리 (Twogether)</div>
           <h1>계정 및 데이터 삭제 안내</h1>
-          <p className="del-updated">최종 업데이트: 2026년 7월 10일</p>
+          <p className="del-updated">최종 업데이트: 2026년 11월 6일</p>
         </header>
 
         <section>
@@ -20,20 +20,16 @@ const AccountDeletionPage = () => {
         </section>
 
         <section>
-          <h2>1. 삭제 요청 방법</h2>
+          <h2>1. 앱에서 직접 탈퇴하기</h2>
           <ol className="del-steps">
-            <li>
-              가입 시 사용한 이메일 계정으로{' '}
-              <a href="mailto:business9498@gmail.com?subject=%5B우리두리%5D%20계정%20삭제%20요청">
-                business9498@gmail.com
-              </a>
-              으로 메일을 보내주세요.
-            </li>
-            <li>메일 제목에 <strong>"계정 삭제 요청"</strong>을 포함하고, 본문에 가입 시 사용한 이메일 주소를 남겨주세요.</li>
-            <li>본인 확인 후 <strong>영업일 기준 7일 이내</strong>에 계정 및 개인 데이터를 삭제하고, 처리 완료를 이메일로 안내해 드립니다.</li>
+            <li>우리두리 앱에서 <strong>프로필</strong> 화면 맨 아래의 <strong>회원 탈퇴</strong>를 누릅니다. 커플 연결 전이라면 커플 연결 화면 아래의 <strong>회원 탈퇴</strong>를 누릅니다.</li>
+            <li>삭제되는 내용을 확인하고, 필요하면 <strong>기록 파일 저장</strong>으로 함께한 기록을 먼저 내려받습니다.</li>
+            <li>비밀번호 또는 구글 계정으로 본인 확인을 하면 <strong>즉시</strong> 탈퇴가 처리됩니다.</li>
           </ol>
           <p className="del-note">
-            앱 내에서 직접 탈퇴할 수 있는 기능은 아직 제공되지 않아, 위 이메일 요청 방식으로만 처리됩니다.
+            앱에 로그인할 수 없는 경우에는 가입 시 사용한 이메일로{' '}
+            <a href="mailto:business9498@gmail.com?subject=%5B우리두리%5D%20계정%20삭제%20요청">business9498@gmail.com</a>
+            에 "계정 삭제 요청"이라는 제목으로 메일을 보내주세요. 본인 확인 후 영업일 기준 7일 이내에 삭제하고 결과를 안내해 드립니다.
           </p>
         </section>
 
@@ -48,24 +44,28 @@ const AccountDeletionPage = () => {
             </thead>
             <tbody>
               <tr>
-                <td>이메일 주소, 비밀번호(Firebase Authentication 계정)</td>
-                <td>요청 처리 즉시 영구 삭제</td>
+                <td>이메일 주소, 비밀번호(로그인 계정)</td>
+                <td>탈퇴 즉시 영구 삭제</td>
               </tr>
               <tr>
-                <td>닉네임, 홈 화면 사진</td>
-                <td>요청 처리 즉시 영구 삭제</td>
+                <td>닉네임, 알림 설정 등 내 계정 정보</td>
+                <td>탈퇴 즉시 영구 삭제</td>
               </tr>
               <tr>
                 <td>개인 일정(나만 보던 비공개 일정)</td>
-                <td>요청 처리 즉시 영구 삭제</td>
+                <td>탈퇴 즉시 영구 삭제</td>
               </tr>
               <tr>
-                <td>커플과 공유했던 일정·추억·여행 계획·버킷리스트</td>
+                <td>커플이 함께 만든 기록<br />(공유 일정·추억·여행 계획·버킷리스트·봉인 편지·홈 화면 사진)</td>
                 <td>
-                  삭제 계정과의 연결(작성자 정보)만 제거되며, 파트너가 함께 만든 기록이라는 서비스 특성상
-                  파트너 화면에는 계속 남아 있을 수 있습니다. 파트너 쪽 기록까지 함께 삭제를 원하시면
-                  메일 본문에 별도로 요청해 주세요.
+                  커플 연결이 해제되고 <strong>30일간 보관된 뒤 영구 삭제</strong>됩니다. 보관 기간에는 두 사람 모두
+                  앱에서 볼 수 없고, 남은 파트너가 지금까지의 기록을 파일로 저장하는 용도로만 쓰입니다.
+                  두 사람이 모두 탈퇴하면 즉시 삭제됩니다.
                 </td>
+              </tr>
+              <tr>
+                <td>파트너와 연결되기 전에 혼자 만든 커플의 기록</td>
+                <td>탈퇴 즉시 영구 삭제</td>
               </tr>
             </tbody>
           </table>
