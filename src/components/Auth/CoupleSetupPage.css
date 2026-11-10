@@ -1,11 +1,12 @@
 /* src/components/Auth/CoupleSetupPage.css */
 .couple-setup-page {
-  min-height: 100vh;
+  flex: 1 0 auto;
+  min-height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
   background: linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%);
-  padding: 1rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 1rem) 1rem calc(env(safe-area-inset-bottom, 0px) + 1rem);
 }
 
 .couple-setup-container {
@@ -51,7 +52,7 @@
 
 .couple-setup-subtitle {
   font-size: 0.8rem;
-  color: #b5838d;
+  color: var(--color-text-desc);
   margin: 0;
 }
 
@@ -66,7 +67,7 @@
 
 .couple-setup-guide-text {
   font-size: 0.78rem;
-  color: #b5838d;
+  color: var(--color-text-desc);
   line-height: 1.65;
   margin: 0;
   word-break: keep-all;
@@ -233,7 +234,7 @@
 
 .code-result-desc {
   font-size: 0.78rem;
-  color: #b5838d;
+  color: var(--color-text-desc);
   line-height: 1.6;
   margin: 0 0 0.75rem;
 }
@@ -296,7 +297,7 @@
 
 .couple-connected-desc {
   font-size: 0.92rem;
-  color: #6d6875;
+  color: var(--color-text-desc);
   text-align: center;
   line-height: 1.6;
   margin: 0;

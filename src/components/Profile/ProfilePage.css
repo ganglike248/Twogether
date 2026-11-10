@@ -646,7 +646,7 @@
 /* 섹션 설명 */
 .profile-section-desc {
   font-size: 0.8rem;
-  color: var(--color-gray-600);
+  color: var(--color-text-desc);
   margin: 0 0 0.75rem;
   line-height: 1.4;
 }

@@ -81,7 +81,7 @@
 
 .nsp-toggle-desc {
   font-size: 0.75rem;
-  color: #aaa;
+  color: var(--color-text-desc);
   margin-top: 0.15rem;
 }
 

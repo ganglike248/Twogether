@@ -10,11 +10,12 @@ import ConfirmModal from '../common/ConfirmModal';
 import FormerCouplesPanel from '../Account/FormerCouplesPanel';
 import CoupleEndedNoticeModal from '../Account/CoupleEndedNoticeModal';
 import useFormerCouples from '../../hooks/useFormerCouples';
+import NicknameStep from './NicknameStep';
 import '../Account/account.css';
 import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
-  const { user, coupleDoc, loading: authLoading } = useAuthContext();
+  const { user, userDoc, coupleDoc, loading: authLoading } = useAuthContext();
   const navigate = useNavigate();
   const [tab, setTab] = useState('create'); // 'create' | 'join'
   const [anniversaryDate, setAnniversaryDate] = useState('');
@@ -26,6 +27,7 @@ const CoupleSetupPage = () => {
   const [connected, setConnected] = useState(false);
   // 연결 해제 후 30일 보관 중인 이전 커플 — 취소/기록 저장 카드, 새 커플 시작 전 경고에 씀
   const { couples: formerCouples, loading: formerLoading, reload: reloadFormer } = useFormerCouples(!!user);
+  const [nicknameDone, setNicknameDone] = useState(false);
   const [pendingAction, setPendingAction] = useState(null); // 'create' | 'join' — 경고 확인 대기
 
   // 새로고침 복구: coupleDoc이 1명이면 초대 코드를 state에 복원하여 파트너 연결 감지 유지
@@ -55,6 +57,14 @@ const CoupleSetupPage = () => {
 
   // 이미 커플 연결 완료된 사용자 → 홈으로
   if (!authLoading && user && coupleDoc?.members?.length >= 2 && !generatedCode) return <Navigate to="/" replace />;
+
+  // 첫 실행 닉네임 단계 — 닉네임을 확정한 적 없고, 아직 커플을 만들지도 않았고, 예전 커플 기록도 없는
+  // 사용자만. 이미 커플인 기존 사용자는 이 화면에 오지 않고, 예전에 가입만 하고 연결 전인 사람은 한 번 거침(이름 미리 채워짐).
+  const needsNickname = !nicknameDone && userDoc && !userDoc.nicknameConfirmed
+    && !coupleDoc && !generatedCode && !formerLoading && formerCouples.length === 0;
+  if (needsNickname) {
+    return <NicknameStep initialName={userDoc.displayName || ''} onDone={() => setNicknameDone(true)} />;
+  }
 
   const handleTabChange = (newTab) => {
     setTab(newTab);

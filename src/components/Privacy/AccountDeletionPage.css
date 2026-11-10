@@ -1,7 +1,8 @@
 .del-page {
-  min-height: 100vh;
+  flex: 1 0 auto;
+  min-height: 100%;
   background: linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%);
-  padding: 2rem 1rem 4rem;
+  padding: calc(env(safe-area-inset-top, 0px) + 2rem) 1rem calc(env(safe-area-inset-bottom, 0px) + 4rem);
 }
 
 .del-container {

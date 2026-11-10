@@ -1,7 +1,7 @@
 {
   "name": "twogether",
   "private": true,
-  "version": "1.0.24",
+  "version": "1.0.25",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -22,9 +22,7 @@
     "@capawesome/capacitor-app-update": "^8.0.3",
     "@fullcalendar/daygrid": "^6.1.20",
     "@fullcalendar/interaction": "^6.1.20",
-    "@fullcalendar/list": "^6.1.20",
     "@fullcalendar/react": "^6.1.20",
-    "@fullcalendar/timegrid": "^6.1.20",
     "@sentry/react": "^10.52.0",
     "date-fns": "^4.1.0",
     "firebase": "^12.11.0",

@@ -1,7 +1,11 @@
 /* src/index.css */
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
 
 :root {
+  /* 제목·로고·숫자용 둥근 폰트(주아, OFL). 본문은 body의 Gowun Dodum 유지 — 주아는 굵기가 하나라 긴 글엔 답답함 */
+  /* 페이지 소제목·설명 글씨 공통 색 — 예전엔 화면마다 #aaa/#888/#b5838d 등 연한 회색이 제각각이라 흐리게 보였음 */
+  --color-text-desc: #4f4347;
+  --font-display: 'Jua', 'Gowun Dodum', -apple-system, sans-serif;
   --color-primary: #FF6B6B;
   --color-primary-light: #FFE3E3;
   --color-primary-dark: #D62828;

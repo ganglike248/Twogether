@@ -1,27 +1,24 @@
 // src/components/Auth/LoginPage.jsx
+// 로그인 전 첫 실행 흐름의 진입점. 단계는 URL 쿼리(?step=)로 관리 — 앱 전체 모달 구조와 같은
+// 방식이라 안드로이드 하드웨어 뒤로가기가 이전 단계로 자연스럽게 돌아감.
+//   (없음) 시작 화면 · signup 이메일 가입 · login 이메일 로그인 · reset 비밀번호 찾기
 import React, { useState } from 'react';
-import { Navigate } from 'react-router-dom';
-import {
-  signUpWithEmail,
-  signInWithEmail,
-  signInWithGoogle,
-  linkPendingGoogleCredential,
-} from '../../services/authService';
+import { Navigate, useSearchParams } from 'react-router-dom';
+import { signInWithGoogle, linkPendingGoogleCredential } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { HiHeart, HiInformationCircle } from 'react-icons/hi2';
-import { FcGoogle } from 'react-icons/fc';
-import OnboardingSlides from '../Onboarding/OnboardingSlides';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
-import './LoginPage.css';
+import WelcomeScreen from './WelcomeScreen';
+import EmailAuthForm from './EmailAuthForm';
+import PasswordResetForm from './PasswordResetForm';
+import GoogleConflictForm from './GoogleConflictForm';
+import './AuthFlow.css';
 
-// 로그인 화면 진입 시 자동으로 뜨는 앱 소개 슬라이드를 '다음부터 보지 않기'로 껐는지 여부.
-// 꺼도 하단 '앱 소개 보기' 버튼으로는 언제든 다시 볼 수 있음(그쪽은 이 플래그를 건드리지 않음).
-const ONBOARDING_INTRO_DISMISSED_KEY = 'twogether_onboarding_intro_dismissed';
+const STEPS = ['signup', 'login', 'reset'];
 
-// 사용자가 팝업/계정 선택창을 스스로 닫은 경우 — 에러로 취급하지 않고 조용히 무시
-const isUserCancelledGoogleSignIn = (error) => {
-  const code = error?.code || '';
-  const message = (error?.message || '').toLowerCase();
+// 사용자가 구글 계정 선택창을 직접 닫은 경우는 에러로 보여주지 않음
+const isUserCancelledGoogleSignIn = (err) => {
+  const code = err?.code || '';
+  const message = (err?.message || '').toLowerCase();
   return (
     code === 'auth/popup-closed-by-user' ||
     code === 'auth/cancelled-popup-request' ||
@@ -31,81 +28,23 @@ const isUserCancelledGoogleSignIn = (error) => {
 
 const LoginPage = () => {
   const { user, loading: authLoading } = useAuthContext();
-  const [tab, setTab] = useState('login'); // 'login' | 'signup'
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [displayName, setDisplayName] = useState('');
-  const [passwordConfirm, setPasswordConfirm] = useState('');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
-  const [showIntro, setShowIntro] = useState(
-    () => localStorage.getItem(ONBOARDING_INTRO_DISMISSED_KEY) !== 'true'
-  );
+  const [searchParams, setSearchParams] = useSearchParams();
+  const stepParam = searchParams.get('step');
+  const step = STEPS.includes(stepParam) ? stepParam : null;
+
   const [googleLoading, setGoogleLoading] = useState(false);
+  const [googleError, setGoogleError] = useState('');
   // 이메일/비밀번호로 이미 가입된 이메일로 구글 로그인을 시도한 경우 — 비밀번호를 다시
   // 확인받아 그 계정에 구글 로그인을 연동해줌 (신규 계정이 따로 생기는 걸 방지)
   const [googleConflict, setGoogleConflict] = useState(null); // { email, pendingCredential } | null
-  const [conflictPassword, setConflictPassword] = useState('');
-  const [conflictLoading, setConflictLoading] = useState(false);
-  const [conflictError, setConflictError] = useState('');
 
-  const resetForm = () => {
-    setEmail('');
-    setPassword('');
-    setDisplayName('');
-    setPasswordConfirm('');
-    setError('');
-  };
+  const goStep = (next) => setSearchParams(next ? { step: next } : {});
+  // 단계 간 이동은 push라 뒤로가기로 되돌아감. 화면 안의 "뒤로" 버튼도 같은 효과를 내되,
+  // 바로 이 화면으로 들어온 경우(히스토리 없음)에도 시작 화면으로 가도록 history 대신 직접 지정
+  const goBack = (fallback = null) => setSearchParams(fallback ? { step: fallback } : {}, { replace: true });
 
-  const handleTabChange = (newTab) => {
-    setTab(newTab);
-    resetForm();
-  };
-
-  // 공용 에러 매핑(utils/errorMessages.js)에 auth/* 코드를 그대로 넘겨서 재사용 —
-  // LoginPage 전용 목록을 따로 유지하지 않음(다른 화면과 매핑이 어긋나는 것 방지)
-  const getErrorMessage = (code) => getFriendlyErrorMessage({ code }, '오류가 발생했습니다. 다시 시도해주세요.');
-
-  const handleLogin = async (e) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
-    try {
-      await signInWithEmail(email, password);
-    } catch (err) {
-      setError(getErrorMessage(err.code));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleSignUp = async (e) => {
-    e.preventDefault();
-    setError('');
-    if (!displayName.trim()) {
-      setError('닉네임을 입력해주세요.');
-      return;
-    }
-    if (password !== passwordConfirm) {
-      setError('비밀번호가 일치하지 않습니다.');
-      return;
-    }
-    if (password.length < 6) {
-      setError('비밀번호는 6자 이상이어야 합니다.');
-      return;
-    }
-    setLoading(true);
-    try {
-      await signUpWithEmail(email, password, displayName.trim());
-    } catch (err) {
-      setError(getErrorMessage(err.code));
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleGoogleSignIn = async () => {
-    setError('');
+  const handleGoogle = async () => {
+    setGoogleError('');
     setGoogleLoading(true);
     try {
       await signInWithGoogle();
@@ -113,204 +52,50 @@ const LoginPage = () => {
       if (err.code === 'account-exists-with-different-credential') {
         setGoogleConflict({ email: err.email, pendingCredential: err.pendingCredential });
       } else if (!isUserCancelledGoogleSignIn(err)) {
-        setError(getErrorMessage(err.code));
+        setGoogleError(getFriendlyErrorMessage(err, '구글 로그인에 실패했어요. 다시 시도해 주세요.'));
       }
     } finally {
       setGoogleLoading(false);
     }
   };
 
-  const handleResolveGoogleConflict = async (e) => {
-    e.preventDefault();
-    setConflictError('');
-    setConflictLoading(true);
-    try {
-      await linkPendingGoogleCredential(
-        googleConflict.email,
-        conflictPassword,
-        googleConflict.pendingCredential
-      );
-      // 로그인 + 연동 성공 — AuthContext가 상태를 감지해 자동으로 홈으로 이동함
-    } catch (err) {
-      setConflictError(getErrorMessage(err.code));
-    } finally {
-      setConflictLoading(false);
-    }
-  };
-
-  // 이미 로그인된 경우 홈으로 리다이렉트
+  // 로그인되면 ProtectedRoute가 닉네임/커플 연결/홈 중 알맞은 곳으로 보냄
   if (!authLoading && user) return <Navigate to="/" replace />;
 
+  if (googleConflict) {
+    return (
+      <GoogleConflictForm
+        email={googleConflict.email}
+        onSubmit={(password) => linkPendingGoogleCredential(googleConflict.email, password, googleConflict.pendingCredential)}
+        onCancel={() => setGoogleConflict(null)}
+      />
+    );
+  }
+
+  if (step === 'signup' || step === 'login') {
+    return (
+      <EmailAuthForm
+        key={step}
+        mode={step}
+        onBack={() => goBack()}
+        onForgot={() => goStep('reset')}
+        onSwitchMode={() => setSearchParams({ step: step === 'signup' ? 'login' : 'signup' }, { replace: true })}
+      />
+    );
+  }
+
+  if (step === 'reset') {
+    return <PasswordResetForm onBack={() => goBack('login')} />;
+  }
+
   return (
-    <div className="login-page">
-      {showIntro && (
-        <OnboardingSlides
-          onClose={() => setShowIntro(false)}
-          onDontShowAgain={() => {
-            localStorage.setItem(ONBOARDING_INTRO_DISMISSED_KEY, 'true');
-            setShowIntro(false);
-          }}
-        />
-      )}
-      <div className="login-container">
-        <div className="login-logo">
-          <HiHeart className="login-heart" />
-          <h1 className="login-title">우리두리</h1>
-          <p className="login-subtitle">우리만의 특별한 순간을 기록해요</p>
-        </div>
-
-        {googleConflict ? (
-          <form className="login-form login-google-conflict" onSubmit={handleResolveGoogleConflict}>
-            <p className="login-google-conflict-msg">
-              <strong>{googleConflict.email}</strong>(으)로 이미 가입된 계정이 있어요.
-              비밀번호를 입력하면 이 계정에 구글 로그인을 연결해드릴게요.
-            </p>
-            <div className="login-field">
-              <label>비밀번호</label>
-              <input
-                type="password"
-                value={conflictPassword}
-                onChange={e => setConflictPassword(e.target.value)}
-                placeholder="기존 계정 비밀번호"
-                required
-                autoComplete="current-password"
-                autoFocus
-              />
-            </div>
-            {conflictError && <p className="login-error">{conflictError}</p>}
-            <button type="submit" className="login-btn" disabled={conflictLoading}>
-              {conflictLoading ? '연동 중...' : '연동하고 로그인'}
-            </button>
-            <button
-              type="button"
-              className="login-google-conflict-cancel"
-              onClick={() => { setGoogleConflict(null); setConflictPassword(''); setConflictError(''); }}
-            >
-              취소
-            </button>
-          </form>
-        ) : (
-        <>
-        <button
-          type="button"
-          className="login-google-btn"
-          onClick={handleGoogleSignIn}
-          disabled={googleLoading || loading}
-        >
-          <FcGoogle className="login-google-icon" />
-          {googleLoading ? '연결하는 중...' : '구글로 계속하기'}
-        </button>
-
-        <div className="login-divider"><span>또는</span></div>
-
-        <div className="login-tabs">
-          <button
-            className={`login-tab${tab === 'login' ? ' active' : ''}`}
-            onClick={() => handleTabChange('login')}
-          >
-            로그인
-          </button>
-          <button
-            className={`login-tab${tab === 'signup' ? ' active' : ''}`}
-            onClick={() => handleTabChange('signup')}
-          >
-            회원가입
-          </button>
-        </div>
-
-        {tab === 'login' ? (
-          <form className="login-form" onSubmit={handleLogin}>
-            <div className="login-field">
-              <label>이메일</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="이메일을 입력해주세요"
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div className="login-field">
-              <label>비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="비밀번호를 입력해주세요"
-                required
-                autoComplete="current-password"
-              />
-            </div>
-            {error && <p className="login-error">{error}</p>}
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? '로그인 중...' : '로그인'}
-            </button>
-          </form>
-        ) : (
-          <form className="login-form" onSubmit={handleSignUp}>
-            <div className="login-field">
-              <label>닉네임</label>
-              <input
-                type="text"
-                value={displayName}
-                onChange={e => setDisplayName(e.target.value)}
-                placeholder="상대방에게 보여질 이름"
-                required
-                maxLength={20}
-              />
-            </div>
-            <div className="login-field">
-              <label>이메일</label>
-              <input
-                type="email"
-                value={email}
-                onChange={e => setEmail(e.target.value)}
-                placeholder="이메일을 입력해주세요"
-                required
-                autoComplete="email"
-              />
-            </div>
-            <div className="login-field">
-              <label>비밀번호</label>
-              <input
-                type="password"
-                value={password}
-                onChange={e => setPassword(e.target.value)}
-                placeholder="6자 이상"
-                required
-                autoComplete="new-password"
-              />
-            </div>
-            <div className="login-field">
-              <label>비밀번호 확인</label>
-              <input
-                type="password"
-                value={passwordConfirm}
-                onChange={e => setPasswordConfirm(e.target.value)}
-                placeholder="비밀번호를 다시 입력해주세요"
-                required
-                autoComplete="new-password"
-              />
-            </div>
-            {error && <p className="login-error">{error}</p>}
-            <button type="submit" className="login-btn" disabled={loading}>
-              {loading ? '가입 중...' : '회원가입'}
-            </button>
-          </form>
-        )}
-        </>
-        )}
-        <button
-          type="button"
-          className="login-intro-btn"
-          onClick={() => setShowIntro(true)}
-        >
-          <HiInformationCircle className="login-intro-icon" />
-          앱 소개 보기
-        </button>
-      </div>
-    </div>
+    <WelcomeScreen
+      onGoogle={handleGoogle}
+      googleLoading={googleLoading}
+      onEmailSignUp={() => goStep('signup')}
+      onEmailLogin={() => goStep('login')}
+      error={googleError}
+    />
   );
 };
 

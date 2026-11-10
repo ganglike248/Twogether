@@ -1,0 +1,509 @@
+/* src/components/Auth/AuthFlow.css
+   첫 실행 흐름(시작 화면 · 이메일 · 비밀번호 찾기 · 닉네임) 공용 스타일.
+   필름 다이어리 톤 — 홈(Home.css)의 종이색 카드·마스크 테이프와 같은 재료를 씀.
+   그라데이션 글씨·이모지·두근거리는 아이콘은 쓰지 않음(AI 티 제거 목적의 리디자인, 2026-11). */
+
+.auth-screen {
+  --auth-ink: #3d3438;
+  --auth-sub: #6b5d62;
+  --auth-line: #e6dade;
+  --auth-paper: #fffdf9;
+
+  /* #root(높이 100dvh 고정, flex column) 안을 채움. 100vh는 모바일 브라우저에서 주소창까지 포함한
+     높이라 항상 살짝 넘쳐 세로 스크롤이 생김 → 부모 기준 100%로. */
+  flex: 1 0 auto;
+  width: 100%;
+  min-height: 100%;
+  box-sizing: border-box;
+  background: var(--main-bg);
+  color: var(--auth-ink);
+  display: flex;
+  flex-direction: column;
+  padding: calc(env(safe-area-inset-top) + 28px) 24px calc(env(safe-area-inset-bottom) + 28px);
+  /* 가운데 정렬은 margin:auto 대신 align-self — #root가 flex column이라 가로 auto margin을 주면
+     요소가 내용 폭만큼 줄어들어(stretch 해제) 좌우 여백이 크게 남던 버그가 있었음 */
+  max-width: 480px;
+  align-self: center;
+}
+
+/* ── 공통 요소 ─────────────────────────────────── */
+.auth-back {
+  width: 44px;
+  height: 44px;
+  margin-left: -10px;
+  border: none;
+  background: none;
+  color: var(--auth-ink);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.auth-title {
+  margin: 18px 0 8px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.65rem;
+  line-height: 1.35;
+}
+
+.auth-desc {
+  margin: 0 0 28px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  /* 고운돋움은 굵기가 하나라 bold로 하면 가짜 굵기(합성)로 뭉개짐 → 색으로 진하게 */
+  color: var(--color-text-desc);
+}
+
+.auth-fields {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+}
+
+.auth-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.auth-field label {
+  font-size: 0.875rem;
+  font-weight: 600;
+  color: var(--auth-sub);
+}
+
+/* font-size 1rem 이상 유지 — iOS 입력창 확대 방지 */
+.auth-field input {
+  height: 52px;
+  border-radius: 12px;
+  border: 1px solid var(--auth-line);
+  background: #ffffff;
+  padding: 0 16px;
+  font-family: inherit;
+  font-size: 1rem;
+  color: var(--auth-ink);
+  box-sizing: border-box;
+  width: 100%;
+}
+
+.auth-field input:focus {
+  outline: none;
+  border-color: #ff9b9b;
+}
+
+.auth-hint {
+  font-size: 0.8rem;
+  color: var(--auth-sub);
+}
+
+.auth-error {
+  margin: 14px 0 0;
+  font-size: 0.875rem;
+  color: #c92a2a;
+  line-height: 1.5;
+}
+
+.auth-notice {
+  margin: 14px 0 0;
+  padding: 14px 16px;
+  border-radius: 12px;
+  background: var(--auth-paper);
+  border: 1px solid #efe4e7;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--auth-ink);
+}
+
+.auth-actions {
+  margin-top: auto;
+  padding-top: 28px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.auth-btn {
+  height: 52px;
+  border-radius: 14px;
+  border: none;
+  background: var(--color-primary);
+  color: #ffffff;
+  font-family: inherit;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+}
+
+.auth-btn:disabled {
+  opacity: 0.6;
+  cursor: default;
+}
+
+.auth-btn.secondary {
+  background: #ffffff;
+  border: 1px solid var(--auth-line);
+  color: var(--auth-ink);
+}
+
+.auth-btn-icon {
+  font-size: 1.15rem;
+}
+
+.auth-link {
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.875rem;
+  color: var(--auth-sub);
+  padding: 10px;
+  cursor: pointer;
+  text-align: center;
+}
+
+.auth-link strong {
+  color: #c0392b;
+  font-weight: 400;
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+
+/* ── 시작 화면 ─────────────────────────────────── */
+.welcome-logo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.welcome-logo-heart {
+  font-size: 1.6rem;
+  color: var(--color-primary);
+}
+
+.welcome-logo-text {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.9rem;
+  color: #d64545;
+}
+
+.welcome-headline {
+  margin: 18px 0 10px;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.85rem;
+  line-height: 1.3;
+}
+
+.welcome-sub {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--auth-sub);
+}
+
+.welcome-legal {
+  margin: 4px 0 0;
+  font-size: 0.75rem;
+  line-height: 1.6;
+  color: var(--auth-sub);
+  text-align: center;
+}
+
+.welcome-legal a {
+  color: var(--auth-sub);
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+/* ── 시작 화면 소품 콜라주 (WelcomeCollage) ─────── */
+.collage {
+  position: relative;
+  height: 340px;
+  margin-top: 16px;
+  width: 100%;
+  max-width: 360px;
+  align-self: center;
+}
+
+.collage-item {
+  position: absolute;
+  background: var(--auth-paper);
+  box-shadow: 0 6px 18px rgba(109, 104, 117, 0.14);
+  box-sizing: border-box;
+}
+
+.collage-tape {
+  position: absolute;
+  left: 50%;
+  top: -9px;
+  width: 54px;
+  height: 18px;
+  transform: translateX(-50%) rotate(4deg);
+  background: rgba(255, 214, 222, 0.85);
+  border: 1px solid rgba(240, 170, 185, 0.6);
+}
+
+.collage-calendar {
+  left: 4px;
+  top: 22px;
+  width: 168px;
+  padding: 12px;
+  border-radius: 8px;
+  transform: rotate(-5deg);
+}
+
+.collage-calendar-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 8px;
+}
+
+.collage-calendar-month {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.collage-small {
+  font-size: 0.7rem;
+  color: var(--auth-sub);
+}
+
+.collage-calendar-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  row-gap: 6px;
+  font-size: 0.7rem;
+  text-align: center;
+  color: var(--auth-sub);
+}
+
+.collage-day-mark {
+  justify-self: center;
+  width: 18px;
+  height: 18px;
+  line-height: 18px;
+  border-radius: 50%;
+  background: var(--color-primary);
+  color: #ffffff;
+}
+
+.collage-day-personal {
+  border-bottom: 3px solid var(--color-boyfriend);
+}
+
+.collage-day-trip {
+  background: var(--color-primary-light);
+}
+
+.collage-day-trip.start { border-radius: 4px 0 0 4px; }
+.collage-day-trip.end { border-radius: 0 4px 4px 0; }
+
+.collage-ticket {
+  right: 0;
+  top: 2px;
+  width: 150px;
+  height: 82px;
+  border-radius: 8px;
+  transform: rotate(6deg);
+  display: flex;
+}
+
+.collage-ticket-main {
+  flex-grow: 1;
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  border-right: 1.5px dashed #e6d3d8;
+}
+
+.collage-ticket-route {
+  font-family: var(--font-display);
+  font-size: 0.95rem;
+}
+
+.collage-ticket-date {
+  font-size: 0.7rem;
+  color: #3d6a96;
+}
+
+.collage-ticket-stub {
+  width: 34px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.7rem;
+  color: var(--auth-sub);
+  writing-mode: vertical-rl;
+}
+
+.collage-memo {
+  right: 2px;
+  top: 105px;
+  width: 124px;
+  padding: 12px;
+  border-radius: 4px;
+  background: #fff8e1;
+  transform: rotate(3deg);
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+}
+
+.collage-memo-row {
+  font-size: 0.8rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collage-memo-row.done {
+  color: var(--auth-sub);
+  text-decoration: line-through;
+}
+
+.collage-check {
+  width: 11px;
+  height: 11px;
+  border: 1.5px solid #c9b07a;
+  border-radius: 3px;
+  flex-shrink: 0;
+  box-sizing: border-box;
+}
+
+.collage-memo-row.done .collage-check {
+  background: #c9b07a;
+}
+
+.collage-letter {
+  left: 108px;
+  top: 216px;
+  width: 168px;
+  height: 112px;
+  background: none;
+  box-shadow: none;
+  transform: rotate(-3deg);
+}
+
+.collage-letter svg {
+  position: absolute;
+  inset: 0;
+  filter: drop-shadow(0 6px 10px rgba(109, 104, 117, 0.16));
+}
+
+.collage-letter-caption {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 10px;
+  text-align: center;
+  font-size: 0.75rem;
+  color: var(--auth-sub);
+}
+
+.collage-letter-caption em {
+  font-style: normal;
+  color: #c0392b;
+}
+
+.collage-mascot {
+  position: absolute;
+  left: -4px;
+  bottom: 0;
+  width: 100px;
+  height: auto;
+}
+
+/* ── 닉네임 단계 ───────────────────────────────── */
+.auth-progress {
+  display: flex;
+  gap: 6px;
+  margin-top: 14px;
+}
+
+.auth-progress span {
+  height: 4px;
+  flex-grow: 1;
+  border-radius: 2px;
+  background: #eedfe3;
+}
+
+.auth-progress span.on {
+  background: var(--color-primary);
+}
+
+.nickname-preview {
+  margin-top: 34px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.nickname-preview-card {
+  background: var(--auth-paper);
+  border: 1px solid #efe4e7;
+  border-radius: 12px;
+  padding: 14px 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transform: rotate(-0.8deg);
+  box-shadow: 0 4px 12px rgba(109, 104, 117, 0.08);
+}
+
+.nickname-preview-title {
+  font-size: 1rem;
+}
+
+.nickname-preview-badge {
+  align-self: flex-start;
+  font-size: 0.75rem;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: #dff7d8;
+  color: #2f6b28;
+}
+
+/* ── 구글 계정 연동 확인(기존 이메일 가입자) ─────── */
+.auth-conflict-msg {
+  margin: 0 0 18px;
+  font-size: 0.95rem;
+  line-height: 1.6;
+}
+
+/* ── 세로가 짧은 폰 대응 ─────────────────────────
+   시작 화면은 콜라주(340px) 때문에 iPhone SE(667px)·소형 안드로이드(740px)에서 넘쳤음.
+   콜라주는 transform으로 통째로 줄이고(자식이 절대 위치라 비율 유지), 줄어든 만큼 height도 맞춤. */
+@media (max-height: 800px) {
+  .collage {
+    height: 272px; /* 340 × 0.8 */
+    transform: scale(0.8);
+    transform-origin: top center;
+  }
+}
+
+@media (max-height: 760px) {
+  .collage {
+    height: 231px; /* 340 × 0.68 */
+    transform: scale(0.68);
+  }
+}
+
+@media (max-height: 700px) {
+  .collage {
+    height: 190px; /* 340 × 0.56 */
+    transform: scale(0.56);
+    margin-top: 8px;
+  }
+  .welcome-headline { margin-top: 10px; font-size: 1.6rem; }
+  .auth-title { margin-top: 8px; }
+  .auth-desc { margin-bottom: 20px; }
+  .auth-actions { padding-top: 18px; }
+}

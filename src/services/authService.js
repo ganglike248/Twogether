@@ -4,6 +4,7 @@ import {
   signInWithEmailAndPassword,
   signOut as firebaseSignOut,
   updateProfile,
+  sendPasswordResetEmail,
   GoogleAuthProvider,
   signInWithCredential,
   signInWithPopup,
@@ -22,11 +23,7 @@ import {
   updateDoc,
   getDoc,
   deleteDoc,
-  addDoc,
   collection,
-  query,
-  where,
-  getDocs,
   serverTimestamp,
   writeBatch,
 } from 'firebase/firestore';
@@ -64,6 +61,22 @@ export const signUpWithEmail = async (email, password, displayName) => {
   });
 
   return user;
+};
+
+// 비밀번호 재설정 메일 — Firebase 이메일 열거 보호로 가입 안 된 주소여도 오류 없이 끝남.
+// 화면 문구도 "가입된 계정이 있으면 보냈어요"처럼 계정 존재 여부를 드러내지 않게 쓸 것.
+export const sendPasswordReset = async (email) => {
+  auth.languageCode = 'ko';
+  await sendPasswordResetEmail(auth, email);
+};
+
+// 닉네임 확정 — 첫 실행 닉네임 단계(커플 연결 전)에서 호출. nicknameConfirmed가 없는
+// 계정만 그 단계를 거치므로, 구글 가입자도 구글 이름 대신 닉네임을 직접 정할 기회가 생김.
+export const confirmNickname = async (displayName) => {
+  const user = auth.currentUser;
+  if (!user) throw new Error('로그인이 필요합니다.');
+  await updateProfile(user, { displayName });
+  await updateDoc(doc(db, 'users', user.uid), { displayName, nicknameConfirmed: true });
 };
 
 // 로그인
@@ -315,22 +328,4 @@ export const joinCouple = async (uid, inviteCode) => {
   const code = inviteCode.trim().toUpperCase();
   const result = await httpsCallable(functionsInstance, 'joinCoupleWithInviteCode')({ inviteCode: code });
   return { coupleId: result.data.coupleId };
-};
-
-// 커플 정보 조회
-export const getCoupleDoc = async (coupleId) => {
-  const snap = await getDoc(doc(db, 'couples', coupleId));
-  if (!snap.exists()) return null;
-  return { id: snap.id, ...snap.data() };
-};
-
-// 사용자 이름 업데이트
-export const updateUserName = async (newDisplayName) => {
-  const user = auth.currentUser;
-  if (!user) throw new Error('로그인이 필요합니다.');
-
-  await updateProfile(user, { displayName: newDisplayName });
-  await updateDoc(doc(db, 'users', user.uid), {
-    displayName: newDisplayName,
-  });
 };

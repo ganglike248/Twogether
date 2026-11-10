@@ -3,7 +3,7 @@
 // 뜨고 alt 텍스트만 보이는 문제가 있음 — 업로드 전에 JPEG로 변환해서 방지.
 const HEIC_TYPES = ['image/heic', 'image/heif'];
 
-export const isHeicFile = (file) => {
+const isHeicFile = (file) => {
   if (!file) return false;
   if (file.type && HEIC_TYPES.includes(file.type)) return true;
   const name = file.name?.toLowerCase() || '';

@@ -507,8 +507,29 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
   커플 구독의 permission-denied에서 `userSubKey`를 올려 사용자 문서를 서버에서 다시 읽고 재구독함 — 이 처리를 빼지 말 것.
 - **화면 E2E 방법**: `src/firebase.js`의 개발 서버 전용 스위치(`VITE_USE_EMULATORS=true` + `VITE_FIREBASE_PROJECT_ID=demo-twogether`,
   포트는 `VITE_EMULATOR_*_PORT`, 운영 빌드엔 코드째 빠짐)로 `npx vite`를 에뮬레이터에 붙이고, `emulators:exec` 안에서 firebase-admin으로
-  시드 + Playwright(캐시된 `~/.npm/_npx/*/node_modules/playwright`)로 두 계정을 조작. 로컬스토리지 `twogether_notification_priming_shown`·
-  `twogether_onboarding_intro_dismissed`를 미리 넣어 첫 방문 팝업을 끌 것. 해제→안내→취소→데이터 백업→탈퇴 26개 통과(2026-11-06).
+  시드 + Playwright(캐시된 `~/.npm/_npx/*/node_modules/playwright`)로 두 계정을 조작. 로컬스토리지 `twogether_notification_priming_shown`을
+  미리 넣어 첫 방문 팝업을 끌 것(예전 `twogether_onboarding_intro_dismissed`는 v1.0.25에서 소개 슬라이드와 함께 없어짐). 신규 계정은 커플 연결 전 닉네임 단계가 뜨므로 시드에 `users.nicknameConfirmed: true`를 넣을 것. 해제→안내→취소→데이터 백업→탈퇴 26개 통과(2026-11-06).
+
+### 첫 실행 흐름 리디자인 (v1.0.25~, 단계별 진행 중)
+시안: https://claude.ai/artifact/GTh2PDZh5ShHFFCvvtSU7F (필름 다이어리 톤, 사진 대신 다이어리 소품 — 사용자가 사진 자리 자체를 거절함).
+① 로그인 전 (완료): `LoginPage.jsx`가 `?step=`(없음/`signup`/`login`/`reset`)으로 `WelcomeScreen`(+`WelcomeCollage`)/`EmailAuthForm`/
+`PasswordResetForm`/`GoogleConflictForm`을 전환, 스타일은 `AuthFlow.css` 공용. 로그인 전 소개 슬라이드(`OnboardingSlides`)는 삭제 — 시작 화면이 소개 역할.
+이메일 가입/로그인을 한 화면으로 자동 판별하지 않는 이유: Firebase 이메일 열거 보호로 "가입된 이메일인지" 알 수 없음. 비밀번호 찾기 문구도
+계정 존재 여부를 드러내지 않게 유지. 닉네임은 가입 폼에서 빼고 `CoupleSetupPage` 앞 `NicknameStep`에서 이메일·구글 가입자 모두 정함
+(`authService.confirmNickname` → `nicknameConfirmed: true`, 커플·예전 커플 기록이 없는 사용자만 표시).
+폰트: 제목·로고·숫자는 `--font-display`(주아, OFL), 본문은 고운돋움 유지 — 지금은 새 화면에만 적용, 앱 전체 확산은 2단계 화면 점검 때.
+남은 단계: ② 커플 연결·초대(선택 카드, 공유 버튼) ③ 연결 완료(다이어리 첫 장 + D+N) ④ 홈 "우리 둘의 첫 걸음" 카드(TutorialSlides 대체, 기존
+사용자도 업데이트 후 1회 + 설정에서 다시 보기).
+
+### #root 레이아웃 규칙 — 독립 페이지는 `flex: 1 0 auto; min-height: 100%` (v1.0.25~)
+`src/index.css`의 `#root`는 `height: 100dvh; display: flex; flex-direction: column`(v0.3.9에서 iOS 캘린더 높이 문제로 도입,
+`Layout`은 `height: 100%`로 이 높이를 채움). Layout 밖에서 #root 바로 아래 뜨는 페이지(로그인 흐름·커플 연결·약관·탈퇴·404·로딩/오류)는:
+- **`100vh` 금지** — 모바일 브라우저에서 주소창까지 포함한 높이라 #root(100dvh)보다 커져 내용이 짧아도 세로 스크롤이 생겼음. `flex: 1 0 auto; min-height: 100%`.
+- **가로 `margin: 0 auto` 금지** — flex column의 자식에 가로 auto margin을 주면 stretch가 풀려 내용 폭(입력창 기본 폭)으로 줄어듦
+  (새 로그인 화면이 가운데로 몰리던 버그). `width: 100%` + 필요하면 `max-width` + `align-self: center`.
+- `position: fixed` 전체 높이 요소(사이드바 등)는 `100dvh`. 노치는 `env(safe-area-inset-top/bottom)`을 padding에 포함.
+- #root의 flex column을 지우면(row가 됨) 자식이 높이로 stretch돼 우연히 맞아 보이지만, Layout·다른 화면이 column 전제라 바꾸지 말 것.
+세로가 짧은 폰(667·740px) 확인: `npx vite preview` + Playwright로 `.auth-screen` 높이와 `scrollHeight`를 비교(시작 화면 콜라주는 `max-height` 미디어쿼리로 축소).
 
 ### EventForm.js / MemoryForm.js
 두 파일 모두 삭제됨 — 로직이 각각 `EventModal.js`, `MemoryList.js`에 통합됨.
@@ -611,7 +632,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 
 ## Firestore 데이터 스키마
 ```
-users/{uid}             → uid, email, displayName, coupleId
+users/{uid}             → uid, email, displayName, coupleId, nicknameConfirmed(첫 실행 닉네임 단계 완료, v1.0.25~)
 couples/{coupleId}      → members:[uid1,uid2], inviteCode, anniversaryDate, heroImageUrl,
                           eventTypeColors:{boyfriend,girlfriend,personal},
                           customCategories:{ [키]: {label,color} },  (버킷리스트 카테고리 커스텀 — 배열 아님, 객체 맵)
@@ -687,7 +708,7 @@ utils/
 - **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
 - **TravelTimeInput** (`src/components/Travel/Schedule/TravelTimeInput.js`) — 여행 일정 간 이동 시간 기록
 - **ScheduleModal** (`src/components/Travel/Schedule/ScheduleModal.js`) — 여행 일정 추가/편집 모달
-- **EventTypeColorSelector** (`src/components/Profile/EventTypeColorSelector.jsx`) — 이벤트 타입별 색상 선택 UI. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력. `EventTypeColorSettingsModal`에서 사용
+- **EventTypeColorSettingsModal** (`src/components/Settings/EventTypeColorSettingsModal.jsx`) — 설정 → 이벤트 색상 설정. `colorService.js`의 파스텔 30색 팔레트 + 커스텀 색상 직접 입력을 모달 안에서 직접 구현(예전 별도 컴포넌트 `EventTypeColorSelector`는 어디서도 안 쓰여 v1.0.25 정리 때 삭제)
 - **BaseModal** (`src/components/BucketList/BaseModal.jsx`) — 버킷리스트 전용 재사용 모달 베이스. `isOpen/onClose/title/icon/children` props. `CategoryManagerModal` 등에서 상속하여 사용
 - **PrivacyPage** (`src/components/Privacy/PrivacyPage.jsx`) — 개인정보처리방침 페이지. 로그인 없이 접근 가능(`/privacy`). 앱스토어 심사 제출 URL: `https://twogether-206fb.web.app/privacy`
 - **AccountDeletionPage** (`src/components/Privacy/AccountDeletionPage.jsx`) — 계정/데이터 삭제 요청 안내 페이지. 로그인 없이 접근 가능(`/account-deletion`). 인앱 자동 탈퇴 기능이 없어 이메일(business9498@gmail.com) 요청 방식만 안내. Google Play Console "삭제된 계정 URL" 등록용: `https://twogether-206fb.web.app/account-deletion`

@@ -47,7 +47,7 @@ const priceNumber = (price) => {
 };
 
 // 확정한 후보는 어떤 정렬이든 항상 맨 앞(사용자 결정), 그 안에서 고른 정렬을 따름
-export const sortOptions = (decision, options, sortKey, userId) => {
+const sortOptions = (decision, options, sortKey, userId) => {
   // 옵션에는 생성 시각 필드가 없어서 배열에 추가된 순서(뒤가 최신)를 기준으로 씀
   const indexed = (options || []).map((opt, index) => ({ opt, index }));
   const byScore = (a, b) => (b.opt.totalScore || 0) - (a.opt.totalScore || 0) || a.index - b.index;
@@ -77,7 +77,7 @@ export const sortOptions = (decision, options, sortKey, userId) => {
   return indexed.sort(decidedFirst).map(({ opt }) => opt);
 };
 
-export const sortTopics = (decisions, sortKey, userId) => {
+const sortTopics = (decisions, sortKey, userId) => {
   const list = [...decisions];
   const comparators = {
     unscored: (a, b) => getUnscoredCount(b, userId) - getUnscoredCount(a, userId) || createdAtMs(b) - createdAtMs(a),

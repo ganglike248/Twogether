@@ -28,7 +28,7 @@ const SettingsPage = () => {
 
   return (
     <div className="settings-page">
-      <p className="profile-section-label" style={{ marginTop: '0.875rem', marginBottom: '1rem' }}>설정</p>
+      <p className="profile-section-label" style={{ marginTop: 0, marginBottom: '1rem' }}>설정</p>
 
       {/* 이벤트 색상 설정 */}
       <button

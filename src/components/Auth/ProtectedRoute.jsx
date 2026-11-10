@@ -9,7 +9,7 @@ const ProtectedRoute = ({ children }) => {
   if (loading) {
     return (
       <div style={{
-        minHeight: '100vh', display: 'flex', alignItems: 'center',
+        flex: '1 0 auto', minHeight: '100%', display: 'flex', alignItems: 'center',
         justifyContent: 'center', background: 'linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%)'
       }}>
         <div style={{ textAlign: 'center' }}>

@@ -61,7 +61,7 @@
 
 .npm-desc {
   font-size: 0.72rem;
-  color: #aaa;
+  color: var(--color-text-desc);
   margin: 0 0 1.25rem;
 }
 

@@ -4,7 +4,7 @@
  * iOS/Android에서 해당 앱을 직접 열 수 있음
  */
 
-export const getAppLink = (url) => {
+const getAppLink = (url) => {
   if (!url) return url;
 
   try {

@@ -2,13 +2,3 @@ body {
   margin: 0;
   background-color: #fdf5f7;
 }
-
-/* 모바일 크기 고정 */
-.app-container {
-  max-width: 420px;
-  width: 100%;
-  min-height: 100vh;
-  background-color: var(--main-bg, #fdf5f7);
-  margin: 0 auto;
-  position: relative;
-}

@@ -24,6 +24,7 @@
   left: 0;
   width: 280px;
   height: 100vh;
+  height: 100dvh;
   background: white;
   z-index: 200;
   display: flex;

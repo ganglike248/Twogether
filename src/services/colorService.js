@@ -18,7 +18,7 @@ export const DEFAULT_COLOR_PALETTE = [
 
 
 // 색상이 밝은지 어두운지 판단
-export const isLightColor = (hexColor) => {
+const isLightColor = (hexColor) => {
   if (!hexColor) return true;
   const hex = hexColor.replace('#', '');
   const r = parseInt(hex.substr(0, 2), 16);

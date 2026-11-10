@@ -219,32 +219,10 @@ export const deleteOption = async (tripId, decisionId, optionId) => {
 /**
  * 총점으로 정렬 (높은 순)
  */
-export const sortByTotalScore = (options) => {
+const sortByTotalScore = (options) => {
   if (!options || !Array.isArray(options)) return [];
 
   return [...options].sort((a, b) => {
-    const scoreA = a.totalScore || 0;
-    const scoreB = b.totalScore || 0;
-    return scoreB - scoreA;
-  });
-};
-
-/**
- * 자신의 점수 여부로 정렬 (미입력 먼저, 같으면 점수순)
- */
-export const sortByUserScore = (options, userId) => {
-  if (!options || !Array.isArray(options)) return [];
-
-  return [...options].sort((a, b) => {
-    const aHasScore = (a.scores || []).some(s => s.userId === userId);
-    const bHasScore = (b.scores || []).some(s => s.userId === userId);
-
-    // 자신이 점수 매기지 않은 것 먼저 (false < true)
-    if (aHasScore !== bHasScore) {
-      return aHasScore ? 1 : -1;
-    }
-
-    // 같으면 총점으로 정렬 (높은 점수 먼저)
     const scoreA = a.totalScore || 0;
     const scoreB = b.totalScore || 0;
     return scoreB - scoreA;
@@ -309,58 +287,6 @@ export const getUserComment = (option, userId) => {
 
   const score = option.scores.find(s => s.userId === userId);
   return score ? (score.comment || '') : '';
-};
-
-/**
- * 옵션 내 이미지 순서 변경
- */
-export const updateOptionImageOrder = async (tripId, decisionId, optionId, imageIndex, direction) => {
-  await mutateOptions(tripId, decisionId, (options) => options.map(opt => {
-    if (opt.id !== optionId) return opt;
-
-    const images = [...(opt.images || [])];
-
-    // 방향에 따라 인덱스 계산
-    let newIndex = imageIndex;
-    if (direction === 'up' && imageIndex > 0) {
-      newIndex = imageIndex - 1;
-    } else if (direction === 'down' && imageIndex < images.length - 1) {
-      newIndex = imageIndex + 1;
-    } else {
-      // 순서 변경 불가
-      return opt;
-    }
-
-    // 이미지 교환
-    [images[imageIndex], images[newIndex]] = [images[newIndex], images[imageIndex]];
-
-    return {
-      ...opt,
-      images,
-    };
-  }));
-};
-
-/**
- * 선택지 내 옵션 순서 변경
- */
-export const reorderOptions = async (tripId, decisionId, optionIndex, direction) => {
-  await mutateOptions(tripId, decisionId, (options) => {
-    // 방향에 따라 인덱스 계산
-    let newIndex = optionIndex;
-    if (direction === 'up' && optionIndex > 0) {
-      newIndex = optionIndex - 1;
-    } else if (direction === 'down' && optionIndex < options.length - 1) {
-      newIndex = optionIndex + 1;
-    } else {
-      // 순서 변경 불가
-      return null;
-    }
-
-    // 옵션 교환
-    [options[optionIndex], options[newIndex]] = [options[newIndex], options[optionIndex]];
-    return options;
-  });
 };
 
 /**

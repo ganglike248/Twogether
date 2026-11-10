@@ -20,13 +20,13 @@ export const DEFAULT_CATEGORIES = {
 };
 
 // 카테고리명 매핑 (내부 키 → 표시할 한글명)
-export const CATEGORY_DISPLAY_MAP = {
+const CATEGORY_DISPLAY_MAP = {
   'food': '음식',
   'place': '여행',
   'date': '데이트',
 };
 
-export const getDefaultColor = () => CATEGORY_COLORS[0].hex;
+const getDefaultColor = () => CATEGORY_COLORS[0].hex;
 
 export const getCategoryColor = (categoryName, customCategories) => {
   // customCategories에서 먼저 찾기 (사용자 정의 카테고리)
