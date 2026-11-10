@@ -3,6 +3,7 @@ import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { HiInformationCircle, HiUserCircle, HiChevronRight } from 'react-icons/hi2';
 import { MdPalette, MdNotifications, MdBackup } from 'react-icons/md';
 import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
+import { setFirstStepsDismissed } from '../../services/authService';
 import { MenuPageHeader } from '../common/MenuPage';
 import './SettingsPage.css';
 
@@ -46,7 +47,8 @@ const SettingsPage = () => {
     {
       label: '도움말',
       items: [
-        { key: 'intro', Icon: HiInformationCircle, color: '#69db7c', title: '앱 소개 다시 보기', desc: '우리두리의 주요 기능을 다시 둘러봐요', onClick: () => navigate('/', { replace: true, state: { showTutorial: true } }) },
+        // 예전 기능 소개 슬라이드 대신 홈 "우리 둘의 첫 걸음" 카드를 다시 켬(v1.0.28)
+        { key: 'intro', Icon: HiInformationCircle, color: '#69db7c', title: '우리 둘의 첫 걸음 다시 보기', desc: '홈에 해볼 일 카드를 다시 띄워요', onClick: async () => { await setFirstStepsDismissed(false).catch(() => {}); navigate('/', { replace: true }); } },
       ],
     },
   ];

@@ -690,3 +690,129 @@
   font-size: 1.5rem !important;
   text-transform: uppercase;
 }
+
+/* ── 연결 완료 (ConnectedStep) — 다이어리 첫 장 ─────── */
+.connected-screen {
+  align-items: center;
+  text-align: center;
+  padding-top: calc(env(safe-area-inset-top) + 72px);
+}
+
+.diary-page-wrap {
+  position: relative;
+  width: 100%;
+  max-width: 290px;
+}
+
+.diary-page {
+  position: relative;
+  overflow: hidden;
+  background: var(--auth-paper);
+  border-radius: 6px 14px 14px 6px;
+  box-shadow: 0 8px 22px rgba(109, 104, 117, 0.16);
+  transform: rotate(-2deg);
+  padding: 30px 26px 26px 34px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.diary-page-spine {
+  position: absolute;
+  left: 0;
+  top: 0;
+  bottom: 0;
+  width: 10px;
+  background: var(--color-primary-light);
+}
+
+.diary-page-label {
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+  color: var(--auth-sub);
+}
+
+.diary-page-names {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  max-width: 100%;
+}
+
+.diary-page-name {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+  padding-bottom: 4px;
+  border-bottom: 3px solid transparent;
+  min-width: 2.5em;
+  max-width: 7.5em;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.diary-page-heart {
+  flex-shrink: 0;
+  font-size: 1.1rem;
+  color: var(--color-primary);
+}
+
+.diary-page-divider {
+  width: 100%;
+  border-top: 1px dashed #e6d3d8;
+}
+
+.diary-page-date {
+  font-size: 0.8rem;
+  color: var(--auth-sub);
+  min-height: 1em;
+}
+
+.diary-page-tape {
+  left: auto;
+  right: 18px;
+  top: -10px;
+  width: 64px;
+  height: 20px;
+  transform: rotate(8deg);
+}
+
+.diary-page-mascot {
+  position: absolute;
+  left: -20px;
+  bottom: -40px;
+  width: 84px;
+  height: auto;
+}
+
+.connected-caption {
+  margin: 52px 0 0;
+  font-size: 0.875rem;
+  color: var(--color-text-desc);
+}
+
+.connected-dday {
+  margin: 10px 0 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 2.75rem;
+  color: var(--color-primary-dark);
+  min-height: 1.2em;
+}
+
+.connected-desc {
+  margin: 10px 0 0;
+  font-size: 0.95rem;
+  line-height: 1.6;
+  color: var(--color-text-desc);
+}
+
+.connected-screen .auth-actions {
+  width: 100%;
+}
+
+@media (max-height: 700px) {
+  .connected-screen { padding-top: calc(env(safe-area-inset-top) + 36px); }
+  .connected-caption { margin-top: 44px; }
+}

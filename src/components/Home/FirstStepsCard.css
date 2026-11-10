@@ -1,0 +1,162 @@
+/* src/components/Home/FirstStepsCard.css — 홈 "우리 둘의 첫 걸음" 카드 (.home-card 기반) */
+.home-card.first-steps {
+  border: 1.5px solid var(--color-primary);
+  gap: 0;
+}
+
+.first-steps-head {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.first-steps-mascot {
+  width: 40px;
+  height: auto;
+  flex-shrink: 0;
+}
+
+.first-steps-head-text {
+  flex: 1;
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.first-steps-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  color: var(--color-gray-800);
+}
+
+.first-steps-sub {
+  font-size: 0.75rem;
+  color: var(--color-text-desc);
+}
+
+.first-steps-count {
+  font-size: 0.8rem;
+  color: var(--color-text-desc);
+  flex-shrink: 0;
+}
+
+.first-steps-count em {
+  font-style: normal;
+  color: var(--color-primary-dark);
+  font-weight: 700;
+}
+
+.first-steps-bar {
+  height: 5px;
+  margin-top: 0.75rem;
+  border-radius: 3px;
+  background: #f3e6e9;
+  overflow: hidden;
+}
+
+.first-steps-bar span {
+  display: block;
+  height: 100%;
+  background: var(--color-primary);
+  transition: width 0.3s ease;
+}
+
+.first-steps-list {
+  list-style: none;
+  margin: 0.35rem 0 0;
+  padding: 0;
+}
+
+.first-steps-list li + li {
+  border-top: 1px dashed #eedfe3;
+}
+
+.first-steps-item {
+  width: 100%;
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 0.7rem;
+  padding: 0.55rem 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.first-steps-item.done {
+  cursor: default;
+}
+
+.first-steps-check {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  border: 1.5px solid #e0c6cd;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.first-steps-check.on {
+  border: none;
+  background: var(--color-primary);
+  color: white;
+}
+
+.first-steps-item-title {
+  flex: 1;
+  min-width: 0;
+  font-size: 0.9rem;
+  color: var(--color-gray-800);
+}
+
+.first-steps-item.done .first-steps-item-title {
+  color: var(--color-text-desc);
+  text-decoration: line-through;
+}
+
+.first-steps-go {
+  font-size: 0.78rem;
+  color: var(--color-primary-dark);
+  flex-shrink: 0;
+}
+
+.first-steps-by {
+  flex-shrink: 0;
+  font-size: 0.7rem;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  background: var(--color-primary-light);
+  color: var(--color-gray-800);
+}
+
+.first-steps-by.boyfriend { background: var(--color-boyfriend-background); }
+.first-steps-by.girlfriend { background: var(--color-girlfriend-background); }
+
+.first-steps-dismiss {
+  align-self: flex-end;
+  margin-top: 0.25rem;
+  padding: 0.5rem 0;
+  border: none;
+  background: none;
+  font-family: inherit;
+  font-size: 0.75rem;
+  color: var(--color-text-desc);
+  cursor: pointer;
+}
+
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}

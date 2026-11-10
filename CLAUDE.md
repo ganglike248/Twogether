@@ -522,8 +522,13 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
 `CoupleChoiceStep`/`InviteStep`/`JoinStep` 전환. 연애 시작일은 홈·사이드바·기록 파일 등이 전제로 써서 **비워둘 수 없게 유지** — 코드 생성 전에 받음.
 코드 보내기는 `services/inviteShare.js`(네이티브 `@capacitor/share` → Web Share API → 클립보드 복사 순). 커플 없는 사용자는 프로필에 못 가므로
 선택 화면 하단에 로그아웃·회원 탈퇴 유지(앱 내 계정 삭제 정책). 초대 링크 자동 입력은 안 하기로 함(대부분 네이티브 앱 사용자).
-남은 단계: ③ 연결 완료(다이어리 첫 장 + D+N) ④ 홈 "우리 둘의 첫 걸음" 카드(TutorialSlides 대체, 기존
-사용자도 업데이트 후 1회 + 설정에서 다시 보기).
+③ 연결 완료 (완료): `ConnectedStep`(다이어리 첫 장 — 두 닉네임에 커플 색 밑줄 + 연애 시작일, D+N, "첫 일정 남기러 가기"/"홈으로", 자동 이동 없음).
+⚠ `CoupleSetupPage`의 "이미 2명 커플이면 홈으로" 리다이렉트는 `!connected && !formLoading`일 때만 — 예전엔 합류한 쪽이 연결 순간 여기 걸려
+완료 화면 없이 홈으로 튕겼음(합류 콜러블 응답보다 커플 문서 구독이 먼저 올 수 있어 formLoading도 확인). 옛 `CoupleSetupPage.css`는 삭제.
+④ 첫 걸음 카드 (완료): `Home/FirstStepsCard.jsx` — 홈 '오늘' 탭 맨 위, 할 일 4개(커플 일정·버킷·홈 사진·봉인 편지)를 실제 데이터로 자동 체크,
+누가 했는지 커플 색 배지(이벤트 `createdBy`·버킷 `createdBy`(v1.0.28부터 저장, 그 전 항목엔 없음)·편지 `authorUid`). 끄면
+`users.firstStepsDismissed=true`(`authService.setFirstStepsDismissed`), 설정 → "우리 둘의 첫 걸음 다시 보기"로 다시 켬. 기존 사용자도 필드가 없으니
+업데이트 후 한 번 보임. 예전 기능 소개 슬라이드 `TutorialSlides`와 `location.state.showTutorial`은 삭제(Onboarding 폴더 없음).
 
 ### 메뉴 화면 공통 디자인 — `menu-page` + `MenuPageHeader` (v1.0.26~)
 설정 화면(아이콘 칩 + 제목 + 한 줄 설명 카드, 카드 바깥 위쪽 작은 라벨)을 기준으로 프로필·커플 정보·설정·알림 설정·데이터 백업·계정을 통일.
@@ -658,7 +663,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 
 ## Firestore 데이터 스키마
 ```
-users/{uid}             → uid, email, displayName, coupleId, nicknameConfirmed(첫 실행 닉네임 단계 완료, v1.0.25~)
+users/{uid}             → uid, email, displayName, coupleId, nicknameConfirmed(첫 실행 닉네임 단계 완료, v1.0.25~), firstStepsDismissed(홈 첫 걸음 카드 끔, v1.0.28~)
 couples/{coupleId}      → members:[uid1,uid2], inviteCode, anniversaryDate, heroImageUrl,
                           eventTypeColors:{boyfriend,girlfriend,personal},
                           customCategories:{ [키]: {label,color} },  (버킷리스트 카테고리 커스텀 — 배열 아님, 객체 맵)
@@ -673,7 +678,7 @@ tripSchedules           → tripId, day(숫자), schedules:[{id,time,title,place
                           ※ tripId + day 복합 upsert 방식 (saveTripSchedule)
 travelTimes             → tripId, day, fromScheduleId, toScheduleId, travelTime
                           ※ subscribeTravelTimes(tripId, day)로 실시간 구독
-bucketlists             → coupleId, title, category, completed, completedAt
+bucketlists             → coupleId, title, category, completed, completedAt, createdBy(v1.0.28~)
 edit_logs               → eventId, coupleId, action, changes, userId, timestamp  (eventId 기반 조회)
                           ※ 읽기는 isCoupleMe(coupleId)만 — 예전 `coupleId == null`이면 누구나 읽기 허용 조건은 v1.0.18에서 제거
 sealedMessages           → coupleId, authorUid, recipientUid, title, unlockAt(Timestamp|null),
@@ -730,7 +735,7 @@ utils/
 
 ## 추가 구현 기능 (주요 컴포넌트)
 - **WheelModal** (`src/components/Wheel/WheelModal.jsx`) — 돌림판 슬롯머신. 버킷리스트 연동 + 직접 항목 추가. Home에서 버튼으로 열림
-- **OnboardingSlides / TutorialSlides** (`src/components/Onboarding/`) — 최초 로그인 시 온보딩, 커플 연결 후 튜토리얼 자동 표시
+- **첫 실행 흐름** (`src/components/Auth/` WelcomeScreen·EmailAuthForm·NicknameStep·CoupleChoiceStep·InviteStep·JoinStep·ConnectedStep) + 홈 `FirstStepsCard` — 예전 Onboarding/TutorialSlides 대체(v1.0.25~28)
 - **EditLogModal** — 일정 편집 이력 조회. `edit_logs` 컬렉션 기반
 - **TravelTimeInput** (`src/components/Travel/Schedule/TravelTimeInput.js`) — 여행 일정 간 이동 시간 기록
 - **ScheduleModal** (`src/components/Travel/Schedule/ScheduleModal.js`) — 여행 일정 추가/편집 모달

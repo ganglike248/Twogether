@@ -63,7 +63,8 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
               imageUrls: data.imageUrls || [],
               isTrip: false,
               isDday: data.isDday || false,
-              recurrence: data.recurrence || null
+              recurrence: data.recurrence || null,
+              createdBy: data.createdBy || null
             }
           };
         });

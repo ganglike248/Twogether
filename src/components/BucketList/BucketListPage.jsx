@@ -69,7 +69,7 @@ const BucketItem = React.memo(({
 BucketItem.displayName = 'BucketItem';
 
 function BucketListPage() {
-  const { coupleId } = useAuthContext();
+  const { coupleId, user } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
   const navigate = useNavigate();
@@ -206,6 +206,7 @@ function BucketListPage() {
         content: addForm.content,
         category: addForm.category,
         coupleId,
+        createdBy: user?.uid || null, // 홈 '첫 걸음' 카드의 "누가 담았는지" 표시용(v1.0.28~, 그 전 항목엔 없음)
         completed: false,
         completedAt: null,
         createdAt: new Date().toISOString(),

@@ -79,6 +79,13 @@ export const confirmNickname = async (displayName) => {
   await updateDoc(doc(db, 'users', user.uid), { displayName, nicknameConfirmed: true });
 };
 
+// 홈 "우리 둘의 첫 걸음" 카드 끄기/다시 켜기 (users/{uid}.firstStepsDismissed)
+export const setFirstStepsDismissed = async (dismissed) => {
+  const user = auth.currentUser;
+  if (!user) return;
+  await updateDoc(doc(db, 'users', user.uid), { firstStepsDismissed: dismissed });
+};
+
 // 로그인
 export const signInWithEmail = async (email, password) => {
   const userCredential = await signInWithEmailAndPassword(auth, email, password);

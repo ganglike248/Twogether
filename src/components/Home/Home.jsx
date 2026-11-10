@@ -24,7 +24,9 @@ import {
   enableNotifications,
 } from '../../services/notificationService';
 import NotificationPrimingModal from '../common/NotificationPrimingModal';
-import TutorialSlides from '../Onboarding/TutorialSlides';
+import FirstStepsCard from './FirstStepsCard';
+import TodayEmptyCard from './TodayEmptyCard';
+import { setFirstStepsDismissed } from '../../services/authService';
 import WheelModal from '../Wheel/WheelModal';
 import HomeSkeleton from './HomeSkeleton';
 import mascotImg from '../images/mascot.png';
@@ -40,7 +42,7 @@ const tabPaneVariants = {
 };
 
 const Home = () => {
-  const { user, userDoc, coupleId, coupleDoc, myRole } = useAuthContext();
+  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -49,9 +51,6 @@ const Home = () => {
   const [bucketList, setBucketList] = useState([]);
   const [bucketLoading, setBucketLoading] = useState(true);
   const [sealedMessages, setSealedMessages] = useState([]);
-  const [showTutorial, setShowTutorial] = useState(
-    () => !!location.state?.showTutorial
-  );
   // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate
   // 훅(useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
   const [searchParams] = useSearchParams();
@@ -66,12 +65,9 @@ const Home = () => {
   const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
   const navigate = useNavigate();
 
-  // 프로필 또는 커플 연결 후 튜토리얼 표시
-  useEffect(() => {
-    if (location.state?.showTutorial) {
-      setShowTutorial(true);
-    }
-  }, [location.state?.showTutorial]);
+  // "우리 둘의 첫 걸음" 카드 — 예전 TutorialSlides 대체(v1.0.28). 끈 적 없으면 기존 사용자도 업데이트 후 한 번 보임
+  const showFirstSteps = !!userDoc && !userDoc.firstStepsDismissed;
+  const getNameByUid = (uid) => (uid === user?.uid ? userDoc?.displayName : partnerDoc?.displayName) || '';
 
   // 권한이 이미 있는데(이 기능이 생기기 전 가입 등) 이 기기 토큰이 서버에 등록 안 돼 있으면 조용히
   // 백필 등록함 — 이미 브라우저 팝업을 거친 뒤라 재설명이 필요 없는 케이스. 권한이 아직 없는 경우(default)는
@@ -289,10 +285,7 @@ const Home = () => {
 
   return (
     <div className="home-container">
-      {showTutorial && (
-        <TutorialSlides onClose={() => setShowTutorial(false)} />
-      )}
-      {!showTutorial && <NotificationPrimingModal />}
+      <NotificationPrimingModal />
 
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
@@ -385,6 +378,19 @@ const Home = () => {
           exit="exit"
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
+          {showFirstSteps && (
+            <FirstStepsCard
+              events={events}
+              bucketList={bucketList}
+              sealedMessages={sealedMessages}
+              heroImageUrl={heroImageUrl}
+              coupleDoc={coupleDoc}
+              myUid={user?.uid}
+              getName={getNameByUid}
+              onDismiss={() => setFirstStepsDismissed(true).catch(() => {})}
+            />
+          )}
+
           {/* 여행 섹션 — 다음/진행 중인 여행이 없으면 카드 자체를 표시 안 함 */}
           {relevantTrip && (
             <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
@@ -472,6 +478,11 @@ const Home = () => {
           )}
 
           {/* 디데이 */}
+          {/* 오늘 탭이 통째로 비면(여행·오늘 일정·다음 일정·디데이 없음 + 첫 걸음 카드 꺼짐) 빈 상태 카드 */}
+          {!isLoading && !showFirstSteps && !relevantTrip && todayEvents.length === 0 && !nextEvent && ddayEvents.length === 0 && (
+            <TodayEmptyCard />
+          )}
+
           {ddayEvents.length > 0 && (
             <div className="home-card home-dday-section">
               <div className="card-label">

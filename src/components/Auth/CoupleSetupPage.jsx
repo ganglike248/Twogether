@@ -1,7 +1,6 @@
 // src/components/Auth/CoupleSetupPage.jsx
 import React, { useState, useEffect } from 'react';
 import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
-import { HiHeart } from 'react-icons/hi2';
 import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import NotificationPrimingModal from '../common/NotificationPrimingModal';
@@ -10,15 +9,16 @@ import FormerCouplesPanel from '../Account/FormerCouplesPanel';
 import CoupleEndedNoticeModal from '../Account/CoupleEndedNoticeModal';
 import useFormerCouples from '../../hooks/useFormerCouples';
 import NicknameStep from './NicknameStep';
+import { getLocalDateStr } from '../../utils/dataUtils';
 import CoupleChoiceStep from './CoupleChoiceStep';
 import InviteStep from './InviteStep';
 import JoinStep from './JoinStep';
+import ConnectedStep from './ConnectedStep';
 import './AuthFlow.css';
 import '../Account/account.css';
-import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
-  const { user, userDoc, coupleDoc, loading: authLoading } = useAuthContext();
+  const { user, userDoc, coupleDoc, partnerDoc, loading: authLoading } = useAuthContext();
   const navigate = useNavigate();
   // 단계는 URL(?step=invite|join)로 — 안드로이드 뒤로가기가 이전 단계로 돌아가도록(로그인 흐름과 같은 방식)
   const [searchParams, setSearchParams] = useSearchParams();
@@ -49,18 +49,16 @@ const CoupleSetupPage = () => {
     }
   }, [coupleDoc?.members?.length, generatedCode]);
 
-  // 연결 완료 후 2초 뒤 홈으로 이동
-  useEffect(() => {
-    if (!connected) return;
-    const timer = setTimeout(() => navigate('/', { replace: true, state: { showTutorial: true } }), 2000);
-    return () => clearTimeout(timer);
-  }, [connected, navigate]);
+  // 연결 완료 후엔 자동으로 넘어가지 않음 — ConnectedStep에서 사용자가 '첫 일정 남기기' / '홈으로'를 고름(③)
 
   // 로그아웃 후 또는 미로그인 상태 → 로그인 페이지
   if (!authLoading && !user) return <Navigate to="/login" replace />;
 
   // 이미 커플 연결 완료된 사용자 → 홈으로
-  if (!authLoading && user && coupleDoc?.members?.length >= 2 && !generatedCode) return <Navigate to="/" replace />;
+  // 단, 방금 이 화면에서 연결한 경우(connected)는 연결 완료 화면을 보여줘야 하므로 제외 — 예전엔 합류한 쪽이
+  // 연결 순간 이 조건에 걸려 완료 화면 없이 바로 홈으로 튕겼음(초대한 쪽만 완료 화면을 봤음).
+  // formLoading도 확인 — 합류 콜러블 응답보다 커플 문서 구독 갱신이 먼저 도착할 수 있어서
+  if (!authLoading && user && coupleDoc?.members?.length >= 2 && !generatedCode && !connected && !formLoading) return <Navigate to="/" replace />;
 
   // 첫 실행 닉네임 단계 — 닉네임을 확정한 적 없고 아직 커플을 만들지 않은 사용자에게 한 번(이름 미리 채워짐).
   // 예전 커플 기록 여부(listFormerCouples, 서버 호출이라 몇 초 걸림)는 일부러 조건에서 뺌 — 그걸 기다리는 동안
@@ -162,19 +160,19 @@ const CoupleSetupPage = () => {
     </>
   );
 
-  // 연결 완료 화면은 ③단계에서 새 디자인(다이어리 첫 장 + D+N)으로 교체 예정 — 지금은 기존 화면 유지
   if (connected) {
     return (
-      <div className="couple-setup-page">
-        <div className="couple-setup-container">
-          <div className="couple-connected">
-            <HiHeart className="couple-connected-heart" />
-            <p className="couple-connected-title">커플 연결 완료!</p>
-            <p className="couple-connected-desc">두 사람이 정상적으로 연결되었어요.<br />잠시 후 앱이 시작됩니다.</p>
-            <div className="couple-connected-spinner" />
-          </div>
-        </div>
-      </div>
+      <>
+        <ConnectedStep
+          coupleDoc={coupleDoc}
+          myUid={user?.uid}
+          myName={userDoc?.displayName}
+          partnerName={partnerDoc?.displayName}
+          onWriteFirstEvent={() => navigate(`/calendar/event/new/${getLocalDateStr()}`, { replace: true, state: { modal: true } })}
+          onGoHome={() => navigate('/', { replace: true })}
+        />
+        {modals}
+      </>
     );
   }
 
@@ -202,7 +200,9 @@ const CoupleSetupPage = () => {
         />
       ) : (
         <CoupleChoiceStep
-          onBack={() => goStep('nickname')}
+          // 닉네임은 이 흐름의 첫 단계라, 선택 화면 "위에" 쌓으면(push) 닉네임에서 뒤로가기 시 다음 단계인 선택 화면으로
+          // 가버림 → 같은 히스토리 칸을 바꿔 끼움(replace). 닉네임 화면의 뒤로·저장도 replace로 선택 화면 복귀
+          onBack={() => { setError(''); setSearchParams({ step: 'nickname' }, { replace: true }); }}
           onInvite={() => goStep('invite')}
           onJoin={() => goStep('join')}
           onLogout={handleLogout}
