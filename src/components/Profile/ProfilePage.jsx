@@ -13,6 +13,7 @@ import useHeroImage from '../../hooks/useHeroImage';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { MenuPageHeader } from '../common/MenuPage';
 import './ProfilePage.css';
+import '../common/AppModal.css';
 
 const ProfilePage = () => {
   const navigate = useNavigate();

@@ -16,6 +16,7 @@ import {
 } from '../../services/authService';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import '../Profile/ProfilePage.css';
+import '../common/AppModal.css';
 
 const LinkedAccountsSection = () => {
   const { user, coupleId } = useAuthContext();

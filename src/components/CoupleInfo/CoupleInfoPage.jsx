@@ -11,6 +11,7 @@ import LeaveCoupleModal from '../Account/LeaveCoupleModal';
 import '../Account/account.css';
 import { MenuPageHeader } from '../common/MenuPage';
 import './CoupleInfoPage.css';
+import '../common/AppModal.css';
 
 const CoupleInfoPage = () => {
   const navigate = useNavigate();

@@ -1,0 +1,120 @@
+/* src/components/common/AppModal.css
+   앱 공통 확인/선택 모달 스타일 (v1.0.27~). 설정 화면 디자인과 같은 톤 — 흰 카드, 주아 제목, 같은 버튼.
+   예전엔 ConfirmModal / 프로필(profile-modal-*) / 커플 정보(couple-info-modal-*)가 각자 스타일을 따로 갖고 있어서
+   모양이 조금씩 달랐음. 세 계열의 클래스명은 그대로 두고 이 파일 하나가 같은 모양을 입힘.
+   버튼: 기본(흰 배경) · .save(주 색) · .discard(경고 — 저장 안 함·삭제·해제). */
+
+.confirm-modal-overlay,
+.profile-modal-overlay,
+.couple-info-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background-color: rgba(40, 30, 35, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 1rem;
+}
+
+.confirm-modal-card,
+.profile-modal-box,
+.couple-info-modal-box {
+  background: white;
+  border-radius: 18px;
+  box-shadow: var(--shadow-lg);
+  width: 100%;
+  max-width: 320px;
+  padding: 1.5rem 1.35rem 1.2rem;
+  box-sizing: border-box;
+}
+
+.confirm-modal-title,
+.profile-modal-title,
+.couple-info-modal-title {
+  margin: 0 0 0.5rem;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: var(--color-gray-800);
+}
+
+.confirm-modal-body,
+.profile-modal-msg,
+.couple-info-modal-msg {
+  margin: 0 0 1.25rem;
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text-desc);
+  white-space: pre-line;
+}
+
+.confirm-modal-actions,
+.profile-modal-actions,
+.couple-info-modal-actions {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.profile-modal-actions.vertical {
+  flex-direction: column;
+}
+
+/* ConfirmModal은 앱 공통 .btn 클래스를 씀 — 크기만 맞춤 */
+.confirm-modal-actions .btn {
+  flex: 1;
+  min-height: 44px;
+  justify-content: center;
+}
+
+.profile-modal-btn,
+.couple-info-modal-btn {
+  flex: 1;
+  min-height: 44px;
+  padding: 0.6rem 0.75rem;
+  border-radius: 12px;
+  border: 1px solid var(--card-border);
+  background: white;
+  color: var(--color-gray-700);
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.profile-modal-btn:hover,
+.couple-info-modal-btn:hover {
+  background: #fafafa;
+}
+
+.profile-modal-btn.save,
+.couple-info-modal-btn.save {
+  background: var(--color-primary);
+  border-color: var(--color-primary);
+  color: white;
+  font-weight: 700;
+}
+
+.profile-modal-btn.save:hover,
+.couple-info-modal-btn.save:hover {
+  background: var(--color-primary-dark);
+  border-color: var(--color-primary-dark);
+}
+
+.profile-modal-btn.discard,
+.couple-info-modal-btn.discard {
+  color: var(--color-danger);
+  border-color: rgba(255, 107, 107, 0.45);
+}
+
+.profile-modal-btn.discard:hover,
+.couple-info-modal-btn.discard:hover {
+  background: #fff5f5;
+}
+
+.profile-modal-btn:disabled,
+.couple-info-modal-btn:disabled {
+  opacity: 0.55;
+  cursor: default;
+}

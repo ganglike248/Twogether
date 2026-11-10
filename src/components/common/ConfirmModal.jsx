@@ -4,7 +4,7 @@
 // EventModal.css의 .confirm-card(캘린더 모달)와 같은 톤으로 별도 클래스명을 씀
 // (다른 파일에서도 불러 쓰므로 EventModal.css 로드 여부와 무관하게 항상 동작해야 함).
 import React from 'react';
-import './ConfirmModal.css';
+import './AppModal.css';
 
 const ConfirmModal = ({
   isOpen,

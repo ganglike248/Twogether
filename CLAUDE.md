@@ -531,6 +531,12 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
 `.menu-page .profile-section/.couple-info-section/.nsp-section/.dbp-section` 카드와 섹션 제목(카드 안 첫 줄 제목을 위 여백 자리로 띄워
 "라벨 → 카드" 모양)을 맞춤 — `:has()`는 구형 안드로이드 웹뷰에서 안 돼서 안 씀. 새 메뉴 화면도 이 둘을 쓸 것(화면별 머리말 CSS를 새로 만들지 말 것).
 
+### 확인 모달 공통 스타일 — `common/AppModal.css` (v1.0.27~)
+`ConfirmModal`(`confirm-modal-*`)·프로필(`profile-modal-*`, 구글 연동 모달 포함)·커플 정보(`couple-info-modal-*`)의 확인/선택 모달은 클래스명은
+그대로 두고 이 파일 하나가 같은 모양(흰 카드 18px, 주아 제목, 버튼 기본/`.save`=주 색/`.discard`=경고)을 입힘 — 화면 CSS에 모달 스타일을
+다시 만들지 말 것. 단순 확인은 새 마크업 대신 `ConfirmModal`을 쓸 것. 비밀번호 변경·이벤트 색상 모달은 각 CSS 끝의 "공통 모달 톤" 블록으로
+맞춤. `index.css`의 `.btn-secondary`/`.btn-danger`는 예전에 두 번씩 정의돼 서로 덮어썼음(hover 때 흰 글씨가 안 보임) — 하나로 정리함.
+
 ### #root 레이아웃 규칙 — 독립 페이지는 `flex: 1 0 auto; min-height: 100%` (v1.0.25~)
 `src/index.css`의 `#root`는 `height: 100dvh; display: flex; flex-direction: column`(v0.3.9에서 iOS 캘린더 높이 문제로 도입,
 `Layout`은 `height: 100%`로 이 높이를 채움). Layout 밖에서 #root 바로 아래 뜨는 페이지(로그인 흐름·커플 연결·약관·탈퇴·404·로딩/오류)는:

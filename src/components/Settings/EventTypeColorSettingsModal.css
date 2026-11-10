@@ -277,3 +277,31 @@
   opacity: 0.6;
   cursor: default;
 }
+
+/* ── 공통 모달 톤으로 맞춤 (v1.0.27, common/AppModal.css와 같은 값) ── */
+.csm-container {
+  border-radius: 18px 18px 0 0;
+}
+
+.csm-header,
+.csm-footer {
+  border-color: var(--card-border);
+}
+
+.csm-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.2rem;
+  color: var(--color-gray-800);
+}
+
+.csm-btn-cancel,
+.csm-btn-save {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+.csm-btn-cancel {
+  border: 1px solid var(--card-border);
+  color: var(--color-gray-700);
+}
