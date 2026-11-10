@@ -2,8 +2,8 @@
 // 비교 주제(카테고리) 하나 — 흰 카드 안에 [제목 + 요약 바](누르면 접고 펼침) + 후보 카드 가로 스크롤
 // (맨 끝 "＋ 후보 추가" 카드) + 페이지 점. 접힌 상태에서도 바의 요약(후보 수·확정·평가 필요)으로 내용을 가늠할 수 있음.
 // 확정은 후보 단위(여러 개 가능) — 확정해도 다른 후보를 숨기지 않고, 확정 후보가 맨 앞에 초록으로 표시됨.
-import React, { useState } from 'react';
-import { MdAdd, MdClose, MdEdit, MdKeyboardArrowDown } from 'react-icons/md';
+import React, { useEffect, useRef, useState } from 'react';
+import { MdAdd, MdClose, MdEdit, MdKeyboardArrowDown, MdChevronLeft, MdChevronRight } from 'react-icons/md';
 import { getDecidedCount } from '../../../services/travelDecisionService';
 import DecisionCard from './DecisionCard';
 import './DecisionSection.css';
@@ -14,14 +14,50 @@ const CardRow = ({ decision, options, rankMap, cardProps, actions }) => {
   const [page, setPage] = useState(0);
   const total = options.length + 1; // + "후보 추가" 카드
 
+  // PC(마우스)용 좌우 버튼(v1.0.24~) — 카드 줄은 스크롤바를 숨겨서 터치는 밀면 되지만, 마우스는 잡을 스크롤바도 없고
+  // 휠은 세로로만 움직여 옆 카드로 갈 방법이 없었음. 버튼은 CSS에서 (hover: hover) and (pointer: fine)일 때만 보임.
+  // 휠을 가로로 바꾸는 방식은 카드 위에서 페이지를 내리려던 휠을 빼앗아서 쓰지 않음.
+  const rowRef = useRef(null);
+  const [edges, setEdges] = useState({ left: false, right: false });
+
+  const updateEdges = () => {
+    const el = rowRef.current;
+    if (!el) return;
+    const left = el.scrollLeft > 4;
+    const right = el.scrollLeft + el.clientWidth < el.scrollWidth - 4;
+    setEdges(prev => (prev.left === left && prev.right === right ? prev : { left, right }));
+  };
+
+  useEffect(() => {
+    updateEdges();
+    window.addEventListener('resize', updateEdges);
+    return () => window.removeEventListener('resize', updateEdges);
+  }, [options.length]);
+
+  const scrollByCard = (dir) => {
+    rowRef.current?.scrollBy({ left: dir * CARD_STEP, behavior: 'smooth' });
+  };
+
   const handleScroll = (e) => {
     const next = Math.round(e.currentTarget.scrollLeft / CARD_STEP);
     if (next !== page) setPage(Math.min(next, total - 1));
+    updateEdges();
   };
 
   return (
     <>
-      <div className="dsec-row" onScroll={handleScroll}>
+      <div className="dsec-row-wrap">
+      {edges.left && (
+        <button type="button" className="dsec-arrow left" onClick={() => scrollByCard(-1)} aria-label="이전 후보">
+          <MdChevronLeft />
+        </button>
+      )}
+      {edges.right && (
+        <button type="button" className="dsec-arrow right" onClick={() => scrollByCard(1)} aria-label="다음 후보">
+          <MdChevronRight />
+        </button>
+      )}
+      <div className="dsec-row" ref={rowRef} onScroll={handleScroll}>
         {options.map(option => (
           <DecisionCard
             key={option.id}
@@ -35,6 +71,7 @@ const CardRow = ({ decision, options, rankMap, cardProps, actions }) => {
           <span className="dsec-add-icon"><MdAdd /></span>
           후보 추가
         </button>
+      </div>
       </div>
       {total > 1 && (
         <div className="dsec-dots" aria-hidden="true">

@@ -2,6 +2,9 @@
 
 .trip-detail-container {
     padding: 0.875rem;
+    /* 우측 아래 고정 + 버튼(56px, FloatingActionMenu)에 맨 아래 요소가 깔려 누를 수 없던 문제 — 모든 탭에서
+       마지막 요소를 버튼 위까지 올릴 수 있게 버튼 높이 + 여유만큼 아래 여백(v1.0.24~, 예전엔 체크리스트 탭에만 80px) */
+    padding-bottom: calc(56px + 2rem);
     background: var(--main-bg);
     min-height: 100%;
     display: flex;
@@ -248,6 +251,16 @@
     color: #ff6b6b;
 }
 
+/* 체크리스트를 전부 체크했을 때 — 남은 개수 대신 초록 ✓ */
+.td-tab-badge-done {
+    background: #51cf66;
+}
+
+.td-tab.active .td-tab-badge-done {
+    background: #ffffff;
+    color: #2f9e44;
+}
+
 /* ===== 일자 버튼 — 3일 이하 꽉 채움 / 4일 이상 가로 스크롤 ===== */
 .td-days { position: relative; }
 
@@ -373,9 +386,6 @@
 }
 
 /* 체크리스트 섹션 — 카드는 탭 안에서 각자 그림 */
-.trip-detail-checklist-section {
-    padding-bottom: 80px; /* FAB에 마지막 카드가 가리지 않게 */
-}
 
 /* ===== 날짜 선택 모달 ===== */
 .day-selector-overlay {

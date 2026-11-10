@@ -7,8 +7,8 @@ android {
         applicationId "com.wooridoori.twogether"
         minSdkVersion rootProject.ext.minSdkVersion
         targetSdkVersion rootProject.ext.targetSdkVersion
-        versionCode 31
-        versionName "1.0.23"
+        versionCode 32
+        versionName "1.0.24"
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         aaptOptions {
              // Files and dirs to omit from the packaged assets dir, modified to accommodate modern web apps.
@@ -28,6 +28,14 @@ android {
             // 이름으로 리소스를 찾는 플러그인을 새로 추가하면 keep.xml에 같이 넣을 것.
             minifyEnabled true
             shrinkResources true
+            // 네이티브 디버그 기호를 AAB(BUNDLE-METADATA)에 넣는 설정(v1.0.24~). Play Console "네이티브 코드를 포함하며 디버그
+            // 기호가 업로드되지 않았습니다" 경고 때문에 넣었지만, 지금 번들의 네이티브 코드는 androidx.datastore(Firebase 의존성)의
+            // libdatastore_shared_counter.so 하나뿐이고 이게 구글 배포 단계에서 이미 strip된 채로 와서 뽑을 기호가 없음
+            // (extractReleaseNativeSymbolTables 출력이 비어 있음, 2026-11-06 확인) → 그 경고는 계속 남는 게 정상.
+            // 나중에 기호가 있는 네이티브 코드를 가진 플러그인이 들어오면 자동으로 포함되도록 설정만 유지(NDK 필요, 비용 없음).
+            ndk {
+                debugSymbolLevel 'SYMBOL_TABLE'
+            }
             proguardFiles getDefaultProguardFile('proguard-android-optimize.txt'), 'proguard-rules.pro'
         }
     }

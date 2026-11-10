@@ -7,12 +7,14 @@ import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
+import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { mutateTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
+import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { convertToDate } from '../../../utils/dataUtils';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
 import { extractUrl } from '../../../utils/appLinkUtils';
+import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import ScheduleModal from '../Schedule/ScheduleModal';
 import ScheduleTimeline from '../Schedule/ScheduleTimeline';
 import DayTabs from '../Schedule/DayTabs';
@@ -72,6 +74,13 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         return map;
     }, [schedules]);
 
+    // 체크리스트 탭 배지(v1.0.24~) — 예전엔 탭에 들어가야만 진행 상황을 알 수 있었음. 선택 사항 배지와 같은 모양으로
+    // 남은(체크 안 한) 항목 수를 보여주고, 전부 체크하면 초록 ✓. 같은 문서를 체크리스트 탭도 구독하지만
+    // Firestore SDK가 같은 문서 리스너를 하나로 합쳐서 읽기 비용은 늘지 않음.
+    const { checklist } = useTravelChecklist(trip.id);
+    const checklistItems = checklist?.items || [];
+    const checklistRemaining = checklistItems.filter(item => !item.completed).length;
+
     // 미평가 개수 계산
     const unscorredCount = decisions.reduce((count, decision) => {
       return count + (decision.options || []).filter(opt => !hasUserScored(opt, user?.uid)).length;
@@ -125,7 +134,23 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         } catch { return `${day}일차`; }
     };
 
-    const handleSaveSchedule = async (scheduleData) => {
+    // 모달의 "날짜" 선택지 — "Day 2 · 11.09 (토)"
+    const dayOptions = Array.from({ length: tripDays }, (_, i) => ({ day: i + 1, label: `Day ${i + 1} · ${getDayDate(i + 1)}` }));
+
+    const handleSaveSchedule = async (scheduleData, targetDay = activeDay) => {
+        // 기존 일정의 날짜를 바꾼 경우 → 다른 날로 옮김(완료 여부·이동시간 정리는 moveTripSchedule이 처리).
+        // 여러 개를 연달아 옮길 수 있게 화면은 지금 보던 날에 그대로 둠
+        if (scheduleData.id && targetDay !== activeDay) {
+            try {
+                await moveTripSchedule(trip.id, activeDay, targetDay, scheduleData);
+                closeScheduleModal();
+                toast.success(`Day ${targetDay}(${getDayDate(targetDay)})로 옮겼어요.`);
+            } catch (error) {
+                console.error('Error moving schedule:', error);
+                toast.error(getFriendlyErrorMessage(error, '일정을 옮기지 못했어요. 잠시 후 다시 시도해주세요.'));
+            }
+            return;
+        }
         try {
             // 저장 버튼 클릭 시(렌더 중이 아님)에만 실행되는 이벤트 핸들러라 Date.now()/
             // Math.random()을 여기서 써도 안전함 — react-hooks/purity는 렌더 중 호출만
@@ -137,7 +162,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             // 후보에서 만든 새 일정이면 어느 후보인지 남김(선택 사항의 "Day N 일정" 표시) — 모달 폼엔 없는 값이라
             // 모달을 열 때 넘긴 미리 채움 데이터(selectedSchedule)에서 가져옴
             const sourceOptionId = !scheduleData.id ? selectedSchedule?.sourceOptionId : undefined;
-            await mutateTripSchedule(trip.id, activeDay, (current) => (
+            await mutateTripSchedule(trip.id, targetDay, (current) => (
                 scheduleData.id && current.find(s => s.id === scheduleData.id)
                     // 완료 여부는 모달에서 편집하는 값이 아니라서 서버 최신 값을 유지(그 사이 상대가 체크했을 수 있음).
                     // 폼에 없는 값(sourceOptionId 등)도 지워지지 않게 기존 항목 위에 덮어씀
@@ -146,6 +171,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             ));
             closeScheduleModal();
             setOptionForSchedule(null);
+            // 새 일정을 다른 날에 넣었으면 그날로 이동해서 바로 보이게
+            if (targetDay !== activeDay) setActiveDay(targetDay);
             toast.success(scheduleData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
         } catch (error) {
             console.error('Error saving schedule:', error);
@@ -265,6 +292,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     onClick={() => setActiveTab('checklist')}
                 >
                     체크리스트
+                    {checklistItems.length > 0 && (checklistRemaining > 0
+                        ? <span className="td-tab-badge" aria-label={`남은 항목 ${checklistRemaining}개`}>{checklistRemaining}</span>
+                        : <span className="td-tab-badge td-tab-badge-done" aria-label="모두 완료">✓</span>)}
                 </button>
             </div>
 
@@ -350,6 +380,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     schedule={selectedSchedule}
                     onSave={handleSaveSchedule}
                     onDelete={handleDeleteSchedule}
+                    day={activeDay}
+                    dayOptions={dayOptions}
                 />
             )}
 

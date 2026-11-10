@@ -24,7 +24,20 @@ const PencilIcon = () => (
   </svg>
 );
 
-const LinkFillCard = ({ url, status, changed, fetching, canFetch, onChangeUrl, onPasteUrl, onFetch, onEdit }) => {
+const ChevronIcon = ({ up }) => (
+  <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.6" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+    <path d={up ? 'M6 15l6-6 6 6' : 'M6 9l6 6 6-6'} />
+  </svg>
+);
+
+// description: 카드 안내 문구(채우는 칸이 화면마다 달라서 — 여행 일정 추가엔 사진 칸이 없음)
+// collapsed/onToggleCollapse: 접기(사용자 요청) — 부모가 hooks/useLinkFillCollapsed로 들고 있음("또는 직접 입력" 구분선도 같이 숨기려고)
+const LinkFillCard = ({
+  url, status, changed, fetching, canFetch, onChangeUrl, onPasteUrl, onFetch, onEdit,
+  description = '네이버지도 등 공유 링크로 사진·제목·주소·설명을 채워요',
+  collapsed = false, onToggleCollapse,
+  elapsed = 0, onCancel,
+}) => {
   if (status === 'filled') {
     const shown = (extractUrl(url) || url || '').replace(/^https?:\/\//i, ''); // 공유 문구가 섞여 있어도 주소만
     return (
@@ -43,14 +56,29 @@ const LinkFillCard = ({ url, status, changed, fetching, canFetch, onChangeUrl, o
     );
   }
 
+  if (collapsed && onToggleCollapse) {
+    return (
+      <button type="button" className="lfc-collapsed" onClick={onToggleCollapse} aria-expanded="false">
+        <span className="lfc-collapsed-icon"><LinkIcon /></span>
+        <span className="lfc-collapsed-title">링크로 자동 채우기</span>
+        <span className="lfc-toggle-text">펼치기 <ChevronIcon /></span>
+      </button>
+    );
+  }
+
   return (
     <div className="lfc">
       <div className="lfc-head">
         <span className="lfc-icon"><LinkIcon /></span>
         <span className="lfc-head-text">
           <span className="lfc-title">링크로 자동 채우기</span>
-          <span className="lfc-desc">네이버지도 등 공유 링크로 사진·제목·주소·설명을 채워요</span>
+          <span className="lfc-desc">{description}</span>
         </span>
+        {onToggleCollapse && (
+          <button type="button" className="lfc-toggle" onClick={onToggleCollapse} aria-expanded="true" aria-label="링크로 자동 채우기 접기">
+            <span className="lfc-toggle-text">접기 <ChevronIcon up /></span>
+          </button>
+        )}
       </div>
       <label className="ofs-field">
         <span className="ofs-label">링크</span>
@@ -75,12 +103,31 @@ const LinkFillCard = ({ url, status, changed, fetching, canFetch, onChangeUrl, o
       )}
       <button
         type="button"
-        className={`lfc-fetch ${status === 'failed' ? 'retry' : ''}`}
+        className={`lfc-fetch ${status === 'failed' ? 'retry' : ''} ${fetching ? 'fetching' : ''}`}
         onClick={onFetch}
         disabled={!canFetch || fetching}
+        aria-busy={fetching}
       >
-        {fetching ? '불러오는 중...' : status === 'failed' ? '다시 불러오기' : '정보 불러오기'}
+        {fetching && <span className="lfc-spinner" aria-hidden="true" />}
+        {fetching ? '불러오는 중' : status === 'failed' ? '다시 불러오기' : '정보 불러오기'}
       </button>
+      {fetching && (
+        // 서버가 링크 페이지를 직접 열어서 오래 걸릴 수 있음(콜드 스타트 포함 10초+) — 멈춘 게 아니라는 걸 보여주고,
+        // 기다리기 싫으면 바로 직접 입력으로 넘어갈 수 있게(v1.0.24~)
+        <div className="lfc-progress" role="status" aria-live="polite">
+          <div className="lfc-progress-bar"><span /></div>
+          <div className="lfc-progress-row">
+            <span className="lfc-progress-text">
+              {elapsed < 3 ? '링크를 확인하고 있어요'
+                : elapsed < 8 ? '페이지에서 제목·주소를 읽고 있어요'
+                : '조금 오래 걸리고 있어요 · 최대 20초'}
+            </span>
+            {onCancel && (
+              <button type="button" className="lfc-cancel" onClick={onCancel}>직접 입력할게요</button>
+            )}
+          </div>
+        </div>
+      )}
     </div>
   );
 };

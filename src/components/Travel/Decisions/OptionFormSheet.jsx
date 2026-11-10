@@ -7,10 +7,10 @@ import React, { useState } from 'react';
 import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
 import { formatInputNumber, normalizeIfPureNumber } from '../../../utils/numberFormat';
-import { extractUrl } from '../../../utils/appLinkUtils';
 import { parseSharedText } from '../../../utils/sharedTextParser';
-import { fetchLinkPreview } from '../../../services/linkPreviewService';
+import useLinkFill from '../../../hooks/useLinkFill';
 import LinkFillCard from './LinkFillCard';
+import useLinkFillCollapsed from '../../../hooks/useLinkFillCollapsed';
 import PhotoAddSheet from './PhotoAddSheet';
 import './OptionFormSheet.css';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
@@ -38,11 +38,9 @@ const toForm = (option) => ({
 const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
   const isEdit = mode === 'edit';
   const [formData, setFormData] = useState(() => (isEdit ? toForm(option) : EMPTY_FORM));
-  const [linkStatus, setLinkStatus] = useState('input'); // 'input' | 'filled' | 'failed'
-  const [linkChanged, setLinkChanged] = useState(false);
-  const [fetching, setFetching] = useState(false);
   const [saving, setSaving] = useState(false);
   const [photoSheetOpen, setPhotoSheetOpen] = useState(false);
+  const [linkCollapsed, toggleLinkCollapsed] = useLinkFillCollapsed();
 
   const setField = (field, value) => {
     const processed = field === 'price' ? formatInputNumber(value) : value;
@@ -57,41 +55,27 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
     setFormData(prev => fillEmpty(prev, parsed, field));
   };
 
-  const linkUrl = extractUrl(formData.url);
+  // 링크 입력값이 곧 후보의 저장 url이라 훅에 폼 값을 그대로 넘김(불러오기 상태·진행 표시·취소는 훅이 관리)
+  const linkFill = useLinkFill({ url: formData.url, onUrlChange: (value) => setField('url', value) });
 
-  const handleChangeLink = (value) => {
-    setField('url', value);
-    if (linkStatus === 'failed') setLinkStatus('input');
-  };
-
-  const handleFetch = async () => {
-    if (!linkUrl || fetching) return;
-    setFetching(true);
-    try {
-      const preview = await fetchLinkPreview(linkUrl);
-      const applyPreview = (prev) => {
-        const next = fillEmpty(prev, {
-          title: preview.title,
-          address: preview.address,
-          description: preview.description,
-        });
-        if (preview.imageUrl && !prev.images.includes(preview.imageUrl)) {
-          next.images = [...prev.images, preview.imageUrl];
-        }
-        return next;
-      };
-      // 안내 문구용 판단은 응답 시점 폼 기준
-      const expected = applyPreview(formData);
-      setLinkChanged(['title', 'address', 'description'].some(f => expected[f] !== formData[f])
-        || expected.images.length !== formData.images.length);
-      setFormData(applyPreview);
-      setLinkStatus('filled');
-    } catch (error) {
-      console.error('Error fetching link preview:', error);
-      setLinkStatus('failed');
-    } finally {
-      setFetching(false);
-    }
+  // 링크 정보 → 제목·주소·설명의 빈 칸만 채우고 대표 사진은 사진 목록에 추가
+  const applyPreview = (preview) => {
+    const apply = (prev) => {
+      const next = fillEmpty(prev, {
+        title: preview.title,
+        address: preview.address,
+        description: preview.description,
+      });
+      if (preview.imageUrl && !prev.images.includes(preview.imageUrl)) {
+        next.images = [...prev.images, preview.imageUrl];
+      }
+      return next;
+    };
+    // 안내 문구용 판단은 응답 시점 폼 기준
+    const expected = apply(formData);
+    setFormData(apply);
+    return ['title', 'address', 'description'].some(f => expected[f] !== formData[f])
+      || expected.images.length !== formData.images.length;
   };
 
   const handleRemoveImage = (index) => {
@@ -157,19 +141,23 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
           {!isEdit && (
             <>
               <LinkFillCard
-                url={formData.url}
-                status={linkStatus}
-                changed={linkChanged}
-                fetching={fetching}
-                canFetch={!!linkUrl}
-                onChangeUrl={handleChangeLink}
+                url={linkFill.url}
+                status={linkFill.status}
+                changed={linkFill.changed}
+                fetching={linkFill.fetching}
+                canFetch={linkFill.canFetch}
+                onChangeUrl={linkFill.changeUrl}
                 onPasteUrl={handleSharedPaste('url')}
-                onFetch={handleFetch}
-                onEdit={() => setLinkStatus('input')}
+                onFetch={() => linkFill.fetchInto(applyPreview)}
+                onEdit={linkFill.edit}
+                collapsed={linkCollapsed}
+                onToggleCollapse={toggleLinkCollapsed}
+                elapsed={linkFill.elapsed}
+                onCancel={linkFill.cancel}
               />
-              {linkStatus !== 'filled' && (
+              {linkFill.status !== 'filled' && !linkCollapsed && (
                 <div className="ofs-divider">
-                  <span />{linkStatus === 'failed' ? '직접 입력' : '또는 직접 입력'}<span />
+                  <span />{linkFill.status === 'failed' ? '직접 입력' : '또는 직접 입력'}<span />
                 </div>
               )}
             </>

@@ -4,7 +4,24 @@ import { toast } from 'react-toastify';
 import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
-const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
+import LinkFillCard from '../Decisions/LinkFillCard';
+import useLinkFillCollapsed from '../../../hooks/useLinkFillCollapsed';
+import useLinkFill from '../../../hooks/useLinkFill';
+import { parseSharedText } from '../../../utils/sharedTextParser';
+// LinkFillCard의 스타일(.lfc*, .ofs-field/.ofs-input/.ofs-divider)은 선택 사항 시트 CSS에 있음
+import '../Decisions/OptionFormSheet.css';
+
+// 비어 있는 칸만 채움 — 선택 사항 후보 추가와 같은 규칙(이미 적은 내용은 덮어쓰지 않음, 사용자 결정)
+const fillEmpty = (prev, values) => {
+    const next = { ...prev };
+    Object.entries(values).forEach(([field, value]) => {
+        if (value && !String(prev[field] || '').trim()) next[field] = value;
+    });
+    return next;
+};
+// day: 지금 보고 있는 Day(새 일정의 기본값이자 수정 중인 일정이 원래 있던 날), dayOptions: [{ day, label }] —
+// 날짜를 바꿔 저장하면 onSave(data, 바꾼 day)로 넘겨서 TripDetail이 다른 날로 옮김(v1.0.24~)
+const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOptions = [] }) => {
     const [formData, setFormData] = useState({
         time: '',
         endTime: '',
@@ -16,6 +33,11 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+    const [targetDay, setTargetDay] = useState(day);
+    // 새 일정(schedule === null)에만 "링크로 자동 채우기"(v1.0.24~) — 후보에서 옮겨 온 일정은 이미 채워져 있어 안 띄움
+    const isNew = !schedule;
+    const linkFill = useLinkFill();
+    const [linkCollapsed, toggleLinkCollapsed] = useLinkFillCollapsed();
 
     useEffect(() => {
         setShowDeleteConfirm(false);
@@ -39,7 +61,31 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
             });
         }
         setErrors({});
+        linkFill.reset();
+        // eslint-disable-next-line react-hooks/exhaustive-deps -- 모달 대상이 바뀔 때만 링크 카드 초기화
     }, [schedule]);
+
+    // 링크 정보 → 제목·위치·설명의 빈 칸만 채움(일정엔 사진 칸이 없어 대표 사진은 안 씀)
+    const applyPreview = (preview) => {
+        const values = { title: preview.title, location: preview.address, description: preview.description };
+        const next = fillEmpty(formData, values);
+        setFormData(prev => fillEmpty(prev, values));
+        return Object.keys(values).some(f => next[f] !== formData[f]);
+    };
+
+    // 네이버지도 등 공유 문구를 붙여넣으면 링크/제목/위치로 나눠 넣음
+    const handleLinkPaste = (e) => {
+        const parsed = parseSharedText(e.clipboardData?.getData('text'));
+        if (!parsed) return;
+        e.preventDefault();
+        linkFill.setUrl(parsed.url || '');
+        setFormData(prev => fillEmpty(prev, { title: parsed.title, location: parsed.address }));
+    };
+
+    // 모달을 열 때마다 날짜는 지금 보고 있는 Day로 초기화
+    useEffect(() => {
+        if (isOpen) setTargetDay(day);
+    }, [isOpen, day, schedule]);
 
     const validateForm = () => {
         const newErrors = {};
@@ -61,13 +107,18 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
         if (!validateForm()) return;
         setLoading(true);
         try {
+            // 일정엔 링크 칸이 없어서, 후보→일정 옮기기와 같은 방식으로 링크를 설명 끝에 남김(이미 들어 있으면 그대로)
+            const description = isNew && linkFill.link && !formData.description.includes(linkFill.link)
+                ? [formData.description.trim(), linkFill.link].filter(Boolean).join('\n')
+                : formData.description;
             const scheduleData = {
                 ...formData,
+                description,
                 cost: formData.cost ? parseInt(removeCommas(formData.cost)) : 0,
                 completed: schedule?.completed || false
             };
             if (schedule?.id) scheduleData.id = schedule.id;
-            await onSave(scheduleData);
+            await onSave(scheduleData, targetDay);
         } catch (error) {
             console.error('Error saving schedule:', error);
             toast.error('일정 저장 중 오류가 발생했습니다.');
@@ -102,6 +153,53 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete }) => {
 
                 <form onSubmit={handleSubmit}>
                     <div className="schedule-modal-body">
+                        {isNew && (
+                            <>
+                                <LinkFillCard
+                                    url={linkFill.url}
+                                    status={linkFill.status}
+                                    changed={linkFill.changed}
+                                    fetching={linkFill.fetching}
+                                    canFetch={linkFill.canFetch}
+                                    onChangeUrl={linkFill.changeUrl}
+                                    onPasteUrl={handleLinkPaste}
+                                    onFetch={() => linkFill.fetchInto(applyPreview)}
+                                    onEdit={linkFill.edit}
+                                    description="네이버지도 등 공유 링크로 제목·위치·설명을 채워요"
+                                    collapsed={linkCollapsed}
+                                    onToggleCollapse={toggleLinkCollapsed}
+                                    elapsed={linkFill.elapsed}
+                                    onCancel={linkFill.cancel}
+                                />
+                                {linkFill.status !== 'filled' && !linkCollapsed && (
+                                    <div className="ofs-divider">
+                                        <span />{linkFill.status === 'failed' ? '직접 입력' : '또는 직접 입력'}<span />
+                                    </div>
+                                )}
+                            </>
+                        )}
+                        {dayOptions.length > 1 && (
+                            <div className="schedule-modal-form-group">
+                                <label className="schedule-modal-form-label" htmlFor="schedule-day">
+                                    날짜
+                                </label>
+                                <select
+                                    id="schedule-day"
+                                    className="schedule-modal-select"
+                                    value={targetDay}
+                                    onChange={(e) => setTargetDay(Number(e.target.value))}
+                                >
+                                    {dayOptions.map((o) => (
+                                        <option key={o.day} value={o.day}>{o.label}</option>
+                                    ))}
+                                </select>
+                                {schedule?.id && targetDay !== day && (
+                                    <span className="schedule-modal-hint">
+                                        저장하면 Day {day}에서 Day {targetDay}로 옮겨져요
+                                    </span>
+                                )}
+                            </div>
+                        )}
                         <div className="schedule-modal-form-row">
                             <div className="schedule-modal-form-group">
                                 <label className="schedule-modal-form-label" htmlFor="schedule-time">

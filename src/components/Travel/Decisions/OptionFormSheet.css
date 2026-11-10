@@ -338,6 +338,60 @@
 
 .ofs-input.lfc-input { border-color: rgba(255, 155, 172, 0.55); }
 
+/* 접기(v1.0.24~) — 펼친 카드 머리의 [접기], 접힌 한 줄 카드 */
+.lfc-head-text { flex: 1; min-width: 0; }
+
+.lfc-toggle {
+    flex-shrink: 0;
+    align-self: flex-start;
+    border: none;
+    background: none;
+    padding: 4px 2px;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.lfc-toggle-text {
+    display: inline-flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #ff8fa3;
+    white-space: nowrap;
+}
+
+.lfc-collapsed {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 9px 12px;
+    border-radius: 12px;
+    border: 1px dashed rgba(255, 155, 172, 0.6);
+    background: #fff8f9;
+    cursor: pointer;
+    font-family: inherit;
+    text-align: left;
+}
+
+.lfc-collapsed-icon {
+    display: flex;
+    color: #FF6B6B;
+}
+
+.lfc-collapsed-title {
+    flex: 1;
+    font-size: 14px;
+    color: #495057;
+}
+
+.lfc-toggle:focus-visible,
+.lfc-collapsed:focus-visible {
+    outline: 2px solid #ff9bac;
+    outline-offset: 2px;
+}
+
 .lfc-fetch {
     height: 40px;
     border-radius: 10px;
@@ -361,6 +415,92 @@
 }
 
 .lfc-fetch.retry:disabled { opacity: 0.6; }
+
+/* 불러오는 중(v1.0.24~) — 예전엔 비활성처럼 흐려지기만 해서 멈춘 것 같았음: 원래 색 유지 + 돌아가는 표시 + 진행 막대 */
+.lfc-fetch {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+
+.lfc-fetch.fetching:disabled {
+    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    color: #ffffff;
+    cursor: progress;
+}
+
+.lfc-spinner {
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    border: 2px solid rgba(255, 255, 255, 0.45);
+    border-top-color: #ffffff;
+    animation: lfc-spin 0.8s linear infinite;
+}
+
+@keyframes lfc-spin { to { transform: rotate(360deg); } }
+
+.lfc-progress {
+    display: flex;
+    flex-direction: column;
+    gap: 6px;
+}
+
+.lfc-progress-bar {
+    position: relative;
+    height: 3px;
+    border-radius: 2px;
+    background: rgba(255, 155, 172, 0.25);
+    overflow: hidden;
+}
+
+.lfc-progress-bar span {
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    width: 35%;
+    border-radius: 2px;
+    background: #ff8fa3;
+    animation: lfc-indeterminate 1.3s ease-in-out infinite;
+}
+
+@keyframes lfc-indeterminate {
+    0% { left: -35%; }
+    100% { left: 100%; }
+}
+
+.lfc-progress-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    gap: 8px;
+}
+
+.lfc-progress-text {
+    font-size: 12px;
+    color: #6C757D;
+    min-width: 0;
+}
+
+.lfc-cancel {
+    flex-shrink: 0;
+    border: none;
+    background: none;
+    padding: 2px 0;
+    font-family: inherit;
+    font-size: 12px;
+    font-weight: 600;
+    color: #e0606f;
+    text-decoration: underline;
+    text-underline-offset: 2px;
+    cursor: pointer;
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .lfc-spinner,
+    .lfc-progress-bar span { animation-duration: 3s; }
+}
 
 .lfc-fail {
     background: #fff8e8;

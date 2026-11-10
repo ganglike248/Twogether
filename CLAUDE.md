@@ -729,6 +729,24 @@ utils/
 있던 목록 전체로 덮어써서 동시 추가 시 한쪽이 사라졌음, 에뮬레이터로 재현). 단 그날의 첫 일정(문서 없음)은 규칙상
 없는 문서를 트랜잭션으로 읽을 수 없어(read가 `resource.data.tripId` 참조 → permission-denied) 결정론적 ID
 `setDoc`로 씀. 일정 수정 시 `completed`는 모달 값이 아니라 서버 최신 값을 유지.
+**일정을 다른 날로 옮기기**(v1.0.24~, `tripService.moveTripSchedule` — 일정 모달의 "날짜" 선택): 날마다 문서가 달라 한 트랜잭션으로
+못 묶으므로 **옮길 날에 먼저 추가 → 원래 날에서 제거** 순서(중간 실패 시 사라지지 않고 양쪽에 남게). 완료 여부·`sourceOptionId`는
+원래 날의 서버 최신 항목에서 가져가고, 원래 날에서 그 일정이 낀 `travelTimes`(같은 날 A→B 짝)는 지움. 새 일정은 고른 날에 바로 추가되고
+화면도 그날로 이동, 기존 일정을 옮길 땐 연달아 옮길 수 있게 화면은 원래 날에 머무름.
+**새 일정에도 "링크로 자동 채우기"**(v1.0.24~): `ScheduleModal`이 선택 사항과 같은 `LinkFillCard`를 재사용(스타일은
+`Decisions/OptionFormSheet.css`를 import), 상태는 `hooks/useLinkFill.js`. 제목·위치·설명의 빈 칸만 채우고(사진 칸 없음),
+일정엔 링크 칸이 없어 저장 시 링크를 설명 끝에 붙임(후보→일정 옮기기와 같은 방식). 후보에서 옮겨 온 일정(이미 채워짐)엔 안 띄움.
+링크 카드는 접을 수 있음(사용자 요청) — 접힘 여부는 `hooks/useLinkFillCollapsed.js`가 로컬스토리지 `twogether_link_fill_collapsed`에
+기억하고 후보 추가·일정 추가가 공유, 접혀 있으면 "또는 직접 입력" 구분선도 숨김. 일정의 시간은 칩/배경 없이 분홍(#e64980) 굵은 글씨로
+제목 위 줄에 표시(배경 칩은 빼달라는 피드백으로 제거).
+**정보 불러오기 진행 표시**: 서버가 링크 페이지를 직접 열어 콜드 스타트 포함 10초+ 걸릴 수 있는데 예전엔 버튼이 흐려지기만 해서 "멈춘 것
+같다"는 피드백 → `useLinkFill`(후보 추가 `OptionFormSheet`도 이제 이 훅을 씀, `{ url, onUrlChange }`로 폼 값 연결)이 경과 초를 내보내고
+카드가 돌아가는 표시·진행 막대·단계 문구(0~3초/3~8초/8초~)를 보여줌. [직접 입력할게요]로 취소 가능, 20초 넘으면 실패 처리 — 콜러블은
+중간에 못 끊어서 취소·시간 초과 뒤 늦게 온 응답은 요청 번호(runRef)로 무시.
+**여행 상세의 우측 아래 + 버튼(FloatingActionMenu, 56px 고정)**: `.trip-detail-container`의 `padding-bottom: calc(56px + 2rem)`이
+모든 탭의 마지막 요소를 버튼 위로 올릴 공간을 만듦(예전엔 체크리스트 탭에만 있어서 일정·선택 사항 맨 아래가 가려 눌리지 않았음).
+**선택 사항 카드 가로 줄은 스크롤바를 숨김** → PC 마우스로는 넘길 방법이 없어서 `(hover: hover) and (pointer: fine)`에서만 ‹ › 버튼
+(`DecisionSection`의 `dsec-arrow`)을 띄움. 휠을 가로로 바꾸는 방식은 페이지 세로 스크롤을 빼앗아서 안 씀.
 `EditLogModal`의 생성/수정/삭제 필터는 매칭이 10개 모일 때까지 다음 페이지를 이어 읽음(최대 20페이지) —
 예전엔 첫 10건만 화면에서 걸러서 기록이 있어도 "없습니다"로 보였음. 반복 일정 요약 로그(`recurrence_*`)는
 같은 성격의 필터에 포함되고 한글 라벨로 표시. 같은 파일의 `updateOption`은
@@ -1122,6 +1140,9 @@ Capacitor 플러그인은 리플렉션 호출이지만 `@capacitor/android`의 c
   563+95개가 `recaptcha`의 `-keep class com.google.android.recaptcha.**`/Play Integrity 규칙 때문(둘 다 네이티브 구글 로그인 플러그인
   `@capacitor-firebase/authentication`이 끌고 옴). 올리려면 그 라이브러리 규칙을 무시하고 직접 좁은 규칙을 쓰거나(구글 로그인이 실기기에서
   깨질 위험) 구글 로그인 플러그인을 firebase-auth 없는 것으로 바꿔야 함 — 권장 조치일 뿐 기한 있는 정책 경고가 아니라 보류(2026-11-06).
+- Play Console "네이티브 코드를 포함하며 디버그 기호가 업로드되지 않았습니다" 경고(versionCode 31~)는 **해결 불가, 무시해도 됨** —
+  번들의 유일한 네이티브 코드가 androidx.datastore의 `libdatastore_shared_counter.so`(Firebase 의존성)인데 구글이 이미 strip해서
+  배포해 기호가 없음. `ndk { debugSymbolLevel 'SYMBOL_TABLE' }`은 넣어뒀지만 추출 결과가 비어 있음(향후 기호 있는 네이티브 플러그인 대비).
 - R8은 릴리즈 빌드에만 적용되므로 디버그 빌드/에뮬레이터 확인만으로는 검증이 안 됨 — 스토어 배포 전
   **내부 테스트 트랙**으로 실기기에서 구글 로그인·푸시·인앱 업데이트·뒤로가기를 한 번씩 확인할 것.
 

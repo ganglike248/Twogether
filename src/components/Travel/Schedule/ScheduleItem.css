@@ -47,17 +47,23 @@
     min-width: 0;
 }
 
+/* 시간 칩 위, 제목 아래(v1.0.24~ 사용자 요청) */
 .tl-headline {
     display: flex;
-    align-items: baseline;
-    gap: 8px;
-    flex-wrap: wrap;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
 }
 
+/* 시간(v1.0.24~) — 예전엔 제목과 같은 색의 13px 일반 글씨라 눈에 안 띈다는 피드백으로 앱 대표색 계열의 굵은 글씨로.
+   한때 연분홍 배경 칩이었다가 배경은 빼달라는 피드백으로 글씨만 남김 */
 .tl-time {
+    color: #e64980;
     font-size: 13px;
-    color: #343A40;
+    font-weight: 700;
+    line-height: 1.4;
     white-space: nowrap;
+    font-variant-numeric: tabular-nums;
 }
 
 .tl-title {
@@ -129,8 +135,11 @@
     text-decoration: line-through;
 }
 
-.tl-item-done .tl-time,
 .tl-item-done .tl-desc {
+    color: #ADB5BD;
+}
+
+.tl-item-done .tl-time {
     color: #ADB5BD;
 }
 

@@ -244,3 +244,39 @@
     max-width: 100%;
     -webkit-min-logical-width: 100%;
 }
+
+/* 날짜(Day) 선택 — 입력칸과 같은 테두리/크기(iOS 확대 방지 16px) */
+.schedule-modal-select {
+    width: 100%;
+    padding: 0.6rem 0.75rem;
+    border: 1.5px solid rgba(255, 182, 193, 0.35);
+    border-radius: 0.625rem;
+    font-size: 16px;
+    background: white;
+    color: #343A40;
+    outline: none;
+    box-sizing: border-box;
+    font-family: inherit;
+}
+
+.schedule-modal-select:focus {
+    border-color: #ffb6c1;
+}
+
+.schedule-modal-hint {
+    display: block;
+    margin-top: 0.35rem;
+    font-size: 0.78rem;
+    color: #ff6b6b;
+}
+
+/* 새 일정의 "링크로 자동 채우기" 카드(LinkFillCard, 스타일은 OptionFormSheet.css) — 아래 입력칸들과 간격 */
+.schedule-modal-body > .lfc,
+.schedule-modal-body > .lfc-done,
+.schedule-modal-body > .lfc-collapsed {
+    margin-bottom: 0.9rem;
+}
+
+.schedule-modal-body > .ofs-divider {
+    margin: 0 0 1rem;
+}

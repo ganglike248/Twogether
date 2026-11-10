@@ -211,6 +211,39 @@ export const mutateTripSchedule = async (tripId, day, mutate) => {
   });
 };
 
+// 일정 하나를 다른 날(Day)로 옮김(v1.0.24~) — 예전엔 날짜를 바꿀 방법이 없어 옮기려면 지우고 다시 입력해야 했음.
+// 날마다 문서가 따로라(tripSchedules: tripId+day) 두 문서를 한 트랜잭션으로 묶을 수 없음(옮길 날 문서가 아직 없으면
+// 규칙상 트랜잭션으로 읽을 수도 없음) → **옮길 날에 먼저 추가하고 그다음 원래 날에서 뺌**: 중간에 실패해도 일정이 사라지지
+// 않고 양쪽에 남는 쪽이 나음. 완료 여부·sourceOptionId 등 폼에 없는 값은 원래 날의 서버 최신 항목에서 그대로 가져감.
+// 이동시간(travelTimes)은 "같은 날의 일정A→일정B" 짝이라 원래 날에서 이 일정이 끼어 있던 것은 지움(안 지우면 고아 데이터).
+export const moveTripSchedule = async (tripId, fromDay, toDay, scheduleData) => {
+  if (fromDay === toDay) throw new Error('같은 날로는 옮길 수 없습니다.');
+  const { id } = scheduleData;
+
+  // 원래 날의 서버 최신 항목(완료 여부 등) — 없으면(그 사이 상대가 지움) 옮길 게 없음
+  const fromSnap = await getDocs(query(
+    collection(db, 'tripSchedules'), where('tripId', '==', tripId), where('day', '==', fromDay),
+  ));
+  const original = fromSnap.empty ? null : (fromSnap.docs[0].data().schedules || []).find(s => s.id === id);
+  if (!original) throw new Error('옮길 일정을 찾을 수 없어요. 이미 삭제됐을 수 있어요.');
+
+  const moved = { ...original, ...scheduleData, completed: original.completed };
+  await mutateTripSchedule(tripId, toDay, (current) => (
+    current.some(s => s.id === id) ? current.map(s => (s.id === id ? moved : s)) : [...current, moved]
+  ));
+  await mutateTripSchedule(tripId, fromDay, (current) => current.filter(s => s.id !== id));
+
+  const timesSnap = await getDocs(query(
+    collection(db, 'travelTimes'), where('tripId', '==', tripId), where('day', '==', fromDay),
+  ));
+  const stale = timesSnap.docs.filter(d => d.data().fromScheduleId === id || d.data().toScheduleId === id);
+  if (stale.length) {
+    const batch = writeBatch(db);
+    stale.forEach(d => batch.delete(d.ref));
+    await batch.commit();
+  }
+};
+
 export const subscribeToTripSchedules = (tripId, callback) => {
   const q = query(collection(db, 'tripSchedules'), where('tripId', '==', tripId));
   return onSnapshot(q, (querySnapshot) => {
