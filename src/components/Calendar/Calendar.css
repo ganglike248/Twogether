@@ -1,13 +1,10 @@
 /* src/components/Calendar/Calendar.css */
 
-:root {
-  --color-primary: #ffb6b9;
-  --color-primary-light: #ffeaea;
-  --color-primary-dark: #ff6f91;
-  --color-couple: #ffd6e0;
-  --color-girlfriend: #b5ead7;
-  --color-boyfriend: #c7ceea;
-  --color-trip: #e8d7f1;
+/* ⚠ 예전엔 여기가 :root였음 — 캘린더는 지연 로딩 청크라, 캘린더를 한 번 열면 그때부터 앱 전체의
+   --color-primary·회색 변수가 이 값으로 바뀌어 화면마다 색이 달라 보였음(v1.0.26 수정).
+   주 색은 index.css로 통일했고, 커플·개인 색은 useColorSync가 html 인라인으로 덮어써서 여기 값이 원래 무의미했음.
+   캘린더 고유의 회색 톤만 캘린더 안으로 범위를 좁혀 유지. 전역 변수를 여기서 :root로 다시 정의하지 말 것. */
+.calendar-container {
   --color-gray-100: #f8f9fa;
   --color-gray-200: #ececec;
   --color-gray-300: #e0e0e0;
@@ -196,7 +193,7 @@
 
 /* 요일 헤더 주말 색상 */
 .fc .fc-col-header-cell.fc-day-sun .fc-col-header-cell-cushion {
-  color: #ffb6b9;
+  color: var(--color-primary-dark);
 }
 .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
   color: #7ec8e3;
@@ -224,7 +221,7 @@
 
 /* 주말 색상 */
 .fc-day-sat .fc-daygrid-day-number { color: #7ec8e3; }
-.fc-day-sun .fc-daygrid-day-number { color: #ffb6b9; }
+.fc-day-sun .fc-daygrid-day-number { color: var(--color-primary-dark); }
 
 /* 공휴일·커플기념일 날짜 숫자 색상 */
 .fc .day-holiday .fc-daygrid-day-number { color: #f08090 !important; }

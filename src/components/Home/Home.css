@@ -67,7 +67,7 @@
 .hero-img-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(160deg, #ffd6e0 0%, #ffb6c1 50%, #ffc8d4 100%);
+  background: linear-gradient(160deg, #ffd6e0 0%, var(--color-primary) 50%, #ffc8d4 100%);
   border-radius: 8px;
   display: flex;
   flex-direction: column;
@@ -531,7 +531,7 @@
 
 .bucket-preview-bar-fill {
   height: 100%;
-  background: linear-gradient(90deg, #ffb6b9, #ff6b91);
+  background: var(--color-primary);
   border-radius: 999px;
   transition: width 0.5s ease;
 }

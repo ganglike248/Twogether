@@ -29,7 +29,7 @@
   align-items: center;
   font-size: 1rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #ff6b6b, #ffb6c1);
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -59,7 +59,7 @@
 }
 
 .app-header-heart {
-  color: #ffb6c1;
+  color: var(--color-primary);
   font-size: 1.25rem;
   animation: heartbeat 2s ease-in-out infinite;
 }
@@ -67,7 +67,7 @@
 .app-header-dday {
   font-size: 0.85rem;
   font-weight: 700;
-  color: #ffb6c1;
+  color: var(--color-primary);
   letter-spacing: -0.01em;
 }
 
@@ -75,7 +75,7 @@
   background: none;
   border: none;
   cursor: pointer;
-  color: #ffb6c1;
+  color: var(--color-primary);
   font-size: 1.5rem;
   display: flex;
   align-items: center;

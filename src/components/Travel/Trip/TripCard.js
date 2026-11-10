@@ -79,14 +79,14 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                         }}
                         title="삭제"
                     >
-                        <MdDelete color="#ff6b6b" />
+                        <MdDelete color="var(--color-danger)" />
                     </button>
                 </div>
             </div>
 
             <div className="trip-card-content">
                 <h3 className="trip-card-title">{trip.title}</h3>
-                <p className="trip-card-destination"><MdLocationOn className="trip-card-location-icon" color="#ff6b6b" />{trip.destination}</p>
+                <p className="trip-card-destination"><MdLocationOn className="trip-card-location-icon" color="var(--color-primary)" />{trip.destination}</p>
 
                 <div className="trip-card-dates">
                     <span className="trip-card-date-range">

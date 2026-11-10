@@ -8,7 +8,7 @@ import './TutorialSlides.css';
 const SLIDES = [
   {
     Icon: HiHeart,
-    iconColor: '#ff6b6b',
+    iconColor: 'var(--color-primary)',
     title: '홈 화면',
     points: [
       'D+day와 연애 기간을 한눈에 확인',

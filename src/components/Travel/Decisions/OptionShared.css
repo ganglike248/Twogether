@@ -102,7 +102,7 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    background: #ff6b6b;
+    background: var(--color-primary);
     color: #ffffff;
     font-size: 13px;
     display: flex;
@@ -122,7 +122,7 @@
 
 .op-badge-rank.first {
     border-color: transparent;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
     color: #ffffff;
 }
 
@@ -167,7 +167,7 @@
     color: #495057;
 }
 
-.osb-total.highlight { color: #FF6B6B; }
+.osb-total.highlight { color: var(--color-primary-dark); }
 
 .osb-total-max {
     font-size: 10px;

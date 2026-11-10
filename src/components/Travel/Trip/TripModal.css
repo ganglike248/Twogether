@@ -80,7 +80,7 @@
 }
 
 .trip-modal-required {
-    color: #ff6b6b;
+    color: var(--color-danger);
 }
 
 .trip-modal-form-group input,
@@ -98,13 +98,13 @@
 
 .trip-modal-form-group input:focus,
 .trip-modal-form-group textarea:focus {
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
 }
 
 .trip-modal-form-group input.trip-modal-error,
 .trip-modal-form-group textarea.trip-modal-error {
-    border-color: #ff6b6b;
+    border-color: var(--color-danger);
 }
 
 .trip-modal-form-group textarea {
@@ -120,7 +120,7 @@
 
 .trip-modal-error-text {
     display: block;
-    color: #ff6b6b;
+    color: var(--color-danger);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
@@ -161,7 +161,8 @@
 }
 
 .trip-modal-btn-primary {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
 }
 
@@ -187,7 +188,7 @@
 }
 
 .trip-modal-form-select:focus {
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
 }
 

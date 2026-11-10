@@ -684,7 +684,8 @@
 
 /* 스핀 버튼 */
 .slot-spin-btn {
-  background: linear-gradient(135deg, #FF6B9D 0%, #FF5285 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   border: none;
   border-radius: 12px;
@@ -764,7 +765,8 @@
 }
 
 .step-next-btn {
-  background: linear-gradient(135deg, #FF6B9D 0%, #FF5285 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   box-shadow: 0 2px 8px rgba(255, 107, 157, 0.3);
 }

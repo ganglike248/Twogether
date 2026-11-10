@@ -51,7 +51,8 @@
   padding: 0.55rem 0.9rem;
   border: none;
   border-radius: 0.9rem;
-  background: linear-gradient(135deg, var(--main-lavender) 0%, #a39ece 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   font-size: 0.85rem;
   font-weight: 700;

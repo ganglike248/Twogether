@@ -1,8 +1,9 @@
 import React from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { HiInformationCircle } from 'react-icons/hi2';
+import { HiInformationCircle, HiUserCircle, HiChevronRight } from 'react-icons/hi2';
 import { MdPalette, MdNotifications, MdBackup } from 'react-icons/md';
 import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
+import { MenuPageHeader } from '../common/MenuPage';
 import './SettingsPage.css';
 
 const SettingsPage = () => {
@@ -26,48 +27,51 @@ const SettingsPage = () => {
     }
   };
 
+  // 카드마다 한 줄 설명을 붙여 크기를 키움 — 예전엔 얇은 버튼 4개만 있어 화면 아래가 텅 비어 보였음
+  const groups = [
+    {
+      label: '계정',
+      items: [
+        { key: 'account', Icon: HiUserCircle, color: '#748ffc', title: '계정', desc: '로그인 정보 · 비밀번호 · 연결된 계정 · 로그아웃', onClick: () => navigate('/account') },
+      ],
+    },
+    {
+      label: '앱 설정',
+      items: [
+        { key: 'colors', Icon: MdPalette, color: '#cc5de8', title: '이벤트 색상 설정', desc: '커플·나·상대 일정의 색을 바꿔요', onClick: () => openModal('colors') },
+        { key: 'notifications', Icon: MdNotifications, color: '#ff8787', title: '알림 설정', desc: '어떤 알림을 받을지 종류별로 정해요', onClick: () => navigate('/notification-settings') },
+        { key: 'backup', Icon: MdBackup, color: '#4dabf7', title: '데이터 백업', desc: '우리 기록을 파일로 저장하고 되살려요', onClick: () => navigate('/data-backup') },
+      ],
+    },
+    {
+      label: '도움말',
+      items: [
+        { key: 'intro', Icon: HiInformationCircle, color: '#69db7c', title: '앱 소개 다시 보기', desc: '우리두리의 주요 기능을 다시 둘러봐요', onClick: () => navigate('/', { replace: true, state: { showTutorial: true } }) },
+      ],
+    },
+  ];
+
   return (
-    <div className="settings-page">
-      <p className="profile-section-label" style={{ marginTop: 0, marginBottom: '1rem' }}>설정</p>
+    <div className="settings-page menu-page">
+      <MenuPageHeader title="설정" />
 
-      {/* 이벤트 색상 설정 */}
-      <button
-        className="profile-cycle-btn"
-        onClick={() => openModal('colors')}
-      >
-        <MdPalette className="profile-cycle-btn-icon" color="#cc5de8" />
-        <span className="profile-cycle-btn-text">이벤트 색상 설정</span>
-        <span className="profile-cycle-btn-arrow">›</span>
-      </button>
-
-      {/* 알림 설정 */}
-      <button
-        className="profile-cycle-btn"
-        onClick={() => navigate('/notification-settings')}
-      >
-        <MdNotifications className="profile-cycle-btn-icon" color="#ff8787" />
-        <span className="profile-cycle-btn-text">알림 설정</span>
-        <span className="profile-cycle-btn-arrow">›</span>
-      </button>
-
-      {/* 데이터 백업 (내보내기/가져오기) */}
-      <button
-        className="profile-cycle-btn"
-        onClick={() => navigate('/data-backup')}
-      >
-        <MdBackup className="profile-cycle-btn-icon" color="#4dabf7" />
-        <span className="profile-cycle-btn-text">데이터 백업</span>
-        <span className="profile-cycle-btn-arrow">›</span>
-      </button>
-
-      {/* 앱 소개 다시보기 */}
-      <button
-        className="profile-onboarding-btn"
-        onClick={() => navigate('/', { replace: true, state: { showTutorial: true } })}
-      >
-        <HiInformationCircle className="profile-onboarding-icon" />
-        앱 소개 다시 보기
-      </button>
+      {groups.map(group => (
+        <section key={group.label} className="settings-group">
+          <h2 className="settings-group-label">{group.label}</h2>
+          {group.items.map(({ key, color, title, desc, onClick, Icon: icon }) => (
+            <button key={key} type="button" className="settings-item" onClick={onClick}>
+              <span className="settings-item-icon" style={{ color, background: `${color}1f` }} aria-hidden="true">
+                {React.createElement(icon)}
+              </span>
+              <span className="settings-item-text">
+                <span className="settings-item-title">{title}</span>
+                <span className="settings-item-desc">{desc}</span>
+              </span>
+              <HiChevronRight className="settings-item-arrow" aria-hidden="true" />
+            </button>
+          ))}
+        </section>
+      ))}
 
       <EventTypeColorSettingsModal
         isOpen={showColorModal}

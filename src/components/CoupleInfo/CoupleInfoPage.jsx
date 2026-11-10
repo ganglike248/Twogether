@@ -9,6 +9,7 @@ import { toast } from 'react-toastify';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import LeaveCoupleModal from '../Account/LeaveCoupleModal';
 import '../Account/account.css';
+import { MenuPageHeader } from '../common/MenuPage';
 import './CoupleInfoPage.css';
 
 const CoupleInfoPage = () => {
@@ -120,8 +121,8 @@ const CoupleInfoPage = () => {
   };
 
   return (
-    <div className="couple-info-page">
-      <p className="couple-info-section-label" style={{ marginTop: '0.875rem', marginBottom: '1rem' }}>커플 정보</p>
+    <div className="couple-info-page menu-page">
+      <MenuPageHeader title="커플 정보" />
 
       {/* 내 정보 + 파트너 (2열) */}
       <div className="couple-info-members-row">

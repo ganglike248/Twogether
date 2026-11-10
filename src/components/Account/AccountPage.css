@@ -1,0 +1,48 @@
+/* src/components/Account/AccountPage.css — 설정 → 계정 */
+.account-page {
+  padding: 0 1rem 5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.account-info-row {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.55rem 0;
+  font-size: 0.9rem;
+}
+
+.account-info-row + .account-info-row {
+  border-top: 1px dashed var(--card-border);
+}
+
+.account-info-label {
+  color: var(--color-text-desc);
+  flex-shrink: 0;
+}
+
+.account-info-value {
+  color: var(--color-gray-800);
+  text-align: right;
+  overflow-wrap: anywhere;
+}
+
+.account-logout-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.4rem;
+  width: 100%;
+  min-height: 48px;
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+  font-family: inherit;
+  font-size: 0.95rem;
+  color: var(--color-gray-700);
+  cursor: pointer;
+}

@@ -153,7 +153,7 @@
 .sm-time-warning {
   margin: 0;
   font-size: 0.78rem;
-  color: #ff6b6b;
+  color: var(--color-danger);
   font-weight: 600;
 }
 
@@ -197,7 +197,7 @@
 .sm-image-remove {
   background: none;
   border: none;
-  color: #ff6b6b;
+  color: var(--color-danger);
   font-size: 0.8rem;
   cursor: pointer;
 }
@@ -224,7 +224,8 @@
 }
 
 .sm-btn-primary {
-  background: linear-gradient(135deg, var(--main-lavender) 0%, #a39ece 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
 }
 
@@ -249,7 +250,8 @@
 }
 
 .sm-btn-unlock {
-  background: linear-gradient(135deg, #ffb6c1 0%, #ff8fa3 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
 }
 
@@ -300,7 +302,7 @@
   margin-top: 0.25rem;
   background: none;
   border: none;
-  color: #ff6b6b;
+  color: var(--color-danger);
   font-size: 0.8rem;
   font-weight: 500;
   cursor: pointer;

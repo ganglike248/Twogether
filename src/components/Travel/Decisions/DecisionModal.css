@@ -108,7 +108,7 @@
 .dm-input:focus,
 .dm-select:focus {
     outline: none;
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
 }
 
@@ -144,8 +144,8 @@
 .dm-remove-btn {
     padding: 0.35rem 0.75rem;
     background: white;
-    border: 1px solid #ff6b6b;
-    color: #ff6b6b;
+    border: 1px solid var(--color-danger);
+    color: var(--color-danger);
     border-radius: 0.4rem;
     font-size: 0.75rem;
     cursor: pointer;
@@ -163,7 +163,7 @@
 
 .dm-add-option-btn {
     padding: 0.75rem;
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.2) 0%, rgba(255, 155, 172, 0.1) 100%);
+    background: var(--color-primary-light);
     border: 1px dashed rgba(255, 182, 193, 0.5);
     border-radius: 0.5rem;
     color: #ff6b9d;
@@ -174,8 +174,8 @@
 }
 
 .dm-add-option-btn:hover {
-    border-color: #ffb6c1;
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.3) 0%, rgba(255, 155, 172, 0.15) 100%);
+    border-color: var(--color-primary);
+    background: rgba(255, 182, 193, 0.3);
 }
 
 /* 액션 버튼 */
@@ -210,7 +210,8 @@
 }
 
 .dm-btn.submit {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
 }
 

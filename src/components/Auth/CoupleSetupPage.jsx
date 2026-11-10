@@ -1,29 +1,33 @@
 // src/components/Auth/CoupleSetupPage.jsx
 import React, { useState, useEffect } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
-import { HiHeart, HiClipboardDocument, HiCheck } from 'react-icons/hi2';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
+import { HiHeart } from 'react-icons/hi2';
 import { createCouple, joinCouple, signOut } from '../../services/authService';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { getLocalDateStr } from '../../utils/dataUtils';
 import NotificationPrimingModal from '../common/NotificationPrimingModal';
 import ConfirmModal from '../common/ConfirmModal';
 import FormerCouplesPanel from '../Account/FormerCouplesPanel';
 import CoupleEndedNoticeModal from '../Account/CoupleEndedNoticeModal';
 import useFormerCouples from '../../hooks/useFormerCouples';
 import NicknameStep from './NicknameStep';
+import CoupleChoiceStep from './CoupleChoiceStep';
+import InviteStep from './InviteStep';
+import JoinStep from './JoinStep';
+import './AuthFlow.css';
 import '../Account/account.css';
 import './CoupleSetupPage.css';
 
 const CoupleSetupPage = () => {
   const { user, userDoc, coupleDoc, loading: authLoading } = useAuthContext();
   const navigate = useNavigate();
-  const [tab, setTab] = useState('create'); // 'create' | 'join'
+  // 단계는 URL(?step=invite|join)로 — 안드로이드 뒤로가기가 이전 단계로 돌아가도록(로그인 흐름과 같은 방식)
+  const [searchParams, setSearchParams] = useSearchParams();
+  const stepParam = searchParams.get('step');
   const [anniversaryDate, setAnniversaryDate] = useState('');
   const [inviteCode, setInviteCode] = useState('');
   const [generatedCode, setGeneratedCode] = useState('');
   const [formLoading, setFormLoading] = useState(false);
   const [error, setError] = useState('');
-  const [copied, setCopied] = useState(false);
   const [connected, setConnected] = useState(false);
   // 연결 해제 후 30일 보관 중인 이전 커플 — 취소/기록 저장 카드, 새 커플 시작 전 경고에 씀
   const { couples: formerCouples, loading: formerLoading, reload: reloadFormer } = useFormerCouples(!!user);
@@ -58,19 +62,31 @@ const CoupleSetupPage = () => {
   // 이미 커플 연결 완료된 사용자 → 홈으로
   if (!authLoading && user && coupleDoc?.members?.length >= 2 && !generatedCode) return <Navigate to="/" replace />;
 
-  // 첫 실행 닉네임 단계 — 닉네임을 확정한 적 없고, 아직 커플을 만들지도 않았고, 예전 커플 기록도 없는
-  // 사용자만. 이미 커플인 기존 사용자는 이 화면에 오지 않고, 예전에 가입만 하고 연결 전인 사람은 한 번 거침(이름 미리 채워짐).
-  const needsNickname = !nicknameDone && userDoc && !userDoc.nicknameConfirmed
-    && !coupleDoc && !generatedCode && !formerLoading && formerCouples.length === 0;
-  if (needsNickname) {
-    return <NicknameStep initialName={userDoc.displayName || ''} onDone={() => setNicknameDone(true)} />;
+  // 첫 실행 닉네임 단계 — 닉네임을 확정한 적 없고 아직 커플을 만들지 않은 사용자에게 한 번(이름 미리 채워짐).
+  // 예전 커플 기록 여부(listFormerCouples, 서버 호출이라 몇 초 걸림)는 일부러 조건에서 뺌 — 그걸 기다리는 동안
+  // 선택 화면이 먼저 보였다가 닉네임 화면으로 바뀌는 깜빡임이 있었음. 연결 해제 후 다시 오는 사람도 한 번 보는 정도는 무해.
+  // ?step=nickname은 선택 화면의 뒤로 버튼으로 닉네임을 다시 고치는 경우.
+  const editingNickname = stepParam === 'nickname';
+  const needsNickname = editingNickname
+    || (!nicknameDone && userDoc && !userDoc.nicknameConfirmed && !coupleDoc && !generatedCode);
+  if (needsNickname && userDoc) {
+    // 여기서 return하므로 아래쪽 goChoice는 아직 선언 전 — 직접 이동
+    const backToChoice = () => setSearchParams(generatedCode ? { step: 'choice' } : {}, { replace: true });
+    return (
+      <NicknameStep
+        initialName={userDoc.displayName || ''}
+        onBack={editingNickname ? backToChoice : undefined}
+        onDone={() => { setNicknameDone(true); if (editingNickname) backToChoice(); }}
+      />
+    );
   }
 
-  const handleTabChange = (newTab) => {
-    setTab(newTab);
-    setError('');
-    setGeneratedCode('');
-  };
+  // 단계를 따로 지정하지 않았을 때: 이미 초대 코드를 만들어 둔 상태(새로고침·재방문 포함)면 초대 화면, 아니면 선택 화면.
+  // 코드를 만든 뒤에도 뒤로 가서 "코드를 받았어요"를 고를 수 있음(상대가 먼저 코드를 만든 경우) —
+  // 그때 내 혼자 커플은 서버 joinCoupleWithInviteCode가 정리함(v1.0.6 교차 합류 처리).
+  const step = ['invite', 'join', 'choice'].includes(stepParam) ? stepParam : (generatedCode ? 'invite' : 'choice');
+  const goStep = (next) => { setError(''); setSearchParams({ step: next }); };
+  const goChoice = () => { setError(''); setSearchParams(generatedCode ? { step: 'choice' } : {}, { replace: true }); };
 
   const doCreateCouple = async () => {
     setError('');
@@ -128,131 +144,8 @@ const CoupleSetupPage = () => {
     navigate('/login', { replace: true });
   };
 
-  const handleCopy = () => {
-    navigator.clipboard.writeText(generatedCode).then(() => {
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    });
-  };
-
-  return (
-    <div className="couple-setup-page">
-      <div className="couple-setup-container">
-        <div className="couple-setup-logo">
-          <HiHeart className="couple-setup-heart" />
-          <h1 className="couple-setup-title">우리두리</h1>
-          <p className="couple-setup-subtitle">커플 연결을 시작해요</p>
-        </div>
-
-        {!connected && formerCouples.length > 0 && (
-          <div style={{ marginBottom: '1.25rem' }}>
-            <FormerCouplesPanel couples={formerCouples} onChanged={reloadFormer} />
-          </div>
-        )}
-
-        {connected ? (
-          <div className="couple-connected">
-            <HiHeart className="couple-connected-heart" />
-            <p className="couple-connected-title">커플 연결 완료!</p>
-            <p className="couple-connected-desc">두 사람이 정상적으로 연결되었어요 💕<br />잠시 후 앱이 시작됩니다.</p>
-            <div className="couple-connected-spinner" />
-          </div>
-        ) : (
-          <>
-            <div className="couple-setup-guide">
-              <p className="couple-setup-guide-text">
-                둘 중 한 명이 <strong>새 커플 시작</strong>으로 초대 코드를 생성하고,<br />
-                나머지 한 명이 <strong>초대 코드 입력</strong>으로 연결하면 돼요.
-              </p>
-            </div>
-
-            <div className="couple-setup-tabs">
-              <button
-                className={`couple-tab${tab === 'create' ? ' active' : ''}`}
-                onClick={() => handleTabChange('create')}
-              >
-                새 커플 시작
-              </button>
-              <button
-                className={`couple-tab${tab === 'join' ? ' active' : ''}`}
-                onClick={() => handleTabChange('join')}
-              >
-                초대 코드 입력
-              </button>
-            </div>
-
-            {tab === 'create' ? (
-              <div className="couple-setup-content">
-                {!generatedCode ? (
-                  <form className="couple-setup-form" onSubmit={handleCreateCouple}>
-                    <div className="couple-setup-field">
-                      <label>연애 시작일</label>
-                      <input
-                        type="date"
-                        value={anniversaryDate}
-                        onChange={e => setAnniversaryDate(e.target.value)}
-                        // toISOString() 대신 getLocalDateStr() — KST 자정~9시 사이엔
-                        // toISOString()이 UTC 변환으로 어제 날짜를 반환해 오늘을 선택 못 하는
-                        // 버그가 있었음 (2026-08-25 발견/수정)
-                        max={getLocalDateStr()}
-                        required
-                      />
-                      <span className="couple-setup-hint">우리가 처음 만난 날을 입력해주세요</span>
-                    </div>
-                    {error && <p className="couple-setup-error">{error}</p>}
-                    <button type="submit" className="couple-setup-btn" disabled={formLoading}>
-                      {formLoading ? '생성 중...' : '초대 코드 생성'}
-                    </button>
-                  </form>
-                ) : (
-                  <div className="couple-code-result">
-                    <p className="code-result-label">초대 코드가 생성됐어요!</p>
-                    <div className="code-display">
-                      <span className="code-text">{generatedCode}</span>
-                      <button className="code-copy-btn" onClick={handleCopy}>
-                        {copied ? <HiCheck /> : <HiClipboardDocument />}
-                      </button>
-                    </div>
-                    <p className="code-result-desc">
-                      이 코드를 상대방에게 전달하세요.<br />
-                      상대방이 코드를 입력하면 커플 연결이 완료돼요.
-                    </p>
-                    <p className="code-result-waiting">⏳ 상대방의 연결을 기다리는 중...</p>
-                  </div>
-                )}
-              </div>
-            ) : (
-              <div className="couple-setup-content">
-                <form className="couple-setup-form" onSubmit={handleJoinCouple}>
-                  <div className="couple-setup-field">
-                    <label>초대 코드</label>
-                    <input
-                      type="text"
-                      value={inviteCode}
-                      onChange={e => setInviteCode(e.target.value.replace(/[^A-Za-z0-9]/g, '').toUpperCase())}
-                      placeholder="6자리 코드를 입력해주세요"
-                      maxLength={6}
-                      style={{ letterSpacing: '0.2em', textAlign: 'center', fontSize: '1.2rem' }}
-                    />
-                    <span className="couple-setup-hint">상대방이 생성한 6자리 코드를 입력하세요</span>
-                  </div>
-                  {error && <p className="couple-setup-error">{error}</p>}
-                  <button type="submit" className="couple-setup-btn" disabled={formLoading}>
-                    {formLoading ? '연결 중...' : '커플 연결하기'}
-                  </button>
-                </form>
-              </div>
-            )}
-
-            <button className="couple-setup-logout" onClick={handleLogout}>
-              로그아웃
-            </button>
-            <button className="couple-setup-logout" style={{ marginTop: '0.25rem' }} onClick={() => navigate('/delete-account')}>
-              회원 탈퇴
-            </button>
-          </>
-        )}
-      </div>
+  const modals = (
+    <>
       <NotificationPrimingModal />
       <CoupleEndedNoticeModal formerCouples={formerCouples} loading={formerLoading} />
       <ConfirmModal
@@ -266,7 +159,61 @@ const CoupleSetupPage = () => {
         onConfirm={confirmPendingAction}
         onCancel={() => setPendingAction(null)}
       />
-    </div>
+    </>
+  );
+
+  // 연결 완료 화면은 ③단계에서 새 디자인(다이어리 첫 장 + D+N)으로 교체 예정 — 지금은 기존 화면 유지
+  if (connected) {
+    return (
+      <div className="couple-setup-page">
+        <div className="couple-setup-container">
+          <div className="couple-connected">
+            <HiHeart className="couple-connected-heart" />
+            <p className="couple-connected-title">커플 연결 완료!</p>
+            <p className="couple-connected-desc">두 사람이 정상적으로 연결되었어요.<br />잠시 후 앱이 시작됩니다.</p>
+            <div className="couple-connected-spinner" />
+          </div>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <>
+      {step === 'invite' ? (
+        <InviteStep
+          code={generatedCode}
+          myName={userDoc?.displayName}
+          anniversaryDate={anniversaryDate}
+          onDateChange={setAnniversaryDate}
+          onCreate={handleCreateCouple}
+          loading={formLoading}
+          error={error}
+          onBack={goChoice}
+        />
+      ) : step === 'join' ? (
+        <JoinStep
+          code={inviteCode}
+          onCodeChange={setInviteCode}
+          onSubmit={handleJoinCouple}
+          loading={formLoading}
+          error={error}
+          onBack={goChoice}
+        />
+      ) : (
+        <CoupleChoiceStep
+          onBack={() => goStep('nickname')}
+          onInvite={() => goStep('invite')}
+          onJoin={() => goStep('join')}
+          onLogout={handleLogout}
+          onDeleteAccount={() => navigate('/delete-account')}
+          formerPanel={formerCouples.length > 0
+            ? <FormerCouplesPanel couples={formerCouples} onChanged={reloadFormer} />
+            : null}
+        />
+      )}
+      {modals}
+    </>
   );
 };
 

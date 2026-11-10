@@ -72,7 +72,7 @@
   margin-top: 0.4rem;
   padding: 0.3rem 0.65rem;
   background: none;
-  border: 1px solid #ffb6c1;
+  border: 1px solid var(--color-primary);
   border-radius: var(--border-radius);
   color: #ff6b8a;
   font-size: 0.7rem;
@@ -113,7 +113,25 @@
 .profile-hero-placeholder {
   width: 100%;
   height: 100%;
-  background: linear-gradient(135deg, #ffd6e0, #ffb6c1);
+  background: linear-gradient(135deg, #ffd6e0, var(--color-primary));
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding-bottom: 1.5rem; /* 아래 '변경' 띠와 겹치지 않게 */
+  box-sizing: border-box;
+}
+
+.profile-hero-placeholder-icon {
+  font-size: 2rem;
+  color: #ffffff;
+  opacity: 0.9;
+}
+
+/* 닉네임을 고쳤는데 아직 저장 안 했을 때만 보이는 안내 */
+.profile-field-hint {
+  margin: 0.4rem 0 0 0.25rem;
+  font-size: 0.75rem;
+  color: var(--color-primary-dark);
 }
 
 .profile-hero-overlay {
@@ -266,6 +284,51 @@
 
 .profile-input-editable {
   cursor: text;
+}
+
+/* 닉네임 — 카드 안 박스 없이 카드 자체를 입력칸처럼 (설정 화면의 아이콘 칩과 같은 톤) */
+.menu-page .profile-nickname-section {
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.menu-page .profile-nickname-section:focus-within {
+  border-color: var(--color-primary);
+  box-shadow: 0 0 0 3px var(--color-primary-light);
+}
+
+.profile-nickname-row {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.profile-field .profile-nickname-input {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  padding: 0.25rem 0;
+  font-size: 1.05rem; /* 1rem 이상 — iOS 입력창 확대 방지 */
+  color: var(--color-gray-800);
+  border-radius: 0;
+}
+
+.profile-field .profile-nickname-input:focus {
+  background: transparent;
+  box-shadow: none;
+}
+
+/* 버튼처럼 보이지 않게 배경 없는 작은 회색 아이콘 — 입력 중에만 분홍 */
+.profile-nickname-pencil {
+  flex-shrink: 0;
+  display: flex;
+  color: var(--color-gray-500);
+  font-size: 0.95rem;
+  pointer-events: none;
+}
+
+.profile-nickname-section:focus-within .profile-nickname-pencil {
+  color: var(--color-primary-dark);
 }
 
 .profile-field input[type="date"] {
@@ -430,10 +493,11 @@
 .profile-save-btn {
   margin-top: 0.5rem;
   width: 100%;
-  padding: 0.6rem;
+  padding: 0.8rem;
   border: none;
   border-radius: var(--border-radius-lg);
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   font-size: 0.875rem;
   font-weight: 700;
@@ -453,7 +517,7 @@
 }
 
 .profile-save-btn.saved {
-  background: linear-gradient(135deg, #6ec49a, #4caf7d);
+  background: #4caf7d;
 }
 
 /* 저장 확인 모달 */
@@ -526,7 +590,8 @@
 }
 
 .profile-modal-btn.save {
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
 }
 
@@ -568,79 +633,6 @@
 
 .profile-google-conflict-cancel:hover {
   color: var(--color-gray-700, #495057);
-}
-
-/* 설정 메뉴 버튼 (설정 페이지 공용) */
-.profile-cycle-btn {
-  display: flex;
-  align-items: center;
-  gap: 0.5rem;
-  width: 100%;
-  padding: 0.6rem 0.875rem;
-  background: white;
-  border: 1px solid var(--card-border);
-  border-radius: var(--border-radius-lg);
-  box-shadow: var(--shadow-sm);
-  cursor: pointer;
-  transition: background 0.15s;
-  font-family: inherit;
-}
-
-.profile-cycle-btn:hover {
-  background: #fff8fa;
-}
-
-.profile-cycle-btn-icon {
-  font-size: 1.1rem;
-  flex-shrink: 0;
-}
-
-.profile-cycle-btn-text {
-  flex: 1;
-  text-align: left;
-  font-size: 0.85rem;
-  font-weight: 600;
-  color: var(--color-gray-700);
-}
-
-.profile-cycle-btn-arrow {
-  font-size: 1.1rem;
-  color: var(--color-gray-500);
-  flex-shrink: 0;
-}
-
-/* 앱 소개 다시 보기 버튼 */
-.profile-onboarding-btn {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 0.45rem;
-  width: 100%;
-  margin-top: 0.75rem;
-  padding: 0.6rem;
-  background: white;
-  border: 1.5px solid #ff9db5;
-  border-radius: var(--border-radius);
-  color: #ff6b8a;
-  font-size: 0.85rem;
-  font-weight: 600;
-  font-family: inherit;
-  cursor: pointer;
-  transition: background 0.15s, border-color 0.15s;
-}
-
-.profile-onboarding-btn:hover {
-  background: rgba(255, 107, 138, 0.08);
-  border-color: #ff6b8a;
-}
-
-.profile-onboarding-btn:active {
-  background: rgba(255, 107, 138, 0.15);
-}
-
-.profile-onboarding-icon {
-  font-size: 1rem;
-  flex-shrink: 0;
 }
 
 /* 섹션 설명 */

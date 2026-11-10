@@ -20,7 +20,8 @@
   width: 56px;
   height: 56px;
   border-radius: 50%;
-  background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   border: none;
   color: white;
   font-size: 1.5rem;
@@ -43,7 +44,7 @@
 }
 
 .fam-fab.open {
-  background: linear-gradient(135deg, #ff9bac 0%, #ff7a9a 100%);
+  background: var(--color-primary-dark);
 }
 
 /* 메뉴 */

@@ -6,7 +6,6 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
-import { HiArrowLeft } from 'react-icons/hi2';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { exportBackup } from '../../services/backup/backupExport';
@@ -18,6 +17,7 @@ import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import useRecordSave from '../../hooks/useRecordSave';
 import useFormerCouples from '../../hooks/useFormerCouples';
 import FormerCouplesPanel from '../Account/FormerCouplesPanel';
+import { MenuPageHeader } from '../common/MenuPage';
 import './DataBackupPage.css';
 
 const toMessage = (error, fallback) => (
@@ -126,13 +126,8 @@ const DataBackupPage = () => {
   ].filter(Boolean) : [];
 
   return (
-    <div className="dbp-page">
-      <div className="dbp-header">
-        <button className="dbp-back-btn" onClick={() => navigate('/settings')} aria-label="뒤로">
-          <HiArrowLeft />
-        </button>
-        <p className="profile-section-label" style={{ margin: 0 }}>데이터 백업</p>
-      </div>
+    <div className="dbp-page menu-page">
+      <MenuPageHeader title="데이터 백업" onBack={() => navigate('/settings')} backLabel="설정으로" />
 
       <div className="dbp-section">
         <div className="dbp-section-title">기록 파일</div>

@@ -102,7 +102,7 @@
 
 .ods-price {
     font-size: 14px;
-    color: #FF6B6B;
+    color: var(--color-primary-dark);
 }
 
 .ods-icon-btn {
@@ -140,7 +140,7 @@
     align-items: center;
 }
 
-.ods-address svg { color: #FF6B6B; font-size: 14px; flex-shrink: 0; }
+.ods-address svg { color: var(--color-primary); font-size: 14px; flex-shrink: 0; }
 
 .ods-link {
     font-size: 12px;
@@ -256,7 +256,8 @@
 
 .ods-btn.primary {
     border: 1px solid #ff9bac;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;
 }
 
@@ -277,7 +278,7 @@
 
 .ssl-label { font-size: 12px; color: #495057; }
 
-.ssl-value { font-size: 20px; color: #FF6B6B; }
+.ssl-value { font-size: 20px; color: var(--color-primary-dark); }
 
 .ssl-value-max { font-size: 11px; color: #6C757D; }
 
@@ -299,7 +300,7 @@
 }
 
 .ssl-track { right: 0; background: rgba(255, 182, 193, 0.22); }
-.ssl-fill { background: linear-gradient(90deg, #ffb6c1, #ff9bac); }
+.ssl-fill { background: var(--color-primary); }
 
 .ssl-partner {
     position: absolute;
@@ -356,7 +357,7 @@
     cursor: pointer;
 }
 
-.ssl-tick.on { color: #FF6B6B; }
+.ssl-tick.on { color: var(--color-primary); }
 
 .ssl-partner-note {
     font-size: 11px;

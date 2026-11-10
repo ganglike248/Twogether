@@ -63,7 +63,7 @@
 
 .dcard-price {
     font-size: 14px;
-    color: #FF6B6B;
+    color: var(--color-primary-dark);
 }
 
 .dcard-menu-wrap { position: relative; flex-shrink: 0; }
@@ -123,7 +123,7 @@
 
 .dcard-address svg {
     flex-shrink: 0;
-    color: #FF6B6B;
+    color: var(--color-primary);
     font-size: 14px;
 }
 
@@ -214,7 +214,8 @@
 
 .dcard-btn.primary {
     border: 1px solid #ff9bac;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;
 }
 

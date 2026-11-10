@@ -14,8 +14,8 @@ const ProtectedRoute = ({ children }) => {
       }}>
         <div style={{ textAlign: 'center' }}>
           <div style={{
-            width: 40, height: 40, border: '3px solid #ffb6c1',
-            borderTopColor: '#ff6b6b', borderRadius: '50%',
+            width: 40, height: 40, border: '3px solid var(--color-primary)',
+            borderTopColor: 'var(--color-primary)', borderRadius: '50%',
             animation: 'spin 0.8s linear infinite', margin: '0 auto 1rem'
           }} />
           <p style={{ color: '#b5838d', fontSize: '0.9rem' }}>불러오는 중...</p>

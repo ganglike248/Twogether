@@ -37,7 +37,7 @@
 
 .tl-check.checked {
     border: none;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
 }
 
 .tl-body {
@@ -126,7 +126,7 @@
 
 .tl-cost {
     font-size: 12px;
-    color: #FF6B6B;
+    color: var(--color-primary-dark);
 }
 
 /* 완료된 일정(접힌 영역을 펼쳤을 때) */

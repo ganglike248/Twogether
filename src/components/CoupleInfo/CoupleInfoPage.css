@@ -215,10 +215,11 @@
 .couple-info-save-btn {
   margin-top: 1.2rem;
   width: 100%;
-  padding: 0.875rem;
+  padding: 0.8rem;
   border: none;
   border-radius: var(--border-radius-lg);
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   font-size: 0.95rem;
   font-weight: 700;
@@ -237,7 +238,7 @@
 }
 
 .couple-info-save-btn.saved {
-  background: linear-gradient(135deg, #6ec49a, #4caf7d);
+  background: #4caf7d;
 }
 
 /* 저장 확인 모달 */
@@ -309,7 +310,8 @@
 }
 
 .couple-info-modal-btn.save {
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
 }
 

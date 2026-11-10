@@ -108,7 +108,8 @@
 
 .tl-travel-save {
     border: 1px solid #ff9bac;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;
 }
 

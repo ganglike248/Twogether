@@ -222,7 +222,7 @@ Functions 에뮬레이터에서는 undefined가 되어 함수 로직을 로컬 �
 쓰거나 브라우저를 나눠서 테스트할 것.
 
 ### 로그아웃 리다이렉트 — history.back() 레이스 (v0.4.18~)
-`Sidebar.jsx`의 로그아웃 확인 모달은 `useModalBackButton`(뒤로가기 히스토리 pushState)을 쓰는데, 모달이
+(로그아웃은 v1.0.26부터 `AccountPage`의 `?modal=logout` ConfirmModal — 같은 원칙 유지) `Sidebar.jsx`의 로그아웃 확인 모달은 `useModalBackButton`(뒤로가기 히스토리 pushState)을 쓰는데, 모달이
 닫히며 발생하는 `history.back()`과 로그아웃 후 `/login` 이동 타이밍이 겹치면 엉뚱한 이전 페이지로 튕기는
 문제가 있었음. `signOut()`을 **먼저 `await`한 뒤** `navigate('/login', { replace: true })`를 명시적으로
 호출하도록 수정 — `ProtectedRoute`의 리다이렉트에만 수동적으로 의존하지 않음. `CoupleSetupPage.jsx`의
@@ -518,8 +518,18 @@ recurrenceService.js`(Firestore CRUD), `src/components/Calendar/RecurrenceFields
 계정 존재 여부를 드러내지 않게 유지. 닉네임은 가입 폼에서 빼고 `CoupleSetupPage` 앞 `NicknameStep`에서 이메일·구글 가입자 모두 정함
 (`authService.confirmNickname` → `nicknameConfirmed: true`, 커플·예전 커플 기록이 없는 사용자만 표시).
 폰트: 제목·로고·숫자는 `--font-display`(주아, OFL), 본문은 고운돋움 유지 — 지금은 새 화면에만 적용, 앱 전체 확산은 2단계 화면 점검 때.
-남은 단계: ② 커플 연결·초대(선택 카드, 공유 버튼) ③ 연결 완료(다이어리 첫 장 + D+N) ④ 홈 "우리 둘의 첫 걸음" 카드(TutorialSlides 대체, 기존
+② 커플 연결·초대 (완료): `CoupleSetupPage`가 `?step=`(`choice`/`invite`/`join`, 미지정이면 코드 있으면 invite 아니면 choice)로
+`CoupleChoiceStep`/`InviteStep`/`JoinStep` 전환. 연애 시작일은 홈·사이드바·기록 파일 등이 전제로 써서 **비워둘 수 없게 유지** — 코드 생성 전에 받음.
+코드 보내기는 `services/inviteShare.js`(네이티브 `@capacitor/share` → Web Share API → 클립보드 복사 순). 커플 없는 사용자는 프로필에 못 가므로
+선택 화면 하단에 로그아웃·회원 탈퇴 유지(앱 내 계정 삭제 정책). 초대 링크 자동 입력은 안 하기로 함(대부분 네이티브 앱 사용자).
+남은 단계: ③ 연결 완료(다이어리 첫 장 + D+N) ④ 홈 "우리 둘의 첫 걸음" 카드(TutorialSlides 대체, 기존
 사용자도 업데이트 후 1회 + 설정에서 다시 보기).
+
+### 메뉴 화면 공통 디자인 — `menu-page` + `MenuPageHeader` (v1.0.26~)
+설정 화면(아이콘 칩 + 제목 + 한 줄 설명 카드, 카드 바깥 위쪽 작은 라벨)을 기준으로 프로필·커플 정보·설정·알림 설정·데이터 백업·계정을 통일.
+화면 루트에 `menu-page` 클래스 + 맨 위 `<MenuPageHeader title onBack? />`(`common/MenuPage.jsx`, 제목은 `--font-display`). `common/MenuPage.css`가
+`.menu-page .profile-section/.couple-info-section/.nsp-section/.dbp-section` 카드와 섹션 제목(카드 안 첫 줄 제목을 위 여백 자리로 띄워
+"라벨 → 카드" 모양)을 맞춤 — `:has()`는 구형 안드로이드 웹뷰에서 안 돼서 안 씀. 새 메뉴 화면도 이 둘을 쓸 것(화면별 머리말 CSS를 새로 만들지 말 것).
 
 ### #root 레이아웃 규칙 — 독립 페이지는 `flex: 1 0 auto; min-height: 100%` (v1.0.25~)
 `src/index.css`의 `#root`는 `height: 100dvh; display: flex; flex-direction: column`(v0.3.9에서 iOS 캘린더 높이 문제로 도입,
@@ -547,6 +557,14 @@ trips 컬렉션에서만 여행 이벤트를 FullCalendar 형식으로 변환하
 권한을 확인해서 여행이 지워진 뒤엔 앱에서 영영 읽지도 지우지도 못하는 데이터가 됐음. 규칙의 `exists()`는 배치 실행
 전 상태를 보므로 같은 배치에 넣어도 통과함(에뮬레이터 확인). 여행 아래에 새 서브컬렉션을 추가하면 여기도 같이 넣을 것.
 
+### 앱 주 색 / 경고 색 변수 (v1.0.26~)
+`index.css`: `--color-primary` **#FFB6C1**(배경·테두리·아이콘, 위에 흰 글씨면 `font-weight: 700`), `--color-primary-dark` #E8618C(**글씨용** —
+연분홍 글씨는 흰 바탕에서 안 읽힘), `--color-primary-light`(옅은 배경), `--color-danger` #FF6B6B(오류·필수 *·삭제·예산 초과 전용).
+**색을 hex로 직접 쓰지 말 것** — 예전엔 `#ff6b6b`/`#ffb6b9`/`#ffb6c1`이 70여 곳에 하드코딩돼 있었고, 버튼마다 그라데이션이 제각각이었음
+(전부 변수 + 단색으로 정리, 성공 상태 초록 `#4caf7d`만 예외). ⚠ `Calendar.css`가 예전에 `:root`로 전역 변수를 덮어써서(지연 로딩
+청크라 캘린더를 한 번 연 뒤부터 앱 전체 색이 바뀜) 주 색이 화면마다 달라 보였음 — 컴포넌트 CSS에서 `:root` 변수를 정의하지 말 것.
+남은 것: 보조 분홍(`#ff9bac`/`#ff9bb5` 등 hover·테두리용) 약 60곳은 아직 하드코딩.
+
 ### 색상 설정 시스템
 이벤트 타입별 색상(`boyfriend`/`girlfriend`/`personal`)은 Firestore `couples/{coupleId}` 문서의 `eventTypeColors` 필드에 저장됨. CSS 변수(`--color-boyfriend`, `--color-girlfriend`, `--color-personal`)로 앱 전체에 적용.  
 파스텔 팔레트 30색 — `src/services/colorService.js`의 `DEFAULT_COLOR_PALETTE` 참고.
@@ -569,7 +587,8 @@ Home.jsx도 `useCalendarData` 사용 — Calendar.jsx와 동일한 훅. `extende
 세 번째 인자로 구독 옵션(`includeCoupleEvents`/`includeTrips`/`includePersonalEvents`)을 받아 필요 없는 구독을 끌 수 있음.
 
 ### ProfilePage / CoupleInfoPage 역할 분리
-- `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진, 비밀번호 변경
+- `ProfilePage` (`/profile`): 닉네임, 홈 화면 사진 (비밀번호 변경·구글 연결·회원 탈퇴는 v1.0.26에서 `/account`로 이동 —
+  `Account/AccountPage.jsx` + 구글 연동/충돌 정리 로직은 `Account/LinkedAccountsSection.jsx`로 그대로 옮김. 로그아웃도 사이드바에서 여기로)
   - **Home의 히어로 사진을 누르면 `/profile`로 push 이동**(v1.0.5~). 예전 홈 사진 전용 화면
     `HomeImageSettingsPage`(`/home-image-settings`)는 프로필과 기능이 겹쳐 v1.0.5에서 라우트·파일째 삭제함
     (사용자 결정) — 홈 사진 변경 진입점은 프로필 하나로 통일, 다시 만들지 말 것.
@@ -623,6 +642,7 @@ loading → user 없음(`/login`) → coupleId 없음(`/couple-setup`) → 통�
 /settings          → SettingsPage (이벤트 색상 설정 등)
 /letters           → SealedMessagesPage (봉인 편지함)
 /notification-settings → NotificationSettingsPage (알림 설정, v0.4.22부터 모달 아닌 별도 페이지)
+/account           → AccountPage (설정 → 계정: 로그인 정보·비밀번호 변경·연결된 계정·로그아웃·회원 탈퇴, v1.0.26~)
 /data-backup       → DataBackupPage (데이터 백업 내보내기/가져오기 + 기록 파일, v1.0.21부터 앱에서도)
 /delete-account    → DeleteAccountPage (회원 탈퇴 — 로그인만 필요, 커플 없어도 접근)
 /privacy           → PrivacyPage (로그인 불필요 — 앱스토어 심사 제출 URL)
@@ -829,8 +849,7 @@ Google Play "건강 앱 선언" 정책 반려(선언한 '생리 추적' 기능�
 기록 폼·카드·"더보기(⋯)" 메뉴(생리 기록 전용이었음), 설정 페이지 진입 버튼, `firestore.rules`의 `cycles` 블록
 (→ 기본 거부). Firestore에 남은 `cycles` 컬렉션 문서와 `couples.cycleSettings` 필드는 코드에서 더 이상 읽지
 않음. **다시 추가하려면 Play Console 건강 앱 선언·데이터 보안(건강 정보)·개인정보처리방침(민감정보)을 함께
-갱신해야 함** — 기능만 되살리면 같은 반려가 재발함. `profile-cycle-btn` CSS 클래스는 이름만 남은 설정 메뉴
-공용 버튼 스타일이라 유지.
+갱신해야 함** — 기능만 되살리면 같은 반려가 재발함. 설정 메뉴는 v1.0.26부터 `SettingsPage.css`의 `.settings-item`(아이콘 칩+제목+설명)을 씀(`profile-cycle-btn`은 삭제).
 
 ### MemoryList 검색 페이지네이션 (디바운스 + 경쟁 조건 가드)
 검색은 Firestore `title` 접두사 매칭 대신, 날짜순 페이지를 읽어 클라이언트에서 제목/내용 부분 문자열 매칭(`matchesSearchTerm`)함.

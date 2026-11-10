@@ -1,0 +1,94 @@
+/* src/components/common/MenuPage.css
+   메뉴 화면 공통 스타일 — 설정 화면(v1.0.26 리뉴얼) 기준으로 통일.
+   화면 루트에 `menu-page`를 달면 적용. `.menu-page .xxx`로 한 단계 높은 우선순위를 줘서, 화면별 CSS가
+   (지연 로딩 청크 순서와 무관하게) 나중에 로드돼도 이 공통값이 이기게 함.
+   원칙: 섹션 제목은 카드 바깥 위쪽의 작은 라벨, 카드는 흰 배경 + 연한 테두리 + 작은 그림자. */
+
+#root .menu-page {
+  /* #root로 한 단계 높여 화면별 .xxx-page 여백보다 우선 */
+  padding: 0.875rem 1rem 5rem;
+  background-color: var(--main-bg);
+}
+
+/* ── 머리말 ── */
+.menu-header {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  margin: 0 0 1.25rem;
+}
+
+.menu-back-btn {
+  width: 36px;
+  height: 36px;
+  margin-left: -6px;
+  border: none;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--color-gray-700);
+  font-size: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.menu-back-btn:hover {
+  background: rgba(0, 0, 0, 0.04);
+}
+
+.menu-title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.35rem;
+  color: var(--color-gray-800);
+}
+
+/* ── 카드 ── */
+.menu-page .profile-section,
+.menu-page .couple-info-section,
+.menu-page .nsp-section,
+.menu-page .dbp-section {
+  background: white;
+  border: 1px solid var(--card-border);
+  border-radius: var(--border-radius-lg);
+  box-shadow: var(--shadow-sm);
+}
+
+/* ── 섹션 제목: 카드 바깥 위쪽 라벨 ──
+   기존 마크업은 제목이 카드 안 첫 줄에 있어서, 카드에 위 여백을 주고 제목을 그 여백 자리로 띄워 올림
+   (마크업 구조를 안 바꾸고 설정 화면의 "라벨 → 카드" 모양을 냄). 제목은 한 줄 전제.
+   :has()는 구형 안드로이드 웹뷰(Chrome 105 미만)에서 안 돼서 안 씀 — 제목 없는 카드도 같은 위 여백을 가짐. */
+.menu-page .profile-section,
+.menu-page .nsp-section,
+.menu-page .dbp-section {
+  position: relative;
+  overflow: visible;
+  margin-top: 1.75rem;
+}
+
+.menu-page .profile-section > .profile-section-title,
+.menu-page .nsp-section > .nsp-section-title,
+.menu-page .dbp-section > .dbp-section-title {
+  position: absolute;
+  top: -1.6rem;
+  left: 0.25rem;
+  margin: 0;
+}
+
+.menu-page .profile-section-title,
+.menu-page .nsp-section-title,
+.menu-page .dbp-section-title,
+.menu-page .couple-info-section-label,
+.menu-page .settings-group-label {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--color-text-desc);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.menu-page .couple-info-section-label {
+  margin: 1.25rem 0.25rem 0.5rem;
+}

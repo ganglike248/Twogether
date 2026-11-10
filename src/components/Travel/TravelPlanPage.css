@@ -59,7 +59,7 @@
 }
 
 .travel-plan-filter-button.travel-plan-active {
-    background-color: #ffb6c1;
+    background-color: var(--color-primary);
     color: white;
 }
 
@@ -82,7 +82,7 @@
 
 .travel-plan-search-input:focus {
     box-shadow: 0 2px 8px rgba(255, 182, 193, 0.2);
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
 }
 
 .travel-plan-add-trip-btn {
@@ -91,7 +91,8 @@
     justify-content: center;
     gap: 0.375rem;
     padding: 0.6rem 1.25rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
     border: none;
     border-radius: 0.875rem;
@@ -124,7 +125,7 @@
     width: 32px;
     height: 32px;
     border: 3px solid #f3f3f3;
-    border-top: 3px solid #ffb6c1;
+    border-top: 3px solid var(--color-primary);
     border-radius: 50%;
     animation: travel-plan-spin 1s linear infinite;
 }
@@ -167,7 +168,8 @@
 
 .travel-plan-empty-button {
     padding: 0.6rem 1.5rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
     border: none;
     border-radius: 0.875rem;

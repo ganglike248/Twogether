@@ -44,7 +44,8 @@
 .empty-state-button {
   margin-top: 0.75rem;
   padding: 0.65rem 1.5rem;
-  background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   border: none;
   border-radius: var(--border-radius, 12px);

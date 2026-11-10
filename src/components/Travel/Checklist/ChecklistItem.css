@@ -28,7 +28,7 @@
     width: 22px;
     height: 22px;
     border-radius: 50%;
-    border: 1.5px solid #ffb6c1;
+    border: 1.5px solid var(--color-primary);
     box-sizing: border-box;
     display: flex;
     align-items: center;
@@ -37,7 +37,7 @@
 
 .ci-check-circle.done {
     border: none;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
 }
 
 .ci-text {

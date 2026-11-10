@@ -189,7 +189,7 @@
   font-family: var(--font-display);
   font-weight: 400;
   font-size: 1.9rem;
-  color: #d64545;
+  color: var(--color-primary-dark);
 }
 
 .welcome-headline {
@@ -506,4 +506,187 @@
   .auth-title { margin-top: 8px; }
   .auth-desc { margin-bottom: 20px; }
   .auth-actions { padding-top: 18px; }
+}
+
+/* ── 커플 연결 (CoupleChoiceStep · InviteStep · JoinStep) ─────── */
+.couple-choice-list {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.couple-choice-card {
+  width: 100%;
+  text-align: left;
+  font-family: inherit;
+  color: inherit;
+  cursor: pointer;
+  background: var(--auth-paper);
+  border: 1px solid #efe4e7;
+  border-radius: 16px;
+  padding: 20px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  box-shadow: 0 4px 14px rgba(109, 104, 117, 0.08);
+}
+
+.couple-choice-icon {
+  width: 52px;
+  height: 52px;
+  flex-shrink: 0;
+  border-radius: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.6rem;
+}
+
+.couple-choice-icon.invite { background: var(--color-primary-light); color: var(--color-primary); }
+.couple-choice-icon.join { background: #dbe9f7; color: #3d6a96; }
+
+.couple-choice-text {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  flex-grow: 1;
+}
+
+.couple-choice-title {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+}
+
+.couple-choice-sub {
+  font-size: 0.875rem;
+  color: var(--color-text-desc);
+}
+
+.couple-choice-arrow {
+  color: #b9a9ae;
+  font-size: 1.1rem;
+}
+
+.couple-former {
+  margin-bottom: 20px;
+}
+
+.auth-footer-links {
+  display: flex;
+  justify-content: center;
+  gap: 4px;
+}
+
+/* 초대 코드 카드 */
+.invite-code-card {
+  position: relative;
+  background: var(--auth-paper);
+  border-radius: 14px;
+  padding: 26px 20px 22px;
+  box-shadow: 0 6px 18px rgba(109, 104, 117, 0.12);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+}
+
+.invite-code-card .collage-tape { transform: translateX(-50%) rotate(-3deg); width: 64px; }
+
+.invite-code {
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace;
+  font-size: 2.3rem;
+  letter-spacing: 0.22em;
+  padding-left: 0.22em;
+  color: var(--auth-ink);
+}
+
+.invite-code-actions {
+  display: flex;
+  gap: 10px;
+  width: 100%;
+}
+
+.invite-code-actions .auth-btn { flex-grow: 1; height: 48px; font-size: 0.95rem; }
+.invite-code-actions .auth-btn.secondary { flex-grow: 0; width: 96px; }
+
+/* 이름표 — 나(채워짐) ··· 상대(점선 빈자리) */
+.name-tags {
+  margin-top: 26px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+}
+
+.name-tag {
+  width: 132px;
+  height: 64px;
+  border-radius: 10px;
+  display: flex;
+  overflow: hidden;
+  box-sizing: border-box;
+}
+
+.name-tag.me {
+  background: var(--auth-paper);
+  box-shadow: 0 4px 12px rgba(109, 104, 117, 0.12);
+  transform: rotate(-3deg);
+}
+
+.name-tag.waiting {
+  border: 1.5px dashed #e0c6cd;
+  transform: rotate(2deg);
+}
+
+.name-tag-stripe {
+  width: 8px;
+  flex-shrink: 0;
+  background: var(--color-boyfriend);
+}
+
+.name-tag-body {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+  padding: 0 14px;
+  min-width: 0;
+}
+
+.name-tag-role { font-size: 0.7rem; color: var(--auth-sub); }
+
+.name-tag-name {
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.name-tag.waiting .name-tag-name {
+  font-family: inherit;
+  font-size: 0.9rem;
+  color: var(--auth-sub);
+}
+
+.name-tag-dots {
+  width: 22px;
+  border-top: 2px dotted #e0c6cd;
+}
+
+.invite-waiting-note {
+  margin: 18px 0 0;
+  text-align: center;
+  font-size: 0.85rem;
+  color: var(--color-text-desc);
+  line-height: 1.6;
+}
+
+/* 초대 코드 입력 */
+.join-code-input {
+  text-align: center;
+  letter-spacing: 0.3em;
+  font-family: ui-monospace, 'SF Mono', Menlo, monospace !important;
+  font-size: 1.5rem !important;
+  text-transform: uppercase;
 }

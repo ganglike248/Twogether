@@ -107,7 +107,7 @@
 .cm-input:focus,
 .cm-select:focus {
     outline: none;
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.1);
 }
 
@@ -143,7 +143,8 @@
 }
 
 .cm-btn.submit {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
 }
 

@@ -139,7 +139,8 @@
   width: 100%;
   padding: 0.65rem;
   /* .btn-primary와 동일한 그라데이션 — 앱 전역 버튼 톤과 통일 */
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   border: none;
   border-radius: var(--border-radius);

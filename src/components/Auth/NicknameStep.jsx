@@ -8,7 +8,7 @@ import './AuthFlow.css';
 
 const MAX_LENGTH = 20;
 
-const NicknameStep = ({ initialName = '', onDone }) => {
+const NicknameStep = ({ initialName = '', onDone, onBack }) => {
   const [name, setName] = useState(initialName);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState('');
@@ -30,13 +30,22 @@ const NicknameStep = ({ initialName = '', onDone }) => {
 
   return (
     <form className="auth-screen" onSubmit={handleSubmit} noValidate>
+      {onBack && (
+        <button type="button" className="auth-back" onClick={onBack} aria-label="뒤로">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+            <path d="M15 18l-6-6 6-6" />
+          </svg>
+        </button>
+      )}
       <div className="auth-progress" role="img" aria-label="3단계 중 1단계">
         <span className="on" /><span /><span />
       </div>
 
-      <h1 className="auth-title" style={{ marginTop: 30 }}>상대가 나를<br />뭐라고 부르면 좋을까요?</h1>
+      <h1 className="auth-title" style={{ marginTop: onBack ? 24 : 30 }}>상대가 나를<br />뭐라고 부르면 좋을까요?</h1>
       <p className="auth-desc">
-        {initialName ? '구글 이름을 그대로 쓰지 않아도 돼요.' : '짧고 부르기 쉬운 이름이면 좋아요.'}
+        {onBack
+          ? '연결하기 전에 언제든 다시 바꿀 수 있어요.'
+          : initialName ? '구글 이름을 그대로 쓰지 않아도 돼요.' : '짧고 부르기 쉬운 이름이면 좋아요.'}
         <br />나중에 프로필에서 바꿀 수 있어요.
       </p>
 

@@ -217,7 +217,7 @@
 }
 
 .csm-color-text:focus {
-  border-color: #ffb6c1;
+  border-color: var(--color-primary);
 }
 
 .csm-custom-hint {
@@ -259,7 +259,8 @@
   padding: 0.7rem;
   border: none;
   border-radius: 0.75rem;
-  background: linear-gradient(135deg, #ff6b6b, #ffb6c1);
+  background: var(--color-primary);
+  font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
   color: white;
   font-size: 0.88rem;
   font-weight: 700;

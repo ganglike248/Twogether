@@ -50,7 +50,7 @@ const WelcomeCollage = () => (
       <svg width="168" height="112" viewBox="0 0 168 112">
         <rect x="1" y="1" width="166" height="110" rx="8" fill="#fffdf9" stroke="#efe4e7" />
         <path d="M2 6 L84 62 L166 6" fill="none" stroke="#e6d3d8" strokeWidth="1.5" />
-        <circle cx="84" cy="62" r="13" fill="#ff6b6b" />
+        <circle cx="84" cy="62" r="13" style={{ fill: 'var(--color-primary)' }} />
         {/* 흰 하트는 빨간 원(r=13) 안에 여유 있게 들어가도록 원 중심 기준 축소 */}
         <path d="M84 68 c-6-4-9-7-9-10 a4 4 0 0 1 9-2 a4 4 0 0 1 9 2 c0 3-3 6-9 10z" fill="#ffffff" transform="translate(84 62) scale(0.68) translate(-84 -61)" />
       </svg>

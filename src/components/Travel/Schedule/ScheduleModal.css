@@ -80,7 +80,7 @@
 }
 
 .schedule-modal-required {
-    color: #ff6b6b;
+    color: var(--color-danger);
 }
 
 .schedule-modal-form-group input,
@@ -98,13 +98,13 @@
 
 .schedule-modal-form-group input:focus,
 .schedule-modal-form-group textarea:focus {
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
     box-shadow: 0 0 0 3px rgba(255, 182, 193, 0.18);
 }
 
 .schedule-modal-form-group input.schedule-modal-error,
 .schedule-modal-form-group textarea.schedule-modal-error {
-    border-color: #ff6b6b;
+    border-color: var(--color-danger);
 }
 
 .schedule-modal-form-group textarea {
@@ -126,7 +126,7 @@
 
 .schedule-modal-error-text {
     display: block;
-    color: #ff6b6b;
+    color: var(--color-danger);
     font-size: 0.8rem;
     margin-top: 0.25rem;
 }
@@ -149,7 +149,7 @@
 .schedule-modal-btn-delete-text {
     background: none;
     border: none;
-    color: #ff6b6b;
+    color: var(--color-danger);
     font-size: 0.875rem;
     font-weight: 500;
     cursor: pointer;
@@ -215,12 +215,13 @@
 }
 
 .schedule-modal-btn-primary {
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bb5 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
 }
 
 .schedule-modal-btn-danger {
-    background: #ff6b6b;
+    background: var(--color-danger);
     color: white;
 }
 
@@ -260,14 +261,14 @@
 }
 
 .schedule-modal-select:focus {
-    border-color: #ffb6c1;
+    border-color: var(--color-primary);
 }
 
 .schedule-modal-hint {
     display: block;
     margin-top: 0.35rem;
     font-size: 0.78rem;
-    color: #ff6b6b;
+    color: var(--color-danger);
 }
 
 /* 새 일정의 "링크로 자동 채우기" 카드(LinkFillCard, 스타일은 OptionFormSheet.css) — 아래 입력칸들과 간격 */

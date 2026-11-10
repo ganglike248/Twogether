@@ -3,7 +3,6 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { doc, updateDoc } from 'firebase/firestore';
-import { HiArrowLeft } from 'react-icons/hi2';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import {
@@ -14,6 +13,7 @@ import {
   disableNotifications,
 } from '../../services/notificationService';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import { MenuPageHeader } from '../common/MenuPage';
 import './NotificationSettingsPage.css';
 
 // 서버(functions/index.js)의 sendPushToUser type/defaultOn 인자와 일치해야 함.
@@ -93,13 +93,8 @@ const NotificationSettingsPage = () => {
   const categoryGroups = groupByCategory(NOTIFICATION_TYPES);
 
   return (
-    <div className="nsp-page">
-      <div className="nsp-header">
-        <button className="nsp-back-btn" onClick={() => navigate('/settings')}>
-          <HiArrowLeft />
-        </button>
-        <p className="profile-section-label" style={{ margin: 0 }}>알림 설정</p>
-      </div>
+    <div className="nsp-page menu-page">
+      <MenuPageHeader title="알림 설정" onBack={() => navigate('/settings')} backLabel="설정으로" />
 
       <div className="nsp-section">
         <div className="nsp-toggle-row">

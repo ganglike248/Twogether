@@ -30,6 +30,7 @@ const SealedMessagesPage = lazy(() => import('./components/SealedMessages/Sealed
 const NotificationSettingsPage = lazy(() => import('./components/Settings/NotificationSettingsPage'));
 const DataBackupPage = lazy(() => import('./components/Settings/DataBackupPage'));
 const DeleteAccountPage = lazy(() => import('./components/Account/DeleteAccountPage'));
+const AccountPage = lazy(() => import('./components/Account/AccountPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
@@ -50,8 +51,8 @@ const PageLoader = () => (
     <div style={{
       width: 40,
       height: 40,
-      border: '3px solid #ffb6c1',
-      borderTopColor: '#ff6b6b',
+      border: '3px solid var(--color-primary)',
+      borderTopColor: 'var(--color-primary)',
       borderRadius: '50%',
       animation: 'preloader-spin 0.8s linear infinite',
     }} />
@@ -141,6 +142,12 @@ const router = createBrowserRouter([
         path: '/notification-settings',
         element: <ProtectedRoute key="notification-settings"><Layout><NotificationSettingsPage /></Layout></ProtectedRoute>,
         key: 'notification-settings',
+      },
+      {
+        // 설정 → 계정: 로그인 정보·비밀번호·연결된 계정·로그아웃·회원 탈퇴 (v1.0.26~)
+        path: '/account',
+        element: <ProtectedRoute key="account"><Layout><AccountPage /></Layout></ProtectedRoute>,
+        key: 'account',
       },
       {
         path: '/data-backup',

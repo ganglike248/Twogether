@@ -80,7 +80,7 @@
   margin: 0;
   font-size: 1rem;
   font-weight: 700;
-  background: linear-gradient(90deg, #ff6b6b, #ffb6c1);
+  background: linear-gradient(90deg, var(--color-primary-dark), var(--color-primary));
   -webkit-background-clip: text;
   background-clip: text;
   color: transparent;
@@ -109,14 +109,14 @@
 
 .profile-heart {
   font-size: 0.85rem;
-  color: #ff6b6b;
+  color: var(--color-primary);
   flex-shrink: 0;
 }
 
 .profile-dday {
   margin: 0.5rem 0 0;
   font-size: 0.8rem;
-  color: #ffb6c1;
+  color: var(--color-primary);
   font-weight: 600;
   display: flex;
   align-items: center;
@@ -124,11 +124,11 @@
 }
 
 .dday-label {
-  color: #ffb6c1;
+  color: var(--color-primary);
 }
 
 .dday-number {
-  color: #ff6b6b;
+  color: var(--color-primary-dark);
   font-weight: 700;
   font-size: 0.9rem;
 }
@@ -159,7 +159,7 @@
 
 .sidebar-menu-item:hover {
   background: rgba(255, 107, 107, 0.08);
-  color: #ff6b6b;
+  color: var(--color-primary-dark);
 }
 
 .sidebar-menu-item svg {
@@ -184,89 +184,3 @@
   letter-spacing: 0.5px;
 }
 
-.sidebar-logout {
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 0.5rem 0.75rem;
-  display: flex;
-  align-items: center;
-  gap: 0.4rem;
-  color: #ff6b6b;
-  font-size: 0.8rem;
-  font-weight: 600;
-  transition: background 0.2s;
-  border-radius: 4px;
-}
-
-.sidebar-logout:hover {
-  background: rgba(255, 107, 107, 0.08);
-}
-
-.sidebar-logout svg {
-  width: 16px;
-  height: 16px;
-}
-
-/* 로그아웃 확인 모달 */
-.sidebar-modal-overlay {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 400;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.sidebar-modal-box {
-  background: #fff;
-  border-radius: 16px;
-  padding: 1.5rem 1.25rem 1.25rem;
-  width: min(320px, 90vw);
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.15);
-}
-
-.sidebar-modal-title {
-  font-size: 1rem;
-  font-weight: 700;
-  color: #333;
-  margin: 0 0 0.5rem;
-}
-
-.sidebar-modal-msg {
-  font-size: 0.875rem;
-  color: #666;
-  margin: 0 0 1.25rem;
-}
-
-.sidebar-modal-actions {
-  display: flex;
-  gap: 0.5rem;
-  justify-content: flex-end;
-}
-
-.sidebar-modal-btn {
-  padding: 0.5rem 1rem;
-  border: none;
-  border-radius: 8px;
-  font-size: 0.875rem;
-  font-weight: 600;
-  cursor: pointer;
-  background: #f0f0f0;
-  color: #333;
-  transition: background 0.2s;
-}
-
-.sidebar-modal-btn:hover {
-  background: #e0e0e0;
-}
-
-.sidebar-modal-btn.confirm {
-  background: #ff6b6b;
-  color: #fff;
-}
-
-.sidebar-modal-btn.confirm:hover {
-  background: #e05555;
-}

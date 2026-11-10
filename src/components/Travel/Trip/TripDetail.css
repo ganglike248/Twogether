@@ -81,7 +81,7 @@
 
 .td-title-status.planning  { background: #fff9e6; color: #a87a10; border-color: #ffe494; }
 .td-title-status.confirmed { background: #e8f4ff; color: #2f7fb8; border-color: #b8d9f5; }
-.td-title-status.ongoing   { background: #fff0f5; color: #d94f4f; border-color: #ffb6c1; }
+.td-title-status.ongoing   { background: #fff0f5; color: #d94f4f; border-color: var(--color-primary); }
 .td-title-status.completed { background: #e8f5e9; color: #3f8f45; border-color: #b2dfbb; }
 
 .td-header-actions {
@@ -126,7 +126,7 @@
     flex-shrink: 0;
     border-radius: 50%;
     background: rgba(255, 182, 193, 0.1);
-    color: #FF6B6B;
+    color: var(--color-primary);
     font-size: 14px;
     display: flex;
     align-items: center;
@@ -166,7 +166,7 @@
 }
 
 .td-info-over {
-    color: #ff6b6b;
+    color: var(--color-danger);
 }
 
 .td-info-budget-bar {
@@ -182,11 +182,11 @@
     left: 0;
     top: 0;
     bottom: 0;
-    background: linear-gradient(90deg, #ffb6c1, #ff9bac);
+    background: var(--color-primary);
     transition: width 0.4s ease;
 }
 
-.td-info-budget-fill.over { background: linear-gradient(90deg, #ff6b6b, #ff4444); }
+.td-info-budget-fill.over { background: var(--color-danger); }
 
 .td-info-memo {
     font-size: 13px;
@@ -228,7 +228,7 @@
 
 .td-tab.active {
     border-color: #ff9bac;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
     color: #ffffff;
 }
 
@@ -238,7 +238,7 @@
     height: 16px;
     padding: 0 4px;
     border-radius: 8px;
-    background: #ff6b6b;
+    background: var(--color-primary);
     color: #ffffff;
     font-size: 9px;
     line-height: 16px;
@@ -248,7 +248,7 @@
 
 .td-tab.active .td-tab-badge {
     background: #ffffff;
-    color: #ff6b6b;
+    color: var(--color-primary-dark);
 }
 
 /* 체크리스트를 전부 체크했을 때 — 남은 개수 대신 초록 ✓ */
@@ -313,7 +313,7 @@
 
 .td-day.active {
     border-color: #ff9bac;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
 }
 
@@ -348,7 +348,7 @@
     width: 28px;
     height: 28px;
     border: 3px solid rgba(255, 182, 193, 0.2);
-    border-top: 3px solid #ffb6c1;
+    border-top: 3px solid var(--color-primary);
     border-radius: 50%;
     animation: td-spin 0.8s linear infinite;
 }
@@ -368,7 +368,8 @@
 .td-empty-add-btn {
     margin-top: 0.5rem;
     padding: 0.5rem 1.25rem;
-    background: linear-gradient(135deg, #ffb6c1 0%, #ff9bac 100%);
+    background: var(--color-primary);
+    font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: white;
     border: none;
     border-radius: 1rem;
@@ -459,12 +460,12 @@
 
 .dsm-day-btn:hover {
     border-color: rgba(255, 182, 193, 0.5);
-    background: linear-gradient(135deg, rgba(255, 182, 193, 0.08) 0%, rgba(255, 155, 172, 0.04) 100%);
+    background: var(--color-primary-light);
 }
 
 .dsm-day-num {
     font-weight: 700;
-    color: #ffb6c1;
+    color: var(--color-primary);
     font-size: 1rem;
 }
 
