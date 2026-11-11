@@ -68,6 +68,8 @@
 - 딥링크: 네이티브 앱에선 `intent://` 금지 → 커스텀 스킴(`nmap://...`) + visibilitychange 폴백. PWA 안드로이드만 intent:// 사용
 - R8: release `minifyEnabled`+`shrinkResources`. `proguard-rules.pro`의 `-dontwarn com.facebook.*` 필수, 이름으로 찾는 리소스는
   `res/raw/keep.xml`에 추가. Play의 "축소율 낮음"·"디버그 기호" 경고는 라이브러리 원인이라 보류. 스토어 전 내부 테스트 트랙으로 실기기 확인
+- iOS 앱 개인정보 매니페스트 `ios/App/App/PrivacyInfo.xcprivacy`(App 타깃 Resources에 등록): `@capacitor/filesystem`의 FileTimestamp C617.1.
+  필수 사유 API를 쓰는 플러그인을 추가하면 그 README의 요구 항목을 여기에 추가
 - 파일 저장은 `services/fileSave.js`의 `saveTextFile`만(네이티브는 filesystem+share, 웹뷰는 `<a download>` 무시)
 
 ## 구글 로그인
@@ -147,7 +149,7 @@
 
 ## 남은 작업 / 로드맵
 - 사용자 메모: `docs/dev.md`
-- 이벤트 사진 첨부(`uploadEventImage` 미구현, MemoryDetail 렌더링 미구현), iOS 앱 단위 `PrivacyInfo.xcprivacy` 확인
+- 이벤트 사진 첨부(`uploadEventImage` 미구현, MemoryDetail 렌더링 미구현)
 - 남은 화면 점검(홈·캘린더·추억·버킷·여행·편지): 제목 폰트 확산, 보조 분홍 하드코딩 정리, CoupleInfo 날짜 입력 0.88rem
 - 카카오 로그인(별도 백엔드 필요, 장기)
 - 로드맵(설계 확정, 재논의 없이 구현): **4. 일상 결정**(travelDecisions를 최상위로 일반화, 카테고리 영구 재사용 + 라운드 반복 + 히스토리,
