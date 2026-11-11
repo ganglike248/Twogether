@@ -17,7 +17,10 @@
   --color-danger: #FF6B6B;
   --color-secondary: #4ECDC4;
   --color-secondary-light: #CCF5F0;
-  --color-couple: #ffbaba;
+  /* couple/boyfriend/girlfriend/trip 기본값은 예전 Calendar.css :root 값 그대로(v1.0.30) — v1.0.26~29에서 그 :root를
+     지우면서 기본값이 index.css 쪽(#ffbaba·#a3d1ff·#b3faa4·#a55eea)으로 바뀌어 캘린더 색이 달라졌던 것을 원복.
+     사용자가 설정에서 색을 바꿨으면 useColorSync가 html 인라인으로 덮어씀(trip은 설정 대상 아님) */
+  --color-couple: #ffd6e0;
   --color-couple-rgb: 255, 186, 186;
   --color-couple-font: rgb(217 79 79);
   --color-couple-background: rgba(255, 107, 107, 0.2);
@@ -26,13 +29,13 @@
   --color-couple-special-background: rgba(255, 155, 172, 0.07);
   --color-couple-special-border: rgba(255, 155, 172, 0.18);
   --color-couple-special-name: #ff7096;
-  --color-boyfriend: #a3d1ff;
+  --color-boyfriend: #c7ceea;
   --color-boyfriend-rgb: 163, 209, 255;
   --color-boyfriend-font: #81bbf5;
   --color-boyfriend-background: rgba(161, 188, 255, 0.33);
   --color-boyfriend-border: rgba(161, 188, 255, 0.1);
   --color-boyfriend-shadow: rgba(161, 188, 255, 0.3);
-  --color-girlfriend: #b3faa4;
+  --color-girlfriend: #b5ead7;
   --color-girlfriend-rgb: 179, 250, 164;
   --color-girlfriend-font: rgb(138, 219, 138);
   --color-girlfriend-background: rgba(148, 255, 134, 0.33);
@@ -43,7 +46,7 @@
   --color-personal-background: rgba(78, 205, 196, 0.33);
   --color-personal-border: rgba(78, 205, 196, 0.15);
   --color-personal-shadow: rgba(78, 205, 196, 0.3);
-  --color-trip: #a55eea;
+  --color-trip: #e8d7f1;
   --color-trip-rgb: 165, 94, 234;
   --color-trip-background: rgba(165, 94, 234, 0.08);
   --color-trip-border: rgba(165, 94, 234, 0.1);
