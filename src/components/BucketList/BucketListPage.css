@@ -437,3 +437,8 @@
     border-color: var(--main-pink);
 }
 
+
+/* 2열 그리드 안에 빈 상태·스켈레톤이 들어갈 때 한 칸만 차지해 왼쪽으로 쏠리던 문제 — 전체 폭 사용 */
+.bucket-list > .empty-state-container {
+    grid-column: 1 / -1;
+}

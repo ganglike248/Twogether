@@ -17,6 +17,7 @@
    사용자 관점 업데이트 노트(`-` 목록, 스토어에 붙여넣을 톤, 내부 리팩터링 제외)
 8. **"배포"**: 확인 없이 빌드 + cap sync + Hosting 배포 + 버전 확인 + 커밋 + 푸시. 네이티브 반영 필요하면 네이티브 버전도 올림
    (앱은 dist를 번들하므로 웹 변경도 다음 AAB/Archive부터 반영)
+- "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
 
 ## 환경 트랩
