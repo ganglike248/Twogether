@@ -57,7 +57,7 @@
 }
 
 .dsec-icon-btn.edit { color: #81bbf5; }
-.dsec-icon-btn.delete { color: #ff9bac; font-size: 14px; }
+.dsec-icon-btn.delete { color: var(--color-primary-medium); font-size: 14px; }
 
 .dsec-chevron {
     flex-shrink: 0;
@@ -187,12 +187,12 @@
 
 .dsec-dot.add {
     background: transparent;
-    border: 1px dashed #ff9bac;
+    border: 1px dashed var(--color-primary-medium);
     box-sizing: border-box;
 }
 
 .dsec-dot.active {
     width: 16px;
-    background: #ff9bac;
+    background: var(--color-primary-medium);
     border: none;
 }

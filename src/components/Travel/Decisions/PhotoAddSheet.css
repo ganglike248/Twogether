@@ -84,7 +84,7 @@
 }
 
 .pas-input.filled,
-.pas-input:focus { border: 1.5px solid #ff9bac; }
+.pas-input:focus { border: 1.5px solid var(--color-primary-medium); }
 
 .pas-input::placeholder { color: #b7bdc3; }
 

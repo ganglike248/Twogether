@@ -100,7 +100,7 @@
 }
 
 .nsp-toggle input:checked + .nsp-toggle-slider {
-  background: #ff9bac;
+  background: var(--color-primary-medium);
 }
 
 .nsp-toggle input:checked + .nsp-toggle-slider::after {

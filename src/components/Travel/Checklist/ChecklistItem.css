@@ -94,7 +94,7 @@
 }
 
 .ci-icon-btn.edit { color: #81bbf5; font-size: 14px; }
-.ci-icon-btn.delete { color: #ff9bac; font-size: 16px; }
+.ci-icon-btn.delete { color: var(--color-primary-medium); font-size: 16px; }
 .ci-icon-btn.done-delete { color: #ced4da; font-size: 15px; width: 24px; height: 24px; }
 
 /* ===== 준비 완료 줄 ===== */

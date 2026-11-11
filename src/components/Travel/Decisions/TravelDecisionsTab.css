@@ -24,7 +24,7 @@
     height: 32px;
     padding: 0 12px;
     border-radius: 16px;
-    border: 1px solid #ff9bac;
+    border: 1px solid var(--color-primary-medium);
     background: var(--color-primary);
     font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;
@@ -62,7 +62,7 @@
 }
 
 .tdt-filter.on {
-    border-color: #ff9bac;
+    border-color: var(--color-primary-medium);
     background: #fff0f3;
     color: #e0606f;
 }
@@ -134,7 +134,7 @@
 .tdt-empty-icon {
     font-size: 3rem;
     margin: 0 0 0.75rem 0;
-    color: #ff9bac;
+    color: var(--color-primary-medium);
     display: flex;
     align-items: center;
     justify-content: center;

@@ -98,7 +98,7 @@
 
 .td-header-action.edit { color: #81bbf5; }
 .td-header-action.edit:active { background: #eaf4ff; }
-.td-header-action.delete { color: #ff9bac; }
+.td-header-action.delete { color: var(--color-primary-medium); }
 .td-header-action.delete:active { background: #fff0f3; }
 
 /* ===== 여행 정보 카드 ===== */
@@ -227,7 +227,7 @@
 }
 
 .td-tab.active {
-    border-color: #ff9bac;
+    border-color: var(--color-primary-medium);
     background: var(--color-primary);
     color: #ffffff;
 }
@@ -312,7 +312,7 @@
 }
 
 .td-day.active {
-    border-color: #ff9bac;
+    border-color: var(--color-primary-medium);
     background: var(--color-primary);
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.2);
 }

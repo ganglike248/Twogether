@@ -24,7 +24,7 @@
 .npm-icon {
   width: 40px;
   height: 40px;
-  color: #ff9bac;
+  color: var(--color-primary-medium);
   margin-bottom: 0.5rem;
 }
 

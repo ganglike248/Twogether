@@ -11,7 +11,7 @@ const ProgressRing = ({ percent }) => {
       <circle cx="32" cy="32" r={RADIUS} fill="none" stroke="rgba(255, 182, 193, 0.22)" strokeWidth="7" />
       {filled > 0 && (
         <circle
-          cx="32" cy="32" r={RADIUS} fill="none" stroke="#ff9bac" strokeWidth="7" strokeLinecap="round"
+          cx="32" cy="32" r={RADIUS} fill="none" style={{ stroke: 'var(--color-primary-medium)' }} strokeWidth="7" strokeLinecap="round"
           strokeDasharray={`${filled} ${CIRCUMFERENCE}`} transform="rotate(-90 32 32)"
         />
       )}

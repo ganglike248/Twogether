@@ -13,7 +13,8 @@
      - danger: 오류·필수 표시·삭제·예산 초과 같은 경고 전용 빨강(주 색과 섞지 말 것) */
   --color-primary: #FFB6C1;
   --color-primary-light: #FFEAEE;
-  --color-primary-dark: #E8618C;
+  --color-primary-dark: #E07A93; /* v1.0.38: #E8618C(자극적인 마젠타)를 차분한 장밋빛으로 */
+  --color-primary-medium: #FF9BAC; /* primary와 dark 사이 — hover·테두리·진행 링 등 보조 강조(v1.0.38, 예전 하드코딩 #ff9bac 통합) */
   --color-danger: #FF6B6B;
   --color-secondary: #4ECDC4;
   --color-secondary-light: #CCF5F0;

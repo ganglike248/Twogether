@@ -93,7 +93,7 @@
     box-sizing: border-box;
 }
 
-.tl-travel-input:focus { border-color: #ff9bac; }
+.tl-travel-input:focus { border-color: var(--color-primary-medium); }
 
 .tl-travel-save,
 .tl-travel-cancel {
@@ -107,7 +107,7 @@
 }
 
 .tl-travel-save {
-    border: 1px solid #ff9bac;
+    border: 1px solid var(--color-primary-medium);
     background: var(--color-primary);
     font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;

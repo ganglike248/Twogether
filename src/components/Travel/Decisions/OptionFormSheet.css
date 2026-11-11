@@ -120,7 +120,7 @@
 }
 
 .ofs-input:focus,
-.ofs-textarea:focus { border: 1.5px solid #ff9bac; }
+.ofs-textarea:focus { border: 1.5px solid var(--color-primary-medium); }
 
 .ofs-input::placeholder,
 .ofs-textarea::placeholder { color: #b7bdc3; }
@@ -277,7 +277,7 @@
 }
 
 .ofs-btn.submit {
-    border: 1px solid #ff9bac;
+    border: 1px solid var(--color-primary-medium);
     background: var(--color-primary);
     font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;
@@ -389,7 +389,7 @@
 
 .lfc-toggle:focus-visible,
 .lfc-collapsed:focus-visible {
-    outline: 2px solid #ff9bac;
+    outline: 2px solid var(--color-primary-medium);
     outline-offset: 2px;
 }
 

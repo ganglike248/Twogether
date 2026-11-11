@@ -96,7 +96,7 @@
 
 .fam-menu-item:hover {
   background: rgba(255, 182, 193, 0.08);
-  color: #ff6b9d;
+  color: var(--color-primary-dark);
 }
 
 .fam-menu-item:active {

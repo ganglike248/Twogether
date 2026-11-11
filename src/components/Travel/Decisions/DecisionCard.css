@@ -20,7 +20,7 @@
 }
 
 .dcard.top {
-    border: 1.5px solid #ff9bac;
+    border: 1.5px solid var(--color-primary-medium);
     box-shadow: 0 2px 8px rgba(255, 107, 107, 0.15);
 }
 
@@ -213,7 +213,7 @@
 }
 
 .dcard-btn.primary {
-    border: 1px solid #ff9bac;
+    border: 1px solid var(--color-primary-medium);
     background: var(--color-primary);
     font-weight: 700; /* 연한 주 색 위 흰 글씨 가독성 */
     color: #ffffff;

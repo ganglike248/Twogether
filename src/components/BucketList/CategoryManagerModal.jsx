@@ -3,7 +3,7 @@ import { toast } from 'react-toastify';
 import { MdSettings, MdDelete, MdAdd } from 'react-icons/md';
 import BaseModal from './BaseModal';
 import ConfirmModal from '../common/ConfirmModal';
-import { CATEGORY_COLORS, DEFAULT_CATEGORIES, getCategoryDisplayName } from '../../services/categoryColorService';
+import { CATEGORY_COLORS, DEFAULT_CATEGORIES, getCategoryDisplayName, toPastelCategoryColor } from '../../services/categoryColorService';
 import './category-manager-modal.css';
 
 function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }) {
@@ -128,14 +128,14 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
                 <>
                   <div
                     className="category-color-circle"
-                    style={{ backgroundColor: categoryData.color }}
+                    style={{ backgroundColor: toPastelCategoryColor(categoryData.color) }}
                   />
                   <span className="category-name">{displayName}</span>
                   <button
                     className="btn-edit"
                     onClick={() => {
                       setEditingCategory(categoryKey);
-                      setEditColor(categoryData.color);
+                      setEditColor(toPastelCategoryColor(categoryData.color));
                     }}
                   >
                     색상변경

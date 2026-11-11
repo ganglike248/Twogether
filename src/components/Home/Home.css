@@ -287,7 +287,7 @@
   flex-shrink: 0;
 }
 
-.stat-icon.pink  { color: #ff9bac; }
+.stat-icon.pink  { color: var(--color-primary-medium); }
 .stat-icon.blue  { color: #81bbf5; }
 .stat-icon.green { color: #6ec49a; }
 

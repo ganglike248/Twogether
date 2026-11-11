@@ -80,9 +80,10 @@
 - 콘솔 설정(SHA-1 디버그/릴리즈/Play 앱 서명 키, plist URL scheme)은 완료됨
 
 ## 디자인 시스템
-- 색 변수(`index.css`): `--color-primary` #FFB6C1(배경·테두리·아이콘, 흰 글씨면 굵게), `--color-primary-dark` #E8618C(글씨용),
+- 색 변수(`index.css`): `--color-primary` #FFB6C1(배경·테두리·아이콘, 흰 글씨면 굵게), `--color-primary-dark` #E07A93(글씨용, 차분한 장밋빛),
   `--color-primary-light`, `--color-danger` #FF6B6B(오류·필수·삭제·초과 전용), `--color-text-desc`(소제목·설명).
-  **hex 직접 쓰지 말 것, 그라데이션 버튼 금지**(성공 초록 #4caf7d만 예외). 보조 분홍 하드코딩 약 60곳 남음
+  `--color-primary-medium` #FF9BAC(hover·테두리 등 보조 강조). **hex 직접 쓰지 말 것, 그라데이션 버튼 금지**(성공 초록 #4caf7d만 예외).
+  드물게 쓰인 분홍 hex 약 25곳은 아직 남음(각 1~3회)
 - 일정 색 기본값 couple #ffd6e0 / boyfriend #c7ceea / girlfriend #b5ead7 / trip #e8d7f1은 `index.css`. `useColorSync`는 사용자가
   설정에서 바꾼 색만 html 인라인으로 덮어씀(trip 제외). **컴포넌트 CSS에서 `:root` 변수 정의 금지**(지연 로딩 청크가 전역을 덮음)
 - 폰트: 제목·로고·숫자 `--font-display`(주아), 본문 고운돋움. 고운돋움은 굵기 하나라 강조는 색으로(작은 라벨만 600 허용)
@@ -92,7 +93,7 @@
 - 확인 모달: `common/AppModal.css`가 `confirm-modal-*`/`profile-modal-*`/`couple-info-modal-*`를 통일. 단순 확인은 `ConfirmModal` 사용
 - 모달 열림 상태는 URL(`?modal=` 또는 경로)에서 파생, `navigate()` 기반. 첫 진입(`location.key==='default'`)이면 닫을 때 replace
 - 여러 줄 입력은 `common/AutoGrowTextarea.jsx`
-- 홈 카드는 모두 같은 스타일(`.home-card`), 새 UI 패턴 전에 같은 맥락의 기존 패턴 재사용. 버킷 카테고리 색은 원색 유지
+- 홈 카드는 모두 같은 스타일(`.home-card`), 새 UI 패턴 전에 같은 맥락의 기존 패턴 재사용. 버킷 카테고리 색은 파스텔 팔레트(v1.0.38, `categoryColorService` — 예전 원색은 `toPastelCategoryColor`로 표시 시 변환)
 
 ## 기능별 규칙
 **첫 실행**(`components/Auth/`): `LoginPage` `?step=`(없음/signup/login/reset) → Welcome/EmailAuthForm/PasswordResetForm/GoogleConflictForm.
@@ -134,6 +135,9 @@
 
 **계정/프로필**: `/profile`은 닉네임·홈 사진만, `/account`는 로그인 정보·비밀번호(이메일 가입자만)·구글 연결·로그아웃(`signOut` await 후 navigate)·탈퇴.
 홈 사진 업로드 URL에 `?v=` 캐시버스터. `HomeImageSettingsPage` 재생성 금지, 연애 시작일은 커플 정보에서만
+
+**돌림판**(`Wheel/`, v1.0.38 리디자인): `WheelModal`(흐름·후보 상태) + `WheelSelectStep`(직접 적기·버킷 담기) + `WheelSpinStep`(SVG 원판, CSS transform 회전).
+마지막 후보는 로컬스토리지 `twogether_wheel_last`에 기억, 후보 2개 이상일 때만 돌리기, 결과 자동 사라짐 없음, "이건 빼고"로 이번 판에서 제외
 
 **기타**: MemoryList 검색은 300ms 디바운스 + `searchGenerationRef`, `fetchMoreSearchResults`의 finally는 무조건 리셋.
 생리주기 기능은 Play 건강 앱 정책으로 제거됨(되살리려면 Play 선언·개인정보처리방침 함께 갱신). `/privacy`·`/terms`·`/account-deletion`은 로그인 불필요
