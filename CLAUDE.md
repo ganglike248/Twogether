@@ -122,7 +122,8 @@
 배열 필드 수정은 트랜잭션 헬퍼(`mutateItems`/`mutateOptions`/`mutateTripSchedule`), 배열 안 타임스탬프는 `Date.now()`. 그날 첫 일정은
 결정론적 ID setDoc. 날짜 이동 `moveTripSchedule`은 새 날 추가 → 원래 날 제거. 후보 확정은 후보 단위(`isOptionDecided`), 후보→일정은 `sourceOptionId`.
 링크 자동 채우기 `LinkFillCard`/`useLinkFill`(빈 칸만 채움), 콜러블 `fetchLinkPreview`의 **SSRF 방어 절대 유지**(배포는 functions 별도).
-상세 화면 하단 FAB 공간 `padding-bottom: calc(56px + 2rem)`. 이동 시간은 `subscribeTravelTimes`
+일정 종류 `category`(식사·카페·관광·놀거리·쇼핑·숙소·기타, `Schedule/scheduleCategories.js`, 파스텔 + 불투명 배경, 제목 앞 아이콘만 — 색은 사용자가 고름).
+링크 자동 채우기 카드는 모달 열 때마다 접힌 채로 시작(`useLinkFillCollapsed`, 기억 안 함). 상세 화면 하단 FAB 공간 `padding-bottom: calc(56px + 2rem)`. 이동 시간은 `subscribeTravelTimes`
 
 **데이터 백업**(`/data-backup`): 같은 커플만, 없는 문서만 추가(원래 ID로 set, 비교는 `getDocsFromServer`), 사진은 링크만. 복원 문서 `restoredAt`/
 `restoredUnlock`로 알림 스킵 → **Functions를 Hosting보다 먼저 배포**. 교체 모드·새 커플 이사는 사용자가 거절함(재제안 금지)

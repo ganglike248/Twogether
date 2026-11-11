@@ -2,6 +2,7 @@
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
 import { MdCheck, MdLocationOn } from 'react-icons/md';
+import { getScheduleCategory } from './scheduleCategories';
 import './ScheduleItem.css';
 
 // 타임라인의 한 일정 — 왼쪽 동그라미가 곧 완료 체크 버튼, 시간은 제목 왼쪽 같은 줄.
@@ -65,23 +66,42 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isL
 
     const railClass = [isFirst && 'tl-first', isLast && 'tl-last'].filter(Boolean).join(' ');
 
+    const category = getScheduleCategory(schedule.category);
+
     return (
         <div
             className={`tl-item ${schedule.completed ? 'tl-item-done' : ''} ${railClass}`}
             onClick={() => onEdit(schedule)}
         >
-            <button
-                className={`tl-check ${schedule.completed ? 'checked' : ''}`}
-                onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
-                aria-label={schedule.completed ? '완료 취소' : '완료'}
-            >
-                {schedule.completed && <MdCheck />}
-            </button>
+            {/* 왼쪽 칸: 완료 체크 원 */}
+            <div className="tl-left">
+                <button
+                    className={`tl-check ${schedule.completed ? 'checked' : ''}`}
+                    onClick={(e) => { e.stopPropagation(); onToggleComplete(schedule.id); }}
+                    aria-label={schedule.completed ? '완료 취소' : '완료'}
+                >
+                    {schedule.completed && <MdCheck />}
+                </button>
+            </div>
 
             <div className="tl-body">
                 <div className="tl-headline">
                     {timeText && <span className="tl-time">{timeText}</span>}
-                    <h3 className="tl-title">{schedule.title}</h3>
+                    {/* 일정 종류 아이콘은 제목 앞 */}
+                    <div className="tl-title-row">
+                        {category && (
+                            <span
+                                className="tl-category"
+                                style={{ color: category.color, background: category.bg }}
+                                role="img"
+                                aria-label={category.label}
+                                title={category.label}
+                            >
+                                {React.createElement(category.Icon, { 'aria-hidden': true })}
+                            </span>
+                        )}
+                        <h3 className="tl-title">{schedule.title}</h3>
+                    </div>
                 </div>
                 {(schedule.description || '').trim() && (
                     <p className="tl-desc">{schedule.description}</p>

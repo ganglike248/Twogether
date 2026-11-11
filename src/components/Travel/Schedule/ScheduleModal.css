@@ -281,3 +281,33 @@
 .schedule-modal-body > .ofs-divider {
     margin: 0 0 1rem;
 }
+
+/* 일정 종류 선택 칩 (v1.0.36) */
+.schedule-category-chips {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 6px;
+}
+
+.schedule-category-chip {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: 36px;
+    padding: 0 12px;
+    border: 1px solid var(--card-border);
+    border-radius: 999px;
+    background: white;
+    color: var(--color-gray-700);
+    font-family: inherit;
+    font-size: 0.85rem;
+    cursor: pointer;
+}
+
+.schedule-category-chip svg {
+    font-size: 1rem;
+}
+
+.schedule-category-chip.on {
+    font-weight: 700;
+}

@@ -1,5 +1,6 @@
 // src/components/Travel/ScheduleModal.js
 import React, { useState, useEffect } from 'react';
+import { SCHEDULE_CATEGORIES } from './scheduleCategories';
 import { toast } from 'react-toastify';
 import './ScheduleModal.css';
 import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numberFormat';
@@ -29,6 +30,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
         description: '',
         location: '',
         cost: '',
+        category: '',
     });
     const [loading, setLoading] = useState(false);
     const [errors, setErrors] = useState({});
@@ -49,6 +51,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                 description: schedule.description || '',
                 location: schedule.location || '',
                 cost: schedule.cost ? addCommas(schedule.cost) : '',
+                category: schedule.category || '',
             });
         } else {
             setFormData({
@@ -58,6 +61,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                 description: '',
                 location: '',
                 cost: '',
+                category: '',
             });
         }
         setErrors({});
@@ -240,6 +244,29 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                                 className={errors.title ? 'schedule-modal-error' : ''}
                             />
                             {errors.title && <span className="schedule-modal-error-text">{errors.title}</span>}
+                        </div>
+
+                        {/* 일정 종류 — 선택 사항, 다시 누르면 해제 */}
+                        <div className="schedule-modal-form-group">
+                            <span className="schedule-modal-form-label" id="schedule-category-label">종류</span>
+                            <div className="schedule-category-chips" role="group" aria-labelledby="schedule-category-label">
+                                {SCHEDULE_CATEGORIES.map(({ key, label, color, bg, Icon: icon }) => {
+                                    const on = formData.category === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`schedule-category-chip${on ? ' on' : ''}`}
+                                            style={on ? { color, background: bg, borderColor: color } : undefined}
+                                            aria-pressed={on}
+                                            onClick={() => handleChange('category', on ? '' : key)}
+                                        >
+                                            {React.createElement(icon, { 'aria-hidden': true })}
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
                         </div>
 
                         <div className="schedule-modal-form-group">
