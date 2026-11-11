@@ -500,7 +500,7 @@
 /* 버킷리스트 섹션 (진행률 + 돌림판) */
 .home-bucket-section {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 0.75rem;
 }
 
@@ -647,3 +647,13 @@
   color: var(--color-gray-600);
 }
 
+/* 좁은 화면(iPhone SE 등)에서 통계 카드 문구가 칸 밖으로 넘치지 않게 */
+.stat-content {
+  min-width: 0;
+}
+
+.stat-label {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}

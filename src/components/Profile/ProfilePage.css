@@ -265,7 +265,7 @@
   width: 100%;
   border: 1px solid var(--color-gray-300);
   outline: none;
-  font-size: 0.88rem;
+  font-size: 1rem; /* iOS: 1rem 미만 입력칸은 포커스 시 화면 확대 */
   color: var(--color-gray-800);
   background: var(--color-gray-50);
   padding: 0.65rem 0.75rem;
@@ -273,6 +273,12 @@
   border-radius: var(--border-radius);
   transition: border-color 0.15s, background-color 0.15s;
   font-family: inherit;
+}
+
+/* 수정 불가(표시용) 칸은 포커스가 안 돼 확대 문제가 없어 예전 크기 유지 */
+.profile-field-compact input:disabled,
+.profile-field-compact input[readonly] {
+  font-size: 0.88rem;
 }
 
 .profile-field input:focus,
