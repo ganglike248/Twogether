@@ -149,35 +149,21 @@ const DayModal = ({
                       className={`day-event-item ${eventTypeClass}`}
                       onClick={() => onEditEvent(event)}
                     >
-                      <div className="event-icon-section">
-                        <div className="event-icon">
-                          {getEventTypeIcon(
-                            event.extendedProps?.eventType,
-                            isTrip,
-                          )}
-                        </div>
-                        <div className="event-type-name">
-                          {getEventTypeName(
-                            event.extendedProps?.eventType,
-                            isTrip,
-                          )}
-                        </div>
-                      </div>
+                      {/* 왼쪽 색 띠(종류 색) + 제목 + 종류 칩(아이콘·이름 한 줄, 길면 말줄임) — 예전엔 좁은 왼쪽 칸(10%)에
+                          닉네임을 세로로 넣어 글자 단위로 줄바꿈됐고, 같은 이름이 오른쪽 배지에 한 번 더 나왔음 */}
                       <div className="event-details">
                         <div className="event-title">{event.title}</div>
-                        <div className="event-meta">
-                          <span className={`event-type ${eventTypeClass}`}>
-                            {getEventTypeName(
-                              event.extendedProps?.eventType,
-                              isTrip,
-                            )}
+                        {event.extendedProps.description && (
+                          <div className="event-description">{event.extendedProps.description}</div>
+                        )}
+                        <div className={`event-type ${eventTypeClass}`}>
+                          <span className="event-type-icon" aria-hidden="true">
+                            {getEventTypeIcon(event.extendedProps?.eventType, isTrip)}
+                          </span>
+                          <span className="event-type-label">
+                            {getEventTypeName(event.extendedProps?.eventType, isTrip)}
                           </span>
                         </div>
-                        {event.extendedProps.description && (
-                          <div className="event-description">
-                            {event.extendedProps.description}
-                          </div>
-                        )}
                       </div>
                       <div className="event-arrow">›</div>
                     </div>

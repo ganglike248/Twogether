@@ -413,3 +413,79 @@
   font-size: 1.1rem;
   font-weight: 600;
 }
+
+/* ── v1.0.41 디자인 통일 (AppModal·설정 화면 톤) — 제목 → 설명 → 작은 종류(아이콘·이름) 순, 전체적으로 작게 ── */
+.day-modal-overlay { background-color: rgba(40, 30, 35, 0.45); }
+
+.day-modal-container { border-radius: 18px; }
+
+.day-modal-subtitle { color: var(--color-text-desc); }
+
+.day-modal-close {
+  width: 32px;
+  height: 32px;
+  border: none;
+  border-radius: 50%;
+  background: var(--main-bg);
+  color: var(--color-gray-700);
+  font-size: 1.2rem;
+  line-height: 1;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.day-event-item {
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.5rem 0.6rem 0.5rem 0.7rem;
+  border-radius: 10px;
+  border: 1px solid var(--card-border);
+  border-left-width: 3px;
+}
+
+.day-event-item .event-details { gap: 0.15rem; }
+
+.day-event-item .event-title {
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--color-gray-800);
+}
+
+.day-event-item .event-description {
+  font-size: 0.72rem;
+  color: var(--color-text-desc);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* 종류(닉네임/커플/여행): 맨 아래 작은 글씨 한 줄, 길면 말줄임 */
+.day-event-item .event-type {
+  display: flex;
+  align-items: center;
+  gap: 0.2rem;
+  min-width: 0;
+  font-size: 0.65rem;
+  color: var(--color-text-desc);
+  white-space: nowrap;
+}
+
+.day-event-item .event-type-icon { display: inline-flex; font-size: 0.7rem; flex-shrink: 0; }
+
+.day-event-item .event-type-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  min-width: 0;
+}
+
+.day-event-item .event-arrow { color: var(--color-gray-500); flex-shrink: 0; font-size: 1rem; }
+
+.add-event-btn {
+  min-height: 44px;
+  border-radius: 12px;
+  background: var(--color-primary);
+  color: white;
+  font-weight: 700;
+  border: none;
+}

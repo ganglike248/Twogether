@@ -541,3 +541,55 @@
   align-items: center;
   gap: 0.75rem;
 }
+
+/* ── v1.0.41 디자인 통일 (AppModal 톤) ── */
+.modal-overlay { background-color: rgba(40, 30, 35, 0.45); }
+
+.sheet-card { border-radius: 18px; }
+
+/* "일정 추가/수정" 머리말을 대문자 라벨 대신 주아 제목으로 */
+.sheet-eyebrow {
+  font-family: var(--font-display);
+  font-weight: 400;
+  font-size: 1.15rem;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--color-gray-800);
+}
+
+.sheet-close {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--main-bg);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.sheet-foot-actions .btn,
+.confirm-actions .btn {
+  min-height: 44px;
+  border-radius: 12px;
+}
+
+/* 삭제 확인 카드 = AppModal과 같은 모양 */
+.confirm-card {
+  border-radius: 18px;
+  max-width: 320px;
+  padding: 1.5rem 1.35rem 1.2rem;
+}
+
+.confirm-title {
+  font-size: 1.2rem;
+  color: var(--color-gray-800);
+}
+
+.confirm-body {
+  font-size: 0.9rem;
+  line-height: 1.6;
+  color: var(--color-text-desc);
+}
+
+.confirm-actions { gap: 0.5rem; }
+.confirm-actions .btn { flex: 1; justify-content: center; }
