@@ -1,0 +1,5 @@
+Attribution-ShareAlike 4.0 International
+
+=======================================================================
+
+출처: https://github.com/trailofbits/skills (plugins/differential-review), CC-BY-SA-4.0. 수정 없이 복사.
