@@ -86,7 +86,7 @@
   드물게 쓰인 분홍 hex 약 25곳은 아직 남음(각 1~3회)
 - 일정 색 기본값 couple #ffd6e0 / boyfriend #c7ceea / girlfriend #b5ead7 / trip #e8d7f1은 `index.css`. `useColorSync`는 사용자가
   설정에서 바꾼 색만 html 인라인으로 덮어씀(trip 제외). **컴포넌트 CSS에서 `:root` 변수 정의 금지**(지연 로딩 청크가 전역을 덮음)
-- 폰트: 제목·로고·숫자 `--font-display`(주아), 본문 고운돋움. 고운돋움은 굵기 하나라 강조는 색으로(작은 라벨만 600 허용)
+- 폰트: 제목·로고·숫자 `--font-display`(주아), 본문 고운돋움. 화면·모달 제목 목록은 `index.css`의 "제목 폰트 통일" 블록(`#root .클래스`) — 새 제목 클래스도 거기 추가. 고운돋움은 굵기 하나라 강조는 색으로(작은 라벨만 600 허용)
 - `#root`는 `height:100dvh; flex column`(바꾸지 말 것). Layout 밖 독립 페이지는 `flex:1 0 auto; min-height:100%`, **100vh 금지**,
   가로 `margin:0 auto` 금지(→ `width:100%` + `align-self:center`). 고정 전체 높이는 `100dvh`, 노치는 safe-area padding
 - 메뉴 화면: 루트에 `menu-page` + `<MenuPageHeader title onBack? />`(`common/MenuPage.jsx/.css`). 설정 목록은 `.settings-item`(아이콘 칩+제목+설명)
@@ -155,7 +155,7 @@
 ## 남은 작업 / 로드맵
 - 사용자 메모: `docs/dev.md`
 - 이벤트 사진 첨부(`uploadEventImage` 미구현, MemoryDetail 렌더링 미구현)
-- 남은 화면 점검(홈·캘린더·추억·버킷·여행·편지): 제목 폰트 확산, 보조 분홍 하드코딩 정리, CoupleInfo 날짜 입력 0.88rem
+- 남은 화면 점검(홈·캘린더·추억·버킷·여행·편지): 드물게 쓰인 분홍 hex 약 25곳 정리
 - 카카오 로그인(별도 백엔드 필요, 장기)
 - 로드맵(설계 확정, 재논의 없이 구현): **4. 일상 결정**(travelDecisions를 최상위로 일반화, 카테고리 영구 재사용 + 라운드 반복 + 히스토리,
   Home 진입 카드 → `/decisions`) → **5. 우리 지도**(지역 색칠, 시/도 기본 + 시/군/구 드릴다운, trips에 `region` 필드 필요) →

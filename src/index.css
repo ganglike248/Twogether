@@ -172,6 +172,42 @@ body {
   overflow-x: clip;
 }
 
+/* ── 제목 폰트 통일 (v1.0.39) — 화면·모달 제목은 주아(--font-display). #root로 우선순위를 올려 각 화면 CSS의
+   font-family/weight를 덮음(주아는 굵기가 하나라 bold면 가짜 굵기로 뭉개져서 400 고정). 새 화면 제목도 여기에 추가 */
+#root .app-header-title,
+#root .calendar-title,
+#root .travel-plan-title,
+#root .sm-page-title,
+#root .acc-title,
+#root .td-header-title,
+#root .day-modal-title,
+#root .confirm-title,
+#root .log-modal-title,
+#root .memory-modal-title,
+#root .bucket-modal-title,
+#root .schedule-modal-title,
+#root .trip-modal-title,
+#root .sm-modal-title,
+#root .dvs-title,
+#root .ofs-header-title,
+#root .pas-title,
+#root .dsm-title,
+#root .npm-title,
+#root .empty-state-title,
+#root .privacy-header h1,
+#root .terms-header h1,
+#root .del-header h1,
+#root .memories-title,
+#root .checklist-modal-title,
+#root .decision-modal-title,
+#root .travel-plan-modal-title,
+#root .sidebar-title,
+#root .tct-empty-title,
+#root .tdt-empty-title {
+  font-family: var(--font-display);
+  font-weight: 400;
+}
+
 /* 공통 버튼 스타일 */
 .btn {
   display: inline-flex;
