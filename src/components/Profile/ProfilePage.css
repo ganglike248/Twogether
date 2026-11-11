@@ -74,7 +74,7 @@
   background: none;
   border: 1px solid var(--color-primary);
   border-radius: var(--border-radius);
-  color: #ff6b8a;
+  color: var(--color-primary-dark);
   font-size: 0.7rem;
   font-weight: 600;
   font-family: inherit;
@@ -85,7 +85,7 @@
 
 .profile-hero-delete-btn:hover {
   background: #fff0f4;
-  border-color: #ff6b8a;
+  border-color: var(--color-primary-dark);
 }
 
 /* 홈 화면 이미지: 홈의 히어로 사진과 동일한 비율 (약 2:3 portrait), 작게 표시 */

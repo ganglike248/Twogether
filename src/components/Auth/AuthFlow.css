@@ -90,7 +90,7 @@
 
 .auth-field input:focus {
   outline: none;
-  border-color: #ff9b9b;
+  border-color: var(--color-primary-medium);
 }
 
 .auth-hint {

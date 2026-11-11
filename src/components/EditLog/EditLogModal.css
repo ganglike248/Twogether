@@ -160,7 +160,7 @@
 }
 
 .event-date {
-  color: #e879a0;
+  color: var(--color-primary-dark);
   font-weight: 500;
 }
 
@@ -184,7 +184,7 @@
 .details-toggle-btn {
   background: none;
   border: none;
-  color: #e879a0;
+  color: var(--color-primary-dark);
   cursor: pointer;
   font-size: 0.85rem;
   padding: 4px 8px;

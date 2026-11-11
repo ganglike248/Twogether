@@ -51,7 +51,7 @@
     flex-direction: column;
     gap: 6px;
     background: #fff6f8;
-    color: #f2c4cc;
+    color: var(--color-primary);
     font-size: 40px;
 }
 

@@ -225,7 +225,7 @@
 .fc-day-sun .fc-daygrid-day-number { color: var(--color-primary-dark); }
 
 /* 공휴일·커플기념일 날짜 숫자 색상 */
-.fc .day-holiday .fc-daygrid-day-number { color: #f08090 !important; }
+.fc .day-holiday .fc-daygrid-day-number { color: var(--color-primary-dark) !important; }
 .fc .day-couple  .fc-daygrid-day-number { color: var(--color-primary-medium) !important; }
 
 /* 특별일 이벤트: 배경 없이 텍스트만, 일반 이벤트와 동일한 harness 높이 */
@@ -250,7 +250,7 @@
   text-overflow: ellipsis;
 }
 
-.fc-event.special-day-event.holiday .fc-event-title { color: #f08090; }
+.fc-event.special-day-event.holiday .fc-event-title { color: var(--color-primary-dark); }
 .fc-event.special-day-event.couple  .fc-event-title { color: var(--color-primary-medium); }
 
 /* 컬럼 헤더 */

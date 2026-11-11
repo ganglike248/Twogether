@@ -447,7 +447,7 @@
 
 .trip-section-badge.ongoing {
   background: rgba(255, 182, 193, 0.2);
-  color: #ff6b91;
+  color: var(--color-primary-dark);
 }
 
 .trip-section-badge.upcoming {

@@ -58,7 +58,7 @@
 /* 시간(v1.0.24~) — 예전엔 제목과 같은 색의 13px 일반 글씨라 눈에 안 띈다는 피드백으로 앱 대표색 계열의 굵은 글씨로.
    한때 연분홍 배경 칩이었다가 배경은 빼달라는 피드백으로 글씨만 남김 */
 .tl-time {
-    color: #e64980;
+    color: var(--color-primary-dark);
     font-size: 13px;
     font-weight: 700;
     line-height: 1.4;

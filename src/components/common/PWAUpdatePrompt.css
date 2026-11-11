@@ -75,7 +75,7 @@
 }
 
 .pwa-update-confirm {
-  background: #f48fb1;
+  background: var(--color-primary-medium);
   border: none;
   color: #fff;
   font-size: 0.82rem;
@@ -87,7 +87,7 @@
 }
 
 .pwa-update-confirm:active {
-  background: #ec407a;
+  background: var(--color-primary-dark);
 }
 
 .pwa-update-dismiss:disabled,
@@ -97,7 +97,7 @@
 }
 
 .pwa-update-confirm:disabled:active {
-  background: #f48fb1;
+  background: var(--color-primary-medium);
 }
 
 .pwa-update-spinner {
