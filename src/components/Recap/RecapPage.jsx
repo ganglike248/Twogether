@@ -1,12 +1,16 @@
 // src/components/Recap/RecapPage.jsx
 // /recap/:period — 'YYYY-MM'이면 월간 요약, 'YYYY'면 연말 랩업. 데이터를 읽어 계산한 뒤 스토리 뷰어로 보여줌.
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
+import { toast } from 'react-toastify';
 import { useParams, useNavigate, useLocation } from 'react-router-dom';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchRecapData } from '../../services/recap/recapData';
 import { buildMonthlyRecap } from '../../services/recap/monthlyRecap';
 import { buildYearRecap } from '../../services/recap/yearRecap';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import { captureRecapImage } from '../../services/recap/recapImage';
+import { saveImageFile } from '../../services/fileSave';
+import RecapExport from './RecapExport';
 import RecapStory from './RecapStory';
 import { MonthCalendarCard, MonthNumbersCard, MonthHighlightsCard, MonthNextCard } from './MonthlyCards';
 import {
@@ -29,6 +33,8 @@ const RecapPage = () => {
   const location = useLocation();
   const { user, userDoc, partnerDoc, coupleDoc, coupleId } = useAuthContext();
   const [state, setState] = useState({ loading: true, error: '', recap: null });
+  const [saving, setSaving] = useState(false);
+  const exportRef = useRef(null);
 
   const parsed = parsePeriod(period);
   const year = parsed?.year ?? null;
@@ -57,6 +63,20 @@ const RecapPage = () => {
     else navigate(-1);
   };
 
+  const saveImage = async () => {
+    if (saving || !exportRef.current) return;
+    setSaving(true);
+    try {
+      const dataUrl = await captureRecapImage(exportRef.current);
+      const result = await saveImageFile({ fileName: `우리두리_${period}${isYear ? '_랩업' : ''}.png`, dataUrl });
+      if (result.saved) toast.success('이미지를 저장했어요');
+    } catch (err) {
+      toast.error(getFriendlyErrorMessage(err, '이미지를 저장하지 못했어요.'));
+    } finally {
+      setSaving(false);
+    }
+  };
+
   if (!parsed) return <div className="rc-screen rc-center"><p className="rc-d">잘못된 주소예요.</p><button type="button" className="rc-btn" onClick={close}>닫기</button></div>;
   if (state.loading) return <div className="rc-screen rc-center"><p className="rc-d">{what}의 우리를 모으는 중…</p></div>;
   if (state.error || !state.recap) {
@@ -83,19 +103,29 @@ const RecapPage = () => {
       <YearWordsCard key="words" words={recap.words} />,
       <YearHabitsCard key="habits" habits={recap.habits} />,
       recap.compare && <YearCompareCard key="compare" compare={recap.compare} />,
-      <YearSummaryCard key="summary" summary={recap.summary} onClose={close} />,
+      <YearSummaryCard key="summary" summary={recap.summary} onClose={close} onSave={saveImage} saving={saving} />,
     ].filter(Boolean);
-    return <RecapStory key={period} label={`${year} 우리두리 랩업`} cards={cards} onClose={close} />;
+    return (
+      <>
+        <RecapStory key={period} label={`${year} 우리두리 랩업`} cards={cards} onClose={close} />
+        <RecapExport ref={exportRef} recap={recap} isYear />
+      </>
+    );
   }
 
   const cards = [
     <MonthCalendarCard key="cal" calendar={recap.calendar} />,
     <MonthNumbersCard key="num" numbers={recap.numbers} />,
     recap.highlights && <MonthHighlightsCard key="hl" highlights={recap.highlights} />,
-    <MonthNextCard key="next" next={recap.next} onAddEvent={() => navigate(`/calendar/event/new/${recap.next.year}-${String(recap.next.month).padStart(2, '0')}-01`, { state: { modal: true } })} />,
+    <MonthNextCard key="next" next={recap.next} onAddEvent={() => navigate(`/calendar/event/new/${recap.next.year}-${String(recap.next.month).padStart(2, '0')}-01`, { state: { modal: true } })} onSave={saveImage} saving={saving} />,
   ].filter(Boolean);
 
-  return <RecapStory key={period} label={`${year}년 ${month}월의 우리`} cards={cards} onClose={close} />;
+  return (
+    <>
+      <RecapStory key={period} label={`${year}년 ${month}월의 우리`} cards={cards} onClose={close} />
+      <RecapExport ref={exportRef} recap={recap} isYear={false} />
+    </>
+  );
 };
 
 export default RecapPage;

@@ -70,7 +70,7 @@
   `res/raw/keep.xml`에 추가. Play의 "축소율 낮음"·"디버그 기호" 경고는 라이브러리 원인이라 보류. 스토어 전 내부 테스트 트랙으로 실기기 확인
 - iOS 앱 개인정보 매니페스트 `ios/App/App/PrivacyInfo.xcprivacy`(App 타깃 Resources에 등록): `@capacitor/filesystem`의 FileTimestamp C617.1.
   필수 사유 API를 쓰는 플러그인을 추가하면 그 README의 요구 항목을 여기에 추가
-- 파일 저장은 `services/fileSave.js`의 `saveTextFile`만(네이티브는 filesystem+share, 웹뷰는 `<a download>` 무시)
+- 파일 저장은 `services/fileSave.js`의 `saveTextFile`/`saveImageFile`(요약 이미지, `recapImage.js`가 Google Fonts `text=` 서브셋으로 폰트 임베드)만(네이티브는 filesystem+share, 웹뷰는 `<a download>` 무시)
 
 ## 구글 로그인
 - 네이티브는 `@capacitor-firebase/authentication`(`skipNativeAuth: true`) → idToken으로 JS SDK `signInWithCredential`. 세션은 JS SDK 하나

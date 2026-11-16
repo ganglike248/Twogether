@@ -37,19 +37,26 @@ export const YearCoverCard = ({ cover }) => (
   </div>
 );
 
+// 한 해 히트맵 — 줄 하나가 한 달, 칸 하나가 하루(1~31일). 카드와 저장 이미지에서 같이 씀
+export const YearHeatmap = ({ calendar: c, title }) => (
+  <div className="rc-heat" role="img" aria-label={`한 해 캘린더, 일정이 있던 날 ${c.activeDays}일`}>
+    {title && <span className="rc-heat-title">{title}</span>}
+    <div className="rc-heat-days" aria-hidden="true"><span className="m" /><span className="cells"><b>1일</b><b>15일</b><b>31일</b></span></div>
+    {c.months.map((days, i) => (
+      <div key={i} className="rc-heat-row">
+        <span className="m">{i + 1}월</span>
+        <span className="cells">{days.map((v, d) => <i key={d} className={v === 'trip' ? 'trip' : `l${v}`} />)}</span>
+      </div>
+    ))}
+    <div className="rc-legend"><span><i className="l0" />없음</span><span><i className="l1" />1개</span><span><i className="l2" />2개</span><span><i className="l3" />3개+</span><span><i className="trip" />여행</span></div>
+  </div>
+);
+
 export const YearCalendarCard = ({ calendar: c }) => (
   <>
     <div className="rc-big"><b>{c.activeDays}일</b><span>일정이 있던 날 · 한 해의 {c.pct}%</span></div>
     <h1 className="rc-h sm">달력을 한 장에 펼치면<br />우리는 이렇게 채웠어요</h1>
-    <div className="rc-paper rc-heat" role="img" aria-label={`일정이 있던 날 ${c.activeDays}일`}>
-      {c.months.map((days, i) => (
-        <div key={i} className="rc-heat-row">
-          <span className="m">{i + 1}</span>
-          <span className="cells">{days.map((v, d) => <i key={d} className={v === 'trip' ? 'trip' : `l${v}`} />)}</span>
-        </div>
-      ))}
-      <div className="rc-legend"><span><i className="l1" />적음</span><span><i className="l3" />많음</span><span><i className="trip" />여행</span></div>
-    </div>
+    <div className="rc-paper"><YearHeatmap calendar={c} /></div>
     <div className="rc-grid2 tight">
       <div className="rc-stat"><span className="rc-stat-n">{c.weeklyAvg}<small>개</small></span><span className="rc-stat-l">평균 일주일에 남긴 일정</span></div>
       {c.streak && <div className="rc-stat"><span className="rc-stat-n">{c.streak.weeks}주<small>연속</small></span><span className="rc-stat-l">빠짐없이 계획한 가장 긴 기간{c.streak.fromMonth !== c.streak.toMonth ? ` (${c.streak.fromMonth}–${c.streak.toMonth}월)` : ''}</span></div>}
@@ -209,25 +216,34 @@ export const YearCompareCard = ({ compare }) => (
   </>
 );
 
-export const YearSummaryCard = ({ summary, onClose }) => (
-  <>
-    <div className="rc-paper rc-summary">
-      <span className="rc-tape center" />
-      <span className="rc-book-year">{summary.year}</span>
-      <span className="rc-book-t">우리의 한 해</span>
-      {summary.dday && (
-        <span className="rc-summary-dday">
-          함께한 지 <b>{summary.dday}일</b>
-          <small>({summary.refStr.slice(0, 4)}년 {md(summary.refStr)} 기준)</small>
-        </span>
-      )}
-      <div className="rc-summary-rows">
-        {summary.rows.map(r => <div key={r.label}><span>{r.label}</span><b>{r.value}</b></div>)}
-      </div>
+// 한 장 요약 종이 — 요약 카드와 이미지 저장(RecapExport)에서 같이 씀
+export const YearSummaryPaper = ({ summary, calendar }) => (
+  <div className="rc-paper rc-summary">
+    <span className="rc-tape center" />
+    <span className="rc-book-year">{summary.year}</span>
+    <span className="rc-book-t">우리의 한 해</span>
+    {summary.dday && (
+      <span className="rc-summary-dday">
+        함께한 지 <b>{summary.dday}일</b>
+        <small>({summary.refStr.slice(0, 4)}년 {md(summary.refStr)} 기준)</small>
+      </span>
+    )}
+    {calendar && <YearHeatmap calendar={calendar} title={`한 해 캘린더 · 일정이 있던 날 ${calendar.activeDays}일`} />}
+    <div className="rc-summary-rows">
+      {summary.rows.map(r => <div key={r.label}><span>{r.label}</span><b>{r.value}</b></div>)}
     </div>
+  </div>
+);
+
+export const YearSummaryCard = ({ summary, onClose, onSave, saving }) => (
+  <>
+    <YearSummaryPaper summary={summary} />
     <div className="rc-end">
       <p>내년에도 같이 채워요</p>
-      <button type="button" className="rc-btn primary" onClick={onClose}>다 봤어요</button>
+      <div className="rc-btn-row">
+        <button type="button" className="rc-btn" onClick={onSave} disabled={saving}>{saving ? '만드는 중…' : '이미지로 저장'}</button>
+        <button type="button" className="rc-btn primary" onClick={onClose}>다 봤어요</button>
+      </div>
     </div>
   </>
 );

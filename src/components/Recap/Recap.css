@@ -9,7 +9,8 @@
   flex-direction: column;
   gap: 0.9rem;
   padding: calc(env(safe-area-inset-top) + 0.75rem) 1.25rem calc(env(safe-area-inset-bottom) + 1rem);
-  background: var(--color-primary-light);
+  background: white;
+  background: color-mix(in srgb, var(--color-primary-light) 45%, white);
   color: var(--color-gray-800);
   box-sizing: border-box;
   user-select: none;
@@ -131,16 +132,23 @@
 .rc-cover .rc-h, .rc-cover .rc-d { text-align: center; }
 
 /* 한 해 캘린더(히트맵) */
-.rc-heat { display: flex; flex-direction: column; gap: 3px; padding: 0.9rem 0.8rem 0.7rem; }
+.rc-heat { width: 100%; display: flex; flex-direction: column; gap: 3px; }
 .rc-heat-row { display: flex; align-items: center; gap: 6px; }
-.rc-heat-row .m { width: 16px; flex: none; text-align: right; font-size: 0.6rem; color: var(--color-gray-500); }
+.rc-heat-row .m, .rc-heat-days .m { width: 26px; flex: none; text-align: right; font-size: 0.6rem; color: var(--color-gray-500); }
+.rc-heat-title { font-size: 0.8rem; color: var(--color-text-desc); margin-bottom: 0.3rem; }
+.rc-heat-days { display: flex; gap: 6px; }
+.rc-heat-days .cells { flex: 1; display: flex; justify-content: space-between; }
+.rc-heat-days b { font-weight: 400; font-size: 0.55rem; color: var(--color-gray-500); }
+.rc-heat .rc-legend { flex-wrap: wrap; gap: 0.3rem 0.7rem; }
+.rc-summary .rc-heat { margin: 0.2rem 0 0.8rem; text-align: left; }
 .rc-heat-row .cells { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 1.5px; }
 .rc-heat-row i, .rc-heat .rc-legend i { aspect-ratio: 1; border-radius: 2px; background: var(--color-gray-100); }
 .rc-heat i.l1 { background: var(--color-couple); }
 .rc-heat i.l2 { background: var(--color-primary); }
 .rc-heat i.l3 { background: var(--color-primary-dark); }
 .rc-heat i.trip { background: var(--color-trip); }
-.rc-heat .rc-legend { margin-top: 0.5rem; }
+.rc-heat .rc-legend { margin-top: 0.35rem; }
+.rc-heat .rc-legend i { width: 10px; height: 10px; border-radius: 2px; }
 
 /* 달마다 한 장면 */
 .rc-months { display: flex; flex-direction: column; gap: 0.35rem; }
@@ -214,3 +222,15 @@
 .rc-summary-dday { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--color-text-desc); }
 .rc-summary-dday b { font-weight: 400; font-family: var(--font-display); color: var(--color-primary-dark); }
 .rc-summary-dday small { font-size: 0.7rem; color: var(--color-gray-500); }
+
+/* 이미지로 저장 */
+.rc-btn-row { width: 100%; display: flex; gap: 0.5rem; }
+.rc-btn-row .rc-btn { flex: 1; width: auto; padding-left: 0.8rem; padding-right: 0.8rem; }
+.rc-btn:disabled { opacity: 0.6; cursor: default; }
+.rc-export-stage { position: fixed; left: -10000px; top: 0; pointer-events: none; }
+.rc-export { width: 360px; display: flex; flex-direction: column; gap: 0.9rem; padding: 1.4rem 1.2rem 1.6rem; background: white; background: color-mix(in srgb, var(--color-primary-light) 45%, white); color: var(--color-gray-800); box-sizing: border-box; }
+.rc-export .rc-h { font-size: 1.35rem; margin: 0; }
+.rc-export-head { display: flex; flex-direction: column; gap: 0.1rem; }
+.rc-export-head span { font-family: var(--font-display); font-size: 0.8rem; color: var(--color-primary-dark); }
+.rc-export-head b { font-family: var(--font-display); font-weight: 400; font-size: 1.1rem; color: var(--color-gray-900); }
+.rc-export.year { background: var(--color-primary-light); } /* 연말 이미지는 기존 연분홍 배경 */

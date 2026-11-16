@@ -87,7 +87,7 @@ export const MonthHighlightsCard = ({ highlights }) => (
   </>
 );
 
-export const MonthNextCard = ({ next, onAddEvent }) => (
+export const MonthNextCard = ({ next, onAddEvent, onSave, saving }) => (
   <>
     <h1 className="rc-h">{next.month}월에는<br />이런 날이 기다려요</h1>
     <div className="rc-up">
@@ -110,7 +110,10 @@ export const MonthNextCard = ({ next, onAddEvent }) => (
     </div>
     <div className="rc-end">
       <p>{next.month}월도 같이 채워요</p>
-      <button type="button" className="rc-btn primary" onClick={onAddEvent}>일정 추가하러 가기</button>
+      <div className="rc-btn-row">
+        <button type="button" className="rc-btn" onClick={onSave} disabled={saving}>{saving ? '만드는 중…' : '이미지로 저장'}</button>
+        <button type="button" className="rc-btn primary" onClick={onAddEvent}>일정 추가하러 가기</button>
+      </div>
     </div>
   </>
 );
