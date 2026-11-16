@@ -764,7 +764,56 @@ exports.sendEveningReminders = functions.pubsub
     } catch (error) {
       console.error('[sendEveningReminders] Error:', error);
     }
+
+    // 말일이면 월간 요약 알림(내일 일정 알림과 따로 — 한쪽이 실패해도 다른 쪽은 발송)
+    try {
+      await sendRecapNotifications();
+    } catch (error) {
+      console.error('[sendRecapNotifications] Error:', error);
+    }
   });
+
+// ✅ 월간 요약 / 연말 랩업 알림 — sendEveningReminders(21:00 KST)에서 호출. "내일이 1일"이면 말일.
+// 화면(src/services/recap)과 같은 기준: 커플 일정만(여행·개인 제외), 월간은 그달 시작 일정 1개 이상,
+// 12월 31일엔 그해 5개 이상이면 연말 랩업 1건만(월간 요약은 랩업 안에 포함되니 중복 발송 안 함).
+const RECAP_YEAR_MIN_EVENTS = 5;
+async function sendRecapNotifications() {
+  const today = getKstDateStr(0);
+  const tomorrow = getKstDateStr(1);
+  if (!tomorrow.endsWith('-01')) return;
+
+  const ym = today.slice(0, 7);
+  const year = today.slice(0, 4);
+  const month = Number(today.slice(5, 7));
+  const isYearEnd = month === 12;
+  // start는 'YYYY-MM-DD' 또는 'YYYY-MM-DDTHH:mm' 문자열 — 접두 범위로 조회('-32'는 어떤 날짜보다 큼)
+  const from = isYearEnd ? `${year}-01-01` : `${ym}-01`;
+  const to = `${ym}-32`;
+  const snap = await db.collection('events').where('start', '>=', from).where('start', '<', to).get();
+
+  const stats = new Map(); // coupleId -> { month, year }
+  snap.forEach((doc) => {
+    const { coupleId, eventType, start } = doc.data();
+    if (!coupleId || eventType === 'travel' || typeof start !== 'string') return;
+    const s = stats.get(coupleId) || { month: 0, year: 0 };
+    s.year += 1;
+    if (start.startsWith(ym)) s.month += 1;
+    stats.set(coupleId, s);
+  });
+
+  for (const [coupleId, s] of stats) {
+    const wrapUp = isYearEnd && s.year >= RECAP_YEAR_MIN_EVENTS;
+    if (!wrapUp && s.month < 1) continue;
+    const coupleSnap = await db.collection('couples').doc(coupleId).get();
+    const members = coupleSnap.data()?.members || [];
+    const message = wrapUp
+      ? { title: `${year}년 우리의 다이어리가 완성됐어요`, body: '열두 달을 한 장씩 넘겨 봐요', link: `/recap/${year}` }
+      : { title: `${month}월의 우리, 요약이 도착했어요`, body: `이번 달 함께한 일정 ${s.month}개를 모아봤어요`, link: `/recap/${ym}` };
+    for (const uid of members) {
+      await sendPushToUser(uid, message, 'sendRecapNotifications', 'recap', true);
+    }
+  }
+}
 
 // ✅ 링크 미리보기 — 여행 '선택 사항' 후보 추가 모달의 "정보 불러오기"
 // 서버가 사용자 입력 URL을 대신 fetch하므로 SSRF 방어/타임아웃/크기 제한은 linkPreview.js 참고

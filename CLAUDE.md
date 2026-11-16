@@ -53,7 +53,7 @@
 - 알림 토글 표시는 권한이 아니라 `shouldReceiveNotifications()`(권한 + `twogether_fcm_disabled`), 기본 켜짐. 각 비동기 단계 타임아웃 가드 유지
 - 종류별 설정: `NOTIFICATION_TYPES`(`category`로 섹션 자동 묶음, `users.notificationPrefs`), `eventUpdate`만 기본 꺼짐. 커플 연결 알림은 type 없이 항상 발송
 - `badge` 아이콘은 투명 배경 단색(`public/badge-icon.png`)
-- 예약 알림: `sendMorningReminders`(09:00 KST, 여행·기념일·디데이 D-3/D-1), `sendEveningReminders`(21:00, 내일 일정).
+- 예약 알림: `sendMorningReminders`(09:00 KST, 여행·기념일·디데이 D-3/D-1), `sendEveningReminders`(21:00, 내일 일정 + 말일이면 `sendRecapNotifications` 월간 요약, 12/31은 랩업 1건만, type `recap`).
   `functions/index.js`의 `COUPLE_DAYS`는 `utils/koreanHolidays.js` 복사본 — 바꾸면 둘 다 수정
 - 권한 프라이밍 `NotificationPrimingModal`은 앱 전체 1회(`twogether_notification_priming_shown`), CoupleSetup/Home에 마운트
 

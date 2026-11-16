@@ -29,6 +29,7 @@ export const NOTIFICATION_TYPES = [
   { key: 'ddayReminder', category: 'D-day', label: '디데이 D-day', desc: '디데이로 표시한 일정 3일 전 / 하루 전, 매일 오전 9시', defaultOn: true },
   { key: 'sealedMessageArrived', category: '봉인 편지', label: '봉인 편지 도착', desc: '파트너가 나에게 편지를 봉인했을 때', defaultOn: true },
   { key: 'sealedMessageUnlocked', category: '봉인 편지', label: '봉인 편지 공개', desc: '봉인했던 편지가 공개됐을 때', defaultOn: true },
+  { key: 'recap', category: '기록 요약', label: '월간 요약 · 연말 랩업', desc: '매월 말일·12월 31일 저녁 9시, 함께한 일정이 있을 때', defaultOn: true },
 ];
 
 // category 등장 순서를 유지하면서 그룹핑
