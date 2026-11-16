@@ -139,7 +139,7 @@
 마지막 후보는 로컬스토리지 `twogether_wheel_last`에 기억, 후보 2개 이상일 때만 돌리기, 결과 자동 사라짐 없음, "이건 빼고"로 이번 판에서 제외
 
 **월간 요약/연말 랩업**(`Recap/`, `services/recap/`): 계산은 순수 함수(`monthlyRecap.js`), 커플 일정만(개인 제외), 내용 없는 카드는 null → 생략.
-월간은 그달 커플 일정 1개 이상, 연말은 5개 이상. `/recap`(목록, 설정에서 진입) · `/recap/:period`(Layout 밖 스토리). 홈 '우리 이야기' 카드는 말일~다음 달 7일(`recapWindow.js`)
+월간은 그달 커플 일정 1개 이상, 연말은 5개 이상. `/recap`(목록, 설정에서 진입) · `/recap/:period`(Layout 밖 스토리). 홈 '우리 이야기' 카드는 월간 말일~다음 달 7일, 랩업 12/31~1/7(`recapWindow.js`). 계산은 `monthlyRecap.js`/`yearRecap.js`
 
 **기타**: MemoryList 검색은 300ms 디바운스 + `searchGenerationRef`, `fetchMoreSearchResults`의 finally는 무조건 리셋.
 생리주기 기능은 Play 건강 앱 정책으로 제거됨(되살리려면 Play 선언·개인정보처리방침 함께 갱신). `/privacy`·`/terms`·`/account-deletion`은 로그인 불필요

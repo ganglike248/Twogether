@@ -29,7 +29,7 @@ import TodayEmptyCard from './TodayEmptyCard';
 import { setFirstStepsDismissed } from '../../services/authService';
 import WheelModal from '../Wheel/WheelModal';
 import HomeSkeleton from './HomeSkeleton';
-import { getRecapWindowMonth, hasCoupleEventInMonth } from '../../services/recap/recapWindow';
+import { getRecapWindowMonth, hasCoupleEventInMonth, getWrapUpWindowYear, countCoupleEventsInYear } from '../../services/recap/recapWindow';
 import '../Recap/Recap.css';
 import mascotImg from '../images/mascot.png';
 import './Home.css';
@@ -72,6 +72,9 @@ const Home = () => {
   // 월간 요약 카드 — 말일 ~ 다음 달 7일, 그달 커플 일정이 있을 때만
   const recapMonth = getRecapWindowMonth();
   const showRecapCard = !!recapMonth && hasCoupleEventInMonth(events, recapMonth);
+  // 연말 랩업 카드 — 12/31 ~ 1/7, 그해 커플 일정 5개 이상
+  const wrapUpYear = getWrapUpWindowYear();
+  const showWrapUpCard = !!wrapUpYear && countCoupleEventsInYear(events, wrapUpYear) >= 5;
   const getNameByUid = (uid) => (uid === user?.uid ? userDoc?.displayName : partnerDoc?.displayName) || '';
 
   // 권한이 이미 있는데(이 기능이 생기기 전 가입 등) 이 기기 토큰이 서버에 등록 안 돼 있으면 조용히
@@ -530,6 +533,18 @@ const Home = () => {
           exit="exit"
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
+          {/* 연말 랩업 */}
+          {showWrapUpCard && (
+            <div className="home-card home-recap-card wrapup" onClick={() => navigate(`/recap/${wrapUpYear}`)}>
+              <span className="home-recap-month" aria-hidden="true">{wrapUpYear}</span>
+              <span className="home-recap-tx">
+                <b>{wrapUpYear}년 우리의 다이어리가 완성됐어요</b>
+                <span>열두 달을 한 장씩 넘겨 봐요</span>
+              </span>
+              <span className="card-arrow">›</span>
+            </div>
+          )}
+
           {/* 월간 요약 */}
           {showRecapCard && (
             <div className="home-card home-recap-card" onClick={() => navigate(`/recap/${recapMonth}`)}>

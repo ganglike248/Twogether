@@ -15,6 +15,22 @@ export const getRecapWindowMonth = (today = new Date()) => {
   return null;
 };
 
+/** 연말 랩업 카드 노출 기간 — 12월 31일 ~ 1월 7일. 대상 연도 또는 null */
+export const getWrapUpWindowYear = (today = new Date()) => {
+  const m = today.getMonth() + 1;
+  const d = today.getDate();
+  if (m === 12 && d === 31) return today.getFullYear();
+  if (m === 1 && d <= 7) return today.getFullYear() - 1;
+  return null;
+};
+
+const isCoupleEvent = (e) => { const p = e?.extendedProps || {}; return !p.isTrip && !p.isPersonal; };
+const startStrOf = (e) => (typeof e.start === 'string' ? e.start : e.start ? getLocalDateStr(new Date(e.start)) : '');
+
+/** 그해 커플 일정 개수 */
+export const countCoupleEventsInYear = (events, year) =>
+  events.filter(e => isCoupleEvent(e) && startStrOf(e).startsWith(`${year}-`)).length;
+
 /** 홈에서 이미 구독 중인 캘린더 이벤트(useCalendarData)로 대상 달에 커플 일정이 있는지 */
 export const hasCoupleEventInMonth = (events, monthKey) =>
   events.some(e => {

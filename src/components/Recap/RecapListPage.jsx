@@ -6,6 +6,7 @@ import { HiChevronRight } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { fetchRecapData } from '../../services/recap/recapData';
 import { listRecapMonths } from '../../services/recap/monthlyRecap';
+import { listRecapYears } from '../../services/recap/yearRecap';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import MenuPageHeader from '../common/MenuPage';
 import '../common/MenuPage.css';
@@ -16,7 +17,7 @@ const RecapListPage = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { coupleId } = useAuthContext();
-  const [state, setState] = useState({ loading: true, error: '', months: [], counts: {} });
+  const [state, setState] = useState({ loading: true, error: '', months: [], years: [], counts: {} });
 
   useEffect(() => {
     if (!coupleId) return;
@@ -26,9 +27,9 @@ const RecapListPage = () => {
         if (!alive) return;
         const counts = {};
         data.events.forEach(e => { const k = e.startStr.slice(0, 7); counts[k] = (counts[k] || 0) + 1; });
-        setState({ loading: false, error: '', months: listRecapMonths(data), counts });
+        setState({ loading: false, error: '', months: listRecapMonths(data), years: listRecapYears(data), counts });
       })
-      .catch(err => alive && setState({ loading: false, error: getFriendlyErrorMessage(err, '목록을 불러오지 못했어요.'), months: [], counts: {} }));
+      .catch(err => alive && setState({ loading: false, error: getFriendlyErrorMessage(err, '목록을 불러오지 못했어요.'), months: [], years: [], counts: {} }));
     return () => { alive = false; };
   }, [coupleId]);
 
@@ -44,6 +45,24 @@ const RecapListPage = () => {
       {state.error && <p className="recap-list-msg">{state.error}</p>}
       {!state.loading && !state.error && state.months.length === 0 && (
         <p className="recap-list-msg">아직 요약할 일정이 없어요. 함께한 일정이 생기면 달마다 요약이 만들어져요.</p>
+      )}
+      {state.years.length > 0 && (
+        <>
+          <h2 className="recap-list-label">연말 랩업</h2>
+          <div className="recap-list">
+            {state.years.map(y => (
+              <button key={y} type="button" className="settings-item" onClick={() => navigate(`/recap/${y}`)}>
+                <span className="recap-list-month year" aria-hidden="true">{String(y).slice(2)}</span>
+                <span className="settings-item-text">
+                  <span className="settings-item-title">{y}년 우리의 다이어리</span>
+                  <span className="settings-item-desc">한 해를 카드로 넘겨 봐요</span>
+                </span>
+                <HiChevronRight className="settings-item-arrow" aria-hidden="true" />
+              </button>
+            ))}
+          </div>
+          {state.months.length > 0 && <h2 className="recap-list-label">월간 요약</h2>}
+        </>
       )}
       <div className="recap-list">
         {state.months.map(k => {

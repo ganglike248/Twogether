@@ -105,3 +105,112 @@
 .recap-list { display: flex; flex-direction: column; gap: 0.6rem; }
 .recap-list-msg { font-size: 0.9rem; color: var(--color-text-desc); text-align: center; padding: 1.5rem 0.5rem; margin: 0; }
 .recap-list-month { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--color-primary-light); color: var(--color-primary-dark); font-family: var(--font-display); display: flex; align-items: center; justify-content: center; }
+
+/* ── 연말 랩업 ── */
+.rc-h.sm { font-size: 1.35rem; margin-top: 0; }
+.rc-h em { font-style: normal; color: var(--color-primary-dark); }
+.rc-foot { margin: 0; font-size: 0.75rem; color: var(--color-text-desc); line-height: 1.6; text-align: center; overflow-wrap: anywhere; }
+.rc-k { display: block; }
+.rc-big { display: flex; flex-direction: column; gap: 0.1rem; margin-top: 0.5rem; }
+.rc-big b { font-family: var(--font-display); font-weight: 400; font-size: 2.6rem; line-height: 1.1; color: var(--color-primary-dark); }
+.rc-big span { font-size: 0.85rem; color: var(--color-text-desc); }
+.rc-stat-n small { font-size: 0.85rem; margin-left: 0.15rem; color: var(--color-text-desc); }
+.rc-grid2.tight { gap: 0.5rem; }
+.rc-grid2.tight .rc-stat { padding: 0.7rem; }
+.rc-grid2.tight .rc-stat-n { font-size: 1.35rem; }
+.rc-grid2.tight .rc-stat-l { font-size: 0.72rem; }
+
+/* 표지 — 닫힌 다이어리 */
+.rc-cover { flex: 1; display: flex; flex-direction: column; justify-content: center; gap: 1rem; }
+.rc-book { position: relative; align-self: center; width: min(240px, 80%); aspect-ratio: 3 / 4; border-radius: 6px 16px 16px 6px; background: var(--color-primary); box-shadow: var(--shadow-lg), inset 10px 0 0 rgba(0, 0, 0, 0.06); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.4rem; color: white; text-align: center; padding: 1rem; box-sizing: border-box; }
+.rc-book-year { font-family: var(--font-display); font-size: 2.4rem; line-height: 1; }
+.rc-book-t { font-family: var(--font-display); font-size: 1.1rem; }
+.rc-book-names { font-size: 0.85rem; font-weight: 700; }
+.rc-book-meta { display: flex; gap: 0.5rem; flex-wrap: wrap; justify-content: center; font-size: 0.75rem; font-weight: 700; }
+.rc-book-meta span { background: rgba(255, 255, 255, 0.3); border-radius: 999px; padding: 0.15rem 0.6rem; }
+.rc-cover .rc-h, .rc-cover .rc-d { text-align: center; }
+
+/* 한 해 캘린더(히트맵) */
+.rc-heat { display: flex; flex-direction: column; gap: 3px; padding: 0.9rem 0.8rem 0.7rem; }
+.rc-heat-row { display: flex; align-items: center; gap: 6px; }
+.rc-heat-row .m { width: 16px; flex: none; text-align: right; font-size: 0.6rem; color: var(--color-gray-500); }
+.rc-heat-row .cells { flex: 1; min-width: 0; display: grid; grid-template-columns: repeat(31, minmax(0, 1fr)); gap: 1.5px; }
+.rc-heat-row i, .rc-heat .rc-legend i { aspect-ratio: 1; border-radius: 2px; background: var(--color-gray-100); }
+.rc-heat i.l1 { background: var(--color-couple); }
+.rc-heat i.l2 { background: var(--color-primary); }
+.rc-heat i.l3 { background: var(--color-primary-dark); }
+.rc-heat i.trip { background: var(--color-trip); }
+.rc-heat .rc-legend { margin-top: 0.5rem; }
+
+/* 달마다 한 장면 */
+.rc-months { display: flex; flex-direction: column; gap: 0.35rem; }
+.rc-month-row { display: flex; align-items: center; gap: 0.6rem; background: white; border-radius: 10px; padding: 0.45rem 0.7rem; box-shadow: var(--shadow-sm); }
+.rc-month-row .m { flex: none; width: 2.4rem; font-family: var(--font-display); font-size: 0.9rem; color: var(--color-primary-dark); }
+.rc-month-row .t { flex: 1; min-width: 0; font-size: 0.82rem; color: var(--color-gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.rc-month-row .tag { flex: none; font-size: 0.65rem; padding: 0.1rem 0.45rem; border-radius: 999px; background: var(--color-gray-100); color: var(--color-text-desc); }
+.rc-month-row .tag.trip { background: var(--color-trip); }
+.rc-month-row .tag.ann { background: var(--color-couple); }
+
+.rc-badge.violet { background: var(--color-trip); }
+.rc-row-date { flex: none; min-width: 3.6rem; font-family: var(--font-display); font-size: 0.82rem; color: var(--color-primary-dark); }
+
+/* 칩·편지·키워드 */
+.rc-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.rc-chips span { background: white; border: 1.5px solid var(--color-primary); border-radius: 999px; padding: 0.35rem 0.75rem; font-size: 0.82rem; color: var(--color-gray-800); max-width: 100%; overflow-wrap: anywhere; }
+.rc-chips span.more { border-style: dashed; color: var(--color-text-desc); }
+.rc-cat span.c0 { background: var(--color-primary); }
+.rc-cat span.c1 { background: var(--color-girlfriend); }
+.rc-cat span.c2 { background: var(--color-boyfriend); }
+.rc-cat span.c3 { background: var(--color-trip); }
+.rc-who-l.wrap { flex-wrap: wrap; gap: 0.3rem 0.8rem; justify-content: flex-start; }
+.rc-envelopes { display: flex; gap: 0.6rem; }
+.rc-envelope { flex: 1; min-width: 0; background: white; border-radius: 10px; padding: 1rem 0.7rem; text-align: center; font-size: 0.82rem; color: var(--color-gray-800); box-shadow: var(--shadow-sm); border-top: 4px solid var(--color-primary); overflow-wrap: anywhere; }
+.rc-words { display: flex; flex-wrap: wrap; gap: 0.4rem 0.7rem; align-items: baseline; }
+.rc-words span { font-family: var(--font-display); color: var(--color-gray-700); }
+.rc-words span small { font-family: inherit; font-size: 0.7rem; color: var(--color-gray-500); }
+.rc-words .w0 { font-size: 2rem; color: var(--color-primary-dark); }
+.rc-words .w1 { font-size: 1.5rem; color: var(--color-primary-dark); }
+.rc-words .w2 { font-size: 1.2rem; }
+.rc-words .w3 { font-size: 1rem; }
+
+/* 세로 막대(계절·요일) */
+.rc-vbars { display: flex; align-items: flex-end; gap: 0.5rem; height: 120px; margin-top: 0.5rem; }
+.rc-vbar { flex: 1; height: 100%; display: flex; flex-direction: column; align-items: center; justify-content: flex-end; gap: 0.25rem; }
+.rc-vbar .bar { width: 100%; max-width: 34px; border-radius: 6px 6px 2px 2px; background: var(--color-couple); }
+.rc-vbar.hi .bar { background: var(--color-primary-dark); }
+.rc-vbar .n { font-family: var(--font-display); font-size: 0.8rem; color: var(--color-text-desc); }
+.rc-vbar .l { font-size: 0.72rem; color: var(--color-gray-600); }
+.rc-memo p { margin: 0.4rem 0; font-size: 0.85rem; line-height: 1.6; color: var(--color-gray-800); display: -webkit-box; -webkit-line-clamp: 3; -webkit-box-orient: vertical; overflow: hidden; overflow-wrap: anywhere; }
+
+/* 작년과 비교 */
+.rc-compare { display: flex; flex-direction: column; gap: 0.55rem; }
+.rc-cmp-row { display: grid; grid-template-columns: 5.2rem minmax(0, 1fr) auto; align-items: center; gap: 0.5rem; }
+.rc-cmp-row .l { font-size: 0.75rem; color: var(--color-gray-700); }
+.rc-cmp-row .bars { display: flex; flex-direction: column; gap: 2px; }
+.rc-cmp-row .bars i, .rc-compare .rc-legend i { display: block; height: 6px; border-radius: 3px; }
+.rc-compare i.a { background: var(--color-gray-300); }
+.rc-compare i.b { background: var(--color-primary-dark); }
+.rc-cmp-row .v { font-size: 0.75rem; color: var(--color-text-desc); }
+.rc-cmp-row .v b { font-weight: 400; color: var(--color-primary-dark); }
+.rc-compare .rc-legend i { width: 14px; }
+
+/* 한 장 요약 */
+.rc-summary { display: flex; flex-direction: column; align-items: center; gap: 0.3rem; padding: 1.6rem 1.2rem 1.2rem; }
+.rc-summary .rc-book-year { color: var(--color-primary-dark); }
+.rc-summary .rc-book-t { color: var(--color-gray-800); margin-bottom: 0.6rem; }
+.rc-summary-rows { width: 100%; display: flex; flex-direction: column; }
+.rc-summary-rows div { display: flex; justify-content: space-between; gap: 1rem; padding: 0.55rem 0; border-top: 1.5px dashed var(--color-primary-light); font-size: 0.85rem; color: var(--color-text-desc); }
+.rc-summary-rows b { font-weight: 400; font-family: var(--font-display); color: var(--color-gray-900); text-align: right; overflow-wrap: anywhere; }
+
+/* 목록·홈 */
+.recap-list-label { margin: 0.4rem 0 0.5rem; font-size: 0.85rem; font-weight: 600; color: var(--color-text-desc); }
+.recap-list + .recap-list-label { margin-top: 1.2rem; }
+.recap-list-month.year, .home-recap-card.wrapup .home-recap-month { background: var(--color-primary); color: white; }
+.home-recap-card.wrapup .home-recap-month { font-size: 0.85rem; }
+.rc-memo p.full { display: block; -webkit-line-clamp: unset; white-space: pre-wrap; max-height: 40vh; overflow-y: auto; user-select: text; }
+.rc-memo-foot { display: flex; align-items: center; justify-content: space-between; gap: 0.5rem; }
+.rc-memo-toggle { flex: none; border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark); border-radius: 999px; padding: 0.3rem 0.8rem; font-size: 0.78rem; font-family: inherit; cursor: pointer; }
+.rc-summary .rc-book-t:has(+ .rc-summary-dday) { margin-bottom: 0; }
+.rc-summary-dday { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; margin-bottom: 0.6rem; font-size: 0.85rem; color: var(--color-text-desc); }
+.rc-summary-dday b { font-weight: 400; font-family: var(--font-display); color: var(--color-primary-dark); }
+.rc-summary-dday small { font-size: 0.7rem; color: var(--color-gray-500); }

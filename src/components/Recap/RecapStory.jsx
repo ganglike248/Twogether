@@ -20,7 +20,7 @@ const RecapStory = ({ label, cards, onClose }) => {
 
   const handleTap = (e) => {
     // 카드 안 버튼·링크 클릭은 넘기기로 처리하지 않음
-    if (e.target.closest('button, a')) return;
+    if (e.target.closest('button, a, [data-no-tap]')) return;
     const rect = e.currentTarget.getBoundingClientRect();
     go(e.clientX - rect.left < rect.width * 0.3 ? -1 : 1);
   };
