@@ -1,0 +1,107 @@
+/* 월간 요약·연말 랩업 스토리 화면 (Layout 밖 독립 페이지) — 시안: 종이 카드 + 마스킹테이프 */
+.rc-screen {
+  flex: 1 0 auto;
+  min-height: 100%;
+  width: 100%;
+  align-self: center;
+  max-width: 480px;
+  display: flex;
+  flex-direction: column;
+  gap: 0.9rem;
+  padding: calc(env(safe-area-inset-top) + 0.75rem) 1.25rem calc(env(safe-area-inset-bottom) + 1rem);
+  background: var(--color-primary-light);
+  color: var(--color-gray-800);
+  box-sizing: border-box;
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+.rc-center { align-items: center; justify-content: center; text-align: center; }
+
+.rc-bars { display: flex; gap: 4px; }
+.rc-bars span { flex: 1; height: 3px; border-radius: 2px; background: rgba(224, 122, 147, 0.2); transition: background 0.2s; }
+.rc-bars span.on { background: var(--color-primary-dark); }
+
+.rc-top { display: flex; align-items: center; justify-content: space-between; font-size: 0.8rem; color: var(--color-text-desc); }
+.rc-close { border: none; background: none; padding: 0.25rem; font-size: 1.4rem; line-height: 0; color: var(--color-text-desc); cursor: pointer; }
+
+.rc-card { flex: 1; display: flex; flex-direction: column; gap: 0.9rem; animation: rc-in 0.25s ease-out; }
+@keyframes rc-in { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+.rc-h { margin: 0.5rem 0 0; font-size: 1.7rem; line-height: 1.3; color: var(--color-gray-900); }
+.rc-d { margin: 0; font-size: 0.95rem; color: var(--color-text-desc); line-height: 1.5; }
+.rc-d b { color: var(--color-primary-dark); font-weight: 400; }
+.rc-hint { margin: 0; text-align: center; font-size: 0.72rem; color: var(--color-gray-500); }
+
+/* 종이 카드 + 테이프 */
+.rc-paper { position: relative; background: white; border-radius: 14px; padding: 1.1rem 1rem 1rem; box-shadow: var(--shadow-sm); }
+.rc-tape { position: absolute; top: -9px; width: 64px; height: 18px; background: rgba(255, 214, 222, 0.85); transform: rotate(-3deg); }
+.rc-tape.center { left: calc(50% - 32px); }
+.rc-tape.small { width: 44px; height: 14px; top: -7px; left: 12px; }
+
+/* 1. 달력 */
+.rc-cal-head { display: flex; align-items: baseline; justify-content: space-between; margin-bottom: 0.6rem; }
+.rc-cal-head b { font-family: var(--font-display); font-weight: 400; font-size: 1.2rem; color: var(--color-primary-dark); }
+.rc-cal-head span { font-size: 0.75rem; color: var(--color-text-desc); }
+.rc-cal-grid { display: grid; grid-template-columns: repeat(7, minmax(0, 1fr)); gap: 4px; text-align: center; }
+.rc-cal-grid span { font-family: var(--font-display); font-size: 0.85rem; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; border-radius: 50%; color: var(--color-gray-600); }
+.rc-cal-grid span.w { font-family: inherit; font-size: 0.7rem; aspect-ratio: auto; color: var(--color-gray-500); }
+.rc-cal-grid span.on { background: var(--color-couple); color: var(--color-gray-900); }
+.rc-cal-grid span.trip { background: var(--color-trip); color: var(--color-gray-900); }
+.rc-cal-grid span.ann { background: var(--color-primary); color: white; font-weight: 700; }
+.rc-legend { display: flex; gap: 0.9rem; justify-content: center; margin-top: 0.7rem; font-size: 0.72rem; color: var(--color-text-desc); }
+.rc-legend span { display: inline-flex; align-items: center; gap: 0.3rem; }
+.rc-legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.rc-legend i.dot { background: var(--color-couple); }
+.rc-legend i.trip { background: var(--color-trip); }
+.rc-legend i.ann { background: var(--color-primary); }
+
+/* 2. 숫자 */
+.rc-grid2 { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 0.7rem; }
+.rc-stat { position: relative; background: white; border-radius: 14px; padding: 0.9rem; display: flex; flex-direction: column; gap: 0.15rem; box-shadow: var(--shadow-sm); min-width: 0; }
+.rc-stat.wide { grid-column: 1 / -1; gap: 0.45rem; }
+.rc-stat-icon { width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; color: var(--color-gray-700); margin-bottom: 0.3rem; }
+.rc-stat-icon.pink { background: var(--color-couple); }
+.rc-stat-icon.violet { background: var(--color-trip); }
+.rc-stat-icon.green { background: var(--color-girlfriend); }
+.rc-stat-icon.amber { background: rgba(242, 183, 5, 0.25); }
+.rc-stat-n { font-family: var(--font-display); font-size: 1.8rem; line-height: 1.1; color: var(--color-primary-dark); }
+.rc-stat-l { font-size: 0.8rem; color: var(--color-gray-700); overflow-wrap: anywhere; }
+.rc-stat-sub { font-size: 0.7rem; color: var(--color-gray-500); }
+.rc-who { display: flex; height: 10px; border-radius: 5px; overflow: hidden; background: var(--color-gray-100); }
+.rc-who-l { display: flex; justify-content: space-between; font-size: 0.72rem; color: var(--color-text-desc); }
+
+/* 3. 하이라이트 */
+.rc-feature { display: flex; flex-direction: column; gap: 0.25rem; text-align: center; padding-top: 1.3rem; }
+.rc-k { font-size: 0.75rem; color: var(--color-text-desc); }
+.rc-feature-t { font-family: var(--font-display); font-size: 1.35rem; color: var(--color-gray-900); overflow-wrap: anywhere; }
+.rc-list, .rc-up { display: flex; flex-direction: column; gap: 0.55rem; }
+.rc-row, .rc-up-item { display: flex; align-items: center; gap: 0.7rem; background: white; border-radius: 12px; padding: 0.75rem 0.85rem; box-shadow: var(--shadow-sm); }
+.rc-badge { flex: none; width: 34px; height: 34px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.8rem; color: var(--color-gray-800); }
+.rc-badge.pink { background: var(--color-couple); }
+.rc-badge.green { background: var(--color-girlfriend); }
+.rc-badge.amber { background: rgba(242, 183, 5, 0.25); }
+.rc-row-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.rc-row-tx b { font-weight: 400; font-size: 0.92rem; color: var(--color-gray-900); overflow-wrap: anywhere; }
+.rc-row-tx span { font-size: 0.72rem; color: var(--color-text-desc); }
+
+/* 4. 다음 달 */
+.rc-up-dday { flex: none; font-family: var(--font-display); font-size: 0.95rem; color: var(--color-primary-dark); }
+.rc-up-empty { border: 1.5px dashed var(--color-primary); border-radius: 12px; padding: 0.8rem; font-size: 0.82rem; color: var(--color-text-desc); text-align: center; }
+.rc-end { margin-top: auto; display: flex; flex-direction: column; align-items: center; gap: 0.6rem; padding-top: 0.5rem; }
+.rc-end p { margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--color-primary-dark); }
+
+.rc-btn { border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark); border-radius: 999px; padding: 0.7rem 1.4rem; font-size: 0.95rem; font-family: inherit; cursor: pointer; }
+.rc-btn.primary { background: var(--color-primary); color: white; font-weight: 700; width: 100%; }
+
+/* 홈 카드 */
+.home-recap-card { display: flex; align-items: center; gap: 0.8rem; cursor: pointer; transition: box-shadow 0.15s, transform 0.15s; }
+.home-recap-card:hover { box-shadow: var(--shadow-md); transform: translateY(-1px); }
+.home-recap-month { flex: none; width: 46px; height: 46px; border-radius: 12px; background: var(--color-primary-light); color: var(--color-primary-dark); font-family: var(--font-display); font-size: 1rem; display: flex; align-items: center; justify-content: center; }
+.home-recap-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.15rem; }
+.home-recap-tx b { font-weight: 400; font-size: 0.95rem; color: var(--color-gray-900); }
+.home-recap-tx span { font-size: 0.75rem; color: var(--color-text-desc); }
+
+/* 지난 요약 목록 */
+.recap-list { display: flex; flex-direction: column; gap: 0.6rem; }
+.recap-list-msg { font-size: 0.9rem; color: var(--color-text-desc); text-align: center; padding: 1.5rem 0.5rem; margin: 0; }
+.recap-list-month { flex: none; width: 40px; height: 40px; border-radius: 12px; background: var(--color-primary-light); color: var(--color-primary-dark); font-family: var(--font-display); display: flex; align-items: center; justify-content: center; }

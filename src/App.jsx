@@ -33,6 +33,8 @@ const DeleteAccountPage = lazy(() => import('./components/Account/DeleteAccountP
 const AccountPage = lazy(() => import('./components/Account/AccountPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
+const RecapPage = lazy(() => import('./components/Recap/RecapPage'));
+const RecapListPage = lazy(() => import('./components/Recap/RecapListPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
 
 import './App.css';
@@ -153,6 +155,17 @@ const router = createBrowserRouter([
         path: '/data-backup',
         element: <ProtectedRoute key="data-backup"><Layout><DataBackupPage /></Layout></ProtectedRoute>,
         key: 'data-backup',
+      },
+      {
+        // 월간 요약 목록 / 요약 스토리('YYYY-MM') — 스토리는 Layout 밖 전체 화면
+        path: '/recap',
+        element: <ProtectedRoute key="recap"><Layout><RecapListPage /></Layout></ProtectedRoute>,
+        key: 'recap',
+      },
+      {
+        path: '/recap/:period',
+        element: <ProtectedRoute key="recap-period"><RecapPage /></ProtectedRoute>,
+        key: 'recap-period',
       },
       { path: '*', element: <NotFoundPage />, key: 'not-found' },
     ],

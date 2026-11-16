@@ -29,6 +29,8 @@ import TodayEmptyCard from './TodayEmptyCard';
 import { setFirstStepsDismissed } from '../../services/authService';
 import WheelModal from '../Wheel/WheelModal';
 import HomeSkeleton from './HomeSkeleton';
+import { getRecapWindowMonth, hasCoupleEventInMonth } from '../../services/recap/recapWindow';
+import '../Recap/Recap.css';
 import mascotImg from '../images/mascot.png';
 import './Home.css';
 
@@ -67,6 +69,9 @@ const Home = () => {
 
   // "우리 둘의 첫 걸음" 카드 — 예전 TutorialSlides 대체(v1.0.28). 끈 적 없으면 기존 사용자도 업데이트 후 한 번 보임
   const showFirstSteps = !!userDoc && !userDoc.firstStepsDismissed;
+  // 월간 요약 카드 — 말일 ~ 다음 달 7일, 그달 커플 일정이 있을 때만
+  const recapMonth = getRecapWindowMonth();
+  const showRecapCard = !!recapMonth && hasCoupleEventInMonth(events, recapMonth);
   const getNameByUid = (uid) => (uid === user?.uid ? userDoc?.displayName : partnerDoc?.displayName) || '';
 
   // 권한이 이미 있는데(이 기능이 생기기 전 가입 등) 이 기기 토큰이 서버에 등록 안 돼 있으면 조용히
@@ -525,6 +530,18 @@ const Home = () => {
           exit="exit"
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
+          {/* 월간 요약 */}
+          {showRecapCard && (
+            <div className="home-card home-recap-card" onClick={() => navigate(`/recap/${recapMonth}`)}>
+              <span className="home-recap-month" aria-hidden="true">{Number(recapMonth.slice(5))}월</span>
+              <span className="home-recap-tx">
+                <b>{Number(recapMonth.slice(5))}월의 우리, 요약이 도착했어요</b>
+                <span>한 달 동안 함께한 날을 모아봤어요</span>
+              </span>
+              <span className="card-arrow">›</span>
+            </div>
+          )}
+
           {/* 그날의 우리 (1~3년 전 오늘) */}
           {yearAgoEvents.length > 0 && (
             <div className="home-card home-year-ago">

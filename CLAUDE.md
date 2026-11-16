@@ -39,7 +39,7 @@
 - Firestore list 쿼리는 규칙이 참조하는 필드(`coupleId`/`userId`)를 **where 동등 조건에 반드시 포함**(없으면 목록 전체 거부, 단건 get은 됨)
 - 모든 update 규칙은 소유권 필드 불변(`request.resource.data.X == resource.data.X`). 커플 합류는 반드시 콜러블
   `joinCoupleWithInviteCode`(서버가 코드 검증·교차 합류 처리). `inviteCodes`는 list/update 금지
-- ⚠ 미해결: `users/{uid}` write 규칙이 본인 문서 전체를 허용해 `coupleId`를 임의로 바꿀 수 있음(커플 문서 멤버 검사로 유출은 막힘) — 조일 것
+- `users` 규칙: coupleId는 그대로이거나 "방금 나 혼자 만든 커플"로만 변경 가능, `couples` 생성은 `members == [본인]`만(v1.0.33, 보고서 `docs/security/`)
 - Functions 코드: `require('firebase-functions/v1')`, `{ FieldValue, Timestamp }`는 `require('firebase-admin/firestore')`(에뮬레이터 호환)
 - 에뮬레이터 검증: `npx firebase-tools emulators:exec --project demo-xxx --only auth,firestore,functions[,storage]`(설정 파일은 프로젝트 안).
   화면 E2E는 `src/firebase.js`의 `VITE_USE_EMULATORS=true`+`VITE_FIREBASE_PROJECT_ID=demo-twogether`, 시드에 `users.nicknameConfirmed:true`와
@@ -137,6 +137,9 @@
 
 **돌림판**(`Wheel/`, v1.0.38 리디자인): `WheelModal`(흐름·후보 상태) + `WheelSelectStep`(직접 적기·버킷 담기) + `WheelSpinStep`(SVG 원판, CSS transform 회전).
 마지막 후보는 로컬스토리지 `twogether_wheel_last`에 기억, 후보 2개 이상일 때만 돌리기, 결과 자동 사라짐 없음, "이건 빼고"로 이번 판에서 제외
+
+**월간 요약/연말 랩업**(`Recap/`, `services/recap/`): 계산은 순수 함수(`monthlyRecap.js`), 커플 일정만(개인 제외), 내용 없는 카드는 null → 생략.
+월간은 그달 커플 일정 1개 이상, 연말은 5개 이상. `/recap`(목록, 설정에서 진입) · `/recap/:period`(Layout 밖 스토리). 홈 '우리 이야기' 카드는 말일~다음 달 7일(`recapWindow.js`)
 
 **기타**: MemoryList 검색은 300ms 디바운스 + `searchGenerationRef`, `fetchMoreSearchResults`의 finally는 무조건 리셋.
 생리주기 기능은 Play 건강 앱 정책으로 제거됨(되살리려면 Play 선언·개인정보처리방침 함께 갱신). `/privacy`·`/terms`·`/account-deletion`은 로그인 불필요

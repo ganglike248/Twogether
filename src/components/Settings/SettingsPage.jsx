@@ -1,7 +1,7 @@
 import React from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { HiInformationCircle, HiUserCircle, HiChevronRight } from 'react-icons/hi2';
-import { MdPalette, MdNotifications, MdBackup } from 'react-icons/md';
+import { MdPalette, MdNotifications, MdBackup, MdAutoStories } from 'react-icons/md';
 import EventTypeColorSettingsModal from './EventTypeColorSettingsModal';
 import { setFirstStepsDismissed } from '../../services/authService';
 import { MenuPageHeader } from '../common/MenuPage';
@@ -41,6 +41,7 @@ const SettingsPage = () => {
       items: [
         { key: 'colors', Icon: MdPalette, color: '#cc5de8', title: '이벤트 색상 설정', desc: '커플·나·상대 일정의 색을 바꿔요', onClick: () => openModal('colors') },
         { key: 'notifications', Icon: MdNotifications, color: '#ff8787', title: '알림 설정', desc: '어떤 알림을 받을지 종류별로 정해요', onClick: () => navigate('/notification-settings') },
+        { key: 'recap', Icon: MdAutoStories, color: '#f783ac', title: '지난 요약 다시 보기', desc: '달마다 만들어진 우리 기록 요약을 다시 봐요', onClick: () => navigate('/recap') },
         { key: 'backup', Icon: MdBackup, color: '#4dabf7', title: '데이터 백업', desc: '우리 기록을 파일로 저장하고 되살려요', onClick: () => navigate('/data-backup') },
       ],
     },
