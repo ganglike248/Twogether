@@ -54,7 +54,7 @@
 - 종류별 설정: `NOTIFICATION_TYPES`(`category`로 섹션 자동 묶음, `users.notificationPrefs`), `eventUpdate`만 기본 꺼짐. 커플 연결 알림은 type 없이 항상 발송
 - `badge` 아이콘은 투명 배경 단색(`public/badge-icon.png`)
 - 예약 알림: `sendMorningReminders`(09:00 KST, 여행·기념일·디데이 D-3/D-1), `sendEveningReminders`(21:00, 내일 일정 + 말일이면 `sendRecapNotifications` 월간 요약, 12/31은 랩업 1건만, type `recap`).
-  `functions/index.js`의 `COUPLE_DAYS`는 `utils/koreanHolidays.js` 복사본 — 바꾸면 둘 다 수정
+  기념일 알림 문구는 `MILESTONE_DAY_BODY`/`MILESTONE_YEAR_BODY`(B안). `functions/index.js`의 `COUPLE_DAYS`는 `utils/koreanHolidays.js` 복사본 — 바꾸면 둘 다 수정
 - 권한 프라이밍 `NotificationPrimingModal`은 앱 전체 1회(`twogether_notification_priming_shown`), CoupleSetup/Home에 마운트
 
 ## 네이티브(Capacitor)
@@ -159,5 +159,5 @@
 - 이벤트 사진 첨부(`uploadEventImage` 미구현, MemoryDetail 렌더링 미구현)
 - 카카오 로그인(별도 백엔드 필요, 장기)
 - 로드맵(설계 확정, 재논의 없이 구현): **4. 일상 결정**(travelDecisions를 최상위로 일반화, 카테고리 영구 재사용 + 라운드 반복 + 히스토리,
-  Home 진입 카드 → `/decisions`) → **5. 우리 지도**(지역 색칠, 시/도 기본 + 시/군/구 드릴다운, trips에 `region` 필드 필요) →
-  **7. 연말 랩업 + 월간 요약**(매월 말일은 "내일이 1일인지"로 판별). 6. 위치 기반 알림은 폐기(재제안 금지)
+  Home 진입 카드 → `/decisions`) → **5. 우리 지도**(지역 색칠, 시/도 기본 + 시/군/구 드릴다운, trips에 `region` 필드 필요). 7. 연말 랩업 + 월간 요약은 v1.0.47 완료.
+  6. 위치 기반 알림은 폐기(재제안 금지)

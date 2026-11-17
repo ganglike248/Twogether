@@ -568,22 +568,37 @@ const COUPLE_DAYS = [
 // 주어진 날짜(dateStr)에 해당하는 기념일들을 { name, body } 형태로 전부 반환 — 100일 단위/매년 기념일
 // (anniversaryDate 필요) + 연애 시작일과 무관하게 매년 고정으로 오는 이벤트데이(COUPLE_DAYS, 종류별 맞춤 문구).
 // 호출 시점(오늘/내일)에 따라 day-of, D-1 알림에 재사용함.
+// 기념일 알림 본문(B안, 2026-11) — 100일 단위·n주년마다 다른 문구. D-1은 공통 문구(MILESTONE_TOMORROW_BODY)
+const MILESTONE_DAY_BODY = {
+  100: '함께한 지 100일, 시작이 좋아요',
+  200: '200일째, 익숙해서 더 좋은 날',
+  300: '300일, 1년이 코앞이에요',
+  500: '500일, 천 일까지 반 왔어요',
+  1000: '1000일, 숫자만 봐도 뿌듯한 날',
+};
+const MILESTONE_YEAR_BODY = {
+  1: '1주년, 사계절을 함께 지났어요',
+  2: '2주년, 오늘도 우리답게',
+};
+const MILESTONE_TOMORROW_BODY = '미리 준비해 볼까요?';
+const milestoneDayBody = (n) => MILESTONE_DAY_BODY[n] || (n < 1000 ? `함께한 지 ${n}일, 오늘도 우리답게` : `함께한 지 ${n}일`);
+const milestoneYearBody = (k) => MILESTONE_YEAR_BODY[k] || `${k}주년을 축하해요`;
+
 function getMilestoneEvents(anniversaryDateStr, dateStr) {
   const events = [];
-  const defaultBody = '축하해요, 오늘 하루도 예쁘게 보내요';
 
   if (anniversaryDateStr) {
     const start = new Date(`${anniversaryDateStr}T00:00:00Z`);
     const target = new Date(`${dateStr}T00:00:00Z`);
     const dayCount = Math.round((target - start) / (24 * 60 * 60 * 1000)) + 1;
     if (dayCount > 0 && dayCount % 100 === 0) {
-      events.push({ name: `${dayCount}일`, body: defaultBody });
+      events.push({ name: `${dayCount}일`, body: milestoneDayBody(dayCount), tomorrowBody: MILESTONE_TOMORROW_BODY });
     }
 
     const [sy, sm, sd] = anniversaryDateStr.split('-').map(Number);
     const [ty, tm, td] = dateStr.split('-').map(Number);
     if (sm === tm && sd === td && ty > sy) {
-      events.push({ name: `${ty - sy}주년`, body: defaultBody });
+      events.push({ name: `${ty - sy}주년`, body: milestoneYearBody(ty - sy), tomorrowBody: MILESTONE_TOMORROW_BODY });
     }
   }
 
@@ -695,7 +710,7 @@ exports.sendMorningReminders = functions.pubsub
           for (const uid of members) {
             await sendPushToUser(uid, {
               title: `내일은 ${evt.name}이에요`,
-              body: evt.body,
+              body: evt.tomorrowBody || evt.body,
               link: '/',
             }, 'sendMorningReminders', 'anniversaryDday', true);
           }
