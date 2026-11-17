@@ -123,7 +123,7 @@
 결정론적 ID setDoc. 날짜 이동 `moveTripSchedule`은 새 날 추가 → 원래 날 제거. 후보 확정은 후보 단위(`isOptionDecided`), 후보→일정은 `sourceOptionId`.
 링크 자동 채우기 `LinkFillCard`/`useLinkFill`(빈 칸만 채움), 콜러블 `fetchLinkPreview`의 **SSRF 방어 절대 유지**(배포는 functions 별도).
 일정 종류 `category`(식사·카페·관광·놀거리·쇼핑·숙소·기타, `Schedule/scheduleCategories.js`, 파스텔 + 불투명 배경, 제목 앞 아이콘만 — 색은 사용자가 고름).
-여행 지역(우리 지도 `/map`·`/map/:sido`, `components/Map/`, 경계 경로는 `scripts/map/build_map_paths.py`로 생성, 시작한 여행만 칠함) `trips.regions=[{sido,sgg?}]`: 목록·추천은 `services/regions/`(2026-10 SGIS, 16개 시·도 — 광주·전남 통합), 정리는 반드시 `mergeRegions`, 여행지 글자 자동 추천은 칩을 만지기 전까지만, 일정 주소는 `addTripRegionsFromText`(트랜잭션, 이미 있으면 안 씀). 지도에 출처(CC BY 4.0) 표시 필수.
+여행 지역(우리 지도 `/map`·`/map/:sido`, `components/Map/`, 경계 경로는 `scripts/map/build_map_paths.py`로 생성, 시작한 여행만 칠함) `trips.regions=[{sido,sgg?}]`: 목록·추천은 `services/regions/`(2026-10 SGIS, 16개 시·도 — 광주·전남 통합), 정리는 반드시 `mergeRegions`, 여행지 글자 자동 추천은 칩을 만지기 전까지만, 일정 주소(시·도로 시작하는 주소만)는 `addTripRegionsFromText`로 자동(트랜잭션, 이미 있으면 안 씀), 장소 이름은 `suggestRegionsFromSchedules` 추천 칩으로만(수정 모달·기록 3단계). 지도에 출처(CC BY 4.0) 표시 필수.
 링크 자동 채우기 카드는 모달 열 때마다 접힌 채로 시작(`useLinkFillCollapsed`, 기억 안 함). 상세 화면 하단 FAB 공간 `padding-bottom: calc(56px + 2rem)`. 이동 시간은 `subscribeTravelTimes`
 
 **여행 끝 기록**(`Travel/Review/`, `services/tripReviewService.js`): `/travel/:tripId/review?step=1|2|3`(기분+자유 기록 2000자 → TOP 3 → 지도 확인, Layout 밖).

@@ -4,6 +4,7 @@ import React from 'react';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText } from 'react-icons/hi2';
 import { formatDate } from '../../../utils/dataUtils';
 import { describeRegions } from '../../../services/regions/regionData';
+import TripMiniMap from '../../Map/TripMiniMap';
 
 const STATUS_MAP = {
     planning: { text: '계획중', cls: 'planning' },
@@ -76,6 +77,8 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                         </span>
                     </div>
                 )}
+                {/* 이번 여행 약도 — 여행 지역 둘레로 확대 */}
+                <div className="td-info-map"><TripMiniMap trip={trip} onPickRegion={onEdit} /></div>
                 {totalBudget > 0 && (
                     <div className="td-info-row">
                         <span className="td-info-icon td-info-icon-text">₩</span>

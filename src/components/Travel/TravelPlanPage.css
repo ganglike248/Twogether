@@ -192,3 +192,11 @@
 
 /* 우리 지도 진입 카드(MapEntryCard) */
 .travel-plan-map-card { margin-bottom: 1rem; }
+
+/* 기록을 기다리는 여행 개수(여행 탭 맨 위) */
+.travel-plan-review-banner { width: 100%; display: flex; align-items: center; gap: 0.75rem; margin-bottom: 0.75rem; padding: 0.8rem 1rem; border: 1.5px solid var(--color-primary); border-radius: 16px; background: var(--color-primary-light); font-family: inherit; text-align: left; cursor: pointer; box-sizing: border-box; }
+.travel-plan-review-count { flex: none; width: 34px; height: 34px; border-radius: 50%; background: var(--color-primary); color: white; display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 1.05rem; }
+.travel-plan-review-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.travel-plan-review-text b { font-weight: 400; font-size: 0.92rem; color: var(--color-gray-900); }
+.travel-plan-review-text span { font-size: 0.75rem; color: var(--color-text-desc); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.travel-plan-review-arrow { flex: none; font-size: 1.2rem; color: var(--color-primary-dark); }

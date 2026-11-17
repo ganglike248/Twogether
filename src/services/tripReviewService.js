@@ -29,17 +29,20 @@ export const tripDateStr = (v) => {
 
 export const isReviewDone = (trip, uid) => !!(trip?.review?.[uid]?.doneAt || trip?.review?.[uid]?.skipped);
 
-/** 홈 카드에 띄울 여행 — 끝났고(종료일 < 오늘), 내가 아직 기록·건너뛰기 안 한 것 중 가장 최근 */
-export const getPendingReviewTrip = (trips = [], uid, today = new Date()) => {
-  if (!uid) return null;
+/** 기록을 기다리는 여행 — 끝났고(종료일 < 오늘), 내가 아직 기록·건너뛰기 안 한 것, 최근 끝난 순 */
+export const getPendingReviewTrips = (trips = [], uid, today = new Date()) => {
+  if (!uid) return [];
   const todayStr = getLocalDateStr(today);
   return trips
     .filter(t => {
       const end = tripDateStr(t.endDate);
       return end && end < todayStr && end >= REVIEW_FEATURE_START && !isReviewDone(t, uid);
     })
-    .sort((a, b) => tripDateStr(b.endDate).localeCompare(tripDateStr(a.endDate)))[0] || null;
+    .sort((a, b) => tripDateStr(b.endDate).localeCompare(tripDateStr(a.endDate)));
 };
+
+/** 홈 카드에 띄울 여행 — 기다리는 것 중 가장 최근 하나(기록·건너뛰면 다음 것이 이어서 보임) */
+export const getPendingReviewTrip = (trips = [], uid, today = new Date()) => getPendingReviewTrips(trips, uid, today)[0] || null;
 
 const tripRef = (tripId) => doc(db, 'trips', tripId);
 

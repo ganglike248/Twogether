@@ -11,6 +11,7 @@ import TripDetail from './Trip/TripDetail';
 import EmptyState from '../common/EmptyState';
 import ConfirmModal from '../common/ConfirmModal';
 import MapEntryCard from '../Map/MapEntryCard';
+import { getPendingReviewTrips } from '../../services/tripReviewService';
 import { TravelPlanSkeleton } from './Trip/TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
@@ -164,6 +165,8 @@ const TravelPlanPage = () => {
         }
     }, [editFromMap, selectedTrip, showTripModal, navigate, location.pathname, handleEditTrip]);
 
+    const pendingReviews = getPendingReviewTrips(trips, user?.uid);
+
     if (tripId) {
         if (!selectedTrip) return null; // 여행 데이터 로딩 중 — 목록 플래시 방지
         return (
@@ -205,7 +208,23 @@ const TravelPlanPage = () => {
                 <p className="travel-plan-subtitle">함께 만들어가는 여행 추억</p>
             </div>
 
-            {trips.length > 0 && <MapEntryCard trips={trips} className="travel-plan-map-card" />}
+            {/* 기록을 기다리는 여행 개수 — 누르면 가장 최근 것부터 기록 */}
+            {pendingReviews.length > 0 && (
+                <button
+                    type="button"
+                    className="travel-plan-review-banner"
+                    onClick={() => navigate(`/travel/${pendingReviews[0].id}/review`)}
+                >
+                    <span className="travel-plan-review-count">{pendingReviews.length}</span>
+                    <span className="travel-plan-review-text">
+                        <b>기록을 기다리는 여행이 {pendingReviews.length}개 있어요</b>
+                        <span>{pendingReviews[0].title}부터 기록하기</span>
+                    </span>
+                    <span className="travel-plan-review-arrow" aria-hidden="true">›</span>
+                </button>
+            )}
+
+            {trips.length > 0 && <MapEntryCard trips={trips} className="travel-plan-map-card" showMap />}
 
             <div className="travel-plan-toolbar">
                 <div className="travel-plan-filter-search-section">

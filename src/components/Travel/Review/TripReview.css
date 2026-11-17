@@ -57,7 +57,6 @@
 .trc-head { display: flex; align-items: center; justify-content: space-between; }
 .trc-title { margin: 0; font-size: 1.05rem; color: var(--color-primary-dark); }
 .trc-edit { border: none; background: none; font-family: inherit; font-size: 0.8rem; color: var(--color-primary-dark); cursor: pointer; padding: 0.2rem; }
-.trc-empty { border: 1.5px dashed var(--color-primary); background: var(--color-primary-light); border-radius: 12px; padding: 0.8rem; font-family: inherit; font-size: 0.85rem; color: var(--color-text-desc); text-align: left; cursor: pointer; }
 .trc-both { margin: 0; background: var(--color-primary-light); border-radius: 10px; padding: 0.5rem 0.7rem; font-size: 0.82rem; color: var(--color-text-desc); }
 .trc-both b { font-weight: 400; color: var(--color-primary-dark); }
 .trc-rv { display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.6rem; border-top: 1.5px dashed var(--color-gray-200); }
@@ -71,3 +70,16 @@
 .trc-top { list-style: none; margin: 0.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
 .trc-top li { font-size: 0.82rem; color: var(--color-gray-800); overflow-wrap: anywhere; }
 .trc-top em { font-style: normal; font-family: var(--font-display); color: var(--color-primary-dark); margin-right: 0.35rem; }
+.trc-start { display: flex; flex-direction: column; gap: 0.7rem; }
+.trc-start-q { margin: 0; text-align: center; font-family: var(--font-display); font-size: 1.1rem; color: var(--color-gray-900); }
+.trc-moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.4rem; }
+.trc-mood-btn { height: 64px; border: 1.5px solid var(--color-gray-200); border-radius: 14px; background: white; color: var(--color-text-desc); display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; font-family: inherit; font-size: 0.72rem; cursor: pointer; }
+.trc-mood-btn:hover, .trc-mood-btn:focus-visible { border-color: var(--color-primary); color: var(--color-primary-dark); background: var(--color-primary-light); }
+.trc-start-hint { margin: 0; text-align: center; font-size: 0.72rem; color: var(--color-gray-500); }
+/* 기록 전 — 눈에 띄게(분홍 테두리·연분홍 배경·테이프), 위쪽 '여행 기록' 제목 줄은 숨김 */
+.trc.trc-invite { position: relative; border: 2px solid var(--color-primary); background: var(--color-primary-light); padding-top: 1.2rem; margin-top: 0.4rem; }
+.trc.trc-invite .trc-head { display: none; }
+.trc-tape { position: absolute; top: -9px; left: calc(50% - 32px); width: 64px; height: 18px; background: rgba(255, 214, 222, 0.95); transform: rotate(-3deg); }
+.trc-start-k { margin: 0; text-align: center; font-size: 0.78rem; color: var(--color-primary-dark); }
+.trc.trc-invite .trc-start-q { font-size: 1.3rem; margin-top: -0.4rem; }
+.trc.trc-invite .trc-mood-btn { border-color: white; box-shadow: var(--shadow-sm); }

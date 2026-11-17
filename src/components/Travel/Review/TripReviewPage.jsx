@@ -16,6 +16,7 @@ import {
   MOODS, moodLabel, REVIEW_TEXT_MAX, saveMyReview, finishReview, firstTimeSggs,
 } from '../../../services/tripReviewService';
 import { groupRegions, SGG_BY_CODE } from '../../../services/regions/regionData';
+import { suggestRegionsFromSchedules } from '../../../services/regions/regionMatch';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import MoodFace from './MoodFace';
 import { useNameByUid } from '../../../hooks/useNameByUid';
@@ -47,11 +48,12 @@ const TripReviewPage = () => {
     if (!trip || initRef.current) return;
     initRef.current = true;
     const mine = trip.review?.[uid] || {};
-    setMood(mine.mood || '');
+    const pickedMood = searchParams.get('mood'); // 여행 상세 카드에서 얼굴을 눌러 들어온 경우
+    setMood(mine.mood || (MOODS.some(m => m.key === pickedMood) ? pickedMood : ''));
     setText(mine.text || '');
     setTop3(mine.top3 || []);
     setRegions(trip.regions || []);
-  }, [trip, uid]);
+  }, [trip, uid, searchParams]);
 
   const partnerUid = useMemo(() => Object.keys(trip?.review || {}).find(k => k !== uid), [trip, uid]);
   const partnerReview = partnerUid ? trip.review[partnerUid] : null;
@@ -190,7 +192,7 @@ const TripReviewPage = () => {
             <>
               <h1 className="trv-q">여행 지도에<br />이렇게 기록할까요?</h1>
               <div className="trv-paper">
-                <RegionPicker value={regions} onChange={setRegions} newKeys={newKeys} />
+                <RegionPicker value={regions} onChange={setRegions} newKeys={newKeys} suggestions={suggestRegionsFromSchedules(schedules, regions)} />
                 <p className="trv-sub small">여행지와 일정 주소에서 찾았어요 · 칩을 누르면 뺄 수 있어요</p>
               </div>
               <div className="trv-actions"><button type="button" className="trv-btn primary" onClick={finish} disabled={saving}>{regions.length ? '지도에 기록하기' : '기록 마치기'}</button></div>

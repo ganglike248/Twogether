@@ -12,3 +12,6 @@
 .rp-link { align-self: flex-start; border: none; background: none; padding: 0; font-family: inherit; font-size: 0.78rem; color: var(--color-text-desc); text-decoration: underline; cursor: pointer; }
 .rp-done { align-self: flex-end; border: none; background: none; font-family: inherit; font-size: 0.85rem; color: var(--color-primary-dark); cursor: pointer; padding: 0.2rem 0.3rem; }
 .rp-new { font-style: normal; font-size: 0.65rem; background: white; color: var(--color-primary-dark); border-radius: 999px; padding: 0.05rem 0.35rem; margin-left: 0.3rem; font-weight: 700; }
+.rp-suggest { display: flex; flex-direction: column; gap: 0.35rem; }
+.rp-suggest-label { font-size: 0.75rem; color: var(--color-text-desc); }
+.rp-chip.suggest { border-style: dashed; border-color: var(--color-primary-medium); color: var(--color-primary-dark); background: var(--color-primary-light); }

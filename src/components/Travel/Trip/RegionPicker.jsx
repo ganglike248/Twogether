@@ -6,7 +6,8 @@ import { SIDO_LIST, SIDO_BY_CODE, getSggChoices, groupRegions, groupToRegions, m
 import './RegionPicker.css';
 
 // newKeys: 이번 여행으로 처음 칠해지는 묶음 key(Set) — '처음' 표시(여행 끝 기록 3단계)
-const RegionPicker = ({ value = [], onChange, hint, newKeys }) => {
+// suggestions: 일정에서 찾은 지역(저장 모양) — '일정에서 찾은 곳' 칩, 누르면 더함
+const RegionPicker = ({ value = [], onChange, hint, newKeys, suggestions = [] }) => {
   const [open, setOpen] = useState(false);
   const [sido, setSido] = useState(null);
   const groups = groupRegions(value);
@@ -32,6 +33,19 @@ const RegionPicker = ({ value = [], onChange, hint, newKeys }) => {
         ))}
         {!open && <button type="button" className="rp-chip add" onClick={() => setOpen(true)}>+ 지역 더하기</button>}
       </div>
+
+      {suggestions.length > 0 && (
+        <div className="rp-suggest">
+          <span className="rp-suggest-label">일정에서 찾은 곳</span>
+          <div className="rp-chips">
+            {groupRegions(suggestions).slice(0, 8).map(g => (
+              <button key={g.key} type="button" className="rp-chip suggest" onClick={() => onChange(mergeRegions(value, groupToRegions(g)))}>
+                + {g.codes.length ? `${g.sidoShort} · ${g.label}` : g.label}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {open && (
         <div className="rp-panel">

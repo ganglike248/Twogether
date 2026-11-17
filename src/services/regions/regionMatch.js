@@ -19,6 +19,7 @@ const buildIndex = () => {
     idx.get(key).push({ sgg, kind });
   };
   SGG_LIST.forEach(s => {
+    if (s.city.includes(' ')) add(s.city.replace(/\s/g, ''), s.code, 'full'); // '광주 동구' → 광주동구(글자는 공백 빼고 비교)
     add(s.raw, s.code, 'full');       // 수원시장안구
     add(s.city, s.code, 'full');      // 수원시 / 속초시 / 강남구
     add(stem(s.city), s.code, 'stem'); // 수원 / 속초 / 강남
@@ -74,4 +75,17 @@ export const matchRegions = (rawText, { addressOnly = false } = {}) => {
   const sidoWithSgg = new Set(merged.map(r => r.sido));
   const sidoOnly = [...hints].filter(code => !sidoWithSgg.has(code)).map(sido => ({ sido }));
   return mergeRegions(merged, sidoOnly);
+};
+
+/** 일정(tripSchedules 문서들)의 장소·제목에서 찾은 지역 중 아직 여행 지역에 없는 것 — 추천 칩용(자동으로 넣지 않음).
+ *  장소 이름('양양 서피비치')까지 보므로 가끔 엉뚱한 곳도 나올 수 있어 사용자가 눌러야 더해짐 */
+export const suggestRegionsFromSchedules = (scheduleDocs = [], current = []) => {
+  const found = [];
+  scheduleDocs.forEach(d => (d.schedules || []).forEach(s => {
+    found.push(...matchRegions([s.location, s.title].filter(Boolean).join(' ')));
+  }));
+  const have = mergeRegions(current);
+  const haveSgg = new Set(have.filter(r => r.sgg).map(r => r.sgg));
+  const haveSido = new Set(have.map(r => r.sido));
+  return mergeRegions(found).filter(r => (r.sgg ? !haveSgg.has(r.sgg) : !haveSido.has(r.sido)));
 };

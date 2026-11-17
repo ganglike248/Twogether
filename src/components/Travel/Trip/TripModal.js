@@ -8,7 +8,8 @@ import { convertToDate } from '../../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
 import RegionPicker from './RegionPicker';
-import { matchRegions } from '../../../services/regions/regionMatch';
+import { matchRegions, suggestRegionsFromSchedules } from '../../../services/regions/regionMatch';
+import { useTripSchedules } from '../../../hooks/useTrip';
 import { describeRegions } from '../../../services/regions/regionData';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
@@ -27,6 +28,8 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     const [regionsTouched, setRegionsTouched] = useState(false);
     const [regionHint, setRegionHint] = useState('');
     const [errors, setErrors] = useState({});
+    // 기존 여행이면 일정 장소에서 찾은 지역을 추천 칩으로(새 여행은 일정이 없어 tripId 없음)
+    const { schedules: tripScheduleDocs } = useTripSchedules(isOpen ? trip?.id : null);
 
     useEffect(() => {
         if (trip) {
@@ -195,6 +198,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                             <RegionPicker
                                 value={regions}
                                 hint={regionHint}
+                                suggestions={suggestRegionsFromSchedules(tripScheduleDocs, regions)}
                                 onChange={(next) => { setRegions(next); setRegionsTouched(true); setRegionHint(''); }}
                             />
                         </div>

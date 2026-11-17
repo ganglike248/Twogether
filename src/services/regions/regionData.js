@@ -40,9 +40,12 @@ export const SIDO_LIST = data.sido.map(([code, name]) => ({
 }));
 export const SIDO_BY_CODE = Object.fromEntries(SIDO_LIST.map(s => [s.code, s]));
 
+// 전남광주(12) 안의 옛 광주광역시 구(동구·서구·남구·북구·광산구)는 전남 시·군 사이에서 알아보기 쉽게 '광주 동구'로 표시
+const displayCity = (sido, city) => (sido === '12' && /구$/.test(city) ? `광주 ${city}` : city);
 export const SGG_LIST = data.sgg.map(([code, sido, raw]) => {
-  const { city, gu } = splitName(raw);
-  return { code, sido, raw, city, gu, name: gu ? `${city} ${gu}` : city };
+  const split = splitName(raw);
+  const city = displayCity(sido, split.city);
+  return { code, sido, raw, city, gu: split.gu, name: split.gu ? `${city} ${split.gu}` : city };
 });
 export const SGG_BY_CODE = Object.fromEntries(SGG_LIST.map(s => [s.code, s]));
 

@@ -4,7 +4,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { moodLabel, tripDateStr, isReviewDone } from '../../../services/tripReviewService';
+import { MOODS, moodLabel, tripDateStr, isReviewDone } from '../../../services/tripReviewService';
 import { getLocalDateStr } from '../../../utils/dataUtils';
 import MoodFace from './MoodFace';
 import { useNameByUid } from '../../../hooks/useNameByUid';
@@ -51,13 +51,26 @@ const TripRecordCard = ({ trip, schedules = [] }) => {
   const go = () => navigate(`/travel/${trip.id}/review`);
 
   return (
-    <section className="trc" aria-label="여행 기록">
+    <section className={`trc${written.length === 0 ? ' trc-invite' : ''}`} aria-label="여행 기록">
+      {written.length === 0 && <span className="trc-tape" aria-hidden="true" />}
       <div className="trc-head">
         <h2 className="trc-title">여행 기록</h2>
         <button type="button" className="trc-edit" onClick={go}>{mineDone ? '내 기록 고치기' : '기록하기'}</button>
       </div>
       {written.length === 0 ? (
-        <button type="button" className="trc-empty" onClick={go}>이번 여행은 어땠나요? 기분과 좋았던 순간을 남겨 보세요</button>
+        // 아직 아무도 안 썼으면 기분부터 바로 고르게(시안 B) — 누르면 그 기분이 골라진 채로 기록 화면이 열림
+        <div className="trc-start">
+          <p className="trc-start-k">여행이 끝났어요</p>
+          <p className="trc-start-q">이번 여행은 어땠나요?</p>
+          <div className="trc-moods">
+            {MOODS.map(m => (
+              <button key={m.key} type="button" className="trc-mood-btn" onClick={() => navigate(`/travel/${trip.id}/review?mood=${m.key}`)}>
+                <MoodFace kind={m.key} />{m.label}
+              </button>
+            ))}
+          </div>
+          <p className="trc-start-hint">하나를 누르면 기록 화면이 열려요</p>
+        </div>
       ) : (
         <>
           {bothFirst && <p className="trc-both">둘 다 1위로 고른 곳 <b>{bothFirst}</b></p>}

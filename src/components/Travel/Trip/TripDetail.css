@@ -502,3 +502,6 @@
         grid-template-columns: minmax(0, 1fr);
     }
 }
+
+/* 여행 정보 카드 안 약도(TripMiniMap) */
+.td-info-map { margin: 0.1rem 0 0.2rem; }

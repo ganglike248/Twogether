@@ -1,6 +1,6 @@
 // src/components/Travel/Schedule/ScheduleTimeline.jsx
 // Day 일정 카드 — 남은 일정은 시간순 타임라인, 완료한 일정은 카드 맨 끝에 접어 둠
-// (들어오자마자 볼 건 다음 일정이라 완료 목록은 펼쳐야 보이게 함)
+// (들어오자마자 볼 건 다음 일정이라 완료 목록은 펼쳐야 보이게 함). 그날 일정을 다 마치면 접지 않고 전부 보여줌
 import React, { useState } from 'react';
 import { MdDateRange, MdCheck, MdExpandMore } from 'react-icons/md';
 import ScheduleItem from './ScheduleItem';
@@ -77,10 +77,14 @@ const ScheduleTimeline = ({
                     {remaining.length > 0 ? (
                         <TimelineList items={remaining} {...listProps} />
                     ) : (
-                        <p className="tl-all-done">이 날의 일정을 모두 마쳤어요</p>
+                        // 다 마친 날은 접지 않고 그날 일정을 전부 그대로 보여줌(여행 뒤 다시 보기 쉽게)
+                        <>
+                            <p className="tl-all-done">이 날의 일정을 모두 마쳤어요</p>
+                            <TimelineList items={schedules} {...listProps} />
+                        </>
                     )}
 
-                    {done.length > 0 && (
+                    {remaining.length > 0 && done.length > 0 && (
                         <>
                             <button
                                 className={`tl-done-toggle ${showDone ? 'open' : ''}`}
