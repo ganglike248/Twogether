@@ -19,6 +19,7 @@ import ScheduleModal from '../Schedule/ScheduleModal';
 import ScheduleTimeline from '../Schedule/ScheduleTimeline';
 import DayTabs from '../Schedule/DayTabs';
 import TripDetailHeader from './TripDetailHeader';
+import TripRecordCard from '../Review/TripRecordCard';
 import TravelDecisionsTab from '../Decisions/TravelDecisionsTab';
 import TravelChecklistTab from '../Checklist/TravelChecklistTab';
 import FloatingActionMenu from '../FloatingActionMenu';
@@ -279,6 +280,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 onEdit={onEdit}
                 onDelete={onDelete}
             />
+
+            {/* 끝난 여행의 기록(두 사람의 기분·기록·TOP 3) */}
+            <TripRecordCard trip={trip} schedules={schedules} />
 
             {/* 탭 */}
             <div className="td-tabs">

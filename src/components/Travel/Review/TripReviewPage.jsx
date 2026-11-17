@@ -1,7 +1,8 @@
 // src/components/Travel/Review/TripReviewPage.jsx
 // /travel/:tripId/review?step=1|2|3 — 여행이 끝난 뒤 기록(시안 '여행 끝 2~4').
 //  1. 기분 + 자유 기록(상대 기록은 바로 보임)  2. 좋았던 순간 TOP 3  3. 우리 지도 기록 확인
-// 단계마다 저장해서 중간에 나가도 쓴 글이 남음. 단계는 URL에서 파생(뒤로가기 = 이전 단계).
+// 단계마다 저장해서 중간에 나가도 쓴 글이 남음. 단계는 URL에서 파생하되 replace로 바꿈 — 방문 기록엔 기록 화면이
+// 한 칸만 남아, 끝낸 뒤 지도·여행 상세에서 뒤로 가면 기록 중간 단계가 아니라 원래 화면으로 감.
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import { useNavigate, useParams, useSearchParams, useLocation } from 'react-router-dom';
 import { toast } from 'react-toastify';
@@ -17,6 +18,7 @@ import {
 import { groupRegions, SGG_BY_CODE } from '../../../services/regions/regionData';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import MoodFace from './MoodFace';
+import { useNameByUid } from '../../../hooks/useNameByUid';
 import './TripReview.css';
 
 const TripReviewPage = () => {
@@ -25,7 +27,8 @@ const TripReviewPage = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
   const step = Math.min(3, Math.max(1, Number(searchParams.get('step')) || 1));
-  const { user, coupleId, getMemberName } = useAuthContext();
+  const { user, coupleId } = useAuthContext();
+  const nameOf = useNameByUid();
   const uid = user?.uid;
   const { trips, loading } = useTrips(coupleId);
   const trip = trips.find(t => t.id === tripId);
@@ -59,10 +62,10 @@ const TripReviewPage = () => {
   const newSggs = useMemo(() => (trip ? firstTimeSggs(trips, trip.id, regions) : []), [trips, trip, regions]);
   const newKeys = useMemo(() => new Set(newSggs.map(c => { const s = SGG_BY_CODE[c]; return `${s.sido}:${s.city}`; })), [newSggs]);
 
-  const goStep = (n) => navigate(`/travel/${tripId}/review?step=${n}`);
+  const goStep = (n) => navigate(`/travel/${tripId}/review?step=${n}`, { replace: true });
   const close = () => {
     if (location.key === 'default') navigate(`/travel/${tripId}`, { replace: true });
-    else navigate(-(step), { replace: false });
+    else navigate(-1);
   };
 
   const run = async (fn) => {
@@ -101,7 +104,7 @@ const TripReviewPage = () => {
   return (
     <div className="trv-page">
       <div className="trv-top">
-        <button type="button" className="trv-icon" onClick={step === 1 ? close : () => navigate(-1)} aria-label={step === 1 ? '닫기' : '이전 단계'}>
+        <button type="button" className="trv-icon" onClick={step === 1 ? close : () => goStep(step - 1)} aria-label={step === 1 ? '닫기' : '이전 단계'}>
           {step === 1 ? <MdClose /> : <MdArrowBack />}
         </button>
         <span className="trv-top-title">{trip.title} 기록</span>
@@ -129,7 +132,7 @@ const TripReviewPage = () => {
           <p className="trv-count">{text.length} / {REVIEW_TEXT_MAX}</p>
           {partnerReview && (partnerReview.text || partnerReview.mood) && (
             <div className="trv-partner">
-              <b>{getMemberName(partnerUid)}님의 기록{partnerReview.mood ? ` · ${moodLabel(partnerReview.mood)}` : ''}</b>
+              <b>{nameOf(partnerUid)}님의 기록{partnerReview.mood ? ` · ${moodLabel(partnerReview.mood)}` : ''}</b>
               {partnerReview.text && <p>{partnerReview.text}</p>}
             </div>
           )}
@@ -170,7 +173,7 @@ const TripReviewPage = () => {
           {confirmedByOther && !editRegions ? (
             <>
               <h1 className="trv-q">여행 지도는<br />이미 기록됐어요</h1>
-              <p className="trv-who">{getMemberName(trip.regionsConfirmedBy)}님이 우리 지도에 기록했어요</p>
+              <p className="trv-who">{nameOf(trip.regionsConfirmedBy)}님이 우리 지도에 기록했어요</p>
               <div className="trv-paper">
                 <div className="trv-chips">
                   {groupRegions(trip.regions || []).map(g => <span key={g.key} className="trv-chip">{g.codes.length ? `${g.sidoShort} · ${g.label}` : g.label}</span>)}

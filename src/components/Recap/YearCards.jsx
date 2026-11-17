@@ -96,6 +96,14 @@ export const YearTripsCard = ({ trips }) => (
         </div>
       ))}
     </div>
+    {trips.best && (
+      <div className="rc-paper rc-best">
+        <span className="rc-tape small" />
+        <span className="rc-k">올해 가장 좋았던 여행</span>
+        <b>{trips.best.title}</b>
+        {trips.best.quote && <span className="rc-best-q">“{trips.best.quote}”</span>}
+      </div>
+    )}
     {trips.newPlaces.length > 0 && <p className="rc-foot">처음 가 본 곳 · {trips.newPlaces.slice(0, 4).join(', ')}</p>}
   </>
 );

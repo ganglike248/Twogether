@@ -309,7 +309,7 @@ export const subscribeTravelTimes = (tripId, day, callback) => {
 // 일정 주소로 여행 지역 자동 추가(우리 지도) — 이미 있는 지역이면 아무것도 안 씀. 트랜잭션으로 서버 최신 regions에 합침
 // (두 사람이 동시에 일정을 저장해도 지역이 지워지지 않게). 실패해도 일정 저장엔 영향 없도록 호출부에서 무시.
 export const addTripRegionsFromText = async (tripId, text) => {
-  const found = matchRegions(text);
+  const found = matchRegions(text, { addressOnly: true }); // 주소 모양일 때만(장소 이름 글자로는 안 더함)
   if (!found.length) return false;
   const tripRef = doc(db, 'trips', tripId);
   return runTransaction(db, async (transaction) => {

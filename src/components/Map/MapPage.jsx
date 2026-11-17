@@ -16,6 +16,13 @@ import '../common/MenuPage.css';
 import './MapPage.css';
 
 const loadSgg = (code) => import(`./data/sgg/${code}.json`).then(m => m.default || m);
+// 여행 기록 한 줄(지역 여행 목록) — 둘 중 먼저 찾은 기록의 첫 줄 앞부분
+const quoteOf = (t) => {
+  const text = Object.values(t.review || {}).map(r => (r?.text || '').trim()).find(Boolean);
+  if (!text) return '';
+  const line = text.split('\n')[0];
+  return line.length > 32 ? `${line.slice(0, 32)}…` : line;
+};
 const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 
 const MapLegend = () => (
@@ -30,20 +37,27 @@ const MapPage = () => {
   const { sido } = useParams();
   const { coupleId } = useAuthContext();
   const { trips, loading } = useTrips(coupleId);
-  const [sggData, setSggData] = useState(null);
+  const [sggLoaded, setSggLoaded] = useState({ code: null, data: null }); // 불러온 시·도 경계(지금 시·도 것만 씀)
   const [pick, setPick] = useState(null); // 안 간 곳 { code, name, regions }
-  const [selectedSgg, setSelectedSgg] = useState(null);
+  const [selected, setSelected] = useState({ sido: null, code: null }); // 목록 거르기 — 다른 시·도로 가면 자동 해제
   const sparkCodes = location.state?.spark || []; // 여행 끝 기록에서 처음 칠한 시·군·구
 
   const stats = useMemo(() => computeMapStats(trips), [trips]);
   const sidoInfo = sido ? SIDO_BY_CODE[sido] : null;
 
+  const sggData = sggLoaded.code === sido ? sggLoaded.data : null;
+  const selectedSgg = selected.sido === sido ? selected.code : null;
+  const setSelectedSgg = (updater) => setSelected(prev => {
+    const cur = prev.sido === sido ? prev.code : null;
+    return { sido, code: typeof updater === 'function' ? updater(cur) : updater };
+  });
+
   useEffect(() => {
-    if (!sidoInfo) { setSggData(null); return; }
+    if (!sidoInfo) return undefined;
     let alive = true;
-    setSggData(null);
-    setSelectedSgg(null);
-    loadSgg(sido).then(d => alive && setSggData(d)).catch(() => alive && setSggData({ w: 1, h: 1, d: {} }));
+    loadSgg(sido)
+      .then(d => alive && setSggLoaded({ code: sido, data: d }))
+      .catch(() => alive && setSggLoaded({ code: sido, data: { w: 1, h: 1, d: {} } }));
     return () => { alive = false; };
   }, [sido, sidoInfo]);
 
@@ -169,7 +183,11 @@ const MapPage = () => {
         return (
           <button key={t.id} type="button" className="map-row" onClick={() => navigate(`/travel/${t.id}`)}>
             <span className="map-row-n">{Number(stats.dateStr(t.startDate).slice(5, 7))}월</span>
-            <span className="map-row-tx"><b>{t.title}</b><span>{places.join(' · ') || sidoInfo.short} · {md(stats.dateStr(t.startDate))}</span></span>
+            <span className="map-row-tx">
+              <b>{t.title}</b>
+              <span>{places.join(' · ') || sidoInfo.short} · {md(stats.dateStr(t.startDate))}</span>
+              {quoteOf(t) && <span className="map-quote">“{quoteOf(t)}”</span>}
+            </span>
             <HiChevronRight aria-hidden="true" />
           </button>
         );

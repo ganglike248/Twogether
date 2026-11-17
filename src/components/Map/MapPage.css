@@ -33,3 +33,4 @@
 .map-spark-toast { margin: 0; background: var(--color-gray-900); color: white; border-radius: 12px; padding: 0.6rem 0.9rem; font-size: 0.85rem; text-align: center; }
 .km-r.spark { animation: km-spark 1.2s ease-in-out 3; }
 @keyframes km-spark { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 6px var(--color-primary-dark)) brightness(1.08); } }
+.map-quote { font-size: 0.75rem; color: var(--color-primary-dark) !important; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }

@@ -7,12 +7,14 @@ import { toast } from 'react-toastify';
 import { getPendingReviewTrip, skipReview, tripDateStr, moodLabel } from '../../../services/tripReviewService';
 import { getLocalDateStr } from '../../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
+import { useNameByUid } from '../../../hooks/useNameByUid';
 import './TripReview.css';
 
 const dayDiff = (a, b) => Math.round((new Date(`${b}T00:00:00`) - new Date(`${a}T00:00:00`)) / 86400000);
 const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 
-const TripEndCard = ({ trips, uid, getMemberName }) => {
+const TripEndCard = ({ trips, uid }) => {
+  const nameOf = useNameByUid();
   const navigate = useNavigate();
   const [busy, setBusy] = useState(false);
   const trip = getPendingReviewTrip(trips, uid);
@@ -40,7 +42,7 @@ const TripEndCard = ({ trips, uid, getMemberName }) => {
       <h2 className="trip-end-t">{trip.title},<br />어땠어요?</h2>
       <p className="trip-end-sub">{md(start)}{start !== end ? ` – ${md(end)} · ${nights}박 ${nights + 1}일` : ''}</p>
       {partner?.doneAt && (
-        <p className="trip-end-partner">{getMemberName(partnerUid)}님은 이미 기록했어요{partner.mood ? ` · ${moodLabel(partner.mood)}` : ''}</p>
+        <p className="trip-end-partner">{nameOf(partnerUid)}님은 이미 기록했어요{partner.mood ? ` · ${moodLabel(partner.mood)}` : ''}</p>
       )}
       <div className="trip-end-actions">
         <button type="button" className="trv-btn" onClick={(e) => { e.stopPropagation(); skip(); }} disabled={busy}>이번엔 건너뛰기</button>

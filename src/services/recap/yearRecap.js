@@ -160,6 +160,11 @@ export const buildYearRecap = (data, { year, coupleDoc, nameOf, today = new Date
     days: st.tripDays.size,
     list: st.trips.slice().sort((a, b) => a.startStr.localeCompare(b.startStr)).map(t => ({ title: t.title || t.destination, startStr: t.startStr, nights: Math.max(0, dayDiff(t.startStr, t.endStr)) })),
     newPlaces: [...new Set(st.trips.map(t => t.destination).filter(d => d && !before.has(d)))],
+    // 기분 점수(최고 5 ~ 별로 1) 평균이 가장 높은 여행 — '좋았어' 이상일 때만
+    best: (() => {
+      const b = st.trips.filter(t => t.moodScore >= 4).sort((x, y) => y.moodScore - x.moodScore || y.startStr.localeCompare(x.startStr))[0];
+      return b ? { title: b.title || b.destination, quote: b.quote.length > 40 ? `${b.quote.slice(0, 40)}…` : b.quote } : null;
+    })(),
   } : null;
 
   // 5. 이룬 버킷

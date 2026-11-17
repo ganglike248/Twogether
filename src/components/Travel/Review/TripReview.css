@@ -51,3 +51,23 @@
 .trip-end-partner { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--color-text-desc); }
 .trip-end-actions { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
 .trip-end-actions .trv-btn { height: 42px; font-size: 0.88rem; }
+
+/* 여행 상세 '여행 기록' 카드 */
+.trc { background: white; border-radius: 16px; padding: 0.9rem 1rem; box-shadow: var(--shadow-sm); display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+.trc-head { display: flex; align-items: center; justify-content: space-between; }
+.trc-title { margin: 0; font-size: 1.05rem; color: var(--color-primary-dark); }
+.trc-edit { border: none; background: none; font-family: inherit; font-size: 0.8rem; color: var(--color-primary-dark); cursor: pointer; padding: 0.2rem; }
+.trc-empty { border: 1.5px dashed var(--color-primary); background: var(--color-primary-light); border-radius: 12px; padding: 0.8rem; font-family: inherit; font-size: 0.85rem; color: var(--color-text-desc); text-align: left; cursor: pointer; }
+.trc-both { margin: 0; background: var(--color-primary-light); border-radius: 10px; padding: 0.5rem 0.7rem; font-size: 0.82rem; color: var(--color-text-desc); }
+.trc-both b { font-weight: 400; color: var(--color-primary-dark); }
+.trc-rv { display: flex; flex-direction: column; gap: 0.35rem; padding-top: 0.6rem; border-top: 1.5px dashed var(--color-gray-200); }
+.trc-rv:first-of-type { border-top: none; padding-top: 0; }
+.trc-both + .trc-rv { border-top: none; padding-top: 0; }
+.trc-rv-h { display: flex; align-items: center; gap: 0.35rem; font-size: 0.85rem; color: var(--color-text-desc); }
+.trc-rv-h b { font-weight: 400; color: var(--color-gray-900); }
+.trc-mood { color: var(--color-primary-dark); display: inline-flex; }
+.trc-rv p { margin: 0; font-size: 0.9rem; line-height: 1.7; color: var(--color-gray-800); white-space: pre-wrap; overflow-wrap: anywhere; }
+.trc-more { align-self: flex-start; border: none; background: none; padding: 0; font-family: inherit; font-size: 0.78rem; color: var(--color-primary-dark); cursor: pointer; }
+.trc-top { list-style: none; margin: 0.1rem 0 0; padding: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.trc-top li { font-size: 0.82rem; color: var(--color-gray-800); overflow-wrap: anywhere; }
+.trc-top em { font-style: normal; font-family: var(--font-display); color: var(--color-primary-dark); margin-right: 0.35rem; }

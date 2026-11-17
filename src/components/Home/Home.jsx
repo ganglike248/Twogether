@@ -47,7 +47,7 @@ const tabPaneVariants = {
 };
 
 const Home = () => {
-  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole, getMemberName } = useAuthContext();
+  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -396,7 +396,7 @@ const Home = () => {
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
           {/* 끝난 여행 기록 — 기록·건너뛰기 전까지 맨 위 */}
-          <TripEndCard trips={tripDocs} uid={user?.uid} getMemberName={getMemberName} />
+          <TripEndCard trips={tripDocs} uid={user?.uid} />
 
           {showFirstSteps && (
             <FirstStepsCard

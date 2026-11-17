@@ -5,6 +5,8 @@ import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getEventDayRange, convertToDate, getLocalDateStr } from '../../utils/dataUtils';
 
+const MOOD_SCORE = { great: 5, good: 4, ok: 3, meh: 2, bad: 1 };
+
 const toDateStr = (value) => {
   if (!value) return '';
   if (typeof value === 'string') return value.split('T')[0];
@@ -44,7 +46,15 @@ export const fetchRecapData = async (coupleId) => {
 
   const trips = tripSnap.docs.map(d => {
     const t = d.data();
-    return { id: d.id, title: t.title || '', destination: t.destination || t.title || '', startStr: toDateStr(t.startDate), endStr: toDateStr(t.endDate) || toDateStr(t.startDate) };
+    // 여행 끝 기록(기분 점수 평균 · 기록 첫 줄) — 연말 랩업 '올해 가장 좋았던 여행'
+    const reviews = Object.values(t.review || {}).filter(r => r && !r.skipped);
+    const scores = reviews.map(r => MOOD_SCORE[r.mood]).filter(Boolean);
+    const quote = reviews.map(r => (r.text || '').trim().split('\n')[0]).find(Boolean) || '';
+    return {
+      id: d.id, title: t.title || '', destination: t.destination || t.title || '',
+      startStr: toDateStr(t.startDate), endStr: toDateStr(t.endDate) || toDateStr(t.startDate),
+      moodScore: scores.length ? scores.reduce((a, b) => a + b, 0) / scores.length : 0, quote,
+    };
   }).filter(t => t.startStr);
 
   const buckets = bucketSnap.docs.map(d => {

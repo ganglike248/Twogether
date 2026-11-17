@@ -36,8 +36,9 @@ const findSidoHints = (text) => {
   return hints;
 };
 
-/** 글자 → 추천 지역 목록(저장 모양) */
-export const matchRegions = (rawText) => {
+/** 글자 → 추천 지역 목록(저장 모양). addressOnly면 '시·도 시·군·구 …' 주소 모양일 때만(일정 장소 자동 추가용 —
+ *  '스타벅스 강남역점' 같은 장소 이름에서 강남구가 잘못 붙지 않게) */
+export const matchRegions = (rawText, { addressOnly = false } = {}) => {
   const text = String(rawText || '').replace(/\s+/g, ' ').trim();
   if (!text) return [];
   if (!INDEX) INDEX = buildIndex();
@@ -45,6 +46,7 @@ export const matchRegions = (rawText) => {
   // — 도로명('서초구 강남대로')이 다른 구로 잡히지 않게
   const tokens = text.split(' ');
   const isAddress = tokens.length >= 2 && SIDO_ALIAS_SET.has(tokens[0]);
+  if (addressOnly && !isAddress) return [];
   const compact = (isAddress
     ? [tokens[0], tokens[1], tokens[2] && /구$/.test(tokens[2]) ? tokens[2] : ''].join('')
     : text).replace(/\s/g, '');
