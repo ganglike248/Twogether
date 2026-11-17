@@ -126,6 +126,11 @@
 여행 지역(우리 지도 `/map`·`/map/:sido`, `components/Map/`, 경계 경로는 `scripts/map/build_map_paths.py`로 생성, 시작한 여행만 칠함) `trips.regions=[{sido,sgg?}]`: 목록·추천은 `services/regions/`(2026-10 SGIS, 16개 시·도 — 광주·전남 통합), 정리는 반드시 `mergeRegions`, 여행지 글자 자동 추천은 칩을 만지기 전까지만, 일정 주소는 `addTripRegionsFromText`(트랜잭션, 이미 있으면 안 씀). 지도에 출처(CC BY 4.0) 표시 필수.
 링크 자동 채우기 카드는 모달 열 때마다 접힌 채로 시작(`useLinkFillCollapsed`, 기억 안 함). 상세 화면 하단 FAB 공간 `padding-bottom: calc(56px + 2rem)`. 이동 시간은 `subscribeTravelTimes`
 
+**여행 끝 기록**(`Travel/Review/`, `services/tripReviewService.js`): `/travel/:tripId/review?step=1|2|3`(기분+자유 기록 2000자 → TOP 3 → 지도 확인, Layout 밖).
+`trips.review[uid]`는 반드시 필드 경로(`review.<uid>.x`)로만 씀(동시 기록 보호). 지도 지역은 먼저 끝낸 사람이 확정(`regionsConfirmedBy`), 나중 사람은 확인·고치기.
+홈 `TripEndCard`는 `REVIEW_FEATURE_START`(2026-11-01) 이후 끝난 여행 중 내가 `doneAt`/`skipped` 안 한 것, 알림은 `sendTripReviewReminders`(종료 다음 날 21시, type `tripReview`).
+처음 칠한 시·군·구는 `/map/:sido`에 `state.spark`로 넘겨 반짝임
+
 **데이터 백업**(`/data-backup`): 같은 커플만, 없는 문서만 추가(원래 ID로 set, 비교는 `getDocsFromServer`), 사진은 링크만. 복원 문서 `restoredAt`/
 `restoredUnlock`로 알림 스킵 → **Functions를 Hosting보다 먼저 배포**. 교체 모드·새 커플 이사는 사용자가 거절함(재제안 금지)
 

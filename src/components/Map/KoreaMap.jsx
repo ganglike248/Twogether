@@ -18,7 +18,8 @@ const labelPoint = (d) => {
   return best || { x: 0, y: 0 };
 };
 
-const KoreaMap = ({ data, counts = {}, nameOf, onSelect, ariaLabel, labelSize = 9 }) => {
+// sparkCodes: 방금 처음 칠해진 곳(여행 끝 기록 직후) — 반짝임
+const KoreaMap = ({ data, counts = {}, nameOf, onSelect, ariaLabel, labelSize = 9, sparkCodes = [] }) => {
   const entries = useMemo(() => Object.entries(data.d), [data]);
   const points = useMemo(() => Object.fromEntries(entries.map(([code, d]) => [code, labelPoint(d)])), [entries]);
 
@@ -30,7 +31,7 @@ const KoreaMap = ({ data, counts = {}, nameOf, onSelect, ariaLabel, labelSize = 
           <path
             key={code}
             d={d}
-            className={`km-r l${level(n)}${n ? '' : ' un'}`}
+            className={`km-r l${level(n)}${n ? '' : ' un'}${sparkCodes.includes(code) ? ' spark' : ''}`}
             onClick={onSelect ? () => onSelect(code) : undefined}
           >
             <title>{`${nameOf(code)}${n ? ` · ${n}번` : ' · 아직'}`}</title>

@@ -13,6 +13,7 @@ import {
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useTripSchedules, useTrips } from '../../hooks/useTrip';
 import MapEntryCard from '../Map/MapEntryCard';
+import TripEndCard from '../Travel/Review/TripEndCard';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -46,7 +47,7 @@ const tabPaneVariants = {
 };
 
 const Home = () => {
-  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole } = useAuthContext();
+  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole, getMemberName } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -394,6 +395,9 @@ const Home = () => {
           exit="exit"
           transition={{ duration: 0.2, ease: 'easeOut' }}
         >
+          {/* 끝난 여행 기록 — 기록·건너뛰기 전까지 맨 위 */}
+          <TripEndCard trips={tripDocs} uid={user?.uid} getMemberName={getMemberName} />
+
           {showFirstSteps && (
             <FirstStepsCard
               events={events}

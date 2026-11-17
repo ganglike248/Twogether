@@ -1,0 +1,53 @@
+/* 여행 끝 기록(Layout 밖 독립 페이지) — 시안 '여행 끝 2~4' */
+.trv-page { flex: 1 0 auto; min-height: 100%; width: 100%; max-width: 480px; align-self: center; box-sizing: border-box; display: flex; flex-direction: column; gap: 0.9rem; padding: calc(env(safe-area-inset-top) + 0.75rem) 1.1rem calc(env(safe-area-inset-bottom) + 1.2rem); color: var(--color-gray-800); }
+.trv-center { align-items: center; justify-content: center; text-align: center; }
+.trv-top { display: flex; align-items: center; gap: 0.5rem; }
+.trv-icon { width: 40px; height: 40px; border: none; border-radius: 50%; background: white; box-shadow: var(--shadow-sm); display: flex; align-items: center; justify-content: center; font-size: 1.25rem; color: var(--color-text-desc); cursor: pointer; }
+.trv-top-title { font-size: 0.85rem; color: var(--color-text-desc); min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trv-steps { display: flex; gap: 4px; }
+.trv-steps span { flex: 1; height: 3px; border-radius: 2px; background: var(--color-gray-200); }
+.trv-steps span.on { background: var(--color-primary); }
+.trv-q { margin: 0.3rem 0 0; font-size: 1.5rem; line-height: 1.35; color: var(--color-gray-900); }
+.trv-sub { margin: 0; font-size: 0.85rem; color: var(--color-text-desc); }
+.trv-sub.small { font-size: 0.75rem; margin-top: 0.6rem; }
+.trv-moods { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.4rem; }
+.trv-mood { height: 68px; border: 1.5px solid var(--color-gray-200); border-radius: 14px; background: white; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.15rem; font-family: inherit; font-size: 0.72rem; color: var(--color-text-desc); cursor: pointer; }
+.trv-mood.on { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }
+.trv-text { width: 100%; min-height: 200px; box-sizing: border-box; border: 1.5px solid var(--color-gray-200); border-radius: 14px; background: white; padding: 0.8rem; font-family: inherit; font-size: 1rem; line-height: 1.7; color: var(--color-gray-900); resize: none; }
+.trv-text:focus { outline: none; border-color: var(--color-primary); }
+.trv-count { margin: -0.5rem 0 0; text-align: right; font-size: 0.72rem; color: var(--color-gray-500); }
+.trv-partner { background: white; border: 1.5px dashed var(--color-primary); border-radius: 14px; padding: 0.8rem; }
+.trv-partner b { font-weight: 400; font-size: 0.85rem; color: var(--color-primary-dark); }
+.trv-partner p { margin: 0.35rem 0 0; font-size: 0.9rem; line-height: 1.7; color: var(--color-gray-800); white-space: pre-wrap; overflow-wrap: anywhere; }
+.trv-actions { margin-top: auto; display: flex; gap: 0.5rem; padding-top: 0.5rem; }
+.trv-btn { flex: 1; height: 48px; border-radius: 999px; border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark); font-family: inherit; font-size: 0.95rem; cursor: pointer; }
+.trv-btn.primary { background: var(--color-primary); color: white; font-weight: 700; }
+.trv-btn:disabled { opacity: 0.6; cursor: default; }
+.trv-day { display: flex; flex-direction: column; gap: 0.45rem; }
+.trv-day-label { margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--color-text-desc); }
+.trv-pick { width: 100%; display: flex; align-items: center; gap: 0.6rem; background: white; border: 1.5px solid var(--color-gray-200); border-radius: 12px; padding: 0.65rem 0.75rem; font-family: inherit; text-align: left; cursor: pointer; }
+.trv-pick.on { border-color: var(--color-primary); background: var(--color-primary-light); }
+.trv-pick-ic { flex: none; width: 30px; height: 30px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1rem; }
+.trv-pick-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.trv-pick-tx b { font-weight: 400; font-size: 0.92rem; color: var(--color-gray-900); overflow-wrap: anywhere; }
+.trv-pick-tx span { font-size: 0.72rem; color: var(--color-text-desc); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.trv-rank, .trv-rank-empty { flex: none; width: 26px; height: 26px; border-radius: 50%; }
+.trv-rank { display: flex; align-items: center; justify-content: center; font-family: var(--font-display); font-size: 0.9rem; color: white; }
+.trv-rank.r1 { background: var(--color-primary-dark); }
+.trv-rank.r2 { background: var(--color-primary-medium); }
+.trv-rank.r3 { background: var(--color-primary); }
+.trv-rank-empty { border: 1.5px solid var(--color-gray-200); box-sizing: border-box; }
+.trv-empty { margin: 0; font-size: 0.85rem; color: var(--color-text-desc); text-align: center; padding: 1rem 0; }
+.trv-paper { background: white; border-radius: 16px; padding: 0.9rem; box-shadow: var(--shadow-sm); }
+.trv-who { margin: 0; font-size: 0.85rem; color: var(--color-text-desc); }
+.trv-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.trv-chip { background: var(--color-primary); color: white; font-weight: 700; border-radius: 999px; padding: 0.4rem 0.75rem; font-size: 0.85rem; }
+
+/* 홈 '여행 어땠어요?' 카드 */
+.trip-end-card { border: 2px solid var(--color-primary) !important; }
+.trip-end-k { margin: 0; font-size: 0.78rem; color: var(--color-primary-dark); }
+.trip-end-t { margin: 0.15rem 0 0; font-size: 1.15rem; line-height: 1.35; color: var(--color-gray-900); }
+.trip-end-sub { margin: 0.2rem 0 0; font-size: 0.78rem; color: var(--color-text-desc); }
+.trip-end-partner { margin: 0.5rem 0 0; font-size: 0.8rem; color: var(--color-text-desc); }
+.trip-end-actions { display: flex; gap: 0.5rem; margin-top: 0.7rem; }
+.trip-end-actions .trv-btn { height: 42px; font-size: 0.88rem; }

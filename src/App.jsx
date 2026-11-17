@@ -33,6 +33,7 @@ const DeleteAccountPage = lazy(() => import('./components/Account/DeleteAccountP
 const AccountPage = lazy(() => import('./components/Account/AccountPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
+const TripReviewPage = lazy(() => import('./components/Travel/Review/TripReviewPage'));
 const MapPage = lazy(() => import('./components/Map/MapPage'));
 const RecapPage = lazy(() => import('./components/Recap/RecapPage'));
 const RecapListPage = lazy(() => import('./components/Recap/RecapListPage'));
@@ -156,6 +157,12 @@ const router = createBrowserRouter([
         path: '/data-backup',
         element: <ProtectedRoute key="data-backup"><Layout><DataBackupPage /></Layout></ProtectedRoute>,
         key: 'data-backup',
+      },
+      {
+        // 여행 끝 기록(기분·자유 기록 → TOP 3 → 지도 확인) — Layout 밖 전체 화면
+        path: '/travel/:tripId/review',
+        element: <ProtectedRoute key="trip-review"><TripReviewPage /></ProtectedRoute>,
+        key: 'trip-review',
       },
       {
         // 우리 지도(시·도) / 시·군·구 드릴다운

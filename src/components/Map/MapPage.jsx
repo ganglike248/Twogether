@@ -33,6 +33,7 @@ const MapPage = () => {
   const [sggData, setSggData] = useState(null);
   const [pick, setPick] = useState(null); // 안 간 곳 { code, name, regions }
   const [selectedSgg, setSelectedSgg] = useState(null);
+  const sparkCodes = location.state?.spark || []; // 여행 끝 기록에서 처음 칠한 시·군·구
 
   const stats = useMemo(() => computeMapStats(trips), [trips]);
   const sidoInfo = sido ? SIDO_BY_CODE[sido] : null;
@@ -137,6 +138,9 @@ const MapPage = () => {
     <div className="menu-page map-page">
       <MenuPageHeader title={sidoInfo.short} onBack={back} />
       <div className="map-big"><b>{visitedSgg.length}곳</b><span>{sggCodes.length ? `${sggCodes.length}개 시·군·구 중 함께 가 본 곳` : '불러오는 중…'}</span></div>
+      {sparkCodes.length > 0 && (
+        <p className="map-spark-toast" role="status">새로 칠해진 곳 · {[...new Set(sparkCodes.map(c => SGG_BY_CODE[c]?.city))].join(', ')}</p>
+      )}
       <div className="map-paper">
         {sggData && (
           <KoreaMap
@@ -144,6 +148,7 @@ const MapPage = () => {
             counts={stats.sggCounts}
             nameOf={sggName}
             labelSize={sggCodes.length > 20 ? 7 : 8}
+            sparkCodes={sparkCodes}
             ariaLabel={`${sidoInfo.short}에서 함께 가 본 곳 ${visitedSgg.length}곳`}
             onSelect={(code) => {
               if (stats.sggCounts[code]) setSelectedSgg(prev => (prev === code ? null : code));

@@ -30,3 +30,6 @@
 .map-cleanup-t { margin: 0; font-size: 0.82rem; color: var(--color-text-desc); }
 .map-empty { margin: 0; text-align: center; font-size: 0.85rem; color: var(--color-text-desc); padding: 1rem 0.5rem; }
 
+.map-spark-toast { margin: 0; background: var(--color-gray-900); color: white; border-radius: 12px; padding: 0.6rem 0.9rem; font-size: 0.85rem; text-align: center; }
+.km-r.spark { animation: km-spark 1.2s ease-in-out 3; }
+@keyframes km-spark { 0%, 100% { filter: none; } 50% { filter: drop-shadow(0 0 6px var(--color-primary-dark)) brightness(1.08); } }

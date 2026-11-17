@@ -5,7 +5,8 @@ import React, { useState } from 'react';
 import { SIDO_LIST, SIDO_BY_CODE, getSggChoices, groupRegions, groupToRegions, mergeRegions } from '../../../services/regions/regionData';
 import './RegionPicker.css';
 
-const RegionPicker = ({ value = [], onChange, hint }) => {
+// newKeys: 이번 여행으로 처음 칠해지는 묶음 key(Set) — '처음' 표시(여행 끝 기록 3단계)
+const RegionPicker = ({ value = [], onChange, hint, newKeys }) => {
   const [open, setOpen] = useState(false);
   const [sido, setSido] = useState(null);
   const groups = groupRegions(value);
@@ -24,7 +25,9 @@ const RegionPicker = ({ value = [], onChange, hint }) => {
       <div className="rp-chips">
         {groups.map(g => (
           <button key={g.key} type="button" className="rp-chip on" onClick={() => remove(g.key)} aria-label={`${g.label} 빼기`}>
-            {g.codes.length ? `${g.sidoShort} · ${g.label}` : g.label} <span aria-hidden="true">×</span>
+            {g.codes.length ? `${g.sidoShort} · ${g.label}` : g.label}
+            {newKeys?.has(g.key) && <em className="rp-new">처음</em>}
+            <span aria-hidden="true">×</span>
           </button>
         ))}
         {!open && <button type="button" className="rp-chip add" onClick={() => setOpen(true)}>+ 지역 더하기</button>}

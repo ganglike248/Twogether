@@ -786,7 +786,36 @@ exports.sendEveningReminders = functions.pubsub
     } catch (error) {
       console.error('[sendRecapNotifications] Error:', error);
     }
+
+    // 어제 끝난 여행 기록 알림
+    try {
+      await sendTripReviewReminders();
+    } catch (error) {
+      console.error('[sendTripReviewReminders] Error:', error);
+    }
   });
+
+// ✅ 여행 끝 기록 알림 — 종료일이 어제인 여행, 아직 기록·건너뛰기 안 한 멤버에게만(type tripReview).
+// 화면: /travel/:id/review (src/components/Travel/Review). trips.endDate는 'YYYY-MM-DD' 문자열.
+async function sendTripReviewReminders() {
+  const yesterday = getKstDateStr(-1);
+  const snap = await db.collection('trips').where('endDate', '==', yesterday).get();
+  for (const doc of snap.docs) {
+    const { coupleId, title, review } = doc.data();
+    if (!coupleId) continue;
+    const coupleSnap = await db.collection('couples').doc(coupleId).get();
+    const members = coupleSnap.data()?.members || [];
+    for (const uid of members) {
+      const mine = review?.[uid];
+      if (mine?.doneAt || mine?.skipped) continue;
+      await sendPushToUser(uid, {
+        title: `${title || '여행'}, 어땠어요?`,
+        body: '함께한 여행을 기록하고 우리 지도에 칠해 보세요',
+        link: `/travel/${doc.id}/review`,
+      }, 'sendTripReviewReminders', 'tripReview', true);
+    }
+  }
+}
 
 // ✅ 월간 요약 / 연말 랩업 알림 — sendEveningReminders(21:00 KST)에서 호출. "내일이 1일"이면 말일.
 // 화면(src/services/recap)과 같은 기준: 커플 일정만(여행·개인 제외), 월간은 그달 시작 일정 1개 이상,
