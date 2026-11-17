@@ -33,6 +33,7 @@ const DeleteAccountPage = lazy(() => import('./components/Account/DeleteAccountP
 const AccountPage = lazy(() => import('./components/Account/AccountPage'));
 const PrivacyPage = lazy(() => import('./components/Privacy/PrivacyPage'));
 const TermsPage = lazy(() => import('./components/Privacy/TermsPage'));
+const MapPage = lazy(() => import('./components/Map/MapPage'));
 const RecapPage = lazy(() => import('./components/Recap/RecapPage'));
 const RecapListPage = lazy(() => import('./components/Recap/RecapListPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
@@ -155,6 +156,17 @@ const router = createBrowserRouter([
         path: '/data-backup',
         element: <ProtectedRoute key="data-backup"><Layout><DataBackupPage /></Layout></ProtectedRoute>,
         key: 'data-backup',
+      },
+      {
+        // 우리 지도(시·도) / 시·군·구 드릴다운
+        path: '/map',
+        element: <ProtectedRoute key="map"><Layout><MapPage /></Layout></ProtectedRoute>,
+        key: 'map',
+      },
+      {
+        path: '/map/:sido',
+        element: <ProtectedRoute key="map-sido"><Layout><MapPage /></Layout></ProtectedRoute>,
+        key: 'map-sido',
       },
       {
         // 월간 요약 목록 / 요약 스토리('YYYY-MM') — 스토리는 Layout 밖 전체 화면

@@ -1,0 +1,7 @@
+/* 우리 지도 진입 카드 — 여행 탭 위·홈 '우리 이야기' */
+.map-entry { width: 100%; display: flex; align-items: center; gap: 0.8rem; background: white; border: none; border-radius: 16px; padding: 0.9rem 1rem; box-shadow: var(--shadow-sm); font-family: inherit; text-align: left; cursor: pointer; color: var(--color-gray-500); box-sizing: border-box; }
+.map-entry-icon { flex: none; width: 44px; height: 44px; border-radius: 12px; background: var(--color-primary-light); color: var(--color-primary-dark); display: flex; align-items: center; justify-content: center; font-size: 1.4rem; }
+.map-entry-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.map-entry-tx b { font-weight: 400; font-size: 0.95rem; color: var(--color-gray-900); }
+.map-entry-tx b em { font-style: normal; font-family: var(--font-display); color: var(--color-primary-dark); }
+.map-entry-tx span { font-size: 0.75rem; color: var(--color-text-desc); }

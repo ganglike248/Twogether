@@ -189,3 +189,6 @@
     0%   { transform: rotate(0deg); }
     100% { transform: rotate(360deg); }
 }
+
+/* 우리 지도 진입 카드(MapEntryCard) */
+.travel-plan-map-card { margin-bottom: 1rem; }

@@ -10,6 +10,7 @@ import TripCard from './Trip/TripCard';
 import TripDetail from './Trip/TripDetail';
 import EmptyState from '../common/EmptyState';
 import ConfirmModal from '../common/ConfirmModal';
+import MapEntryCard from '../Map/MapEntryCard';
 import { TravelPlanSkeleton } from './Trip/TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
@@ -150,6 +151,19 @@ const TravelPlanPage = () => {
         openModal('trip');
     }, [openModal]);
 
+    // 우리 지도에서 넘어온 경우 — [여기로 여행 계획하기](지역 미리 채운 새 여행) / 지난 여행 지역 고르기(수정 모달 바로 열기)
+    const prefillRegions = location.state?.prefillRegions;
+    useEffect(() => {
+        if (showTripModal && prefillRegions && !editingTrip) setEditingTrip({ regions: prefillRegions });
+    }, [showTripModal, prefillRegions, editingTrip]);
+    const editFromMap = location.state?.editTrip;
+    useEffect(() => {
+        if (editFromMap && selectedTrip && !showTripModal) {
+            navigate(location.pathname, { replace: true, state: {} });
+            handleEditTrip(selectedTrip);
+        }
+    }, [editFromMap, selectedTrip, showTripModal, navigate, location.pathname, handleEditTrip]);
+
     if (tripId) {
         if (!selectedTrip) return null; // 여행 데이터 로딩 중 — 목록 플래시 방지
         return (
@@ -190,6 +204,8 @@ const TravelPlanPage = () => {
                 <h1 className="travel-plan-title">여행</h1>
                 <p className="travel-plan-subtitle">함께 만들어가는 여행 추억</p>
             </div>
+
+            {trips.length > 0 && <MapEntryCard trips={trips} className="travel-plan-map-card" />}
 
             <div className="travel-plan-toolbar">
                 <div className="travel-plan-filter-search-section">

@@ -11,7 +11,8 @@ import {
   HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiLockClosed
 } from 'react-icons/hi2';
 import { useCalendarData } from '../../hooks/useCalendarData';
-import { useTripSchedules } from '../../hooks/useTrip';
+import { useTripSchedules, useTrips } from '../../hooks/useTrip';
+import MapEntryCard from '../Map/MapEntryCard';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -66,6 +67,7 @@ const Home = () => {
     setActiveTab(tab);
   };
   const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
+  const { trips: tripDocs } = useTrips(coupleId); // 우리 지도 카드용(지역 regions가 있는 원본 여행 문서)
   const navigate = useNavigate();
 
   // "우리 둘의 첫 걸음" 카드 — 예전 TutorialSlides 대체(v1.0.28). 끈 적 없으면 기존 사용자도 업데이트 후 한 번 보임
@@ -586,6 +588,9 @@ const Home = () => {
               ))}
             </div>
           )}
+
+          {/* 우리 지도 */}
+          {tripDocs.length > 0 && <MapEntryCard trips={tripDocs} className="home-map-card" />}
 
           {/* 봉인 편지함 바로가기 */}
           <Link to="/letters" className="home-card home-memory-link">
