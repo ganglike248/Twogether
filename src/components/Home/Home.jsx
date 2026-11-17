@@ -15,7 +15,8 @@ import { useTripSchedules } from '../../hooks/useTrip';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { convertToDate } from '../../utils/dataUtils';
+import { convertToDate, getLocalDateStr } from '../../utils/dataUtils';
+import { anniversariesInRange, dayDiff } from '../../services/recap/recapDates';
 import { subscribeSealedMessages } from '../../services/sealedMessageService';
 import {
   getNotificationPermission,
@@ -245,11 +246,16 @@ const Home = () => {
     }
   }
 
-  // 다음 100일 기념일 (dday=0이면 아직 로드 전이므로 100 기준으로 계산)
-  const nextMilestone = dday > 0 ? Math.ceil(dday / 100) * 100 : 100;
-  const daysToMilestone = nextMilestone - dday;
-  const milestoneDate = loveStartDate ? addDays(loveStartDate, nextMilestone - 1) : today;
-  const milestoneDateStr = format(milestoneDate, 'yyyy-MM-dd');
+  // 다음 기념일 — 100일 단위와 n주년 중 더 가까운 날(오늘이면 오늘). 캘린더 표시와 같은 계산(recapDates)
+  const todayDateStr = getLocalDateStr(today);
+  const nextAnniversary = anniversaryDate
+    ? anniversariesInRange(anniversaryDate, todayDateStr, getLocalDateStr(addDays(today, 400)))[0] || null
+    : null;
+  const daysToMilestone = nextAnniversary ? dayDiff(todayDateStr, nextAnniversary.dateStr) : 0;
+  const milestoneLabel = nextAnniversary
+    ? (nextAnniversary.label.endsWith('주년') ? nextAnniversary.label : `D+${nextAnniversary.label.slice(0, -1)}`)
+    : '';
+  const milestoneDateStr = nextAnniversary?.dateStr || todayDateStr;
 
   const formatEventDate = (dateStr) => {
     try { return format(parseISO(dateStr), 'M월 d일 (E)', { locale: ko }); }
@@ -325,7 +331,7 @@ const Home = () => {
               <span className="stat-label">+{loveDays}일째 연애 중</span>
             </div>
           </div>
-          {loveStartDate && (
+          {loveStartDate && nextAnniversary && (
             <div
               className="hero-stat-card clickable"
               onClick={() => navigate(`/calendar?date=${milestoneDateStr}`)}
@@ -333,9 +339,9 @@ const Home = () => {
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
                 <span className="stat-value">
-                  {daysToMilestone > 0 ? `D-${daysToMilestone}` : `❤️${nextMilestone}일❤️`}
+                  {daysToMilestone > 0 ? `D-${daysToMilestone}` : `❤️${nextAnniversary?.label || ''}❤️`}
                 </span>
-                <span className="stat-label">D+{nextMilestone} 기념일</span>
+                <span className="stat-label">{milestoneLabel} 기념일</span>
               </div>
               <span className="stat-arrow">›</span>
             </div>

@@ -42,7 +42,7 @@ const waitAtMost = (promise, ms) => {
 
 const Calendar = () => {
   const navigatePage = useNavigate();
-  const { user, coupleId, userDoc, partnerDoc, myRole } = useAuthContext();
+  const { user, coupleId, userDoc, partnerDoc, myRole, coupleDoc } = useAuthContext();
 
   // Data fetching
   const { events, isLoading } = useCalendarData(coupleId, user?.uid);
@@ -179,7 +179,7 @@ const Calendar = () => {
   }, [eventsWithCustomColors, viewMode]);
 
   // Event data transformation
-  const { specialDaysMap, allEvents } = useCalendarEvents(currentDate, filteredEvents);
+  const { specialDaysMap, allEvents } = useCalendarEvents(currentDate, filteredEvents, coupleDoc?.anniversaryDate);
 
   // Search params handling
   const [searchParams, setSearchParams] = useSearchParams();

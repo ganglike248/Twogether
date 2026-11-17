@@ -41,6 +41,7 @@ const CalendarGrid = ({
     const dateStr = `${arg.date.getFullYear()}-${pad(arg.date.getMonth() + 1)}-${pad(arg.date.getDate())}`;
     const specials = specialDaysMap.get(dateStr);
     if (!specials?.length) return [];
+    if (specials.some((s) => s.type === 'anniversary')) return ['day-anniversary'];
     return [specials.some((s) => s.type === 'holiday') ? 'day-holiday' : 'day-couple'];
   };
 

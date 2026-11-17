@@ -411,3 +411,7 @@
   color: white;
   border-color: var(--color-primary);
 }
+
+/* 우리 기념일(100일 단위·n주년) — 연애 시작일 기준, useCalendarEvents가 추가 */
+.fc .day-anniversary .fc-daygrid-day-number { color: var(--color-primary-dark) !important; font-weight: 700; }
+.fc-event.special-day-event.anniversary .fc-event-title { color: var(--color-primary-dark); }

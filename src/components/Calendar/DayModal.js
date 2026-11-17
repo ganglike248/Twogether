@@ -119,7 +119,7 @@ const DayModal = ({
             <div className="day-special-list">
               {specialDays.map((s, i) => (
                 <div key={i} className={`day-special-item ${s.type}`}>
-                  <span className="day-special-prefix">오늘은</span>
+                  <span className="day-special-prefix">{s.type === 'anniversary' ? '오늘은 우리' : '오늘은'}</span>
                   <span className="day-special-name">{s.name}</span>
                 </div>
               ))}
