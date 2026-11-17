@@ -18,6 +18,8 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { updateTravelEvent, deleteTravelEvent } from './eventService';
+import { mergeRegions } from './regions/regionData';
+import { matchRegions } from './regions/regionMatch';
 
 export const createTrip = async (tripData, userId = 'anonymous', coupleId = null) => {
   const tripRef = doc(collection(db, 'trips'));
@@ -301,5 +303,22 @@ export const subscribeTravelTimes = (tripId, day, callback) => {
   );
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
+  });
+};
+
+// 일정 주소로 여행 지역 자동 추가(우리 지도) — 이미 있는 지역이면 아무것도 안 씀. 트랜잭션으로 서버 최신 regions에 합침
+// (두 사람이 동시에 일정을 저장해도 지역이 지워지지 않게). 실패해도 일정 저장엔 영향 없도록 호출부에서 무시.
+export const addTripRegionsFromText = async (tripId, text) => {
+  const found = matchRegions(text);
+  if (!found.length) return false;
+  const tripRef = doc(db, 'trips', tripId);
+  return runTransaction(db, async (transaction) => {
+    const snap = await transaction.get(tripRef);
+    if (!snap.exists()) return false;
+    const current = snap.data().regions || [];
+    const next = mergeRegions(current, found);
+    if (JSON.stringify(next) === JSON.stringify(mergeRegions(current))) return false;
+    transaction.update(tripRef, { regions: next, updatedAt: serverTimestamp() });
+    return true;
   });
 };

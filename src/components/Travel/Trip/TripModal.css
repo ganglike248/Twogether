@@ -201,3 +201,4 @@
         transform: rotate(360deg);
     }
 }
+.trip-modal-optional { margin-left: 0.3rem; font-size: 0.75rem; color: var(--color-text-desc); font-weight: 400; }

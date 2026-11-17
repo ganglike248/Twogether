@@ -3,6 +3,7 @@
 import React from 'react';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText } from 'react-icons/hi2';
 import { formatDate } from '../../../utils/dataUtils';
+import { describeRegions } from '../../../services/regions/regionData';
 
 const STATUS_MAP = {
     planning: { text: '계획중', cls: 'planning' },
@@ -71,6 +72,7 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                         <span className="td-info-content">
                             <span className="td-info-label">여행지</span>
                             <span className="td-info-value">{trip.destination}</span>
+                            {trip.regions?.length > 0 && <span className="td-info-sub">지도 · {describeRegions(trip.regions)}</span>}
                         </span>
                     </div>
                 )}

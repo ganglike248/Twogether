@@ -1,0 +1,13 @@
+/* 여행 지역 고르기 — 시안 '지도 E' */
+.rp { display: flex; flex-direction: column; gap: 0.5rem; }
+.rp-hint { margin: 0; font-size: 0.8rem; color: var(--color-text-desc); background: var(--color-primary-light); border-radius: 10px; padding: 0.5rem 0.7rem; }
+.rp-chips { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.rp-chip { border: 1.5px solid var(--color-gray-200); background: white; color: var(--color-gray-800); border-radius: 999px; padding: 0.4rem 0.75rem; font-size: 0.85rem; font-family: inherit; cursor: pointer; }
+.rp-chip.on { background: var(--color-primary); border-color: var(--color-primary); color: white; font-weight: 700; }
+.rp-chip.on span { margin-left: 0.15rem; opacity: 0.85; }
+.rp-chip.add { border-style: dashed; border-color: var(--color-primary); color: var(--color-primary-dark); }
+.rp-panel { display: flex; flex-direction: column; gap: 0.55rem; border: 1.5px dashed var(--color-primary); border-radius: 12px; padding: 0.75rem; }
+.rp-step { margin: 0; font-size: 0.8rem; color: var(--color-text-desc); display: flex; align-items: center; gap: 0.5rem; }
+.rp-back { border: none; background: none; padding: 0; font-family: inherit; font-size: 0.8rem; color: var(--color-primary-dark); cursor: pointer; }
+.rp-link { align-self: flex-start; border: none; background: none; padding: 0; font-family: inherit; font-size: 0.78rem; color: var(--color-text-desc); text-decoration: underline; cursor: pointer; }
+.rp-done { align-self: flex-end; border: none; background: none; font-family: inherit; font-size: 0.85rem; color: var(--color-primary-dark); cursor: pointer; padding: 0.2rem 0.3rem; }

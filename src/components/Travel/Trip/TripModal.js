@@ -7,6 +7,9 @@ import { addCommas, formatInputNumber, removeCommas } from '../../../utils/numbe
 import { convertToDate } from '../../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
+import RegionPicker from './RegionPicker';
+import { matchRegions } from '../../../services/regions/regionMatch';
+import { describeRegions } from '../../../services/regions/regionData';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     const [formData, setFormData] = useState({
@@ -19,6 +22,10 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         status: 'planning'
     });
     const [loading, setLoading] = useState(false);
+    // 우리 지도에 칠해질 지역 — 여행지 글자로 자동 추천, 사용자가 칩을 한 번이라도 만지면 더는 자동으로 안 바꿈
+    const [regions, setRegions] = useState([]);
+    const [regionsTouched, setRegionsTouched] = useState(false);
+    const [regionHint, setRegionHint] = useState('');
     const [errors, setErrors] = useState({});
 
     useEffect(() => {
@@ -53,6 +60,12 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 status: 'planning'
             });
         }
+        // 기존 여행은 저장된 지역 그대로(없으면 여행지로 한 번 추천), 지도에서 넘어온 새 여행은 미리 채운 지역
+        const initial = trip?.regions || [];
+        const suggested = !initial.length && trip?.destination ? matchRegions(trip.destination) : [];
+        setRegions(initial.length ? initial : suggested);
+        setRegionsTouched(initial.length > 0);
+        setRegionHint(suggested.length ? `여행지에서 ${describeRegions(suggested)}을 찾았어요. 맞나요?` : '');
         setErrors({});
     }, [trip]);
 
@@ -94,7 +107,8 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 ...formData,
                 budget: formData.budget ? parseInt(removeCommas(formData.budget)) : 0,
                 startDate: formData.startDate,
-                endDate: formData.endDate
+                endDate: formData.endDate,
+                regions,
             };
 
             if (trip?.id) {
@@ -118,6 +132,11 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         }
 
         setFormData(prev => ({ ...prev, [field]: processedValue }));
+        if (field === 'destination' && !regionsTouched) {
+            const found = matchRegions(processedValue);
+            setRegions(found);
+            setRegionHint(found.length ? `여행지에서 ${describeRegions(found)}을 찾았어요. 맞나요?` : '');
+        }
         if (errors[field]) {
             setErrors(prev => ({ ...prev, [field]: '' }));
         }
@@ -167,6 +186,17 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                                 className={errors.destination ? 'trip-modal-error' : ''}
                             />
                             {errors.destination && <span className="trip-modal-error-text">{errors.destination}</span>}
+                        </div>
+
+                        <div className="trip-modal-form-group">
+                            <span className="trip-modal-form-label">
+                                지역 <span className="trip-modal-optional">우리 지도에 칠해져요</span>
+                            </span>
+                            <RegionPicker
+                                value={regions}
+                                hint={regionHint}
+                                onChange={(next) => { setRegions(next); setRegionsTouched(true); setRegionHint(''); }}
+                            />
                         </div>
 
                         <div className="trip-modal-form-row">

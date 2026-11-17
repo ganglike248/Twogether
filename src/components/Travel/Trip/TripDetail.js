@@ -9,7 +9,7 @@ import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes } from '../../../services/tripService';
+import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes, addTripRegionsFromText } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { convertToDate } from '../../../utils/dataUtils';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
@@ -137,12 +137,19 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     // 모달의 "날짜" 선택지 — "Day 2 · 11.09 (토)"
     const dayOptions = Array.from({ length: tripDays }, (_, i) => ({ day: i + 1, label: `Day ${i + 1} · ${getDayDate(i + 1)}` }));
 
+    // 일정 주소로 여행 지역 자동 추가(우리 지도) — 이미 있는 지역이면 조용히 넘어감, 실패해도 일정 저장과 무관
+    const syncRegionsFromSchedule = (scheduleData) => {
+        if (!scheduleData?.location) return;
+        addTripRegionsFromText(trip.id, scheduleData.location).catch((error) => console.warn('여행 지역 자동 추가 실패:', error));
+    };
+
     const handleSaveSchedule = async (scheduleData, targetDay = activeDay) => {
         // 기존 일정의 날짜를 바꾼 경우 → 다른 날로 옮김(완료 여부·이동시간 정리는 moveTripSchedule이 처리).
         // 여러 개를 연달아 옮길 수 있게 화면은 지금 보던 날에 그대로 둠
         if (scheduleData.id && targetDay !== activeDay) {
             try {
                 await moveTripSchedule(trip.id, activeDay, targetDay, scheduleData);
+                syncRegionsFromSchedule(scheduleData);
                 closeScheduleModal();
                 toast.success(`Day ${targetDay}(${getDayDate(targetDay)})로 옮겼어요.`);
             } catch (error) {
@@ -169,6 +176,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                     ? current.map(s => s.id === scheduleData.id ? { ...s, ...scheduleData, completed: s.completed } : s)
                     : [...current, { ...scheduleData, id: newId, ...(sourceOptionId ? { sourceOptionId } : {}) }]
             ));
+            syncRegionsFromSchedule(scheduleData);
             closeScheduleModal();
             setOptionForSchedule(null);
             // 새 일정을 다른 날에 넣었으면 그날로 이동해서 바로 보이게
