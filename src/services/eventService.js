@@ -53,7 +53,7 @@ const getDocPreferCache = async (ref) => {
 // 이벤트 쓰기 ack를 기다린 뒤에야 수정기록을 쓰면, 연결이 멈춘 상태에서 앱을 닫았을 때 수정기록만
 // 로컬 큐에 못 들어가고 유실됨. 문서 ID는 클라이언트에서 미리 발급(doc(collection))해서 씀.
 export const createEvent = async (eventData, userId = 'anonymous', coupleId = null) => {
-  const { id, ...dataWithoutId } = eventData;
+  const { id: _id, ...dataWithoutId } = eventData; // id는 새 문서에서 다시 정해지므로 뺌
   const newEvent = {
     ...dataWithoutId,
     coupleId,
@@ -221,7 +221,7 @@ export const deleteTravelEvent = async (tripId, userId = 'anonymous', coupleId =
 // ═════════════════════════════════════════════════════════════════
 
 export const createPersonalEvent = async (eventData, userId, coupleId = null) => {
-  const { id, isPersonal, ...dataWithoutId } = eventData;
+  const { id: _id, isPersonal: _isPersonal, ...dataWithoutId } = eventData;
   const newEvent = {
     ...dataWithoutId,
     userId,
@@ -233,9 +233,9 @@ export const createPersonalEvent = async (eventData, userId, coupleId = null) =>
   return { id: docRef.id, ...newEvent };
 };
 
-export const updatePersonalEvent = async (eventId, eventData, userId, coupleId = null) => {
+export const updatePersonalEvent = async (eventId, eventData, userId, _coupleId = null) => { // coupleId는 바뀌지 않아 안 씀(호출부 호환용)
   const eventRef = doc(db, 'personal_events', eventId);
-  const { isPersonal, ...dataWithoutIsPersonal } = eventData;
+  const { isPersonal: _isPersonal, ...dataWithoutIsPersonal } = eventData;
   const updatedData = {
     ...dataWithoutIsPersonal,
     updatedAt: serverTimestamp(),

@@ -1,7 +1,7 @@
 // src/components/BucketList/BucketListPage.jsx
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, getDoc, onSnapshot } from 'firebase/firestore';
+import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -262,6 +262,8 @@ function BucketListPage() {
       console.error('버킷 완료 실패:', error);
       toast.error('버킷 완료 중 오류가 발생했습니다.');
     }
+    // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedItemId, completionDate, modalState.data, editForm.completed]);
 
   const handleConfirmDelete = useCallback(async () => {
@@ -272,6 +274,8 @@ function BucketListPage() {
       console.error('삭제 실패:', error);
       toast.error('삭제 중 오류가 발생했습니다.');
     }
+    // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editForm.id]);
 
   // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이

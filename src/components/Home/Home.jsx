@@ -6,7 +6,7 @@ import {
   isSameMonth, parseISO, startOfDay, format, subYears, addDays
 } from 'date-fns';
 import { ko } from 'date-fns/locale';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion as Motion, AnimatePresence } from 'framer-motion';
 import {
   HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiLockClosed
 } from 'react-icons/hi2';
@@ -48,7 +48,7 @@ const tabPaneVariants = {
 };
 
 const Home = () => {
-  const { user, userDoc, coupleId, coupleDoc, partnerDoc, myRole } = useAuthContext();
+  const { user, userDoc, coupleId, coupleDoc, partnerDoc } = useAuthContext();
   const anniversaryDate = coupleDoc?.anniversaryDate || null;
   const location = useLocation();
 
@@ -369,7 +369,7 @@ const Home = () => {
         >
           오늘
           {activeTab === 'today' && (
-            <motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
+            <Motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
           )}
         </button>
         <button
@@ -379,14 +379,14 @@ const Home = () => {
         >
           우리 이야기
           {activeTab === 'story' && (
-            <motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
+            <Motion.div className="home-tab-underline" layoutId="home-tab-underline" transition={{ duration: 0.25, ease: 'easeOut' }} />
           )}
         </button>
       </div>
 
       <AnimatePresence mode="wait" initial={false} custom={tabDirection}>
         {activeTab === 'today' && (
-        <motion.div
+        <Motion.div
           key="today"
           className="home-tab-content"
           custom={tabDirection}
@@ -532,11 +532,11 @@ const Home = () => {
               </div>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
         )}
 
         {activeTab === 'story' && (
-        <motion.div
+        <Motion.div
           key="story"
           className="home-tab-content"
           custom={tabDirection}
@@ -670,7 +670,7 @@ const Home = () => {
               </div>
             </div>
           )}
-        </motion.div>
+        </Motion.div>
         )}
       </AnimatePresence>
 

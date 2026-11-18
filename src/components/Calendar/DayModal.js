@@ -1,5 +1,5 @@
 import React, { useEffect, useRef } from "react";
-import { format, subDays } from "date-fns";
+import { format } from "date-fns";
 import { ko } from "date-fns/locale";
 import "./DayModal.css";
 import { useAuthContext } from "../../contexts/AuthContext";
@@ -32,33 +32,6 @@ const DayModal = ({
     }
   };
 
-  const getDateString = (dateValue) => {
-    if (typeof dateValue === "string") return dateValue.split("T")[0];
-    if (dateValue instanceof Date) return dateValue.toISOString().split("T")[0];
-    return "";
-  };
-
-  const formatDateRange = (startDate, endDate) => {
-    try {
-      const start = getDateString(startDate);
-      const end = getDateString(endDate);
-      if (!end || start === end) {
-        return format(new Date(start), "M월 d일", { locale: ko });
-      }
-      const startObj = new Date(start);
-      let endObj = subDays(new Date(end), 1);
-      if (startObj.getTime() === endObj.getTime()) {
-        return format(startObj, "M월 d일", { locale: ko });
-      }
-      return `${format(startObj, "M월 d일", { locale: ko })} ~ ${format(
-        endObj,
-        "M월 d일",
-        { locale: ko },
-      )}`;
-    } catch {
-      return `${startDate} ~ ${endDate}`;
-    }
-  };
 
   const getEventTypeIcon = (eventType, isTrip) => {
     if (isTrip) return "✈️";

@@ -119,6 +119,8 @@ export const AuthProvider = ({ children }) => {
       setPartnerDoc(snap.exists() ? { id: snap.id, ...snap.data() } : null);
     }, () => setPartnerDoc(null));
     return () => unsubPartner();
+    // 멤버 uid 두 개가 바뀔 때만 다시 구독(coupleDoc 객체 전체를 넣으면 커플 문서가 바뀔 때마다 상대 구독을 끊었다 다시 맺음)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [coupleDoc?.members?.[0], coupleDoc?.members?.[1], user?.uid]);
 
   const loading = authLoading || userDocLoading;

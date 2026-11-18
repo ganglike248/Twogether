@@ -1,5 +1,4 @@
 // src/components/common/PWAUpdatePrompt.jsx
-import { useEffect } from 'react';
 import { useRegisterSW } from 'virtual:pwa-register/react';
 
 const PWAUpdatePrompt = () => {

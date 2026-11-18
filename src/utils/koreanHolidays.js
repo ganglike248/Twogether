@@ -71,7 +71,7 @@ export const getSpecialDaysMap = (years) => {
       add(dateToStr(shiftDate(seollal, -1)), '설날 연휴', 'holiday');
       add(dateToStr(seollal), '설날', 'holiday');
       add(dateToStr(shiftDate(seollal, 1)), '설날 연휴', 'holiday');
-    } catch (_) {}
+    } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
 
     // 추석 (음력 8/15): 전날·당일·다음날
     try {
@@ -79,13 +79,13 @@ export const getSpecialDaysMap = (years) => {
       add(dateToStr(shiftDate(chuseok, -1)), '추석 연휴', 'holiday');
       add(dateToStr(chuseok), '추석', 'holiday');
       add(dateToStr(shiftDate(chuseok, 1)), '추석 연휴', 'holiday');
-    } catch (_) {}
+    } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
 
     // 부처님 오신 날 (음력 4/8)
     try {
       const buddha = lunarToDate(year, 4, 8);
       add(dateToStr(buddha), '부처님 오신 날', 'holiday');
-    } catch (_) {}
+    } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
 
     // 커플 기념일
     for (const c of COUPLE_DAYS) {

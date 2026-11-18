@@ -12,7 +12,7 @@ class ErrorBoundary extends React.Component {
     };
   }
 
-  static getDerivedStateFromError(error) {
+  static getDerivedStateFromError() {
     return { hasError: true };
   }
 
@@ -52,7 +52,7 @@ class ErrorBoundary extends React.Component {
             앱을 사용하던 중 예기치 않은 오류가 발생했습니다. 아래 버튼을 클릭해서 다시 시도해주세요.
           </p>
 
-          {process.env.NODE_ENV === 'development' && this.state.error && (
+          {import.meta.env.DEV && this.state.error && (
             <details style={{
               marginBottom: '30px',
               padding: '15px',

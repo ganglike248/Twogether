@@ -38,7 +38,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 try {
                     const date = convertToDate(dateField);
                     return date ? format(date, 'yyyy-MM-dd') : '';
-                } catch (error) {
+                } catch {
                     return '';
                 }
             };

@@ -20,7 +20,7 @@ const useAndroidBackButton = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const locationRef = useRef(location);
-  locationRef.current = location;
+  useEffect(() => { locationRef.current = location; }, [location]); // 최신 위치를 리스너가 읽게(렌더 중 ref 쓰기 금지)
   const lastBackPressRef = useRef(0);
 
   useEffect(() => {

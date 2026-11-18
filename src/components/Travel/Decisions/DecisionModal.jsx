@@ -5,7 +5,7 @@ import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionModal.css';
 
-const DecisionModal = ({ isOpen, onClose, tripId, coupleId, onSave, editingDecision }) => {
+const DecisionModal = ({ isOpen, onClose, onSave, editingDecision }) => {
   const [formData, setFormData] = useState({
     title: '',
     description: '',

@@ -117,14 +117,6 @@ const ProfilePage = () => {
 
   // ─── 뒤로가기 / 모달 ────────────────────────────────────────
 
-  const handleBack = () => {
-    if (isDirty) {
-      setShowUnsavedModal(true);
-    } else {
-      navigate(-1, { replace: true });
-    }
-  };
-
   const handleCancelModal = () => {
     setShowUnsavedModal(false);
     if (blocker.state === 'blocked') blocker.reset();
@@ -153,7 +145,6 @@ const ProfilePage = () => {
     }
   };
 
-  const isConnected = coupleDoc?.members?.length === 2;
 
   // ─── 연결된 계정 (구글 로그인, v0.4.30~) ──────────────────────
   return (

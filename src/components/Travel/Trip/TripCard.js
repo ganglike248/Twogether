@@ -18,7 +18,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
             if (!startDate || !endDate) return '1일';
             const days = differenceInDays(endDate, startDate) + 1;
             return `${days}일`;
-        } catch (error) {
+        } catch {
             return '1일';
         }
     };
