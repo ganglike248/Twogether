@@ -18,6 +18,8 @@
 8. **"배포"**: 확인 없이 빌드 + cap sync + Hosting 배포 + 버전 확인 + 커밋 + 푸시. 네이티브 반영 필요하면 네이티브 버전도 올림
    (앱은 dist를 번들하므로 웹 변경도 다음 AAB/Archive부터 반영)
 - "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
+- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 22곳을 열어 오류 확인.
+  운영 데이터 무관. 새 화면·라우트를 만들면 `scripts/smoke/smoke.mjs`의 `CHECKS`에 한 줄 추가. 설정은 루트 `firebase.smoke.json`
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
 
 ## 환경 트랩
