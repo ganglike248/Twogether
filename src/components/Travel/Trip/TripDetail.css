@@ -503,5 +503,14 @@
     }
 }
 
-/* 여행 정보 카드 안 약도(TripMiniMap) */
-.td-info-map { margin: 0.1rem 0 0.2rem; }
+/* 제목 아래 '이번 여행 지도' 섹션(TripMiniMap) */
+/* 약도를 아래 여행 정보 카드와 한 덩어리로 — 약도는 위 모서리만 둥글게, 정보 카드는 위 모서리·윗선 없이 */
+.td-map-section { margin-bottom: 0; }
+.td-map-section .tmm, .td-map-section .tmm-empty { display: block; border-radius: 14px 14px 0 0; border: 1px solid var(--card-border); border-bottom: none; }
+.td-map-section + .td-info-card { margin-top: -12px; border-top-left-radius: 0; border-top-right-radius: 0; border-top: 1px dashed var(--card-border); } /* 부모 .trip-detail-container의 gap 12px을 없애 딱 붙임 */
+
+/* 여행지 아래 지역 — 시·도 칩 + 시·군·구, 시·도마다 한 줄 */
+.td-regions { display: flex; flex-direction: column; gap: 0.3rem; margin-top: 0.35rem; }
+.td-region-line { display: flex; align-items: baseline; gap: 0.45rem; min-width: 0; }
+.td-region-sido { flex: none; font-family: var(--font-display); font-weight: 400; font-size: 0.85rem; color: var(--color-primary-dark); }
+.td-region-places { font-size: 0.85rem; color: var(--color-gray-800); overflow-wrap: anywhere; }

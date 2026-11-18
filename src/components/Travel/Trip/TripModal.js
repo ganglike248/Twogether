@@ -78,8 +78,9 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         if (!formData.title.trim()) {
             newErrors.title = '여행 제목을 입력해주세요';
         }
-        if (!formData.destination.trim()) {
-            newErrors.destination = '여행지를 입력해주세요';
+        // 여행지 글자와 지역 중 하나는 꼭 — 지역만 고르면 여행지 이름은 지역으로 대신 보여줌(tripPlaceName)
+        if (!formData.destination.trim() && regions.length === 0) {
+            newErrors.destination = '여행지를 쓰거나 아래에서 지역을 골라 주세요';
         }
         if (!formData.startDate) {
             newErrors.startDate = '시작일을 선택해주세요';
@@ -178,7 +179,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
 
                         <div className="trip-modal-form-group">
                             <label className="trip-modal-form-label" htmlFor="trip-destination">
-                                여행지 <span className="trip-modal-required">*</span>
+                                여행지 <span className="trip-modal-optional">지역을 고르면 비워도 돼요</span>
                             </label>
                             <input
                                 id="trip-destination"
@@ -199,7 +200,10 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                                 value={regions}
                                 hint={regionHint}
                                 suggestions={suggestRegionsFromSchedules(tripScheduleDocs, regions)}
-                                onChange={(next) => { setRegions(next); setRegionsTouched(true); setRegionHint(''); }}
+                                onChange={(next) => {
+                                    setRegions(next); setRegionsTouched(true); setRegionHint('');
+                                    if (next.length && errors.destination) setErrors(prev => ({ ...prev, destination: '' }));
+                                }}
                             />
                         </div>
 

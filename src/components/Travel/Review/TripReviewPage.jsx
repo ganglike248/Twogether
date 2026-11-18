@@ -22,6 +22,12 @@ import MoodFace from './MoodFace';
 import { useNameByUid } from '../../../hooks/useNameByUid';
 import './TripReview.css';
 
+// TOP 3 고르기 목록은 그날 시간순(시간 없는 일정은 맨 뒤, 같은 시간이면 원래 순서)
+const sortByTime = (list = []) => list
+  .map((s, i) => ({ s, i }))
+  .sort((a, b) => (a.s.time || '99:99').localeCompare(b.s.time || '99:99') || a.i - b.i)
+  .map(x => x.s);
+
 const TripReviewPage = () => {
   const { tripId } = useParams();
   const navigate = useNavigate();
@@ -150,7 +156,7 @@ const TripReviewPage = () => {
           {days.map(d => (
             <div key={d.day} className="trv-day">
               <p className="trv-day-label">{d.day}일차</p>
-              {d.schedules.map(s => {
+              {sortByTime(d.schedules).map(s => {
                 const rank = top3.indexOf(s.id) + 1;
                 const cat = getScheduleCategory(s.category);
                 return (

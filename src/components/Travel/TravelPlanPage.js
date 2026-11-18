@@ -12,6 +12,7 @@ import EmptyState from '../common/EmptyState';
 import ConfirmModal from '../common/ConfirmModal';
 import MapEntryCard from '../Map/MapEntryCard';
 import { getPendingReviewTrips } from '../../services/tripReviewService';
+import { tripPlaceName } from '../../services/regions/regionData';
 import { TravelPlanSkeleton } from './Trip/TravelCardSkeleton';
 import { MdFlightTakeoff } from 'react-icons/md';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
@@ -89,7 +90,7 @@ const TravelPlanPage = () => {
         if (searchQuery.trim()) {
             filtered = filtered.filter(trip =>
                 trip.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                trip.destination?.toLowerCase().includes(searchQuery.toLowerCase())
+                tripPlaceName(trip).toLowerCase().includes(searchQuery.toLowerCase())
             );
         }
 

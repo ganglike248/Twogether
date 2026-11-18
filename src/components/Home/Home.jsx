@@ -13,6 +13,7 @@ import {
 import { useCalendarData } from '../../hooks/useCalendarData';
 import { useTripSchedules, useTrips } from '../../hooks/useTrip';
 import MapEntryCard from '../Map/MapEntryCard';
+import { tripPlaceName } from '../../services/regions/regionData';
 import TripEndCard from '../Travel/Review/TripEndCard';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
@@ -426,8 +427,8 @@ const Home = () => {
                   <div className="trip-section-title">{relevantTrip.title}</div>
                   <div className="trip-section-sub">
                     {ongoingTrip
-                      ? `Day ${ongoingDay} · ${ongoingTrip.destination || ''} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
-                      : `${nextTrip.destination || ''} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
+                      ? `Day ${ongoingDay} · ${tripPlaceName(ongoingTrip)} · ${formatTripDate(ongoingTrip.startDate)}~${formatTripDate(ongoingTrip.endDate)}`
+                      : `${tripPlaceName(nextTrip)} · ${formatTripDate(nextTrip.startDate)}~${formatTripDate(nextTrip.endDate)}`
                     }
                   </div>
                 </div>
@@ -594,7 +595,7 @@ const Home = () => {
           )}
 
           {/* 우리 지도 */}
-          {tripDocs.length > 0 && <MapEntryCard trips={tripDocs} className="home-map-card" />}
+          {tripDocs.length > 0 && <MapEntryCard trips={tripDocs} variant="home" className="home-map-card" />}
 
           {/* 봉인 편지함 바로가기 */}
           <Link to="/letters" className="home-card home-memory-link">

@@ -1,4 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
+import { tripPlaceName } from '../services/regions/regionData';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 
@@ -130,7 +131,7 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
           color: 'var(--color-trip)',
           textColor: '#757575',
           extendedProps: {
-            description: data.destination || '',
+            description: tripPlaceName(data),
             isTrip: true,
             tripId: data.id
           }

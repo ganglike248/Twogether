@@ -3,8 +3,18 @@
 import React from 'react';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText } from 'react-icons/hi2';
 import { formatDate } from '../../../utils/dataUtils';
-import { describeRegions } from '../../../services/regions/regionData';
+import { groupRegions, tripPlaceName } from '../../../services/regions/regionData';
 import TripMiniMap from '../../Map/TripMiniMap';
+
+// 여행 지역을 시·도별로 묶음 — [{ sido: '전남광주', places: ['광주 동구', '광주 서구'] }]
+const regionLines = (regions) => {
+    const map = new Map();
+    groupRegions(regions).forEach(g => {
+        if (!map.has(g.sidoShort)) map.set(g.sidoShort, []);
+        if (g.codes.length) map.get(g.sidoShort).push(g.label);
+    });
+    return [...map.entries()].map(([sido, places]) => ({ sido, places }));
+};
 
 const STATUS_MAP = {
     planning: { text: '계획중', cls: 'planning' },
@@ -56,6 +66,9 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                 </div>
             </div>
 
+            {/* 이번 여행 약도 — 제목 바로 아래 별도 섹션, 여행 지역 둘레로 확대 */}
+            <div className="td-map-section"><TripMiniMap trip={trip} onPickRegion={onEdit} /></div>
+
             <div className="td-info-card">
                 <div className="td-info-row">
                     <span className="td-info-icon"><HiCalendarDays /></span>
@@ -67,18 +80,26 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                         </span>
                     </span>
                 </div>
-                {trip.destination && (
+                {(trip.destination || trip.regions?.length > 0) && (
                     <div className="td-info-row">
                         <span className="td-info-icon"><HiMapPin /></span>
                         <span className="td-info-content">
                             <span className="td-info-label">여행지</span>
-                            <span className="td-info-value">{trip.destination}</span>
-                            {trip.regions?.length > 0 && <span className="td-info-sub">지도 · {describeRegions(trip.regions)}</span>}
+                            <span className="td-info-value">{tripPlaceName(trip)}</span>
+                            {/* 지역은 시·도별로 한 줄씩: [전남광주] 광주 동구 · 광주 서구 */}
+                            {trip.regions?.length > 0 && (
+                                <span className="td-regions">
+                                    {regionLines(trip.regions).map(l => (
+                                        <span key={l.sido} className="td-region-line">
+                                            <b className="td-region-sido">{l.sido}</b>
+                                            {l.places.length > 0 && <span className="td-region-places">{l.places.join(' · ')}</span>}
+                                        </span>
+                                    ))}
+                                </span>
+                            )}
                         </span>
                     </div>
                 )}
-                {/* 이번 여행 약도 — 여행 지역 둘레로 확대 */}
-                <div className="td-info-map"><TripMiniMap trip={trip} onPickRegion={onEdit} /></div>
                 {totalBudget > 0 && (
                     <div className="td-info-row">
                         <span className="td-info-icon td-info-icon-text">₩</span>

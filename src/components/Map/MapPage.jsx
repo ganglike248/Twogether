@@ -158,23 +158,30 @@ const MapPage = () => {
             selected={openCode}
             onSelect={openSheet}
           />
+          <p className="map-hint">지역을 누르면 자세히 볼 수 있어요 · 두 손가락으로 확대</p>
           <MapLegend />
           <p className="map-credit">지도: {REGION_SOURCE}</p>
         </div>
 
         {!loading && stats.unregioned.length > 0 && (
-          <div className="map-cleanup">
-            <p className="map-cleanup-t">지역을 고르면 지도에 칠해지는 지난 여행 {stats.unregioned.length}개</p>
+          <section className="map-block map-cleanup">
+            <p className="map-section">지역을 골라 주세요 <span>{stats.unregioned.length}개</span></p>
+            <p className="map-cleanup-t">고르면 지도에 칠해지는 지난 여행이에요</p>
+            <div className="map-list">
             {stats.unregioned.slice(0, 5).map(t => (
               <button key={t.id} type="button" className="map-row" onClick={() => navigate(`/travel/${t.id}`, { state: { editTrip: true } })}>
                 <span className="map-row-tx"><b>{t.title}</b><span>{t.destination} · 지역 고르기</span></span>
                 <HiChevronRight aria-hidden="true" />
               </button>
             ))}
-          </div>
+            </div>
+          </section>
         )}
 
-        {visitedSido.length > 0 && <p className="map-section">자주 간 곳</p>}
+        {visitedSido.length > 0 && (
+          <section className="map-block">
+            <p className="map-section">자주 간 곳 <span>{visitedSido.length}곳</span></p>
+            <div className="map-list">
         {visitedSido.map(s => {
           const places = [...new Set(stats.tripsBySido[s.code].flatMap(t => placesIn(t, s.code).split(' · ')).filter(Boolean))];
           return (
@@ -185,6 +192,9 @@ const MapPage = () => {
             </button>
           );
         })}
+            </div>
+          </section>
+        )}
         {!loading && stats.visited.length === 0 && stats.unregioned.length === 0 && (
           <p className="map-empty">아직 칠한 곳이 없어요. 여행을 만들 때 지역을 고르면 여기에 칠해져요.</p>
         )}
@@ -229,15 +239,20 @@ const MapPage = () => {
             onSelect={openSheet}
           />
         )}
+        <p className="map-hint">지역을 누르면 자세히 볼 수 있어요 · 두 손가락으로 확대</p>
         <MapLegend />
         <p className="map-credit">지도: {REGION_SOURCE}</p>
       </div>
 
-      <p className="map-section">{sidoInfo.short}에서 함께한 여행</p>
-      {sidoTrips.map(t => (
-        <TripRow key={t.id} trip={t} places={placesIn(t, sido) || sidoInfo.short} dateStr={stats.dateStr} onClick={() => navigate(`/travel/${t.id}`)} />
-      ))}
-      {sidoTrips.length === 0 && <p className="map-empty">아직 이 지역의 여행이 없어요.</p>}
+      <section className="map-block">
+        <p className="map-section">{sidoInfo.short}에서 함께한 여행 {sidoTrips.length > 0 && <span>{sidoTrips.length}번</span>}</p>
+        <div className="map-list">
+          {sidoTrips.map(t => (
+            <TripRow key={t.id} trip={t} places={placesIn(t, sido) || sidoInfo.short} dateStr={stats.dateStr} onClick={() => navigate(`/travel/${t.id}`)} />
+          ))}
+        </div>
+        {sidoTrips.length === 0 && <p className="map-empty">아직 이 지역의 여행이 없어요.</p>}
+      </section>
       {renderSheet()}
     </div>
   );

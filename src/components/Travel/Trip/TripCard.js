@@ -1,5 +1,6 @@
 // src/components/Travel/TripCard.js
 import React, { useState, useEffect } from 'react';
+import { tripPlaceName } from '../../../services/regions/regionData';
 import { differenceInDays } from 'date-fns';
 import { MdEdit, MdDelete, MdLocationOn } from 'react-icons/md';
 import './TripCard.css';
@@ -86,7 +87,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
 
             <div className="trip-card-content">
                 <h3 className="trip-card-title">{trip.title}</h3>
-                <p className="trip-card-destination"><MdLocationOn className="trip-card-location-icon" color="var(--color-primary)" />{trip.destination}</p>
+                <p className="trip-card-destination"><MdLocationOn className="trip-card-location-icon" color="var(--color-primary)" />{tripPlaceName(trip)}</p>
 
                 <div className="trip-card-dates">
                     <span className="trip-card-date-range">

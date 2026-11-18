@@ -18,6 +18,7 @@ import {
   writeBatch,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { tripPlaceName } from './regions/regionData';
 
 // recurrenceService.js에서도 재사용 (반복 일정 생성/수정/삭제 시 시리즈 단위 요약 로그 기록용)
 export const saveEditLog = async (eventId, changes, action, userId = 'anonymous', coupleId = null) => {
@@ -195,7 +196,7 @@ export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', 
     const eventDoc = querySnapshot.docs[0];
     const updatedEventData = {
       title: tripData.title,
-      description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
+      description: `여행지: ${tripPlaceName(tripData)}\n${tripData.description || ''}`,
       start: tripData.startDate,
       end: tripData.endDate,
       updatedAt: serverTimestamp(),

@@ -108,3 +108,13 @@ export const describeRegions = (regions = []) => {
 };
 
 export { SIDO_META };
+
+/** 여행 이름표용 장소 — 여행지를 직접 썼으면 그대로, 비웠으면 고른 지역 이름('강릉시 · 속초시' / '강원') */
+export const tripPlaceName = (trip) => {
+  const typed = (trip?.destination || '').trim();
+  if (typed) return typed;
+  const groups = groupRegions(trip?.regions || []);
+  const places = groups.filter(g => g.codes.length).map(g => g.label);
+  const names = places.length ? places : groups.map(g => g.sidoShort);
+  return names.slice(0, 3).join(' · ') + (names.length > 3 ? ` 외 ${names.length - 3}곳` : '');
+};

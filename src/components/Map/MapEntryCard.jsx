@@ -11,13 +11,33 @@ import './MapEntryCard.css';
 // 지도 그림은 showMap일 때만 필요 — 홈 카드엔 경계 데이터를 싣지 않게 지연 로딩
 const MiniKorea = React.lazy(() => import('./MiniKorea'));
 
-const MapEntryCard = ({ trips = [], className = '', showMap = false }) => {
+// variant 'home': 홈 '우리 이야기'의 다른 카드(.home-card · card-label · trip-section-row, Home.css)와 같은 모양
+const MapEntryCard = ({ trips = [], className = '', showMap = false, variant }) => {
   const navigate = useNavigate();
   const stats = useMemo(() => computeMapStats(trips), [trips]);
   const visited = Object.keys(stats.sidoCounts).length;
   const sub = stats.unregioned.length
     ? `지난 여행 ${stats.unregioned.length}개의 지역을 고르면 칠해져요`
     : visited ? '누르면 시·군·구까지 볼 수 있어요' : '여행 지역을 고르면 지도에 칠해져요';
+  if (variant === 'home') {
+    return (
+      <div className={`home-card ${className}`} onClick={() => navigate('/map')} role="link" tabIndex={0}
+        onKeyDown={(e) => { if (e.key === 'Enter') navigate('/map'); }}>
+        <div className="card-label">
+          <HiMap className="card-label-icon" />
+          우리 지도
+        </div>
+        <div className="trip-section-row">
+          <div className="trip-section-info">
+            <div className="trip-section-title">함께 가 본 곳 <span className="sealed-accent-text">{visited}</span>/{SIDO_LIST.length}</div>
+            <div className="trip-section-sub">{sub}</div>
+          </div>
+          <span className="card-arrow">›</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <button type="button" className={`map-entry${showMap ? ' with-map' : ''} ${className}`} onClick={() => navigate('/map')}>
       <span className="map-entry-row">

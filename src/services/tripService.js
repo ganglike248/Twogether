@@ -18,7 +18,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { updateTravelEvent, deleteTravelEvent } from './eventService';
-import { mergeRegions } from './regions/regionData';
+import { mergeRegions, tripPlaceName } from './regions/regionData';
 import { matchRegions } from './regions/regionMatch';
 
 export const createTrip = async (tripData, userId = 'anonymous', coupleId = null) => {
@@ -28,7 +28,7 @@ export const createTrip = async (tripData, userId = 'anonymous', coupleId = null
 
   const eventData = {
     title: tripData.title,
-    description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
+    description: `여행지: ${tripPlaceName(tripData)}\n${tripData.description || ''}`,
     start: tripData.startDate,
     end: tripData.endDate,
     eventType: 'travel',
@@ -92,7 +92,7 @@ export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleI
     const editLogRef = doc(collection(db, 'edit_logs'));
     const updatedEventData = {
       title: tripData.title,
-      description: `여행지: ${tripData.destination}\n${tripData.description || ''}`,
+      description: `여행지: ${tripPlaceName(tripData)}\n${tripData.description || ''}`,
       start: tripData.startDate,
       end: tripData.endDate,
       updatedAt: serverTimestamp(),

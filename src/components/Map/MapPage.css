@@ -1,6 +1,8 @@
 /* 우리 지도 — 시안 '지도 A+B' */
-.map-page { gap: 1.1rem; }
-.map-paper { background: white; border-radius: 16px; padding: 0.9rem; box-shadow: var(--shadow-sm); }
+/* 공통 .menu-page는 flex가 아니라(블록 쌓기) gap이 안 먹음 → 지도 화면만 세로 flex로 바꿔 요소 사이 간격을 줌 */
+#root .menu-page.map-page { display: flex; flex-direction: column; gap: 1.25rem; }
+#root .menu-page.map-page > .menu-header { margin-bottom: 0; }
+.map-paper { background: white; border-radius: 18px; padding: 1rem; box-shadow: var(--shadow-sm); }
 .km-r:hover { opacity: 0.85; }
 .km-r.un { fill: var(--color-gray-100); stroke: var(--color-gray-300); stroke-dasharray: 2 2; }
 .km-r.l1 { fill: var(--color-couple); }
@@ -13,15 +15,17 @@
 .map-legend i.l2 { background: var(--color-primary); }
 .map-legend i.l3 { background: var(--color-primary-dark); }
 .map-credit { margin: 0.35rem 0 0; font-size: 0.6rem; color: var(--color-gray-500); text-align: right; }
-.map-section { margin: 0.6rem 0 -0.4rem; font-size: 0.85rem; font-weight: 600; color: var(--color-text-desc); display: flex; align-items: center; justify-content: space-between; }
+.map-section { margin: 0; padding: 0 0.15rem; font-size: 0.85rem; font-weight: 600; color: var(--color-text-desc); display: flex; align-items: baseline; gap: 0.35rem; }
+.map-section span { font-weight: 400; font-size: 0.78rem; color: var(--color-primary-dark); }
 .map-reset { border: none; background: none; font-family: inherit; font-size: 0.8rem; color: var(--color-primary-dark); cursor: pointer; }
-.map-row { width: 100%; display: flex; align-items: center; gap: 0.7rem; background: white; border: none; border-radius: 12px; padding: 0.75rem 0.85rem; box-shadow: var(--shadow-sm); font-family: inherit; text-align: left; cursor: pointer; color: var(--color-gray-500); }
-.map-row-n { flex: none; min-width: 2.8rem; font-family: var(--font-display); font-size: 0.9rem; color: var(--color-primary-dark); }
+.map-row { width: 100%; box-sizing: border-box; display: flex; align-items: center; gap: 0.7rem; background: white; border: none; border-radius: 14px; padding: 0.85rem 0.95rem; box-shadow: var(--shadow-sm); font-family: inherit; text-align: left; cursor: pointer; color: var(--color-gray-500); }
+.map-row-n { flex: none; min-width: 3.6rem; font-family: var(--font-display); font-size: 0.9rem; color: var(--color-primary-dark); }
 .map-row-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
 .map-row-tx b { font-weight: 400; font-size: 0.92rem; color: var(--color-gray-900); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 .map-row-tx span { font-size: 0.72rem; color: var(--color-text-desc); }
-.map-cleanup { display: flex; flex-direction: column; gap: 0.5rem; border: 1.5px dashed var(--color-primary); border-radius: 14px; padding: 0.8rem; }
-.map-cleanup-t { margin: 0; font-size: 0.82rem; color: var(--color-text-desc); }
+.map-cleanup { border: 1.5px dashed var(--color-primary); border-radius: 18px; padding: 0.9rem; background: var(--color-primary-light); }
+.map-cleanup .map-row { box-shadow: none; }
+.map-cleanup-t { margin: -0.3rem 0 0; padding: 0 0.15rem; font-size: 0.78rem; color: var(--color-text-desc); }
 .map-empty { margin: 0; text-align: center; font-size: 0.85rem; color: var(--color-text-desc); padding: 1rem 0.5rem; }
 
 .map-spark-toast { margin: 0; background: var(--color-gray-900); color: white; border-radius: 12px; padding: 0.6rem 0.9rem; font-size: 0.85rem; text-align: center; }
@@ -42,7 +46,7 @@
 .km-zoom button:disabled { opacity: 0.4; cursor: default; }
 
 /* 아래에서 올라오는 지역 시트 — 지도를 가리지 않고 다른 지역을 계속 눌러 볼 수 있음(배경 막지 않음) */
-.map-page.sheet-open { padding-bottom: 46dvh; }
+#root .menu-page.map-page.sheet-open { padding-bottom: calc(46dvh + 1rem); } /* 공통 padding보다 우선해야 시트 뒤 내용이 가려지지 않음 */
 .map-sheet { position: fixed; left: 50%; transform: translateX(-50%); bottom: calc(60px + env(safe-area-inset-bottom)); width: 100%; max-width: 420px; max-height: 44dvh; overflow-y: auto; box-sizing: border-box; background: white; border-radius: 20px 20px 0 0; box-shadow: 0 -6px 24px rgba(0, 0, 0, 0.12); padding: 0.5rem 1rem 1rem; z-index: 40; display: flex; flex-direction: column; gap: 0.6rem; animation: map-sheet-up 0.22s ease-out; }
 @keyframes map-sheet-up { from { transform: translate(-50%, 100%); } to { transform: translate(-50%, 0); } }
 .map-sheet-handle { align-self: center; width: 36px; height: 4px; border-radius: 2px; background: var(--color-gray-200); }
@@ -67,3 +71,9 @@
 .map-summary-bar i { display: block; height: 100%; background: var(--color-primary); border-radius: 4px; transition: width 0.4s ease-out; }
 .map-summary-meta { margin: 0; font-size: 0.75rem; color: var(--color-text-desc); }
 .map-paper { border-radius: 18px; }
+
+/* 섹션 묶음 — 섹션 제목과 목록은 가깝게, 섹션끼리는 페이지 gap만큼 */
+.map-block { display: flex; flex-direction: column; gap: 0.6rem; }
+.map-list { display: flex; flex-direction: column; gap: 0.5rem; }
+.map-hint { margin: 0.5rem 0 0; text-align: center; font-size: 0.72rem; color: var(--color-gray-500); }
+.map-legend { margin-top: 0.45rem; }
