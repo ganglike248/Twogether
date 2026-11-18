@@ -5,6 +5,7 @@
 // 못 불러와도 시스템 글꼴로 자연스럽게 보이게 함. 사용자 입력은 전부 escape.
 
 import { MASCOT_DATA_URI } from './recordAssets';
+import { tripPlaceName } from '../regions/regionData';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -228,7 +229,7 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
     const checklistHtml = checklist.length ? `<div class="sub">체크리스트</div><ul class="list">${checklist.map((i) => `
       <li class="row"><div class="when">${i.completed ? '<span class="check">✓</span>' : '<span class="open">○</span>'}</div><div class="what">${esc(i.title)}</div></li>`).join('')}</ul>` : '';
     return `<article class="card"><div class="head"><span class="name">${esc(t.title)}</span>
-      <span class="meta">${start ? fmtDate(start) : ''}${end && ymd(end) !== ymd(start) ? ` – ${fmtDate(end, start?.getFullYear() !== end.getFullYear())}` : ''}${t.destination ? ` · ${esc(t.destination)}` : ''}</span></div>
+      <span class="meta">${start ? fmtDate(start) : ''}${end && ymd(end) !== ymd(start) ? ` – ${fmtDate(end, start?.getFullYear() !== end.getFullYear())}` : ''}${tripPlaceName(t) ? ` · ${esc(tripPlaceName(t))}` : ''}</span></div>
       ${t.description ? `<div class="desc">${multiline(t.description)}</div>` : ''}
       ${dayHtml}${decisionHtml}${checklistHtml}</article>`;
   };

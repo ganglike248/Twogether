@@ -45,6 +45,10 @@ export default defineConfig({
       },
       injectManifest: {
         globPatterns: ['**/*.{js,css,html,svg,png,ico,woff,woff2}'],
+        // 미리 받기(precache)에서 빼는 것 — 드물게 쓰는 큰 청크라 필요할 때만 네트워크로 받음(업데이트마다 모두가 받지 않게)
+        //  · heic2any(약 1.3MB): 아이폰 HEIC 사진을 고를 때만 동적 import
+        //  · 우리 지도 시·군·구 경계(시·도 코드 이름 청크 11-xxxx.js 등, 합계 약 460KB): 그 시·도를 열 때만
+        globIgnores: ['**/heic2any-*.js', '**/assets/[0-9][0-9]-*.js'],
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
       },
       devOptions: {
