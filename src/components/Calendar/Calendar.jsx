@@ -110,7 +110,7 @@ const Calendar = () => {
         }
         const getDateString = (dateValue) => {
           if (typeof dateValue === 'string') return dateValue.split('T')[0];
-          if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+          if (dateValue instanceof Date) return getLocalDateStr(dateValue);
           return '';
         };
         const startDate = getDateString(ev.start);

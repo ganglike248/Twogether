@@ -2,6 +2,7 @@ import { useState, useEffect, useMemo } from 'react';
 import { tripPlaceName } from '../services/regions/regionData';
 import { db } from '../firebase';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
+import { getLocalDateStr } from '../utils/dataUtils';
 
 export const useCalendarData = (coupleId, userId, options = {}) => {
   const {
@@ -101,26 +102,26 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
       const tripsCalendarData = tripsRawData.map(data => {
         let startDate;
         if (data.startDate?.toDate) {
-          startDate = data.startDate.toDate().toISOString().split('T')[0];
+          startDate = getLocalDateStr(data.startDate.toDate()); // 로컬 기준(AUDIT B-3 — toISOString은 KST 자정이 전날로 밀림)
         } else if (data.startDate instanceof Date) {
-          startDate = data.startDate.toISOString().split('T')[0];
+          startDate = getLocalDateStr(data.startDate);
         } else {
           startDate = String(data.startDate);
         }
 
         let endDate;
         if (data.endDate?.toDate) {
-          endDate = data.endDate.toDate().toISOString().split('T')[0];
+          endDate = getLocalDateStr(data.endDate.toDate());
         } else if (data.endDate instanceof Date) {
-          endDate = data.endDate.toISOString().split('T')[0];
+          endDate = getLocalDateStr(data.endDate);
         } else {
           endDate = String(data.endDate);
         }
 
         // FullCalendar allDay 이벤트: end를 다음날 00:00으로 설정하여 그 전날까지 표시
-        const endDateObj = new Date(endDate);
+        const endDateObj = new Date(`${endDate}T00:00:00`);
         endDateObj.setDate(endDateObj.getDate() + 1);
-        const adjustedEndDate = endDateObj.toISOString().split('T')[0];
+        const adjustedEndDate = getLocalDateStr(endDateObj);
 
         return {
           id: data.id,

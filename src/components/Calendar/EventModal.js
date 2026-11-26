@@ -11,6 +11,7 @@ import { generateOccurrenceDates, RecurrenceLimitError } from '../../utils/recur
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
 import { useDialog } from '../../hooks/useDialog';
+import { getLocalDateStr } from '../../utils/dataUtils';
 
 const DEFAULT_RECURRENCE = {
   enabled: false,
@@ -76,7 +77,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const extractDate = (dateValue) => {
     if (!dateValue) return '';
     if (typeof dateValue === 'string') return dateValue.split('T')[0];
-    if (dateValue instanceof Date) return dateValue.toISOString().split('T')[0];
+    if (dateValue instanceof Date) return getLocalDateStr(dateValue);
     return '';
   };
 

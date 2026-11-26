@@ -18,6 +18,8 @@
 8. **"배포"**: 확인 없이 빌드 + cap sync + Hosting 배포 + 버전 확인 + 커밋 + 푸시. 네이티브 반영 필요하면 네이티브 버전도 올림
    (앱은 dist를 번들하므로 웹 변경도 다음 AAB/Archive부터 반영)
 - "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
+- **`npm test`**(Vitest 단위 테스트, 1초 — 반복 일정·지역 찾기·기념일·지도 집계·오프라인 저장·서버 기념일 문구). 순수 함수를 고치면 같이 실행.
+  서버 예약 알림의 날짜·문구 계산은 `functions/reminderText.js`(Firebase 의존 없음, COUPLE_DAYS 일치도 테스트로 확인)
 - 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 26곳(저장·오프라인 저장·Esc·키보드 포함)을 열어 오류 확인.
   운영 데이터 무관. 새 화면·라우트를 만들면 `scripts/smoke/smoke.mjs`의 `CHECKS`에 한 줄 추가. 설정은 루트 `firebase.smoke.json`
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
@@ -43,7 +45,7 @@
 - 사진 업로드는 `storageService`가 올리기 직전 `shrinkImageForUpload`(`utils/imageUtils.js`, 긴 변 1600px·JPEG)로 줄임 — 새 업로드 경로도 같은 함수 사용.
   봉인 편지 사진은 `sealedMessages/{coupleId}/{messageId}_{임의값}`(주소는 private/content에만), 삭제는 내용 문서의 imageUrl로(예전 고정 경로도 같이 시도).
   글꼴은 `index.html` preconnect+link(CSS @import 금지), sw.js가 Google Fonts를 기기에 저장
-- Hosting 헤더: `source:"**"` no-cache를 **먼저**, `/assets/**` immutable을 뒤에(리터럴 `/index.html`은 SPA 리라이트에 안 걸림)
+- Hosting 헤더: `source:"**"` no-cache를 **먼저**, `/assets/**` immutable을 뒤에(리터럴 `/index.html`은 SPA 리라이트에 안 걸림). 보안 헤더는 nosniff·Referrer-Policy·Permissions-Policy만 — **X-Frame-Options·CSP frame-ancestors 금지**(웹 구글 로그인이 Firebase `/__/auth/iframe`을 iframe으로 씀)
 - Firestore list 쿼리는 규칙이 참조하는 필드(`coupleId`/`userId`)를 **where 동등 조건에 반드시 포함**(없으면 목록 전체 거부, 단건 get은 됨)
 - 모든 update 규칙은 소유권 필드 불변(`request.resource.data.X == resource.data.X`). 커플 합류는 반드시 콜러블
   `joinCoupleWithInviteCode`(서버가 코드 검증·교차 합류 처리). `inviteCodes`는 list/update 금지
