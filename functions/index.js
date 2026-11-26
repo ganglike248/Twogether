@@ -381,6 +381,12 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
       throw new functions.https.HttpsError('not-found', '연결할 커플을 찾을 수 없습니다.');
     }
     const members = coupleSnap.data().members || [];
+    // 코드가 정말 그 커플의 것인지 확인(AUDIT S-2) — 커플 문서의 inviteCode와 같고, 코드를 만든 사람이 그 커플 멤버여야 함.
+    // (예전 커플 중 inviteCode 필드가 없는 문서는 만든 사람 확인만)
+    const coupleInviteCode = coupleSnap.data().inviteCode;
+    if ((coupleInviteCode && coupleInviteCode !== code) || !members.includes(creatorUid)) {
+      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드입니다.');
+    }
     if (members.includes(uid)) {
       throw new functions.https.HttpsError('failed-precondition', '이미 연결된 커플입니다.');
     }

@@ -42,6 +42,8 @@
 - 모든 update 규칙은 소유권 필드 불변(`request.resource.data.X == resource.data.X`). 커플 합류는 반드시 콜러블
   `joinCoupleWithInviteCode`(서버가 코드 검증·교차 합류 처리). `inviteCodes`는 list/update 금지
 - `users` 규칙: coupleId는 그대로이거나 "방금 나 혼자 만든 커플"로만 변경 가능, `couples` 생성은 `members == [본인]`만(v1.0.33, 보고서 `docs/security/`)
+- `inviteCodes` 생성은 만든 사람 본인 + 같은 배치의 혼자 커플(`getAfter`로 `members==[본인]`·`inviteCode==코드`), 합류 함수도 커플의 `inviteCode`·만든 사람 멤버 여부 재확인.
+  `users` 삭제는 커플이 없을 때만(구글 충돌 정리용). 로그아웃은 `authService.signOut`이 이 기기 알림 토큰을 먼저 지움(AUDIT 묶음 1, v1.1.6)
 - Functions 코드: `require('firebase-functions/v1')`, `{ FieldValue, Timestamp }`는 `require('firebase-admin/firestore')`(에뮬레이터 호환)
 - 에뮬레이터 검증: `npx firebase-tools emulators:exec --project demo-xxx --only auth,firestore,functions[,storage]`(설정 파일은 프로젝트 안).
   화면 E2E는 `src/firebase.js`의 `VITE_USE_EMULATORS=true`+`VITE_FIREBASE_PROJECT_ID=demo-twogether`, 시드에 `users.nicknameConfirmed:true`와
@@ -54,7 +56,7 @@
 - FCM 토큰은 기기 단위 → 등록은 반드시 콜러블 `registerFcmToken`(다른 계정에서 같은 토큰 제거)
 - 알림 토글 표시는 권한이 아니라 `shouldReceiveNotifications()`(권한 + `twogether_fcm_disabled`), 기본 켜짐. 각 비동기 단계 타임아웃 가드 유지
 - 종류별 설정: `NOTIFICATION_TYPES`(`category`로 섹션 자동 묶음, `users.notificationPrefs`), `eventUpdate`만 기본 꺼짐. 커플 연결 알림은 type 없이 항상 발송
-- `badge` 아이콘은 투명 배경 단색(`public/badge-icon.png`)
+- `badge` 아이콘은 투명 배경 단색(`public/badge-icon.png`). 아이콘은 역할별 파일: `app-icon.png`(512, 매니페스트), `app-icon-192.png`(192·알림), `apple-touch-icon.png`(180), `favicon-32.png` — 원본은 `assets/logo.png`
 - 예약 알림: `sendMorningReminders`(09:00 KST, 여행·기념일·디데이 D-3/D-1), `sendEveningReminders`(21:00, 내일 일정 + 말일이면 `sendRecapNotifications` 월간 요약, 12/31은 랩업 1건만, type `recap`).
   기념일 알림 문구는 `MILESTONE_DAY_BODY`/`MILESTONE_YEAR_BODY`(B안). `functions/index.js`의 `COUPLE_DAYS`는 `utils/koreanHolidays.js` 복사본 — 바꾸면 둘 다 수정
 - 권한 프라이밍 `NotificationPrimingModal`은 앱 전체 1회(`twogether_notification_priming_shown`), CoupleSetup/Home에 마운트

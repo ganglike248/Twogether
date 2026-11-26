@@ -180,6 +180,20 @@ export const disableNotifications = async (userId) => {
   localStorage.removeItem(TOKEN_STORAGE_KEY);
 };
 
+// 로그아웃 직전 — 이 기기 토큰을 로그아웃하는 계정 문서에서만 지움(AUDIT S-1: 예전엔 로그아웃해도 이 기기로 이전 계정 알림이 계속 왔음).
+// '알림 끔' 표시(DISABLED_FLAG_KEY)는 건드리지 않음 — 다음에 로그인하는 계정은 홈에서 평소처럼 자동 등록됨.
+// 로그아웃을 막지 않도록 짧은 제한 시간 + 실패는 무시(호출부에서 catch)
+export const unregisterDeviceToken = async (userId) => {
+  const token = localStorage.getItem(TOKEN_STORAGE_KEY);
+  if (!token || !userId) return;
+  await withTimeout(
+    updateDoc(doc(db, 'users', userId), { [serverTokenField()]: arrayRemove(token) }),
+    4000,
+    '알림 해제가 지연되고 있습니다.'
+  );
+  localStorage.removeItem(TOKEN_STORAGE_KEY);
+};
+
 // 이 기기 토큰이 실제로 Firestore(fcmTokens/nativeFcmTokens)에 등록돼 있는지 — 백그라운드 자동 등록(백필) 필요 여부 판단용
 export const isDeviceSubscribed = (userDoc) => {
   const token = localStorage.getItem(TOKEN_STORAGE_KEY);

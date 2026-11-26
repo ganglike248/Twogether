@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { HiPencilSquare, HiXMark } from 'react-icons/hi2';
 import { useAuthContext } from '../../contexts/AuthContext';
 import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
@@ -44,7 +45,7 @@ const SealedMessageComposeModal = ({ onClose }) => {
       setImageFile(displayableFile);
       setImagePreview(URL.createObjectURL(displayableFile));
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getFriendlyErrorMessage(error, '사진을 불러오지 못했어요. 다른 사진을 골라 주세요.'));
     } finally {
       setIsProcessingImage(false);
     }

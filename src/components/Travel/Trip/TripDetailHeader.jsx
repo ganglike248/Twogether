@@ -3,7 +3,7 @@
 import React from 'react';
 import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText } from 'react-icons/hi2';
 import { formatDate } from '../../../utils/dataUtils';
-import { groupRegions, tripPlaceName } from '../../../services/regions/regionData';
+import { groupRegions } from '../../../services/regions/regionData';
 import TripMiniMap from '../../Map/TripMiniMap';
 
 // 여행 지역을 시·도별로 묶음 — [{ sido: '전남광주', places: ['광주 동구', '광주 서구'] }]
@@ -85,7 +85,8 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                         <span className="td-info-icon"><HiMapPin /></span>
                         <span className="td-info-content">
                             <span className="td-info-label">여행지</span>
-                            <span className="td-info-value">{tripPlaceName(trip)}</span>
+                            {/* 여행지를 직접 썼을 때만 큰 글씨로 — 비워 두면 아래 지역 줄이 곧 여행지라 같은 이름을 두 번 보여주지 않음 */}
+                            {trip.destination?.trim() && <span className="td-info-value">{trip.destination}</span>}
                             {/* 지역은 시·도별로 한 줄씩: [전남광주] 광주 동구 · 광주 서구 */}
                             {trip.regions?.length > 0 && (
                                 <span className="td-regions">

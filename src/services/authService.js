@@ -32,6 +32,7 @@ import { initializeApp, deleteApp } from 'firebase/app';
 import { Capacitor } from '@capacitor/core';
 import { FirebaseAuthentication } from '@capacitor-firebase/authentication';
 import { auth, db, app, functionsInstance } from '../firebase';
+import { unregisterDeviceToken } from './notificationService';
 
 // 랜덤 6자리 대문자+숫자 초대 코드 생성
 const generateInviteCode = () => {
@@ -93,7 +94,13 @@ export const signInWithEmail = async (email, password) => {
 };
 
 // 로그아웃
+// 로그아웃 — 먼저 이 기기의 알림 토큰을 이 계정에서 지움(로그인 상태여야 문서를 고칠 수 있어 signOut보다 앞).
+// 토큰 정리가 실패·지연돼도(오프라인 등) 로그아웃은 그대로 진행
 export const signOut = async () => {
+  const uid = auth.currentUser?.uid;
+  if (uid) {
+    try { await unregisterDeviceToken(uid); } catch { /* 로그아웃이 우선 */ }
+  }
   await firebaseSignOut(auth);
 };
 

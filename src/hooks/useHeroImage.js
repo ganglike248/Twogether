@@ -1,5 +1,6 @@
 import { useState, useEffect, useRef } from 'react';
 import { toast } from 'react-toastify';
+import { getFriendlyErrorMessage } from '../utils/errorMessages';
 import { ensureBrowserDisplayableImage } from '../utils/imageUtils';
 
 const MAX_IMAGE_SIZE_MB = 10;
@@ -46,7 +47,7 @@ const useHeroImage = (currentHeroImageUrl) => {
       // 아이폰 HEIC 사진은 변환해야 미리보기/표시가 가능 — 다른 포맷은 그대로 통과
       displayableFile = await ensureBrowserDisplayableImage(file);
     } catch (error) {
-      toast.error(error.message);
+      toast.error(getFriendlyErrorMessage(error, '사진을 불러오지 못했어요. 다른 사진을 골라 주세요.'));
       setIsProcessingHeroImage(false);
       return;
     }

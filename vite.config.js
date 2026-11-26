@@ -12,7 +12,7 @@ export default defineConfig({
       filename: 'sw.js',
       injectRegister: 'auto',
       registerType: 'autoUpdate',
-      includeAssets: ['app-icon.png'],
+      includeAssets: ['app-icon.png', 'app-icon-192.png', 'favicon-32.png', 'apple-touch-icon.png'],
       manifest: {
         name: '우리두리',
         short_name: '우리두리',
@@ -26,7 +26,7 @@ export default defineConfig({
         lang: 'ko',
         icons: [
           {
-            src: '/app-icon.png',
+            src: '/app-icon-192.png',
             sizes: '192x192',
             type: 'image/png',
           },
@@ -48,7 +48,7 @@ export default defineConfig({
         // 미리 받기(precache)에서 빼는 것 — 드물게 쓰는 큰 청크라 필요할 때만 네트워크로 받음(업데이트마다 모두가 받지 않게)
         //  · heic2any(약 1.3MB): 아이폰 HEIC 사진을 고를 때만 동적 import
         //  · 우리 지도 시·군·구 경계(시·도 코드 이름 청크 11-xxxx.js 등, 합계 약 460KB): 그 시·도를 열 때만
-        globIgnores: ['**/heic2any-*.js', '**/assets/[0-9][0-9]-*.js'],
+        globIgnores: ['**/heic2any-*.js', '**/assets/[0-9][0-9]-*.js', '**/og-image.*'], // og-image: 링크 공유 미리보기 전용(앱에선 안 씀)
         maximumFileSizeToCacheInBytes: 5 * 1024 * 1024, // 5MB
       },
       devOptions: {

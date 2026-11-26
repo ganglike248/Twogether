@@ -32,7 +32,8 @@ service cloud.firestore {
       }
       allow create: if isSelf() && request.resource.data.get('coupleId', null) == null;
       allow update: if isSelf() && (coupleIdUnchanged() || settingOwnSoloCouple());
-      allow delete: if isSelf();
+      // 커플에 속한 동안엔 직접 삭제 불가(탈퇴는 서버 콜러블 deleteMyAccount). 커플 없는 빈 계정 정리(구글 계정 충돌)는 허용
+      allow delete: if isSelf() && resource.data.get('coupleId', null) == null;
       allow read: if isAuthenticated() && (
         request.auth.uid == userId ||
         (
@@ -50,7 +51,14 @@ service cloud.firestore {
     match /inviteCodes/{code} {
       allow get: if isAuthenticated();
       allow list: if false;
-      allow create: if isAuthenticated();
+      // 만든 사람 본인 + 방금 혼자 만든 커플(같은 배치)의 코드로만 생성 — 예전엔 아무 coupleId로나 만들 수 있어서
+      // 커플 문서 ID를 아는 사람이 가짜 코드로 남의 커플에 합류할 수 있는 빈틈이 있었음(AUDIT S-2, 합류 함수도 같이 검증)
+      allow create: if isAuthenticated() &&
+        request.resource.data.creatorUid == request.auth.uid &&
+        request.resource.data.joined == false &&
+        request.resource.data.coupleId is string &&
+        getAfter(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.members == [request.auth.uid] &&
+        getAfter(/databases/$(database)/documents/couples/$(request.resource.data.coupleId)).data.inviteCode == code;
       // joined 갱신(합류 처리)은 반드시 joinCoupleWithInviteCode Cloud Function(Admin SDK)을
       // 거쳐야 함 — 클라이언트 직접 쓰기를 허용하면 초대 코드 검증 없이도 갱신 시도가 가능해짐.
       allow update: if false;
@@ -260,7 +268,10 @@ service cloud.firestore {
       // 작성자만, 아직 안 열린 편지만 수정 가능 (예약시각 변경 또는 직접 공개 처리)
       allow update: if isAuthenticated() &&
         resource.data.authorUid == request.auth.uid &&
-        resource.data.isUnlocked == false;
+        resource.data.isUnlocked == false &&
+        request.resource.data.authorUid == resource.data.authorUid &&
+        request.resource.data.recipientUid == resource.data.recipientUid &&
+        request.resource.data.coupleId == resource.data.coupleId;
       // 작성자는 언제든(봉인 중이든 공개됐든) 삭제 가능 — private/content를 먼저 지운 뒤 이 문서를 지울 것
       // (content 삭제 규칙이 이 문서를 get()으로 조회해 작성자를 확인하므로 순서가 바뀌면 실패함)
       allow delete: if isAuthenticated() && resource.data.authorUid == request.auth.uid;
