@@ -78,7 +78,7 @@ export const buildMonthlyRecap = (data, { year, month, coupleDoc, nameOf, today 
     .filter(e => inRange(e.startStr, lastYear.fromStr, lastYear.toStr))
     .sort((a, b) => a.startStr.localeCompare(b.startStr))[0] || null;
   const highlights = (longest || anniversaries.length || bucketsDone.length || yearAgo)
-    ? { longest, anniversaries, bucketsDone: bucketsDone.map(b => b.title), yearAgo }
+    ? { longest, anniversaries, bucketsDone: [...new Set(bucketsDone.map(b => b.title))], yearAgo }
     : null;
 
   // 4. 다음 달 미리보기

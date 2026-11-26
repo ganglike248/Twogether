@@ -25,7 +25,8 @@ const saveMemory = (direct, bucketIds) => {
   try { localStorage.setItem(MEMORY_KEY, JSON.stringify({ direct, bucketIds })); } catch { /* 기억만 못 함 */ }
 };
 
-const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
+// onPlan/onDone(bucketId): 결과가 버킷이면 [언제 할까?]·[오늘 했어요] — 넘겨 준 화면에서 시트로 이어 줌
+const WheelModal = ({ isOpen, onClose, bucketList, customCategories, onPlan, onDone }) => {
   const dialogRef = useDialog(isOpen, onClose);
   const [step, setStep] = useState('select'); // 'select' | 'spin'
   const [directItems, setDirectItems] = useState([]); // [{ id, title, isLocal }]
@@ -108,6 +109,8 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
             onExclude={(id) => setExcludedIds(prev => [...prev, id])}
             onBack={() => setStep('select')}
             onClose={onClose}
+            onPlan={onPlan}
+            onDone={onDone}
           />
         )}
       </div>

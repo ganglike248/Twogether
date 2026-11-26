@@ -102,10 +102,11 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
                       <button
                         key={colorOption.hex}
                         className={`color-option ${editColor === colorOption.hex ? 'selected' : ''}`}
-                        style={{ backgroundColor: colorOption.hex }}
+                        style={{ backgroundColor: colorOption.hex, color: colorOption.text }}
+                aria-label={colorOption.name}
                         onClick={() => setEditColor(colorOption.hex)}
                         title={colorOption.name}
-                      />
+                      >가</button>
                     ))}
                   </div>
                   <div className="category-edit-actions">
@@ -170,10 +171,11 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
               <button
                 key={colorOption.hex}
                 className={`color-option ${newCategoryColor === colorOption.hex ? 'selected' : ''}`}
-                style={{ backgroundColor: colorOption.hex }}
+                style={{ backgroundColor: colorOption.hex, color: colorOption.text }}
+                aria-label={colorOption.name}
                 onClick={() => setNewCategoryColor(colorOption.hex)}
                 title={colorOption.name}
-              />
+              >가</button>
             ))}
           </div>
           <div className="category-add-actions">

@@ -376,6 +376,14 @@
 .wm-result-title { font-family: var(--font-display); font-size: 1.7rem; color: var(--color-gray-800); text-align: center; word-break: keep-all; }
 .wm-result-meta { font-size: 0.75rem; color: var(--color-text-desc); }
 
+/* 결과가 하고 싶은 것이면 바로 계획·기록(v1.2) */
+.wm-result-acts { display: flex; gap: 6px; margin-top: 10px; width: 100%; }
+.wm-result-btn {
+  flex: 1; height: 38px; border-radius: 999px; border: 1.5px solid var(--color-primary); background: white;
+  color: var(--color-primary-dark); font-family: inherit; font-size: 0.85rem; cursor: pointer;
+}
+.wm-result-btn.primary { background: var(--color-primary); color: white; font-weight: 700; }
+
 /* 하단 버튼 — 바닥에 붙는 시트라 safe-area 여백 포함 */
 .wm-footer { padding: 12px 0 calc(16px + env(safe-area-inset-bottom)); }
 

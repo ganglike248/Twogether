@@ -24,7 +24,7 @@ const slicePath = (start, end) => {
 
 const shorten = (text, n) => (text.length > n ? `${text.slice(0, n)}…` : text);
 
-const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose }) => {
+const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose, onPlan, onDone }) => {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -113,8 +113,14 @@ const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose }) 
               <span className="wm-result-label">오늘은 이거!</span>
               <span className="wm-result-title">{result.title}</span>
               <span className="wm-result-meta">
-                {result.isLocal ? '직접 적은 후보' : `${result.category ? `${getCategoryDisplayName(result.category, customCategories)} · ` : ''}버킷리스트`}
+                {result.isLocal ? '직접 적은 후보' : `${result.category ? `${getCategoryDisplayName(result.category, customCategories)} · ` : ''}하고 싶은 것`}
               </span>
+              {!result.isLocal && !result.completed && onPlan && onDone && (
+                <span className="wm-result-acts">
+                  <button type="button" className="wm-result-btn" onClick={() => onPlan(result.id)}>언제 할까?</button>
+                  <button type="button" className="wm-result-btn primary" onClick={() => onDone(result.id)}>오늘 했어요</button>
+                </span>
+              )}
             </div>
           ) : (
             <p className="wm-hint">{spinning ? '두근두근…' : count < 2 ? '후보가 2개 이상 있어야 돌릴 수 있어요' : '가운데 버튼을 눌러 돌려 보세요'}</p>

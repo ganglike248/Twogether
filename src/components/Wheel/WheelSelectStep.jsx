@@ -1,8 +1,9 @@
 // src/components/Wheel/WheelSelectStep.jsx
-// 돌림판 1단계 — 직접 적기 + 버킷리스트에서 담기. 카테고리 색은 버킷리스트와 같은 원색(getCategoryColor).
+// 돌림판 1단계 — 직접 적기 + 버킷리스트에서 담기. 카테고리 색은 하고 싶은 것과 같은 부드러운 배경 + 짝 글자색.
 import React, { useState } from 'react';
 import { MdClose, MdAdd, MdCheck } from 'react-icons/md';
-import { getCategoryColor, getCategoryDisplayName, DEFAULT_CATEGORIES } from '../../services/categoryColorService';
+import { getCategoryColor, getCategoryTextColor, getCategoryDisplayName, DEFAULT_CATEGORIES } from '../../services/categoryColorService';
+import { isAchieved, isRepeat, KIND_LABEL } from '../../services/bucket/bucketLogic';
 
 const WheelSelectStep = ({
   directItems, onAddDirect, onRemoveDirect,
@@ -12,9 +13,13 @@ const WheelSelectStep = ({
   const [input, setInput] = useState('');
   const [showCompleted, setShowCompleted] = useState(false);
   const [category, setCategory] = useState('all');
+  const [kind, setKind] = useState('all'); // 'all' | 'once' | 'repeat'
 
   const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
-  const byStatus = bucketList.filter(b => !!b.completed === showCompleted);
+  // 또 할 것은 해도 '하고 싶은 것'에 남음 — 이룬 것은 한 번 해볼 것 중 완료만
+  const byAchieved = bucketList.filter(b => isAchieved(b) === showCompleted);
+  const hasRepeat = !showCompleted && byAchieved.some(isRepeat);
+  const byStatus = !hasRepeat || kind === 'all' ? byAchieved : byAchieved.filter(b => (kind === 'repeat') === isRepeat(b));
   const usedCats = [...new Set(byStatus.map(b => b.category).filter(c => c && allCategories[c]))];
   const visible = category === 'all' ? byStatus : byStatus.filter(b => b.category === category);
   const visibleIds = visible.map(b => b.id);
@@ -69,12 +74,20 @@ const WheelSelectStep = ({
 
         <section className="wm-section">
           <div className="wm-section-head">
-            <span className="wm-label">버킷리스트에서 담기</span>
+            <span className="wm-label">하고 싶은 것에서 담기</span>
             <div className="wm-segment" role="tablist" aria-label="버킷 상태">
-              <button type="button" role="tab" aria-selected={!showCompleted} className={!showCompleted ? 'on' : ''} onClick={() => { setShowCompleted(false); setCategory('all'); }}>예정</button>
-              <button type="button" role="tab" aria-selected={showCompleted} className={showCompleted ? 'on' : ''} onClick={() => { setShowCompleted(true); setCategory('all'); }}>완료</button>
+              <button type="button" role="tab" aria-selected={!showCompleted} className={!showCompleted ? 'on' : ''} onClick={() => { setShowCompleted(false); setCategory('all'); }}>하고 싶은 것</button>
+              <button type="button" role="tab" aria-selected={showCompleted} className={showCompleted ? 'on' : ''} onClick={() => { setShowCompleted(true); setCategory('all'); setKind('all'); }}>이룬 것</button>
             </div>
           </div>
+
+          {hasRepeat && (
+            <div className="wm-cats" role="group" aria-label="종류">
+              {[['all', '전부'], ['repeat', KIND_LABEL.repeat], ['once', KIND_LABEL.once]].map(([k, label]) => (
+                <button key={k} type="button" className={`wm-cat${kind === k ? ' on' : ''}`} onClick={() => { setKind(k); setCategory('all'); }}>{label}</button>
+              ))}
+            </div>
+          )}
 
           {usedCats.length > 0 && (
             <div className="wm-cats">
@@ -99,7 +112,7 @@ const WheelSelectStep = ({
                     <span className={`wm-check${on ? ' on' : ''}`} aria-hidden="true">{on && <MdCheck />}</span>
                     <span className="wm-row-title">{b.title}</span>
                     {b.category && allCategories[b.category] && (
-                      <span className="wm-tag" style={{ background: getCategoryColor(b.category, customCategories) }}>
+                      <span className="wm-tag" style={{ background: getCategoryColor(b.category, customCategories), color: getCategoryTextColor(b.category, customCategories) }}>
                         {getCategoryDisplayName(b.category, customCategories)}
                       </span>
                     )}
@@ -108,7 +121,7 @@ const WheelSelectStep = ({
               })}
             </div>
           ) : (
-            <p className="wm-empty">{showCompleted ? '완료한 버킷이 없어요' : '담을 버킷이 없어요 — 직접 적어 보세요'}</p>
+            <p className="wm-empty">{showCompleted ? '이룬 것이 아직 없어요' : '담을 게 없어요 — 직접 적어 보세요'}</p>
           )}
         </section>
       </div>

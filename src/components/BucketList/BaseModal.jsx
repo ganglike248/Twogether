@@ -1,4 +1,5 @@
 import React from 'react';
+import './bucket-modal.css'; // 카테고리 관리 모달이 씀(보드는 BucketBoard.css)
 import { MdClose } from 'react-icons/md';
 import { useDialog } from '../../hooks/useDialog';
 

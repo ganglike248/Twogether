@@ -1,0 +1,12 @@
+/* src/components/BucketList/BucketCheckCard.css — "○○, 했어요?" 카드(보드·홈 공통, 여행 끝 카드와 같은 톤) */
+.bk-check { border: 2px solid var(--color-primary) !important; display: flex; flex-direction: column; gap: 0.2rem; }
+.bk-check-k { margin: 0; font-size: 0.78rem; color: var(--color-primary-dark); }
+.bk-check-t { margin: 0.1rem 0 0; font-size: 1.15rem; line-height: 1.35; color: var(--color-gray-900); font-weight: 400; }
+.bk-check-acts { display: flex; gap: 0.5rem; margin-top: 0.6rem; }
+.bk-check-btn {
+  flex: 1; height: 42px; border-radius: 999px; border: 1.5px solid var(--color-primary);
+  background: white; color: var(--color-primary-dark); font-family: inherit; font-size: 0.88rem; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 4px;
+}
+.bk-check-btn.primary { background: var(--color-primary); color: white; font-weight: 700; }
+.bk-check-btn:disabled { opacity: 0.6; cursor: default; }

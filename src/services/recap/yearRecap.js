@@ -170,10 +170,10 @@ export const buildYearRecap = (data, { year, coupleDoc, nameOf, today = new Date
   // 5. 이룬 버킷
   const cats = {};
   st.bucketsDone.forEach(b => { const n = b.category ? getCategoryDisplayName(b.category, coupleDoc?.customCategories) : '기타'; cats[n || '기타'] = (cats[n || '기타'] || 0) + 1; });
-  const waits = st.bucketsDone.filter(b => b.createdAt).map(b => ({ title: b.title, days: dayDiff(getLocalDateStr(b.createdAt), b.completedStr) })).filter(w => w.days > 0).sort((a, b) => b.days - a.days);
+  const waits = st.bucketsDone.filter(b => b.createdAt && !b.isRepeatRecord).map(b => ({ title: b.title, days: dayDiff(getLocalDateStr(b.createdAt), b.completedStr) })).filter(w => w.days > 0).sort((a, b) => b.days - a.days);
   const buckets = st.bucketsDone.length ? {
     count: st.bucketsDone.length,
-    titles: st.bucketsDone.slice(0, 4).map(b => b.title),
+    titles: [...new Set(st.bucketsDone.map(b => b.title))].slice(0, 4),
     categories: Object.entries(cats).sort((a, b) => b[1] - a[1]).map(([name, n]) => ({ name, n })),
     longestWait: waits[0] || null,
   } : null;

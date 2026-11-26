@@ -158,6 +158,11 @@
 **계정/프로필**: `/profile`은 닉네임·홈 사진만, `/account`는 로그인 정보·비밀번호(이메일 가입자만)·구글 연결·로그아웃(`signOut` await 후 navigate)·탈퇴.
 홈 사진 업로드 URL에 `?v=` 캐시버스터. `HomeImageSettingsPage` 재생성 금지, 연애 시작일은 커플 정보에서만
 
+**하고 싶은 것(버킷)**(`BucketList/`, v1.2 개편): 보드 = 한 줄 추가(종류 토글) + [뭐 할까? 골라줘](돌림판) + 추천 카드 + `전체|해보고 싶은 것|자주 할 것`(이름·설명은 `KIND_LABEL/KIND_DESC`) + 카드, '이룬 것'은 필터 4번째 탭.
+`kind` 'once'(기본, 예전 문서도)/'repeat'(해도 남고 `doneCount`·`lastDoneAt`·`history[{date,note,by,at}]` 쌓임), once만 `completed`. 공감은 `likes.<uid>` 필드 경로로만.
+[언제 할까?]는 선택(계획 있을 때만) → 커플 일정 생성(`bucketId`) + `plannedEventId/Date`, 날짜 지나면 보드·홈 '오늘'에 `BucketCheckCard`. 계산은 `services/bucket/bucketLogic.js`(테스트), 쓰기는 `bucketService.js`(offlineWrite, 기록은 arrayUnion·횟수는 increment).
+시트는 `?modal=detail|done|date|plan|categoryManager|wheel&id=`. 요약·랩업은 `expandRepeatForRecap`로 자주 할 것 기록을 '이룬 것'으로 셈
+
 **돌림판**(`Wheel/`, v1.0.38 리디자인): `WheelModal`(흐름·후보 상태) + `WheelSelectStep`(직접 적기·버킷 담기) + `WheelSpinStep`(SVG 원판, CSS transform 회전).
 마지막 후보는 로컬스토리지 `twogether_wheel_last`에 기억, 후보 2개 이상일 때만 돌리기, 결과 자동 사라짐 없음, "이건 빼고"로 이번 판에서 제외
 

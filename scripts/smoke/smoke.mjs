@@ -91,6 +91,11 @@ const seed = async () => {
   ] });
   await put('bucketlists/b1', { coupleId: c, title: '캠핑 가기', category: '', completed: false, createdAt: now.toISOString(), createdBy: a });
   await put('bucketlists/b2', { coupleId: c, title: '오마카세', category: '', completed: true, completedAt: ymd(addDays(-10)), createdAt: now.toISOString(), createdBy: b });
+  // 하고 싶은 것(v1.2): 또 할 것 + 기록, 지난 계획(→ '했어요?' 카드)
+  await put('bucketlists/b3', { coupleId: c, title: '마라탕 먹기', kind: 'repeat', category: 'food', completed: false, doneCount: 2, lastDoneAt: ymd(addDays(-20)),
+    history: [{ date: ymd(addDays(-40)), note: '맵기 2단계', by: a, at: 1 }, { date: ymd(addDays(-20)), note: '', by: b, at: 2 }], likes: { [a]: true, [b]: true }, createdAt: now.toISOString(), createdBy: a });
+  await ev('eb4', ymd(addDays(-2)), '한강 피크닉');
+  await put('bucketlists/b4', { coupleId: c, title: '한강 피크닉', kind: 'once', category: '', completed: false, plannedDate: ymd(addDays(-2)), plannedEventId: 'eb4', createdAt: now.toISOString(), createdBy: b });
 };
 
 // ── Vite 개발 서버(에뮬레이터 연결 모드) ──
@@ -146,7 +151,34 @@ const CHECKS = [
     await p.waitForURL(/\/travel\/t1/, { timeout: 5000 });
   } },
   { name: '추억', path: '/memories' },
-  { name: '버킷리스트', path: '/bucket', expect: '캠핑 가기' },
+  { name: '하고 싶은 것 보드(예전 문서·자주 할 것·이룬 것)', path: '/bucket', expect: '캠핑 가기', act: async (p) => {
+    await p.getByText('마라탕 먹기').first().waitFor({ timeout: 5000 });
+    await p.locator('.bk-seg button', { hasText: '이룬 것' }).click();
+    await p.getByText('오마카세').first().waitFor({ timeout: 5000 });
+  } },
+  { name: '하고 싶은 것 추가 → 했어요(자주 할 것 횟수)', path: '/bucket', expect: '캠핑 가기', settleMs: 1500, act: async (p) => {
+    await p.locator('.bk-add-input').fill('스모크 떡볶이');
+    await p.locator('.bk-kind button', { hasText: '자주' }).click();
+    await p.locator('.bk-add-btn').click();
+    await p.locator('.bk-card', { hasText: '스모크 떡볶이' }).first().click();
+    await p.locator('.bk-sheet .bk-btn.primary', { hasText: '했어요' }).click();
+    await p.locator('#bk-done-note').fill('또 먹자');
+    await p.locator('.bk-wide-btn', { hasText: '기록하기' }).click();
+    await p.getByText('함께한 기록 · 1번').first().waitFor({ timeout: 8000 });
+  } },
+  { name: '하고 싶은 것 → 언제 할까?(일정 만들기)', path: '/bucket?modal=plan&id=b1', expect: '언제 할까요?', settleMs: 1500, act: async (p) => {
+    await p.locator('.bk-wide-btn', { hasText: '일정 만들기' }).click();
+    await p.getByText('캘린더에 일정을 만들었어요').first().waitFor({ timeout: 8000 });
+  } },
+  { name: '뭐 할까? 골라줘(돌림판)', path: '/bucket', expect: '캠핑 가기', act: async (p) => {
+    await p.locator('.bk-pick').click();
+    await p.getByText('오늘 뭐 할까?').first().waitFor({ timeout: 5000 });
+  } },
+  { name: '홈 했어요? 카드(지난 계획)', path: '/', expect: '했어요?' },
+  { name: '했어요? 카드 → 아직이에요', path: '/bucket', expect: '했어요?', settleMs: 1200, act: async (p) => {
+    await p.locator('.bk-check-btn', { hasText: '아직이에요' }).click();
+    await p.getByText('계획만 풀었어요').first().waitFor({ timeout: 8000 });
+  } },
   { name: '여행 목록 + 지도 카드', path: '/travel', expect: '강릉 바다 여행', act: async (p) => { await p.getByText('기록을 기다리는 여행').first().waitFor({ timeout: 8000 }); } },
   { name: '새 여행 모달 + 지역 칸', path: '/travel?modal=trip', expect: '지역 더하기' },
   { name: '여행 저장(새 여행 만들기 → 목록에 보임)', path: '/travel?modal=trip', expect: '지역 더하기', settleMs: 2500, act: async (p) => {

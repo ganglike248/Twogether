@@ -4,6 +4,7 @@
 import { collection, query, where, getDocs } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { getEventDayRange, convertToDate, getLocalDateStr } from '../../utils/dataUtils';
+import { expandRepeatForRecap } from '../bucket/bucketLogic';
 
 const MOOD_SCORE = { great: 5, good: 4, ok: 3, meh: 2, bad: 1 };
 
@@ -57,10 +58,11 @@ export const fetchRecapData = async (coupleId) => {
     };
   }).filter(t => t.startStr);
 
-  const buckets = bucketSnap.docs.map(d => {
+  // 또 할 것(kind 'repeat')은 기록(history) 하나하나를 '이룬 것'으로 펼쳐 셈(expandRepeatForRecap)
+  const buckets = expandRepeatForRecap(bucketSnap.docs.map(d => {
     const b = d.data();
-    return { id: d.id, title: b.title || '', category: b.category || '', completed: !!b.completed, completedStr: toDateStr(b.completedAt), createdAt: convertToDate(b.createdAt) };
-  });
+    return { id: d.id, title: b.title || '', category: b.category || '', completed: !!b.completed, completedStr: toDateStr(b.completedAt), createdAt: convertToDate(b.createdAt), kind: b.kind === 'repeat' ? 'repeat' : 'once', history: Array.isArray(b.history) ? b.history : [] };
+  }));
 
   const letters = letterSnap.docs.map(d => {
     const m = d.data();

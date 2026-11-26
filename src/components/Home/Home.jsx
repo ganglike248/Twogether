@@ -15,6 +15,8 @@ import { useTripSchedules } from '../../hooks/useTrip';
 import MapEntryCard from '../Map/MapEntryCard';
 import { tripPlaceName } from '../../services/regions/regionData';
 import TripEndCard from '../Travel/Review/TripEndCard';
+import BucketCheckCard from '../BucketList/BucketCheckCard';
+import { isAchieved, isActive, rankSuggestions } from '../../services/bucket/bucketLogic';
 import { collection, query, where, onSnapshot } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -54,7 +56,7 @@ const Home = () => {
   const location = useLocation();
 
   const [dday, setDday] = useState(0);
-  const [bucketStats, setBucketStats] = useState({ total: 0, completed: 0 });
+  const [bucketStats, setBucketStats] = useState({ total: 0, active: 0, achieved: 0, pick: null });
   const [bucketList, setBucketList] = useState([]);
   const [bucketLoading, setBucketLoading] = useState(true);
   const [sealedMessages, setSealedMessages] = useState([]);
@@ -116,7 +118,8 @@ const Home = () => {
     const unsubscribe = onSnapshot(q, (snap) => {
       const all = snap.docs.map(d => ({ id: d.id, ...d.data() }));
       setBucketList(all);
-      setBucketStats({ total: all.length, completed: all.filter(d => d.completed).length });
+      // 또 할 것은 해도 남으므로 '하고 싶은 것 N · 이룬 것 M'으로(진행률 대신)
+      setBucketStats({ total: all.length, active: all.filter(isActive).length, achieved: all.filter(isAchieved).length, pick: rankSuggestions(all)[0] || null });
       setBucketLoading(false);
     }, () => setBucketLoading(false));
     return () => unsubscribe();
@@ -399,6 +402,8 @@ const Home = () => {
         >
           {/* 끝난 여행 기록 — 기록·건너뛰기 전까지 맨 위 */}
           <TripEndCard trips={tripDocs} uid={user?.uid} />
+          {/* 계획한 날이 지난 '하고 싶은 것' — 했어요? */}
+          <BucketCheckCard bucketList={bucketList} />
 
           {showFirstSteps && (
             <FirstStepsCard
@@ -640,25 +645,18 @@ const Home = () => {
             )}
           </Link>
 
-          {/* 버킷리스트 진행률 + 돌림판 */}
+          {/* 하고 싶은 것(버킷) + 돌림판 */}
           {bucketStats.total > 0 && (
             <div className="home-bucket-section">
               <div className="home-card home-bucket-preview" {...pressable(() => navigate('/bucket', { replace: true }))}>
                 <div className="card-label">
                   <HiCheckCircle className="card-label-icon" />
-                  버킷리스트 진행률
+                  하고 싶은 것
                 </div>
-                <div className="bucket-preview-row">
-                  <div className="bucket-preview-bar-wrap">
-                    <div
-                      className="bucket-preview-bar-fill"
-                      style={{ width: `${Math.round((bucketStats.completed / bucketStats.total) * 100)}%` }}
-                    />
-                  </div>
-                  <span className="bucket-preview-stat">
-                    {bucketStats.completed}/{bucketStats.total} 완료
-                  </span>
-                </div>
+                <div className="bucket-preview-pick">{bucketStats.pick ? bucketStats.pick.title : '새로 담아 볼까요?'}</div>
+                <span className="bucket-preview-stat">
+                  {bucketStats.active}개 담김{bucketStats.achieved > 0 ? ` · 이룬 것 ${bucketStats.achieved}` : ''}
+                </span>
               </div>
               <div className="home-card home-wheel-button" {...pressable(() => navigate('/?modal=wheel', { state: { modal: true } }))}>
                 <div className="card-label">
@@ -666,7 +664,7 @@ const Home = () => {
                   돌림판
                 </div>
                 <div className="wheel-button-hint">
-                  항목을 선택해보세요
+                  뭐 할까? 골라줘
                 </div>
               </div>
             </div>
@@ -689,6 +687,8 @@ const Home = () => {
         }}
         bucketList={bucketList}
         customCategories={customCategories}
+        onPlan={(id) => navigate(`/bucket?modal=plan&id=${id}`, { replace: true, state: { modal: true } })}
+        onDone={(id) => navigate(`/bucket?modal=done&id=${id}`, { replace: true, state: { modal: true } })}
       />
     </div>
   );

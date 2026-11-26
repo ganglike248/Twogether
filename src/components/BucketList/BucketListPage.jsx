@@ -1,682 +1,287 @@
 // src/components/BucketList/BucketListPage.jsx
-import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
+// '하고 싶은 것' 보드(v1.2 개편) — 한 줄 추가 → [뭐 할까? 골라줘]·추천 → 카드(한 번 해볼 것/또 할 것) → [언제 할까?]=일정 → [했어요]=기록.
+// 시트는 URL(?modal=detail|done|date|plan|categoryManager|wheel&id=)에서 파생. 계산은 services/bucket/bucketLogic.js,
+// 쓰기는 services/bucket/bucketService.js(offlineWrite). 예전 문서(kind 없음)는 '한 번 해볼 것'.
+import React, { useCallback, useMemo, useRef, useState } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { collection, doc, query, where, onSnapshot } from 'firebase/firestore';
+import { doc } from 'firebase/firestore';
 import { toast } from 'react-toastify';
+import { MdCasino, MdSettings } from 'react-icons/md';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
-import { format, parseISO } from 'date-fns';
-import { MdCheckCircle, MdRadioButtonUnchecked, MdCalendarToday, MdEdit, MdAdd, MdSettings, MdSchedule, MdCheck } from 'react-icons/md';
-import '../BucketList/BucketListPage.css';
-import './bucket-modal.css';
-import BaseModal from './BaseModal';
-import CategorySelector from './CategorySelector';
+import useAnalytics from '../../hooks/useAnalytics';
+import { safeUpdateDoc } from '../../services/offlineWrite';
+import { getLocalDateStr } from '../../utils/dataUtils';
+import { getFriendlyErrorMessage } from '../../utils/errorMessages';
+import { getCategoryDisplayName, isKnownCategory } from '../../services/categoryColorService';
+import { isActive, isAchieved, isRepeat, rankSuggestions, createdDateStr, KIND_LABEL, KIND_DESC } from '../../services/bucket/bucketLogic';
+import * as svc from '../../services/bucket/bucketService';
+import { useBucketData } from './useBucketData';
+import BucketQuickAdd from './BucketQuickAdd';
+import BucketSuggestCard from './BucketSuggestCard';
+import BucketCard from './BucketCard';
+import BucketCheckCard from './BucketCheckCard';
+import BucketAchieved from './BucketAchieved';
+import BucketDetailSheet from './BucketDetailSheet';
+import BucketDoneSheet from './BucketDoneSheet';
+import BucketPlanSheet from './BucketPlanSheet';
 import CategoryManagerModal from './CategoryManagerModal';
 import WheelModal from '../Wheel/WheelModal';
-import ConfirmModal from '../common/ConfirmModal';
-import FloatingActionMenu from '../Travel/FloatingActionMenu';
-import { BucketListSkeleton } from './BucketListSkeleton';
-import { DEFAULT_CATEGORIES, getCategoryColor, getCategoryDisplayName } from '../../services/categoryColorService';
-import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
-import useAnalytics from '../../hooks/useAnalytics';
 import EmptyState from '../common/EmptyState';
-import AutoGrowTextarea from '../common/AutoGrowTextarea';
-import { safeAddDoc, safeDeleteDoc, safeUpdateDoc } from '../../services/offlineWrite';
-import { pressable } from '../../utils/pressable';
+import { BucketListSkeleton } from './BucketListSkeleton';
+import './BucketBoard.css';
 
-const BucketItem = React.memo(({
-  item,
-  isCompleted,
-  customCategories,
-  onOpenEditModal,
-  onOpenDateModal,
-  onEditUncheck,
-  formatBucketDate
-}) => {
-  const categoryColor = getCategoryColor(item.category, customCategories);
-  const categoryDisplay = getCategoryDisplayName(item.category, customCategories);
+const KINDS = [
+  { key: 'all', label: '전체' },
+  { key: 'once', label: KIND_LABEL.once },
+  { key: 'repeat', label: KIND_LABEL.repeat },
+  { key: 'done', label: '이룬 것' }, // 맨 아래 접힌 구역 대신 필터 탭으로(찾기 쉽게)
+];
 
-  return (
-    <div
-      className={`bucket-item ${isCompleted ? 'completed' : ''}`}
-      {...pressable(() => onOpenEditModal(item))}
-      style={{ borderLeftColor: categoryColor }}
-    >
-      <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
-        <input
-          type="checkbox"
-          checked={isCompleted}
-          onChange={() => isCompleted ? onEditUncheck(item.id) : onOpenDateModal(item.id)}
-        />
-        {isCompleted ? (
-          <MdCheckCircle className="checkbox-icon" style={{ color: categoryColor }} />
-        ) : (
-          <MdRadioButtonUnchecked className="checkbox-icon" style={{ color: categoryColor }} />
-        )}
-      </label>
-      <span className="bucket-title-text">{item.title}</span>
-      <span className="bucket-category-tag" style={{ backgroundColor: categoryColor }}>
-        {categoryDisplay}
-      </span>
-      {isCompleted && item.completedAt && (
-        <span className="bucket-completed-date">{formatBucketDate(item.completedAt)} 완료</span>
-      )}
-      {!isCompleted && item.createdAt && (
-        <span className="bucket-created-date">{formatBucketDate(item.createdAt)} 생성</span>
-      )}
-    </div>
-  );
-});
-
-BucketItem.displayName = 'BucketItem';
+const byPlannedThenNewest = (a, b) => {
+  if (a.plannedDate && b.plannedDate) return a.plannedDate < b.plannedDate ? -1 : 1;
+  if (a.plannedDate) return -1;
+  if (b.plannedDate) return 1;
+  return createdDateStr(b).localeCompare(createdDateStr(a)) || String(b.createdAt || '').localeCompare(String(a.createdAt || ''));
+};
 
 function BucketListPage() {
   const { coupleId, user } = useAuthContext();
+  const uid = user?.uid;
   const { logEvent } = useAnalytics();
-  const canClick = useDoubleClickPrevention(500);
   const navigate = useNavigate();
   const location = useLocation();
-  const [bucketList, setBucketList] = useState([]);
-  const [customCategories, setCustomCategories] = useState({});
-  const [categoryOptions, setCategoryOptions] = useState([{ value: 'all', label: '전체' }]);
-  const [activeTab, setActiveTab] = useState('pending');
-  const [tabFilters, setTabFilters] = useState({ pending: 'all', completed: 'all' });
-  const [isLoading, setIsLoading] = useState(true);
-
-  // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate
-  // 훅(useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
-  // 폼 데이터(editForm/addForm 등)는 그대로 useState — "무엇이 열려있는지"만 URL이 결정.
   const [searchParams] = useSearchParams();
-  const modalType = searchParams.get('modal');
-  const modalState = { type: modalType, data: searchParams.get('from') === 'edit' ? 'from-edit' : null };
-  const isWheelModalOpen = modalType === 'wheel';
+  const modal = searchParams.get('modal');
+  const modalId = searchParams.get('id');
+  const { bucketList, customCategories, isLoading } = useBucketData(coupleId);
+  const [kindFilter, setKindFilter] = useState('all');
+  const [catFilter, setCatFilter] = useState('all');
+  const addInputRef = useRef(null);
+  const todayStr = getLocalDateStr();
 
-  const openModal = useCallback(
-    (type, extra = '') => navigate(`/bucket?modal=${type}${extra}`, { state: { modal: true } }),
-    [navigate]
+  const openModal = useCallback((type, id, { replace = false } = {}) => {
+    navigate(`/bucket?modal=${type}${id ? `&id=${id}` : ''}`, { replace, state: { modal: true } });
+  }, [navigate]);
+
+  // 첫 진입(딥링크·새로고침)이면 뒤로 가기 대신 /bucket으로(앱 밖으로 나가지 않게)
+  const closeModal = useCallback(() => {
+    if (location.key === 'default') navigate('/bucket', { replace: true });
+    else navigate(-1);
+  }, [location.key, navigate]);
+
+  const byId = useMemo(() => new Map(bucketList.map(b => [b.id, b])), [bucketList]);
+  const current = modalId ? byId.get(modalId) || null : null;
+
+  const active = useMemo(() => bucketList.filter(isActive), [bucketList]);
+  const achieved = useMemo(
+    () => bucketList.filter(isAchieved).sort((a, b) => String(b.completedAt || '').localeCompare(String(a.completedAt || ''))),
+    [bucketList],
+  );
+  const suggestions = useMemo(() => rankSuggestions(bucketList), [bucketList]);
+  const isDoneTab = kindFilter === 'done';
+  const pool = isDoneTab ? achieved : active;
+  const usedCats = useMemo(
+    () => [...new Set(pool.map(b => b.category).filter(c => isKnownCategory(c, customCategories)))].sort(),
+    [pool, customCategories],
+  );
+  const counts = useMemo(() => ({
+    all: active.length,
+    once: active.filter(b => !isRepeat(b)).length,
+    repeat: active.filter(isRepeat).length,
+    done: achieved.length,
+  }), [active, achieved]);
+  const visible = useMemo(() => (isDoneTab ? achieved : active
+    .filter(b => kindFilter === 'all' || (kindFilter === 'repeat') === isRepeat(b))
+    .sort(byPlannedThenNewest))
+    .filter(b => catFilter === 'all' || b.category === catFilter), [isDoneTab, achieved, active, kindFilter, catFilter]);
+
+  // ── 쓰기(성공하면 true) ─────────────────────────────
+  const run = async (fn, okMsg, failMsg = '잠시 후 다시 시도해주세요.') => {
+    try {
+      await fn();
+      if (okMsg) toast.success(okMsg);
+      return true;
+    } catch (err) {
+      console.error('[bucket]', err);
+      toast.error(getFriendlyErrorMessage(err, failMsg));
+      return false;
+    }
+  };
+
+  const handleAdd = ({ title, kind }) => run(async () => {
+    const category = catFilter !== 'all' ? catFilter : null;
+    await svc.addBucket({ title, kind, category }, uid, coupleId);
+    logEvent('bucket_created', { kind, category: category || 'none' });
+    if (kindFilter !== 'all' && kindFilter !== kind) setKindFilter('all');
+  }, kind === 'repeat' ? '자주 할 것에 담았어요!' : '하고 싶은 것에 담았어요!');
+
+  const handleDone = async (b, { date, note }) => {
+    const ok = await run(async () => {
+      await svc.markBucketDone(b, { date, note, uid });
+      logEvent('bucket_done', { kind: isRepeat(b) ? 'repeat' : 'once', hasNote: !!note.trim() });
+    }, isRepeat(b) ? '기록했어요! 다음에 또 해요' : '이뤘어요! 축하해요');
+    if (ok) closeModal();
+    return ok;
+  };
+
+  const handleChangeDate = async (b, { date }) => {
+    const ok = await run(() => svc.changeBucketCompletedDate(b, date), '날짜를 고쳤어요');
+    if (ok) closeModal();
+    return ok;
+  };
+
+  const handlePlan = async (b, date) => {
+    const ok = await run(async () => {
+      await svc.planBucket(b, date, uid, coupleId);
+      logEvent('bucket_planned', { kind: isRepeat(b) ? 'repeat' : 'once' });
+    }, '캘린더에 일정을 만들었어요');
+    if (ok) closeModal();
+    return ok;
+  };
+
+  const handleSave = (b, form) => run(async () => {
+    await svc.editBucket(b.id, form);
+    if (form.kind !== (isRepeat(b) ? 'repeat' : 'once')) await svc.changeBucketKind(b, form.kind);
+  }, '수정했어요');
+
+  const handleDelete = async (b) => {
+    const ok = await run(async () => {
+      if (b.plannedEventId && b.plannedDate >= todayStr) await svc.unplanBucket(b, uid, coupleId);
+      await svc.deleteBucket(b.id);
+    }, '삭제했어요');
+    if (ok) closeModal();
+  };
+
+  const handleSaveCategories = (updated) => run(
+    () => safeUpdateDoc(doc(db, 'couples', coupleId), { customCategories: updated }),
+    '카테고리가 저장됐어요.',
   );
 
-  // 모달 타입별 폼 데이터
-  const [addForm, setAddForm] = useState({ title: '', content: '', category: 'food' });
-  const [editForm, setEditForm] = useState({ id: '', title: '', content: '', category: 'food', completed: false, completedAt: null });
-  const [completionDate, setCompletionDate] = useState('');
-  const [selectedItemId, setSelectedItemId] = useState(null);
-  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
-  const scrollPositions = useRef({ pending: 0, completed: 0 });
+  // 돌림판 결과에서 바로 [언제 할까?]·[오늘 했어요] — 돌림판 자리를 시트로 바꿈(닫으면 보드로)
+  const wheelPlan = (id) => openModal('plan', id, { replace: true });
+  const wheelDone = (id) => openModal('done', id, { replace: true });
 
-  // customCategories 실시간 구독
-  useEffect(() => {
-    if (!coupleId) return;
-    const coupleDocRef = doc(db, 'couples', coupleId);
-    const unsubscribe = onSnapshot(coupleDocRef, (coupleDocSnap) => {
-      try {
-        const loadedCustomCategories = coupleDocSnap.data()?.customCategories || {};
-        setCustomCategories(loadedCustomCategories);
-
-        // categoryOptions 업데이트
-        const allCategories = { ...DEFAULT_CATEGORIES, ...loadedCustomCategories };
-        const options = [
-          { value: 'all', label: '전체' },
-          ...Object.keys(allCategories).sort().map(key => ({
-            value: key,
-            label: getCategoryDisplayName(key, loadedCustomCategories)
-          }))
-        ];
-        setCategoryOptions(options);
-      } catch (error) {
-        console.error('카테고리 로드 실패:', error);
-        toast.error('카테고리를 로드하는 중 오류가 발생했어요.');
-      }
-    }, (error) => {
-      console.error('카테고리 구독 실패:', error);
-      toast.error('카테고리 데이터를 불러올 수 없어요.');
-    });
-    return () => unsubscribe();
-  }, [coupleId]);
-
-  // bucketList 실시간 구독 (카테고리 필터 없이 전체 구독 — 탭/필터는 클라이언트 처리)
-  useEffect(() => {
-    if (!coupleId) return;
-
-    setIsLoading(true);
-    const q = query(collection(db, 'bucketlists'), where('coupleId', '==', coupleId));
-    const unsubscribe = onSnapshot(
-      q,
-      (querySnapshot) => {
-        const data = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
-        setBucketList(data);
-        setIsLoading(false);
-      },
-      (error) => {
-        console.error('버킷리스트 로드 실패:', error);
-        if (error.code !== 'cancelled') {
-          toast.error('데이터를 불러오는 중 오류가 발생했어요.');
-        }
-        setIsLoading(false);
-      }
-    );
-
-    return () => unsubscribe();
-  }, [coupleId]);
-
-  // useCallback으로 감싸고 customCategories를 deps에 명시 — 안 그러면 이 함수들을 참조하는
-  // 다른 useCallback(예: handleOpenEditModal)이 자기 deps에 이 함수 자체를 안 넣었을 때
-  // "최초 렌더 시점의 customCategories(아직 로드 전이라 항상 {})"로 영원히 고정된 클로저를
-  // 참조하게 됨 — 실제로 handleOpenEditModal이 이 문제였음(아래 참고, 2026-08-25 발견/수정):
-  // 로드 완료 후 실제로 존재하는 커스텀 카테고리인데도 "삭제된 카테고리"로 오판해 카드를 열
-  // 때마다 엉뚱하게 기본 카테고리로 되돌리고 있었음.
-  const getFirstCategory = useCallback(() => {
-    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
-    return Object.keys(allCategories).sort()[0] || 'food';
-  }, [customCategories]);
-
-  const isValidCategory = useCallback((category) => {
-    const allCategories = { ...DEFAULT_CATEGORIES, ...customCategories };
-    return Object.keys(allCategories).includes(category);
-  }, [customCategories]);
-
-  const handleOpenAddModal = () => {
-    const currentFilter = tabFilters[activeTab];
-    // 필터된 카테고리가 있으면 그것을 기본값으로, 아니면 첫 번째 카테고리
-    const defaultCategory = currentFilter !== 'all' ? currentFilter : getFirstCategory();
-    setAddForm(f => ({ ...f, category: defaultCategory }));
-    openModal('add');
-  };
-
-  const handleOpenCategoryManager = () => {
-    openModal('categoryManager');
-  };
-
-  const handleSaveCategories = async (updatedCategories) => {
-    try {
-      const coupleDocRef = doc(db, 'couples', coupleId);
-      await safeUpdateDoc(coupleDocRef, { customCategories: updatedCategories });
-      // onSnapshot이 즉시 실행되어 customCategories + categoryOptions 업데이트
-      toast.success('카테고리가 저장됐어요.');
-    } catch (error) {
-      console.error('카테고리 저장 실패:', error);
-      toast.error('카테고리 저장에 실패했어요.');
-    }
-  };
-
-  const handleAdd = async () => {
-    if (!canClick()) return;
-    if (!addForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
-    try {
-      const newItem = {
-        title: addForm.title,
-        content: addForm.content,
-        category: addForm.category,
-        coupleId,
-        createdBy: user?.uid || null, // 홈 '첫 걸음' 카드의 "누가 담았는지" 표시용(v1.0.28~, 그 전 항목엔 없음)
-        completed: false,
-        completedAt: null,
-        createdAt: new Date().toISOString(),
-      };
-      await safeAddDoc(collection(db, 'bucketlists'), newItem);
-      logEvent('bucket_created', {
-        category: addForm.category,
-        hasContent: !!addForm.content,
-      });
-      toast.success('버킷을 추가했어요!');
-      setAddForm({ title: '', content: '', category: getFirstCategory() });
-      closeModal();
-    } catch (error) {
-      console.error('버킷 추가 실패:', error);
-      toast.error('버킷 추가 중 오류가 발생했어요.');
-    }
-  };
-
-  const handleOpenDateModal = useCallback((id) => {
-    setSelectedItemId(id);
-    setCompletionDate(format(new Date(), 'yyyy-MM-dd')); // 오늘 날짜 기본값
-    openModal('date');
-  }, [openModal]);
-
-  const handleCompleteWithDate = useCallback(async () => {
-    if (!selectedItemId || !completionDate) return;
-
-    // 날짜 검증: 미래 날짜 방지 (timezone 고려)
-    const [year, month, day] = completionDate.split('-').map(Number);
-    const selectedDateObj = new Date(year, month - 1, day, 0, 0, 0, 0);
-
-    const today = new Date();
-    const todayObj = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
-
-    if (selectedDateObj > todayObj) {
-      toast.warning('미래 날짜는 선택할 수 없어요');
-      return;
-    }
-
-    try {
-      await safeUpdateDoc(doc(db, 'bucketlists', selectedItemId), {
-        completed: true,
-        completedAt: completionDate
-      });
-      // 이미 완료된 항목의 날짜 수정인 경우
-      if (modalState.data === 'from-edit' && editForm.completed) {
-        toast.success('완료 날짜를 수정했어요!');
-      } else {
-        toast.success('완료했어요!');
-      }
-      closeModal();
-    } catch (error) {
-      console.error('버킷 완료 실패:', error);
-      toast.error('버킷 완료 중 오류가 발생했어요.');
-    }
-    // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedItemId, completionDate, modalState.data, editForm.completed]);
-
-  const handleConfirmDelete = useCallback(async () => {
-    try {
-      await safeDeleteDoc(doc(db, 'bucketlists', editForm.id));
-      closeModal();
-    } catch (error) {
-      console.error('삭제 실패:', error);
-      toast.error('삭제 중 오류가 발생했어요.');
-    }
-    // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [editForm.id]);
-
-  // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
-  // 앱 밖으로 나갈 수 있어 대신 /bucket으로 보냄 — 캘린더 closeModal과 동일한 패턴.
-  const closeModal = useCallback(() => {
-    setCompletionDate('');
-    setSelectedItemId(null);
-    setAddForm(f => ({ ...f, category: getFirstCategory() }));
-    setShowDeleteConfirm(false);
-    if (location.key === 'default') {
-      navigate('/bucket', { replace: true });
-    } else {
-      navigate(-1);
-    }
-  }, [location.key, navigate, getFirstCategory]);
-
-  const handleOpenEditModal = useCallback((item) => {
-    // 카테고리가 유효하지 않으면 첫 번째 카테고리로 변경
-    const validCategory = isValidCategory(item.category) ? item.category : getFirstCategory();
-    // 유효하지 않은 카테고리인 경우 경고
-    if (validCategory !== item.category) {
-      toast.info('삭제된 카테고리를 유효한 카테고리로 변경했어요');
-    }
-    setEditForm({
-      id: item.id,
-      title: item.title,
-      content: item.content,
-      category: validCategory,
-      completed: item.completed,
-      completedAt: item.completedAt
-    });
-    openModal('edit');
-  }, [isValidCategory, getFirstCategory, openModal]);
-
-  const handleEditSave = useCallback(async () => {
-    if (!canClick()) return;
-    if (!editForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
-    try {
-      await safeUpdateDoc(doc(db, 'bucketlists', editForm.id), {
-        title: editForm.title,
-        content: editForm.content,
-        category: editForm.category,
-      });
-      toast.success('수정했어요!');
-      closeModal();
-    } catch (error) {
-      console.error('버킷 수정 실패:', error);
-      toast.error('버킷 수정 중 오류가 발생했어요.');
-    }
-  }, [editForm, canClick, closeModal]);
-
-  const handleEditComplete = useCallback(() => {
-    setSelectedItemId(editForm.id);
-    openModal('date', '&from=edit');
-  }, [editForm.id, openModal]);
-
-  const handleEditUncheck = async (id = editForm.id) => {
-    try {
-      await safeUpdateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
-      if (modalState.type === 'edit') {
-        closeModal();
-      }
-    } catch (error) {
-      console.error('미완료 변경 실패:', error);
-      toast.error('미완료 처리 중 오류가 발생했어요.');
-    }
-  };
-
-  const formatBucketDate = (dateStr) => {
-    if (!dateStr) return '';
-    return format(parseISO(dateStr), 'yy.MM.dd');
-  };
-
-  const pendingList = useMemo(() => {
-    const catFilter = tabFilters['pending'];
-    return bucketList
-      .filter(item => !item.completed && (catFilter === 'all' || item.category === catFilter))
-      .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt));
-  }, [bucketList, tabFilters]);
-
-  const completedList = useMemo(() => {
-    const catFilter = tabFilters['completed'];
-    return bucketList
-      .filter(item => item.completed && (catFilter === 'all' || item.category === catFilter))
-      .sort((a, b) => new Date(b.completedAt) - new Date(a.completedAt));
-  }, [bucketList, tabFilters]);
-
-  const activeList = activeTab === 'pending' ? pendingList : completedList;
-  const bucketListRef = useRef(null);
-
-  // 탭 전환 시 스크롤 위치 저장 및 복원
-  useEffect(() => {
-    const currentElement = bucketListRef.current;
-    if (!currentElement) return;
-
-    // 현재 탭 스크롤 위치 저장
-    const saveScroll = () => {
-      scrollPositions.current[activeTab] = currentElement.scrollTop;
-    };
-
-    const handleScroll = () => {
-      scrollPositions.current[activeTab] = currentElement.scrollTop;
-    };
-
-    currentElement.addEventListener('scroll', handleScroll);
-
-    // 탭 복귀 시 스크롤 위치 복원
-    const restoreScroll = () => {
-      setTimeout(() => {
-        if (currentElement) {
-          currentElement.scrollTop = scrollPositions.current[activeTab] || 0;
-        }
-      }, 0);
-    };
-
-    restoreScroll();
-
-    return () => {
-      currentElement?.removeEventListener('scroll', handleScroll);
-      saveScroll();
-    };
-  }, [activeTab]);
-
-  const { completedCount, totalCount, completionPercentage } = useMemo(() => {
-    const currentFilter = tabFilters[activeTab];
-    const filteredBucketList = currentFilter === 'all'
-      ? bucketList
-      : bucketList.filter(item => item.category === currentFilter);
-
-    const completed = filteredBucketList.filter(item => item.completed).length;
-    const total = filteredBucketList.length;
-    return {
-      completedCount: completed,
-      totalCount: total,
-      completionPercentage: total > 0 ? Math.round((completed / total) * 100) : 0
-    };
-  }, [bucketList, activeTab, tabFilters]);
+  const showDetail = (modal === 'detail' || (modal === 'categoryManager' && modalId)) ? current : null;
 
   return (
-    <div className="bucket-container">
-      <div className="bucket-achievement">
-        <div className="achievement-left">
-          <p className="achievement-label">달성률</p>
-          <p className="achievement-percentage">{completionPercentage}%</p>
-          <div className="achievement-bar">
-            <div className="achievement-bar-fill" style={{ width: `${completionPercentage}%` }}></div>
-          </div>
-        </div>
-        <div className="achievement-right">
-          <p className="achievement-count">{completedCount} / {totalCount}</p>
-          <p className="achievement-subtitle">달성 완료</p>
-        </div>
-      </div>
+    <div className="bk-page">
+      <header className="bk-hd">
+        <h1 className="bk-title">하고 싶은 것</h1>
+        <p className="bk-sub">둘이 같이 해보고 싶은 것들</p>
+      </header>
 
-      <div className="bucket-tab-bar">
-        <button
-          className={`bucket-tab ${activeTab === 'pending' ? 'active' : ''}`}
-          onClick={() => setActiveTab('pending')}
-        >
-          예정 <span className="bucket-tab-count">{pendingList.length}</span>
-        </button>
-        <button
-          className={`bucket-tab ${activeTab === 'completed' ? 'active' : ''}`}
-          onClick={() => setActiveTab('completed')}
-        >
-          완료 <span className="bucket-tab-count">{completedList.length}</span>
-        </button>
-        <button className="bucket-wheel-btn" onClick={() => openModal('wheel')} title="돌림판으로 선택">
-          🎡
-        </button>
-      </div>
+      <BucketQuickAdd onAdd={handleAdd} inputRef={addInputRef} />
 
-      <div className="bucket-list" ref={bucketListRef}>
-        <div className="bucket-toolbar">
-          <div className="category-tabs">
-            <button
-              className="cat-tab-manage"
-              onClick={handleOpenCategoryManager}
-              title="카테고리 관리"
-            >
-              <MdSettings color="#74c0fc" />
+      {isLoading ? (
+        <BucketListSkeleton />
+      ) : (
+        <>
+          <BucketCheckCard bucketList={bucketList} />
+
+          {active.length >= 2 && (
+            <button type="button" className="bk-pick" onClick={() => openModal('wheel')}>
+              <MdCasino aria-hidden="true" />뭐 할까? 골라줘
             </button>
-            {categoryOptions.map(opt => {
-              const categoryColor = opt.value === 'all'
-                ? '#FFD700'
-                : getCategoryColor(opt.value, customCategories);
-              const currentFilter = tabFilters[activeTab];
-              return (
-                <button
-                  key={opt.value}
-                  className={`cat-tab ${currentFilter === opt.value ? 'active' : ''}`}
-                  onClick={() => setTabFilters(prev => ({ ...prev, [activeTab]: opt.value }))}
-                  style={{ backgroundColor: categoryColor }}
-                >
-                  {opt.label}
-                </button>
-              );
-            })}
-          </div>
-        </div>
-        {isLoading ? (
-          <BucketListSkeleton />
-        ) : activeList.length === 0 ? (
-          <EmptyState
-            icon={activeTab === 'pending' ? <MdSchedule size={56} color="#f59f00" /> : <MdCheckCircle size={56} color="#51cf66" />}
-            title={activeTab === 'pending' ? '예정된 항목이 없어요' : '완료된 항목이 없어요'}
-            text={bucketList.length === 0
-              ? '새로운 버킷을 추가해보세요!'
-              : '조건에 맞는 항목이 없어요.'}
-            button={bucketList.length === 0 ? {
-              text: '첫 버킷 추가하기',
-              onClick: handleOpenAddModal
-            } : undefined}
+          )}
+
+          <BucketSuggestCard
+            suggestions={suggestions}
+            todayStr={todayStr}
+            customCategories={customCategories}
+            onOpen={(b) => openModal('detail', b.id)}
+            onPlan={(b) => openModal('plan', b.id)}
+            onDone={(b) => openModal('done', b.id)}
           />
-        ) : (
-          activeList.map(item => (
-            <BucketItem
-              key={item.id}
-              item={item}
-              isCompleted={item.completed}
-              customCategories={customCategories}
-              onOpenEditModal={handleOpenEditModal}
-              onOpenDateModal={handleOpenDateModal}
-              onEditUncheck={handleEditUncheck}
-              formatBucketDate={formatBucketDate}
+
+          {bucketList.length > 0 && (
+            <div className="bk-filters">
+              <div className="bk-seg" role="tablist" aria-label="종류">
+                {KINDS.map(k => (
+                  <button key={k.key} type="button" role="tab" aria-selected={kindFilter === k.key} className={kindFilter === k.key ? 'on' : ''} onClick={() => { setKindFilter(k.key); setCatFilter('all'); }}>
+                    {k.label} <span>{counts[k.key]}</span>
+                  </button>
+                ))}
+              </div>
+              <p className="bk-kind-desc">{KIND_DESC[kindFilter]}</p>
+              <div className="bk-cats scroll">
+                <button type="button" className="bk-cat-manage" onClick={() => openModal('categoryManager')} aria-label="카테고리 관리"><MdSettings /></button>
+                <button type="button" className={`bk-cat${catFilter === 'all' ? ' on' : ''}`} onClick={() => setCatFilter('all')}>모든 카테고리</button>
+                {usedCats.map(c => (
+                  <button key={c} type="button" className={`bk-cat${catFilter === c ? ' on' : ''}`} onClick={() => setCatFilter(c)}>
+                    {getCategoryDisplayName(c, customCategories)}
+                  </button>
+                ))}
+              </div>
+            </div>
+          )}
+
+          {isDoneTab ? (
+            visible.length > 0
+              ? <BucketAchieved items={visible} onOpen={(b) => openModal('detail', b.id)} />
+              : <p className="bk-empty">{achieved.length ? '조건에 맞는 항목이 없어요' : "아직 이룬 게 없어요. 해보고 싶은 것을 하고 [했어요]를 눌러 보세요"}</p>
+          ) : visible.length > 0 ? (
+            <div className="bk-grid">
+              {visible.map(b => (
+                <BucketCard key={b.id} bucket={b} uid={uid} todayStr={todayStr} customCategories={customCategories} onOpen={(x) => openModal('detail', x.id)} />
+              ))}
+            </div>
+          ) : active.length > 0 ? (
+            <p className="bk-empty">조건에 맞는 항목이 없어요</p>
+          ) : (
+            <EmptyState
+              title={achieved.length ? '다 이뤘어요!' : '아직 담은 게 없어요'}
+              text="먹고 싶은 것, 가고 싶은 곳, 해보고 싶은 것을 위에 한 줄로 적어 보세요"
+              button={{ text: '적으러 가기', onClick: () => addInputRef.current?.focus() }}
             />
-          ))
-        )}
-      </div>
+          )}
 
-      {/* 추가 모달 */}
-      <BaseModal
-        isOpen={modalState.type === 'add'}
+        </>
+      )}
+
+      <BucketDetailSheet
+        bucket={showDetail}
+        uid={uid}
+        todayStr={todayStr}
+        customCategories={customCategories}
         onClose={closeModal}
-        title="새로운 버킷 추가"
-        icon={MdAdd}
-        iconColor="#51cf66"
-      >
-        <input
-          className="bucket-modal-input"
-          placeholder="제목"
-          value={addForm.title}
-          onChange={e => setAddForm(f => ({ ...f, title: e.target.value }))}
-        />
-        <AutoGrowTextarea
-          className="bucket-modal-textarea"
-          placeholder="내용 (선택사항)"
-          value={addForm.content}
-          onChange={e => setAddForm(f => ({ ...f, content: e.target.value }))}
-        />
-        <CategorySelector
-          value={addForm.category}
-          onChange={(cat) => setAddForm(f => ({ ...f, category: cat }))}
-          name="add-category"
-          customCategories={customCategories}
-        />
-        <div className="bucket-modal-actions">
-          <div className="bucket-modal-foot-actions">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>
-              취소
-            </button>
-            <button type="button" className="btn btn-primary" onClick={handleAdd}>
-              추가하기
-            </button>
-          </div>
-        </div>
-      </BaseModal>
-
-      {/* 날짜 선택 모달 */}
-      <BaseModal
-        isOpen={modalState.type === 'date'}
+        onPlan={(b) => openModal('plan', b.id)}
+        onDone={(b) => openModal('done', b.id)}
+        onChangeDate={(b) => openModal('date', b.id)}
+        onManageCategories={() => openModal('categoryManager', showDetail?.id)}
+        onLike={(b, on) => run(() => svc.setBucketLike(b.id, uid, on))}
+        onUnplan={(b) => run(() => svc.unplanBucket(b, uid, coupleId), '계획을 취소했어요')}
+        onUncomplete={(b) => run(() => svc.uncompleteBucket(b), "다시 '하고 싶은 것'으로 옮겼어요")}
+        onRemoveHistory={(b, at) => run(() => svc.removeBucketHistory(b, at), '기록을 지웠어요')}
+        onSave={handleSave}
+        onDelete={handleDelete}
+      />
+      <BucketDoneSheet
+        bucket={modal === 'done' && current && isActive(current) ? current : modal === 'date' && current && isAchieved(current) ? current : null}
+        mode={modal === 'date' ? 'date' : 'done'}
+        todayStr={todayStr}
         onClose={closeModal}
-        title="완료 날짜"
-        icon={MdCalendarToday}
-        iconColor="#4dabf7"
-      >
-        <input
-          className="bucket-modal-input"
-          type="date"
-          value={completionDate}
-          onChange={e => setCompletionDate(e.target.value)}
-          max={format(new Date(), 'yyyy-MM-dd')}
-        />
-        <div className="bucket-modal-actions">
-          <div className="bucket-modal-foot-actions">
-            <button type="button" className="btn btn-secondary" onClick={closeModal}>
-              취소
-            </button>
-            <button
-              type="button"
-              className="btn btn-primary"
-              disabled={!completionDate}
-              onClick={handleCompleteWithDate}
-            >
-              완료
-            </button>
-          </div>
-        </div>
-      </BaseModal>
-
-      {/* 카테고리 관리 모달 */}
+        onSubmit={modal === 'date' ? handleChangeDate : handleDone}
+      />
+      <BucketPlanSheet
+        bucket={modal === 'plan' && current && isActive(current) ? current : null}
+        todayStr={todayStr}
+        onClose={closeModal}
+        onSubmit={handlePlan}
+      />
       <CategoryManagerModal
-        isOpen={modalState.type === 'categoryManager'}
+        isOpen={modal === 'categoryManager'}
         onClose={closeModal}
         customCategories={customCategories}
         onSave={handleSaveCategories}
       />
-
-      {/* 편집 모달 */}
-      <BaseModal
-        isOpen={modalState.type === 'edit'}
-        onClose={closeModal}
-        title="버킷 상세"
-        icon={MdEdit}
-        iconColor="#74c0fc"
-      >
-        <label className="bucket-selector-label">제목</label>
-        <input
-          className="bucket-modal-input"
-          placeholder="제목"
-          value={editForm.title}
-          onChange={e => setEditForm(f => ({ ...f, title: e.target.value }))}
-        />
-        <label className="bucket-selector-label">내용</label>
-        <AutoGrowTextarea
-          className="bucket-modal-textarea"
-          placeholder="내용"
-          value={editForm.content}
-          onChange={e => setEditForm(f => ({ ...f, content: e.target.value }))}
-        />
-        <CategorySelector
-          value={editForm.category}
-          onChange={(cat) => setEditForm(f => ({ ...f, category: cat }))}
-          name="edit-category"
-          customCategories={customCategories}
-        />
-        {editForm.completedAt && (
-          <div className="bucket-modal-completed-badge">
-            <MdCheck className="bucket-modal-completed-badge-icon" color="#51cf66" />
-            <span className="bucket-modal-completed-badge-text">
-              {formatBucketDate(editForm.completedAt)} 완료
-            </span>
-            <button
-              className="bucket-modal-btn-edit-date"
-              onClick={() => {
-                setSelectedItemId(editForm.id);
-                setCompletionDate(editForm.completedAt);
-                openModal('date', '&from=edit');
-              }}
-            >
-              수정
-            </button>
-          </div>
-        )}
-        <div className="bucket-modal-actions">
-          <div className="bucket-modal-footer-row">
-            <button type="button" className="btn btn-danger" onClick={() => setShowDeleteConfirm(true)}>
-              삭제
-            </button>
-            <div className="bucket-modal-foot-actions">
-              {!editForm.completed ? (
-                <button type="button" className="btn btn-secondary" onClick={handleEditComplete}>
-                  완료
-                </button>
-              ) : (
-                <button type="button" className="btn btn-secondary" onClick={() => handleEditUncheck(editForm.id)}>
-                  미완료
-                </button>
-              )}
-              <button type="button" className="btn btn-primary" onClick={handleEditSave}>
-                저장
-              </button>
-            </div>
-          </div>
-        </div>
-      </BaseModal>
-
-      <ConfirmModal
-        isOpen={showDeleteConfirm}
-        title="버킷 삭제"
-        message="정말 삭제하시겠습니까?"
-        confirmText="삭제"
-        onConfirm={handleConfirmDelete}
-        onCancel={() => setShowDeleteConfirm(false)}
-      />
-
-      {/* 돌림판 모달 */}
       <WheelModal
-        isOpen={isWheelModalOpen}
+        isOpen={modal === 'wheel'}
         onClose={closeModal}
         bucketList={bucketList}
         customCategories={customCategories}
-      />
-
-      {/* FloatingActionMenu — 버킷 추가. Calendar/TripDetail과 같은 위치·컴포넌트 재사용 */}
-      <FloatingActionMenu
-        actions={[
-          { label: '버킷 추가', onClick: handleOpenAddModal }
-        ]}
+        onPlan={wheelPlan}
+        onDone={wheelDone}
       />
     </div>
   );

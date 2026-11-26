@@ -190,6 +190,10 @@ body {
 #root .log-modal-title,
 #root .memory-modal-title,
 #root .bucket-modal-title,
+#root .bk-title,
+#root .bk-sug-t,
+#root .bk-sheet-t,
+#root .bk-check-t,
 #root .schedule-modal-title,
 #root .trip-modal-title,
 #root .sm-modal-title,
@@ -322,6 +326,8 @@ select:focus {
 .day-modal-close::after,
 .sm-modal-close::after,
 .decision-modal-close::after,
+.bk-icon-btn::after,
+.bk-hist-del::after,
 .sidebar-close::after {
   content: '';
   position: absolute;
