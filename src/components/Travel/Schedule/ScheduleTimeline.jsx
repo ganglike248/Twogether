@@ -7,9 +7,15 @@ import ScheduleItem from './ScheduleItem';
 import TravelTimeInput from './TravelTimeInput';
 import './ScheduleTimeline.css';
 
-const TimelineList = ({ items, travelTimes, onEdit, onToggleComplete, onSaveTravelTime }) => (
+// 시간 없는 일정이 둘 이상이면 그 일정들에 위·아래 순서 버튼(시간 있는 일정은 시간순이라 버튼 없음)
+const TimelineList = ({ items, travelTimes, onEdit, onToggleComplete, onSaveTravelTime, onMoveUntimed }) => {
+    const untimed = items.filter(s => !s.time);
+    return (
     <div className="tl-list">
-        {items.map((schedule, index) => (
+        {items.map((schedule, index) => {
+            const untimedIndex = untimed.indexOf(schedule);
+            const travel = travelTimes?.[`${schedule.id}-${items[index + 1]?.id}`];
+            return (
             <React.Fragment key={schedule.id}>
                 <ScheduleItem
                     schedule={schedule}
@@ -17,19 +23,25 @@ const TimelineList = ({ items, travelTimes, onEdit, onToggleComplete, onSaveTrav
                     onToggleComplete={onToggleComplete}
                     isFirst={index === 0}
                     isLast={index === items.length - 1}
+                    onMove={onMoveUntimed && untimed.length > 1 && untimedIndex >= 0 ? onMoveUntimed : undefined}
+                    canMoveUp={untimedIndex > 0}
+                    canMoveDown={untimedIndex >= 0 && untimedIndex < untimed.length - 1}
                 />
                 {index < items.length - 1 && (
                     <TravelTimeInput
                         fromScheduleId={schedule.id}
                         toScheduleId={items[index + 1].id}
-                        initialTravelTime={travelTimes?.[`${schedule.id}-${items[index + 1].id}`] || ''}
+                        initialTravelTime={travel?.time || ''}
+                        initialMode={travel?.mode || 'car'}
                         onSave={onSaveTravelTime}
                     />
                 )}
             </React.Fragment>
-        ))}
+            );
+        })}
     </div>
-);
+    );
+};
 
 const ScheduleTimeline = ({
     activeDay,
@@ -39,6 +51,7 @@ const ScheduleTimeline = ({
     onEdit,
     onToggleComplete,
     onSaveTravelTime,
+    onMoveUntimed,
     onAddFirst,
 }) => {
     const [showDone, setShowDone] = useState(false);
@@ -46,7 +59,7 @@ const ScheduleTimeline = ({
     const remaining = schedules.filter(s => !s.completed);
     const done = schedules.filter(s => s.completed);
 
-    const listProps = { travelTimes, onEdit, onToggleComplete, onSaveTravelTime };
+    const listProps = { travelTimes, onEdit, onToggleComplete, onSaveTravelTime, onMoveUntimed };
 
     return (
         <div className="tl-card">

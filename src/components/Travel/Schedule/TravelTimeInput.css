@@ -118,3 +118,13 @@
     background: #ffffff;
     color: var(--color-gray-600);
 }
+
+/* 이동 수단 고르기(수정 중) — 좁은 화면에선 수단 줄이 위로 올라감 */
+.tl-travel-edit { flex-wrap: wrap; }
+.tl-travel-modes { display: flex; gap: 4px; flex-basis: 100%; }
+.tl-travel-modes button {
+    width: 32px; height: 28px; padding: 0; border-radius: 8px; border: 1px solid var(--card-border);
+    background: white; color: var(--color-gray-500); font-size: 1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.tl-travel-modes button.on { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }

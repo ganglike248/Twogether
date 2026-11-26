@@ -233,16 +233,35 @@ export const moveTripSchedule = async (tripId, fromDay, toDay, scheduleData) => 
   ));
   await mutateTripSchedule(tripId, fromDay, (current) => current.filter(s => s.id !== id));
 
+  await deleteTravelTimesOf(tripId, fromDay, id);
+};
+
+// 그날 이 일정이 끼어 있던 이동 시간(일정A→일정B) 삭제 — 일정을 지우거나 다른 날로 옮길 때(안 지우면 고아 데이터)
+export const deleteTravelTimesOf = async (tripId, day, scheduleId) => {
   const timesSnap = await getDocs(query(
-    collection(db, 'travelTimes'), where('tripId', '==', tripId), where('day', '==', fromDay),
+    collection(db, 'travelTimes'), where('tripId', '==', tripId), where('day', '==', day),
   ));
-  const stale = timesSnap.docs.filter(d => d.data().fromScheduleId === id || d.data().toScheduleId === id);
+  const stale = timesSnap.docs.filter(d => d.data().fromScheduleId === scheduleId || d.data().toScheduleId === scheduleId);
   if (stale.length) {
     const batch = writeBatch(db);
     stale.forEach(d => batch.delete(d.ref));
     await commitBatch(batch);
   }
 };
+
+// 시간 없는 일정의 순서 바꾸기 — 화면은 시간순 정렬이라 시간 없는 일정끼리는 저장된 배열 순서를 따름.
+// 그 배열에서 "시간 없고 완료 여부가 같은" 이웃과 자리를 바꿈(dir -1 위로, +1 아래로).
+export const moveUntimedSchedule = (tripId, day, scheduleId, dir) => mutateTripSchedule(tripId, day, (current) => {
+  const index = current.findIndex(s => s.id === scheduleId);
+  if (index < 0 || current[index].time) return current;
+  const same = (s) => !s.time && !!s.completed === !!current[index].completed;
+  let target = index + dir;
+  while (target >= 0 && target < current.length && !same(current[target])) target += dir;
+  if (target < 0 || target >= current.length) return current;
+  const next = [...current];
+  [next[index], next[target]] = [next[target], next[index]];
+  return next;
+});
 
 // 여행 기간을 newDays일로 줄일 때 잘리는 Day(> newDays)의 일정 정리 — 안 하면 화면에서만 사라지고 데이터는 남아
 // 예산 합계에 계속 더해졌음. mode 'move': 마지막 날(newDays)로 옮김(먼저 추가 → 그다음 원래 문서 삭제, 실패해도 안 사라지게),
@@ -301,7 +320,8 @@ export const toggleScheduleCompletion = async (tripId, day, scheduleId, complete
   });
 };
 
-export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, travelTime) => {
+// mode: 'car'(기본) | 'walk' | 'transit' — 예전 문서엔 없음(자동차로 표시)
+export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, travelTime, mode = 'car') => {
   const q = query(
     collection(db, 'travelTimes'),
     where('tripId', '==', tripId),
@@ -310,7 +330,7 @@ export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, 
     where('toScheduleId', '==', toScheduleId)
   );
   const snap = await getDocs(q);
-  const data = { tripId, day, fromScheduleId, toScheduleId, travelTime, updatedAt: serverTimestamp() };
+  const data = { tripId, day, fromScheduleId, toScheduleId, travelTime, mode, updatedAt: serverTimestamp() };
   if (travelTime.trim() === '') {
     if (!snap.empty) await safeDeleteDoc(snap.docs[0].ref);
   } else {

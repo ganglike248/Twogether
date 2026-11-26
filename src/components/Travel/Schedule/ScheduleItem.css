@@ -179,3 +179,14 @@
 .tl-category svg {
     font-size: 12px;
 }
+
+/* 시간 없는 일정의 순서 버튼(위·아래) — 제목 줄 오른쪽 끝 */
+.tl-title-row .tl-title { flex: 1; }
+.tl-order { display: inline-flex; gap: 2px; flex: none; margin-left: auto; }
+.tl-order button {
+    width: 26px; height: 26px; padding: 0; border-radius: 8px; border: 1px solid var(--card-border);
+    background: white; color: var(--color-gray-600); font-size: 1.1rem; cursor: pointer;
+    display: flex; align-items: center; justify-content: center;
+}
+.tl-order button:disabled { opacity: 0.35; cursor: default; }
+.tl-title-row:has(.tl-order) { align-self: stretch; }

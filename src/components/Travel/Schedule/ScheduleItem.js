@@ -1,14 +1,15 @@
 // src/components/Travel/ScheduleItem.js
 import React from 'react';
 import { Capacitor } from '@capacitor/core';
-import { MdCheck, MdLocationOn } from 'react-icons/md';
+import { MdCheck, MdLocationOn, MdKeyboardArrowUp, MdKeyboardArrowDown } from 'react-icons/md';
 import { getScheduleCategory } from './scheduleCategories';
 import './ScheduleItem.css';
 import { pressable } from '../../../utils/pressable';
 
 // 타임라인의 한 일정 — 왼쪽 동그라미가 곧 완료 체크 버튼, 시간은 제목 왼쪽 같은 줄.
 // isFirst/isLast는 세로 연결선을 동그라미 중심에서 시작/끝내기 위한 위치 정보.
-const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isLast = false }) => {
+// onMove: 시간 없는 일정의 순서 바꾸기(위 -1 / 아래 +1) — 시간 없는 일정이 둘 이상일 때만 넘어옴
+const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isLast = false, onMove, canMoveUp, canMoveDown }) => {
     const formatTime = (time) => {
         if (!time) return '';
         try {
@@ -102,6 +103,12 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isL
                             </span>
                         )}
                         <h3 className="tl-title">{schedule.title}</h3>
+                        {onMove && (
+                            <span className="tl-order">
+                                <button type="button" onClick={(e) => { e.stopPropagation(); onMove(schedule.id, -1); }} disabled={!canMoveUp} aria-label="위로 옮기기"><MdKeyboardArrowUp /></button>
+                                <button type="button" onClick={(e) => { e.stopPropagation(); onMove(schedule.id, 1); }} disabled={!canMoveDown} aria-label="아래로 옮기기"><MdKeyboardArrowDown /></button>
+                            </span>
+                        )}
                     </div>
                 </div>
                 {(schedule.description || '').trim() && (

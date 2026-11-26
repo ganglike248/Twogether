@@ -271,6 +271,14 @@ const CHECKS = [
     await p.locator('.schedule-modal-container').waitFor({ state: 'detached', timeout: 5000 });
     await p.locator('.dcard', { hasText: '스모크 호텔' }).first().waitFor({ timeout: 3000 });
   } },
+  { name: '이동 시간 + 이동 수단(도보) 저장', path: '/travel/t1', expect: '강릉 바다 여행', settleMs: 1200, act: async (p) => {
+    await p.locator('.tl-travel-text.add').first().click();
+    await p.locator('.tl-travel-modes button[aria-label="도보"]').click();
+    await p.locator('.tl-travel-input').fill('10분');
+    await p.locator('.tl-travel-save').click();
+    await p.locator('.tl-travel-text', { hasText: '10분' }).first().waitFor({ timeout: 8000 });
+    await p.locator('.tl-travel-icon[aria-label*="도보"]').first().waitFor({ timeout: 3000 });
+  } },
   { name: '지난 요약 목록', path: '/recap', expect: '지난 요약' },
   { name: '월간 요약', path: `/recap/${prevMonth}`, expect: '채웠어요' },
   { name: '봉인 편지함', path: '/letters' },

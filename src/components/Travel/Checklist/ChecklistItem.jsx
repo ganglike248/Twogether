@@ -4,6 +4,7 @@
 import React from 'react';
 import { format } from 'date-fns';
 import { MdClose, MdEdit } from 'react-icons/md';
+import { getLocalDateStr } from '../../../utils/dataUtils';
 import './ChecklistItem.css';
 
 const PRIORITY = {
@@ -20,10 +21,9 @@ const CheckMark = () => (
 
 const ChecklistItem = ({ item, onToggle, onDelete, onEdit }) => {
   const priority = PRIORITY[item.priority] || PRIORITY.medium;
-  const subParts = [
-    item.dueDate ? `${format(new Date(item.dueDate), 'MM.dd')}까지` : null,
-    item.description || null,
-  ].filter(Boolean);
+  // 마감일이 지났으면(오늘은 아직 아님) 강조
+  const overdue = !!item.dueDate && getLocalDateStr(new Date(item.dueDate)) < getLocalDateStr();
+  const dueText = item.dueDate ? `${format(new Date(item.dueDate), 'MM.dd')}까지${overdue ? ' · 지났어요' : ''}` : null;
 
   return (
     <div className="ci-card">
@@ -32,7 +32,13 @@ const ChecklistItem = ({ item, onToggle, onDelete, onEdit }) => {
       </button>
       <div className="ci-text">
         <span className="ci-title">{item.title}</span>
-        {subParts.length > 0 && <span className="ci-sub">{subParts.join(' · ')}</span>}
+        {(dueText || item.description) && (
+          <span className="ci-sub">
+            {dueText && <span className={overdue ? 'ci-overdue' : ''}>{dueText}</span>}
+            {dueText && item.description ? ' · ' : ''}
+            {item.description || ''}
+          </span>
+        )}
       </div>
       <span className="ci-side">
         <span className={`ci-priority ${priority.className}`}>{priority.label}</span>
@@ -47,7 +53,7 @@ const ChecklistItem = ({ item, onToggle, onDelete, onEdit }) => {
   );
 };
 
-export const CompletedChecklistRow = ({ item, completerName, onToggle, onDelete }) => {
+export const CompletedChecklistRow = ({ item, completerName, onToggle, onDelete, onEdit }) => {
   const meta = [
     completerName || null,
     item.completedAt ? format(new Date(item.completedAt), 'MM.dd') : null,
@@ -61,6 +67,11 @@ export const CompletedChecklistRow = ({ item, completerName, onToggle, onDelete 
       <span className="ci-done-title">{item.title}</span>
       <span className="ci-done-side">
         {meta && <span className="ci-done-meta">{meta}</span>}
+        {onEdit && (
+          <button className="ci-icon-btn done-delete" onClick={() => onEdit(item)} aria-label="수정">
+            <MdEdit />
+          </button>
+        )}
         <button className="ci-icon-btn done-delete" onClick={onDelete} aria-label="삭제">
           <MdClose />
         </button>

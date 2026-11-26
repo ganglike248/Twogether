@@ -208,6 +208,7 @@ const ChecklistContent = ({ items, progress, members, showAllCompleted, onToggle
                 completerName={memberName(item.completedBy)}
                 onToggle={() => onToggle(item.id)}
                 onDelete={() => onDelete(item.id)}
+                onEdit={onEdit}
               />
             ))}
             {hiddenCount > 0 && (

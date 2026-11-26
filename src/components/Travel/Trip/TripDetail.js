@@ -12,7 +12,7 @@ import { useTripSchedules } from '../../../hooks/useTrip';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
 import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import { useAuthContext } from '../../../contexts/AuthContext';
-import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes, addTripRegionsFromText } from '../../../services/tripService';
+import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes, addTripRegionsFromText, deleteTravelTimesOf, moveUntimedSchedule } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { convertToDate } from '../../../utils/dataUtils';
 import { getTripDayCount } from '../../../services/tripPhase';
@@ -117,7 +117,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         const unsubscribe = subscribeTravelTimes(trip.id, activeDay, (times) => {
             const timesMap = {};
             times.forEach(time => {
-                timesMap[`${time.fromScheduleId}-${time.toScheduleId}`] = time.travelTime;
+                timesMap[`${time.fromScheduleId}-${time.toScheduleId}`] = { time: time.travelTime, mode: time.mode || 'car' };
             });
             setTravelTimes(prev => ({ ...prev, [activeDay]: timesMap }));
         });
@@ -187,15 +187,21 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     };
 
     const dayPickRef = useDialog(showDaySelector && !!optionForSchedule, qm.close);
-    const handleAddOptionToSchedule = (decision, option) => qm.open('day-pick', { d: decision.id, o: option.id });
+    // 당일치기는 고를 날이 하나뿐이라 묻지 않고 바로 일정 모달
+    const handleAddOptionToSchedule = (decision, option) => (tripDays <= 1
+        ? openScheduleFromOption(option, 1, {})
+        : qm.open('day-pick', { d: decision.id, o: option.id }));
 
-    const handleDaySelected = (day) => {
-        if (!optionForSchedule) return;
+    // 날짜 고르기 자리를 일정 모달로 바꿈 — 닫으면 날짜 고르기가 아니라 그 전 화면(후보)으로
+    const handleDaySelected = (day) => openScheduleFromOption(optionForSchedule, day, { replace: true });
+
+    const openScheduleFromOption = (option, day, navOpts) => {
+        if (!option) return;
         setActiveDay(day);
 
         // 선택한 옵션 정보를 일정 모달에 pre-fill — 후보 칸을 일정의 같은 의미 칸으로 그대로 옮김
         // (예전엔 설명에 `[제목]`을 또 붙여서 제목이 두 번 들어갔음). 링크는 일정에 별도 칸이 없어 설명 끝에 둠.
-        const { title, description, url, address, price } = optionForSchedule;
+        const { title, description, url, address, price } = option;
         const priceNumber = normalizeIfPureNumber(price);
         const scheduleData = {
             title: title || '',
@@ -205,17 +211,17 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             cost: /^\d+$/.test(priceNumber) ? priceNumber : '',
             time: '',
             endTime: '',
-            sourceOptionId: optionForSchedule.id,
+            sourceOptionId: option.id,
         };
 
         setSelectedSchedule(scheduleData);
-        // 날짜 고르기 자리를 일정 모달로 바꿈 — 닫으면 날짜 고르기가 아니라 그 전 화면(후보)으로
-        openScheduleModal({ replace: true });
+        openScheduleModal(navOpts);
     };
 
     const handleDeleteSchedule = async (scheduleId) => {
         try {
             await mutateTripSchedule(trip.id, activeDay, (current) => current.filter(s => s.id !== scheduleId));
+            deleteTravelTimesOf(trip.id, activeDay, scheduleId).catch((error) => console.warn('이동 시간 정리 실패:', error));
             toast.success('일정을 삭제했어요.');
         } catch (error) {
             console.error('Error deleting schedule:', error);
@@ -242,13 +248,21 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
 
-    const handleSaveTravelTime = async (fromScheduleId, toScheduleId, travelTime) => {
+    const handleMoveUntimed = async (scheduleId, dir) => {
+        try { await moveUntimedSchedule(trip.id, activeDay, scheduleId, dir); }
+        catch (error) {
+            console.error('Error reordering schedule:', error);
+            toast.error(getFriendlyErrorMessage(error, '순서를 바꾸지 못했어요. 잠시 후 다시 시도해주세요.'));
+        }
+    };
+
+    const handleSaveTravelTime = async (fromScheduleId, toScheduleId, travelTime, mode = 'car') => {
         try {
-            await saveTravelTime(trip.id, activeDay, fromScheduleId, toScheduleId, travelTime);
+            await saveTravelTime(trip.id, activeDay, fromScheduleId, toScheduleId, travelTime, mode);
             const key = `${fromScheduleId}-${toScheduleId}`;
             setTravelTimes(prev => ({
                 ...prev,
-                [activeDay]: { ...prev[activeDay], [key]: travelTime.trim() || undefined }
+                [activeDay]: { ...prev[activeDay], [key]: travelTime.trim() ? { time: travelTime.trim(), mode } : undefined }
             }));
             toast.success(travelTime.trim() ? '이동 시간을 저장했어요.' : '이동 시간을 삭제했어요.');
         } catch (error) {
@@ -339,6 +353,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                         onEdit={s => { setSelectedSchedule(s); openScheduleModal(); }}
                         onToggleComplete={handleToggleCompletion}
                         onSaveTravelTime={handleSaveTravelTime}
+                        onMoveUntimed={handleMoveUntimed}
                         onAddFirst={handleFABScheduleAdd}
                     />
                 </>
