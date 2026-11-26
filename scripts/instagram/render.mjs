@@ -32,7 +32,21 @@ function mapSvg() {
   return `<svg viewBox="0 0 ${sido.w} ${sido.h}">${paths}</svg>`;
 }
 
-const html = fs.readFileSync(path.join(dir, file), 'utf8').replace('<!--MAP-->', mapSvg());
+// 시·군·구 지도(앱의 실제 경계)
+function sggSvg(sido, on) {
+  const data = JSON.parse(fs.readFileSync(path.join(root, `src/components/Map/data/sgg/${sido}.json`), 'utf8'));
+  const paths = Object.entries(data.d).map(([code, d]) => `<path d="${d}"${on.includes(code) ? ' class="on"' : ''}/>`).join('');
+  return `<svg viewBox="0 0 ${data.w} ${data.h}">${paths}</svg>`;
+}
+function mapSvgOn(codes) {
+  const sido = JSON.parse(fs.readFileSync(path.join(root, 'src/components/Map/data/sido.json'), 'utf8'));
+  const paths = Object.entries(sido.d).map(([code, d]) => `<path d="${d}"${codes.includes(code) ? ' class="on"' : ''}/>`).join('');
+  return `<svg viewBox="0 0 ${sido.w} ${sido.h}">${paths}</svg>`;
+}
+const html = fs.readFileSync(path.join(dir, file), 'utf8')
+  .replace(/<!--MAP:([\d,]*)-->/g, (_, c) => mapSvgOn(c.split(',')))
+  .replace(/<!--SGG:(\d+):([\d,]*)-->/g, (_, sd, c) => sggSvg(sd, c.split(',')))
+  .replace('<!--MAP-->', mapSvg());
 const built = path.join(dir, '.build.html');
 fs.writeFileSync(built, html);
 

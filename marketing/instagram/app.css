@@ -176,3 +176,15 @@
 .grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
 .nx { background: #fffdfa; border-radius: 22px; padding: 22px 28px; display: flex; align-items: center; margin-top: 16px; }
 .nx .d { font-family: 'Jua', sans-serif; color: #ff8fa3; font-size: 28px; }
+
+/* 추억 */
+.mem { display: flex; align-items: center; gap: 20px; }
+.mem .av2 { width: 60px; height: 60px; border-radius: 50%; flex: none; background: #ffe3e8 url('../../assets/logo.png') no-repeat; background-size: 150px 150px; background-position: -45px -45px; }
+.mem .av2.me { background-color: #e3ebfd; background-size: 176px 176px; background-position: -32px -66px; }
+.tchip { border-radius: 10px; padding: 4px 14px; font-size: 20px; }
+.tchip.us { background: #ffe3e8; color: #e0566f; } .tchip.me { background: #e3ebfd; color: #6f9be8; }
+.search { background: #fff; border: 2.500px solid #ffe3e8; border-radius: 22px; padding: 20px 26px; color: #c9bcc0; font-size: 27px; }
+.cover-map { position: absolute; }
+.cover-map svg { width: 100%; filter: drop-shadow(0 26px 50px rgba(181,100,60,.2)); }
+.cover-map path { fill: #fff; stroke: #ffe1cf; stroke-width: 1.400; }
+.cover-map path.on { fill: #ffb6c1; stroke: #fff; }

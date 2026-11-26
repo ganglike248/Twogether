@@ -361,3 +361,55 @@ def recap_next():
   {nx('예정된 일정 8개', '가장 가까운 일정 · 11월 7일 한강에서 라면 먹기', '8')}
   <div class="row" style="margin-top:30px"><span class="btn line">이미지로 저장</span><span class="btn fill">일정 추가하러 가기</span></div>
 </div>"""
+
+
+# ── 우리 지도 · 추억 ──
+def map_full():
+    return """<div class="ui page">
+  <div class="c"><div class="row"><span class="t">함께 가 본 곳 <span class="rose" style="font-size:46px">5</span>/16</span><span class="sp"></span><span class="sm mute">여행 5번</span></div><div class="prog"><i style="width:31%"></i></div><div class="xs mute" style="margin-top:14px">가장 최근 강원(12월 18일)</div></div>
+  <div class="c gap" style="text-align:center;padding:26px"><div class="mapsvg" style="width:500px;margin:0 auto"><!--MAP:11,26,47,50,51--></div>
+    <div class="row xs mute" style="justify-content:center;gap:22px;margin-top:10px"><span>○ 아직</span><span style="color:#ffb0bd">● 1번</span><span style="color:#ff8fa3">● 2번</span><span style="color:#e07a93">● 3번+</span></div></div>
+</div>"""
+
+
+def map_sheet():
+    def row(mon, nm, dt):
+        return f'<div class="c gap" style="padding:22px 28px"><div class="row" style="gap:26px"><span class="j rose" style="font-size:27px;width:70px">{mon}</span><div><div style="font-size:29px">{nm}</div><div class="xs mute" style="margin-top:4px">{dt}</div></div><span class="sp"></span><span class="mute">›</span></div></div>'
+    return f"""<div class="ui sheet">
+  <div style="width:70px;height:7px;border-radius:9px;background:#eadfe1;margin:-14px auto 22px"></div>
+  <div class="row"><div><div class="t" style="font-size:42px">강원특별자치도</div><div class="sm" style="color:#6b5e62;margin-top:8px">함께한 여행 1번 · 마지막 12월 18일</div></div><span class="sp"></span>{X}</div>
+  {row('12월', '강릉 1박 2일', '12월 18일 – 19일')}
+  <div class="row" style="margin-top:24px"><span class="btn fill">시·군·구 보기</span><span class="btn line">여기로 또 가기</span></div>
+  <div class="j" style="margin-top:34px;font-size:27px">자주 간 곳 <span class="rose" style="font-family:Gowun Dodum;font-size:22px">5곳</span></div>
+  {row('강원', '강원특별자치도', '여행 1번 · 마지막 12월 18일')}
+</div>"""
+
+
+def map_sgg():
+    return """<div class="ui page">
+  <div class="row" style="padding:4px 6px 20px"><span class="mute">←</span><span class="t" style="font-size:38px">강원</span></div>
+  <div class="c"><div class="row"><span class="t">함께 가 본 곳 <span class="rose" style="font-size:46px">1</span>/18</span><span class="sp"></span><span class="sm mute">여행 1번</span></div><div class="prog"><i style="width:6%"></i></div><div class="xs mute" style="margin-top:14px">가장 최근 강릉 1박 2일(12월 18일)</div></div>
+  <div class="c gap" style="text-align:center;padding:30px"><div class="mapsvg" style="width:470px;margin:0 auto"><!--SGG:51:51150--></div>
+    <div class="row xs mute" style="justify-content:center;gap:22px;margin-top:14px"><span>○ 아직</span><span style="color:#ffb0bd">● 1번</span><span style="color:#ff8fa3">● 2번</span><span style="color:#e07a93">● 3번+</span></div></div>
+</div>"""
+
+
+def memories():
+    def m(nm, dt, kind, lab, me=False):
+        return f'<div class="c gap" style="padding:24px 28px"><div class="mem"><i class="av2{" me" if me else ""}"></i><div><div class="j" style="font-size:30px">{nm}</div><div class="xs mute" style="margin-top:6px">{dt}</div></div><span class="sp"></span><span class="tchip {kind}">{lab}</span></div></div>'
+    return f"""<div class="ui page">
+  <div class="search">제목이나 내용으로 검색…</div>
+  <div class="filt gap"><span class="on">전체</span><span>개인</span><span>데이트</span><span>하나</span><span>두리</span></div>
+  {m('저녁 같이 먹기', '2026년 11월 27일', 'us', '데이트')}
+  {m('영화 보기', '2026년 11월 21일', 'us', '데이트')}
+  {m('야근', '2026년 11월 18일', 'me', '하나', True)}
+</div>"""
+
+
+def memory_modal():
+    return f"""<div class="ui sheet">
+  <div class="row"><span class="t" style="font-size:40px">영화 보기</span><span class="sp"></span>{X}</div>
+  <div class="row" style="margin-top:26px"><span class="mute">2026년 11월 21일</span><span class="sp"></span><span class="tchip us" style="font-size:23px;padding:6px 18px">데이트</span></div>
+  <div style="border-top:2.500px dashed #f0dfe2;margin:34px 0 26px"></div>
+  <div class="btn fill" style="border-radius:22px;padding:24px 0;font-size:30px">해당 일정으로 가기</div>
+</div>"""
