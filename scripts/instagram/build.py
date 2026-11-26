@@ -48,14 +48,14 @@ def slide(tag, h1, em, sub, graphic):
 '''
 
 
-def end(h2, send, nxt):
+def end(h2, send, nxt, pre='다음 글'):
     return f'''<section class="slide blush end">
   <div class="mascot"><img src="../../../assets/logo.png" alt="" /></div>
   <div class="name">우리두리</div>
   <h2>{h2}</h2>
   <div class="how">Google Play에서 <b>‘우리두리’</b> 검색</div>
   <div class="stores">안드로이드 · 무료 설치</div>
-  <div class="next"><span>{send}</span><span>다음 글 <b>{nxt}</b></span></div>
+  <div class="next"><span>{send}</span><span>{pre} <b>{nxt}</b></span></div>
 </section>
 '''
 
@@ -146,5 +146,15 @@ write('post-06', '우리두리 인스타그램 6 — 우리 지도 · 추억', '
     slide('④ 추억', '지난 일정은', '추억으로 모여요', '제목이나 내용으로 찾고, 누구 일정인지로 걸러 봐요.', ui.memories()),
     slide('⑤ 그날로 돌아가기', '눌러 보면', '그날 일정으로 돌아가요', '추억에서 바로 캘린더의 그 일정으로 이동해요.', ui.memory_modal()),
     end('다음엔 어디를<br />같이 칠해 볼까요?', '저장해 두고, 같이 갈 사람에게 보내기', '처음 시작하는 방법'),
+]))
+# ── 7. 처음 시작하는 방법 ── 표지: 연결 선택 카드
+write('post-07', '우리두리 인스타그램 7 — 처음 시작하는 방법', ''.join([
+    cover('#f1f6dc', '#dcea9f', '#6f7f2c', '사용법 06 · 시작하기', ('둘이 쓰려면', '코드 여섯 자리면 돼요'), '가입부터 연결까지, 순서대로 보여드릴게요', art(ui.ob_choice_piece(), 70, 620, -4, 1.08)),
+    slide('① 가입', '구글이나 이메일로', '바로 시작해요', 'Google Play에서 ‘우리두리’를 설치하고 가입해요.', ui.ob_start()),
+    slide('② 닉네임', '상대가 부를', '이름을 정해요', '상대 화면에 이 이름으로 보여요. 나중에 바꿀 수 있어요.', ui.ob_nickname()),
+    slide('③ 연결 방법', '둘 중 한 명만', '초대하면 돼요', '한 사람이 초대 코드를 만들고, 다른 사람이 입력해요.', ui.ob_choice()),
+    slide('④ 초대하는 사람', '처음 만난 날을 적고', '초대 코드를 만들어요', '이 날짜로 함께한 날과 기념일을 세어 줘요.', ui.ob_invite()),
+    slide('⑤ 초대받은 사람', '받은 코드 여섯 자리,', '입력하면 연결 끝', '연결되면 그때부터 둘의 일정이 같이 보여요.', ui.ob_join()),
+    end('둘이 쓰는 첫 캘린더,<br />오늘 시작해 볼까요?', '이 글을 같이 쓸 사람에게 보내 주세요', '', pre=''),
 ]))
 print('ok')

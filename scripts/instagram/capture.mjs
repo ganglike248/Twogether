@@ -182,6 +182,9 @@ const seed = async () => {
   await put('sealedMessages/m1/private/content', { content: '메리 크리스마스!', imageUrl: null });
   await put('sealedMessages/m2', { coupleId: c, authorUid: a, recipientUid: b, title: '600일 축하해', unlockAt: addDays(-23), isUnlocked: true, unlockedAt: addDays(-23), createdAt: addDays(-40) });
   await put('sealedMessages/m2/private/content', { content: '벌써 600일이네. 같이 다닌 곳들이 지도에 하나씩 칠해지는 게 좋아. 다음 600일도 잘 부탁해.', imageUrl: null });
+  // 막 가입한 사람(커플 연결 전) — 첫 실행 화면 캡처용
+  const nu = await signUp('insta-new@test.dev');
+  await put(`users/${nu}`, { displayName: '', email: 'insta-new@test.dev', nicknameConfirmed: false, createdAt: now });
   return { a, b };
 };
 
@@ -272,6 +275,41 @@ const main = async () => {
         console.log(`✓ ${s.name}`);
       } catch (e) {
         console.log(`✗ ${s.name} — ${(e.message || String(e)).split('\n')[0].slice(0, 160)}`);
+      }
+    }
+    // ── 첫 실행 화면(로그인 전 → 가입 직후) ──
+    const ONBOARD = [
+      { name: 'ob-welcome', path: '/login', login: false },
+      { name: 'ob-signup', path: '/login?step=signup', login: false },
+      { name: 'ob-nickname', path: '/couple-setup' },
+      { name: 'ob-choice', path: '/couple-setup', act: async (p) => { const i = p.locator('input').first(); await i.fill('하나'); await p.locator('button[type="submit"], button:has-text("다음")').first().click(); } },
+      { name: 'ob-invite', path: '/couple-setup?step=invite' },
+      { name: 'ob-join', path: '/couple-setup?step=join' },
+    ];
+    if (!ONLY.length || ONBOARD.some((o) => ONLY.includes(o.name))) {
+      const ctx2 = await browser.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 3, locale: 'ko-KR' });
+      await ctx2.addInitScript(() => { try { localStorage.setItem('twogether_notification_priming_shown', 'true'); } catch { /* 무시 */ } });
+      const p2 = await ctx2.newPage();
+      let loggedIn = false;
+      for (const o of ONBOARD) {
+        if (ONLY.length && !ONLY.includes(o.name)) continue;
+        try {
+          if (o.login !== false && !loggedIn) {
+            await p2.goto(`${BASE}/login?step=login`, { waitUntil: 'domcontentloaded' });
+            await p2.locator('input[type="email"]').fill('insta-new@test.dev');
+            await p2.locator('input[type="password"]').first().fill(PASSWORD);
+            await p2.locator('button[type="submit"]').click();
+            await p2.waitForURL((u) => !u.pathname.startsWith('/login'), { timeout: 30000 });
+            loggedIn = true;
+          }
+          await p2.goto(`${BASE}${o.path}`, { waitUntil: 'domcontentloaded' });
+          await p2.waitForTimeout(1500);
+          if (o.act) { await o.act(p2); await p2.waitForTimeout(1500); }
+          await p2.screenshot({ path: path.join(OUT, `${o.name}.png`) });
+          console.log(`✓ ${o.name} (${new URL(p2.url()).pathname}${new URL(p2.url()).search})`);
+        } catch (e) {
+          console.log(`✗ ${o.name} — ${(e.message || String(e)).split('\n')[0].slice(0, 160)}`);
+        }
       }
     }
   } finally {

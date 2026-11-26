@@ -413,3 +413,71 @@ def memory_modal():
   <div style="border-top:2.500px dashed #f0dfe2;margin:34px 0 26px"></div>
   <div class="btn fill" style="border-radius:22px;padding:24px 0;font-size:30px">해당 일정으로 가기</div>
 </div>"""
+
+
+# ── 첫 실행(가입 → 닉네임 → 연결) ──
+def _steps(n):
+    return '<div class="steps">' + ''.join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(3)) + '</div>'
+
+
+def ob_start():
+    g = '<svg viewBox="0 0 24 24" style="width:34px;height:34px"><path fill="#4285F4" d="M21.600 12.200c0-.700-.100-1.300-.200-2H12v3.800h5.400a4.600 4.600 0 0 1-2 3v2.500h3.200c1.900-1.700 3-4.300 3-7.300z"/><path fill="#34A853" d="M12 22c2.700 0 5-.900 6.600-2.400l-3.200-2.500c-.900.600-2 1-3.400 1-2.600 0-4.800-1.800-5.600-4.100H3.100v2.600A10 10 0 0 0 12 22z"/><path fill="#FBBC05" d="M6.400 14c-.200-.600-.300-1.300-.300-2s.100-1.400.300-2V7.400H3.100a10 10 0 0 0 0 9.200z"/><path fill="#EA4335" d="M12 5.900c1.500 0 2.800.500 3.800 1.500l2.900-2.800A10 10 0 0 0 3.100 7.400L6.400 10c.800-2.300 3-4.100 5.600-4.100z"/></svg>'
+    return f"""<div class="ui ob">
+  <div class="row"><span class="rose" style="font-size:34px">♥</span><span class="j rose" style="font-size:44px">우리두리</span></div>
+  <div class="obq" style="margin-top:44px">둘이 함께 쓰는<br />우리 다이어리</div>
+  <div class="obd">일정도, 여행도, 하고 싶은 것도<br />한 곳에 같이 모아요.</div>
+  <div class="big" style="background:#fff;box-shadow:inset 0 0 0 2.500px #f0e0e3;margin-top:44px;display:flex;justify-content:center;align-items:center;gap:14px">{g}구글로 시작하기</div>
+  <div class="big j" style="background:#ffb6c1;color:#fff;margin-top:16px">이메일로 시작하기</div>
+  <div class="sm" style="text-align:center;margin-top:28px">이미 계정이 있나요? <span class="rose" style="text-decoration:underline">로그인</span></div>
+</div>"""
+
+
+def ob_nickname():
+    return f"""<div class="ui ob">
+  {_steps(1)}
+  <div class="obq">상대가 나를<br />뭐라고 부르면 좋을까요?</div>
+  <div class="obd">짧고 부르기 쉬운 이름이면 좋아요.<br />나중에 프로필에서 바꿀 수 있어요.</div>
+  <div class="lb">닉네임</div>
+  <div class="field focus j">하나</div>
+  <div class="xs mute" style="margin:30px 0 12px">상대 화면에서는 이렇게 보여요</div>
+  <div class="c"><div class="xs mute">오늘 · 오후 7:00</div><div style="font-size:30px;margin-top:10px">성수동 저녁 약속</div><span class="chip" style="background:#dcf7dc;color:#3f9d55;margin-top:12px">하나님이 추가함</span></div>
+  <div class="big j" style="background:#ffb6c1;color:#fff;margin-top:34px">다음</div>
+</div>"""
+
+
+def _choices():
+    return """<div class="choice"><span class="ic4" style="background:#ffe3e8"><svg viewBox="0 0 24 24" stroke="#ff8fa3"><rect x="3" y="5.500" width="18" height="13.500" rx="2.500" fill="#ffb6c1" stroke="none"/><path d="M4 7.500l8 5.500 8-5.500" stroke="#fff"/></svg></span><div><b>내가 초대할게요</b><span>초대 코드를 만들어 상대에게 보내요</span></div><span class="sp"></span><span class="mute">›</span></div>
+  <div class="choice"><span class="ic4" style="background:#dfeafc"><svg viewBox="0 0 24 24" stroke="#3d6fb5"><circle cx="8" cy="15.500" r="4"/><path d="M11 12.500l8.500-8.500M16 7.500l2.500 2.500M18.500 5l2 2"/></svg></span><div><b>초대 코드를 받았어요</b><span>받은 6자리 코드를 입력해요</span></div><span class="sp"></span><span class="mute">›</span></div>"""
+
+
+def ob_choice():
+    return f"""<div class="ui ob">
+  {_steps(2)}
+  <div class="obq">이제 상대와<br />연결해 볼까요?</div>
+  <div class="obd">둘 중 한 명만 초대하면 돼요.</div>
+  <div style="margin-top:14px">{_choices()}</div>
+</div>"""
+
+
+def ob_choice_piece():
+    return f'<div class="ui ob" style="padding:26px 34px 34px">{_choices()}</div>'
+
+
+def ob_invite():
+    return """<div class="ui ob">
+  <div class="obq">우리가 처음 만난 날은<br />언제인가요?</div>
+  <div class="obd">홈에 함께한 날(D+day)과 기념일이 표시돼요.<br />나중에 커플 정보에서 바꿀 수 있어요.</div>
+  <div class="lb">연애 시작일</div>
+  <div class="field focus" style="font-family:Pretendard">2025-03-14<span class="sp"></span><span class="mute">▦</span></div>
+  <div class="big j" style="background:#ffb6c1;color:#fff;margin-top:44px">초대 코드 만들기</div>
+</div>"""
+
+
+def ob_join():
+    return """<div class="ui ob">
+  <div class="obq">받은 초대 코드를<br />입력해 주세요</div>
+  <div class="obd">상대가 보낸 메시지에 있는 6자리 코드예요.</div>
+  <div class="lb">초대 코드</div>
+  <div class="field focus j" style="font-size:44px;letter-spacing:.22em;justify-content:center;padding:26px">A7K2QM</div>
+  <div class="big j" style="background:#ffb6c1;color:#fff;margin-top:44px">연결하기</div>
+</div>"""

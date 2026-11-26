@@ -188,3 +188,19 @@
 .cover-map svg { width: 100%; filter: drop-shadow(0 26px 50px rgba(181,100,60,.2)); }
 .cover-map path { fill: #fff; stroke: #ffe1cf; stroke-width: 1.400; }
 .cover-map path.on { fill: #ffb6c1; stroke: #fff; }
+
+/* 첫 실행 */
+.ob { background: #fff1f3; border-radius: 48px; padding: 44px 40px 40px; box-shadow: 0 22px 56px rgba(190,120,135,.18); }
+.ob .steps { display: flex; gap: 10px; margin-bottom: 34px; }
+.ob .steps i { flex: 1; height: 6px; border-radius: 9px; background: #f3dfe3; } .ob .steps i.on { background: #ffb6c1; }
+.ob .obq { font-family: 'Jua', sans-serif; font-size: 44px; line-height: 1.35; color: #2f2629; }
+.ob .obd { font-size: 25px; color: #6b5e62; line-height: 1.6; margin-top: 16px; }
+.ob .lb { font-family: 'Jua', sans-serif; font-size: 24px; margin: 34px 0 12px; }
+.ob .field { background: #fff; border: 2.500px solid #f0e0e3; border-radius: 20px; padding: 22px 26px; font-size: 30px; display: flex; align-items: center; }
+.ob .field.focus { border-color: #ffb6c1; box-shadow: 0 0 0 5px #ffe3e8; }
+.ob .big { border-radius: 22px; padding: 26px 0; text-align: center; font-size: 30px; }
+.ob .choice { background: #fffdfa; border: 2.500px solid #ffe3e8; border-radius: 28px; padding: 30px; display: flex; align-items: center; gap: 26px; margin-top: 22px; }
+.ob .choice .ic4 { width: 84px; height: 84px; border-radius: 24px; display: grid; place-items: center; flex: none; }
+.ob .choice svg { width: 44px; height: 44px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.ob .choice b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 31px; display: block; }
+.ob .choice span { font-size: 23px; color: #6b5e62; display: block; margin-top: 6px; }
