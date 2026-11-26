@@ -99,6 +99,10 @@ const seed = async () => {
   await ev(N(24), '크리스마스 데이트', 'couple', { isDday: true });
   await ev(N(28), '송년회', 'boyfriend');
   await ev(N(31), '해돋이 보러 가기');
+  // 1·2년 전 이맘때(그날의 우리)
+  await ev(ymd(addDays(-365)), '첫 제주 여행 둘째 날');
+  await ev(ymd(addDays(-366)), '첫 제주 여행 첫째 날');
+  await ev(ymd(addDays(-729)), '처음 같이 본 영화');
   // 지난달(월간 요약용)
   await ev(P(3), '놀이공원 교복 데이트');
   await ev(P(9), '단풍 구경');
@@ -222,6 +226,11 @@ const SHOTS = [
   { name: 'event-new', path: `/calendar/day/${N(12)}`, act: async (p) => { await p.getByText('일정 추가').first().click(); } },
   { name: 'event-repeat', path: `/calendar/day/${N(12)}`, act: async (p) => { await p.getByText('일정 추가').first().click(); await p.waitForTimeout(600); await p.locator('input[placeholder="일정 제목을 입력하세요"]').fill('필라테스'); await p.getByText('반복 일정으로 만들기').first().click(); await p.waitForTimeout(500); await p.getByText('반복 주기').first().scrollIntoViewIfNeeded(); } },
   { name: 'home-dday', path: '/', act: async (p) => { await p.getByText('크리스마스 데이트').first().scrollIntoViewIfNeeded(); } },
+  { name: 'letter-write', path: '/letters', act: async (p) => { await p.getByText('편지 쓰기').first().click(); } },
+  { name: 'recap-2', path: `/recap/${prevMonth}`, act: async (p) => { await p.mouse.click(330, 500); } },
+  { name: 'recap-3', path: `/recap/${prevMonth}`, act: async (p) => { await p.mouse.click(330, 500); await p.waitForTimeout(500); await p.mouse.click(330, 500); } },
+  { name: 'recap-4', path: `/recap/${prevMonth}`, act: async (p) => { for (let i = 0; i < 3; i++) { await p.mouse.click(330, 500); await p.waitForTimeout(500); } } },
+  { name: 'recap-list', path: '/recap' },
   { name: 'letter-open', path: '/letters', act: async (p) => { await p.getByText('600일 축하해').first().click(); } },
   { name: 'review-1', path: '/travel/t0/review' },
   { name: 'review-2', path: '/travel/t0/review?step=2' },

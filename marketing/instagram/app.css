@@ -149,3 +149,30 @@
 .mapsvg path.on { fill: #ffc0cb; }
 .prog { height: 12px; border-radius: 99px; background: #ffe9ed; margin-top: 16px; overflow: hidden; }
 .prog i { display: block; height: 100%; background: #ffa3b3; border-radius: 99px; }
+
+/* 봉인 편지 */
+.lhead { background: #f0e8fb; margin: -40px -40px 30px; padding: 30px 40px; border-radius: 44px 44px 0 0; display: flex; align-items: center; gap: 16px; }
+.lhead .t { font-size: 34px; }
+.lhead svg { width: 38px; height: 38px; fill: none; stroke: #9a86d6; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+.box { border: 2.500px solid #ece2e4; border-radius: 18px; padding: 20px 24px; font-size: 27px; background: #fff; }
+.letter { background: #fffdfa; border: 2.500px solid #ffe3e8; border-left: 8px solid #b5ead7; border-radius: 28px; padding: 26px 28px; display: flex; align-items: center; gap: 22px; }
+.letter.mine { border-left-color: #cfc5f2; }
+.letter svg { width: 44px; height: 44px; fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; flex: none; }
+.letter .nm { font-family: 'Jua', sans-serif; font-size: 30px; display: flex; align-items: center; gap: 12px; }
+.letter .wh { font-size: 19px; border-radius: 999px; padding: 3px 14px; font-family: 'Gowun Dodum', sans-serif; }
+/* 그날의 우리 */
+.otd { display: flex; align-items: center; gap: 20px; padding: 18px 4px; }
+.otd::before { content: ''; width: 14px; height: 14px; border-radius: 50%; background: #ffd0d9; flex: none; }
+.agochip { background: #fff3da; color: #b58a2a; border-radius: 12px; padding: 6px 16px; font-size: 22px; font-family: 'Jua', sans-serif; }
+/* 월간 요약 */
+.ui.recap { background: #fff3f5; border-radius: 48px; padding: 36px 36px 40px; box-shadow: 0 22px 56px rgba(190,120,135,.18); }
+.recap .bars { display: flex; gap: 8px; }
+.recap .bars i { flex: 1; height: 6px; border-radius: 9px; background: #f6dfe3; } .recap .bars i.on { background: #ff9bac; }
+.tile { background: #fffdfa; border-radius: 26px; padding: 20px 26px; }
+.tile .ic3 { width: 52px; height: 52px; border-radius: 50%; display: grid; place-items: center; }
+.tile .ic3 svg { width: 28px; height: 28px; fill: none; stroke-width: 2.200; stroke-linecap: round; stroke-linejoin: round; }
+.tile b { display: block; font-family: 'Jua', sans-serif; font-weight: 400; font-size: 46px; color: #ff8fa3; margin-top: 8px; line-height: 1.1; }
+.tile span { display: block; font-size: 24px; margin-top: 8px; }
+.grid2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+.nx { background: #fffdfa; border-radius: 22px; padding: 22px 28px; display: flex; align-items: center; margin-top: 16px; }
+.nx .d { font-family: 'Jua', sans-serif; color: #ff8fa3; font-size: 28px; }

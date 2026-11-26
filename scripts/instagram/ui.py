@@ -278,3 +278,86 @@ def achieved():
     {dn('놀이공원 교복 데이트', '10월 3일')}
   </div>
 </div>'''
+
+
+# ── 봉인 편지 · 우리 이야기 ──
+LOCK = '<svg viewBox="0 0 24 24" stroke="#e88098"><rect x="5" y="10.500" width="14" height="10" rx="2.500" fill="#ffd0d9"/><path d="M8 10.500V7.500a4 4 0 0 1 8 0v3"/></svg>'
+UNLOCK = '<svg viewBox="0 0 24 24" stroke="#9a86d6"><rect x="5" y="10.500" width="14" height="10" rx="2.500" fill="#ddd5f6"/><path d="M8 10.500V7.500a4 4 0 0 1 7.500-2"/></svg>'
+PEN = '<svg viewBox="0 0 24 24"><path d="M4 20h4L19 9l-4-4L4 16zM13.500 6.500l4 4"/></svg>'
+MAIL = '<svg viewBox="0 0 24 24"><path d="M3.500 10l8.500-5 8.500 5v8.500a1.500 1.500 0 0 1-1.500 1.500H5a1.500 1.500 0 0 1-1.500-1.500zM3.500 10l8.500 5 8.500-5"/></svg>'
+I_PHOTO = _ico('<rect x="3.500" y="5" width="17" height="14" rx="2.500"/><path d="M3.500 15l4.500-4 4 3.500 3-2.500 5.500 4.500"/><circle cx="9" cy="9.500" r="1.300"/>')
+
+
+def _letters():
+    return f"""<div class="letter"><span>{LOCK}</span><div><div class="nm"><span class="wh" style="background:#d8f3e6;color:#3f9d6d">두리</span>크리스마스에 열어 봐</div><div class="xs rose" style="margin-top:8px">2026.11.27 작성 · 2026.12.25 00:00에 열려요</div></div></div>
+  <div class="letter mine gap"><span>{UNLOCK}</span><div><div class="nm"><span class="wh" style="background:#e3dcf8;color:#7d6ac4">나</span>600일 축하해</div><div class="xs rose" style="margin-top:8px">2026.10.18 작성 · 2026.11.4 공개됨</div></div><span class="sp"></span><span class="mute">›</span></div>"""
+
+
+def letter_write():
+    return f"""<div class="ui sheet">
+  <div class="lhead">{PEN}<span class="t">편지 봉인하기</span><span class="sp"></span><span class="rose" style="font-size:34px">×</span></div>
+  <div class="box j">크리스마스에 열어 봐</div>
+  <div class="box gap" style="min-height:170px;line-height:1.6;color:#4a3f42">메리 크리스마스! 올해도 옆에 있어 줘서 고마워. 내년엔 우리 지도 절반은 칠해 보자.</div>
+  <div class="j" style="margin-top:28px;font-size:26px">공개 방식</div>
+  <div class="row" style="margin-top:14px"><span class="btn" style="border-radius:18px;background:#f0e8fb;color:#7d6ac4;box-shadow:inset 0 0 0 3px #cfc5f2;font-size:26px;padding:18px 0">시각 예약</span><span class="btn" style="border-radius:18px;background:#faf7f8;color:#e88098;box-shadow:inset 0 0 0 2.500px #ece2e4;font-size:26px;padding:18px 0">직접 공개</span></div>
+  <div class="row" style="margin-top:16px;font-family:Pretendard"><span class="box" style="flex:1.600">2026-12-25</span><span class="box" style="flex:1">00시</span><span class="box" style="flex:1">00분</span></div>
+  <div class="row" style="margin-top:28px"><span class="btn" style="border-radius:18px;background:#f4f1f2;color:#e88098">취소</span><span class="btn fill" style="border-radius:18px">봉인하기</span></div>
+</div>"""
+
+
+def letter_box():
+    return f"""<div class="ui page">
+  <div class="row" style="padding:4px 6px 22px"><span class="mute">←</span><span class="t" style="font-size:34px">봉인 편지함</span><span class="sp"></span><span class="btn fill" style="flex:none;padding:14px 26px;border-radius:18px;font-size:24px">+ 편지 쓰기</span></div>
+  {_letters()}
+  <div class="c gap" style="padding:0;overflow:hidden;background:#fff"><div class="lhead" style="margin:0;border-radius:0;padding:24px 30px">{MAIL}<span class="t">600일 축하해</span></div>
+    <div style="padding:26px 30px 30px;line-height:1.6">벌써 600일이네. 같이 다닌 곳들이 지도에 하나씩 칠해지는 게 좋아. 다음 600일도 잘 부탁해.<div class="xs rose" style="margin-top:16px">2026.10.18 작성 · 2026.11.4 공개</div></div></div>
+</div>"""
+
+
+def letter_piece():
+    return f'<div class="ui page">{_letters()}</div>'
+
+
+def on_this_day():
+    def r(nm, dt, ago):
+        return f'<div class="otd"><div><div class="j" style="font-size:31px">{nm}</div><div class="xs mute" style="margin-top:4px">{dt}</div></div><span class="sp"></span><span class="agochip">{ago}</span></div>'
+    return f"""<div class="ui page">
+  <div class="c hc"><div class="h">{I_PHOTO}그날의 우리</div>
+    <div style="margin-top:10px">
+    {r('첫 제주 여행 둘째 날', '2025년 11월 27일 (목)', '1년 전')}
+    {r('처음 같이 본 영화', '2024년 11월 28일 (목)', '2년 전')}
+    {r('첫 제주 여행 첫째 날', '2025년 11월 26일 (수)', '1년 전')}
+    </div></div>
+  <div class="c hc"><div class="h">{I_MAP}우리 지도</div><div class="row"><div><div class="m">함께 가 본 곳 <span class="rose">4</span>/16</div><div class="s">누르면 시·군·구까지 볼 수 있어요</div></div><span class="sp"></span><span class="mute">›</span></div></div>
+</div>"""
+
+
+def _recap_head(n, title):
+    bars = ''.join(f'<i class="{"on" if i < n else ""}"></i>' for i in range(4))
+    return f'<div class="bars">{bars}</div><div class="row" style="margin-top:18px"><span class="sm">2026년 10월의 우리</span><span class="sp"></span><span style="font-size:34px">×</span></div><div class="t" style="font-size:42px;line-height:1.3;margin:18px 0 20px">{title}</div>'
+
+
+def recap_stats():
+    def tile(bg, st, path, n, lab, sub=''):
+        return f'<div class="tile"><span class="ic3" style="background:{bg}"><svg viewBox="0 0 24 24" stroke="{st}">{path}</svg></span><b>{n}</b><span>{lab}</span>' + (f'<span class="xs mute" style="margin-top:4px">{sub}</span>' if sub else '') + '</div>'
+    return f"""<div class="ui recap">
+  {_recap_head(2, '숫자로 보는<br />이번 달 우리')}
+  <div class="grid2">
+    {tile('#ffe3e8', '#e0566f', '<rect x="4" y="5.500" width="16" height="14.500" rx="3"/><path d="M4 10h16M8.500 3.500v4M15.500 3.500v4"/>', 5, '함께한 일정')}
+    {tile('#e8defa', '#7a5fc9', '<path d="M4 5l16 7-16 7 3-7zM7 12h13"/>', 1, '여행 · 제주도', '2박 3일')}
+    {tile('#dcf3e3', '#3f9d6d', '<path d="M6 12.500l4 4 8-8.500"/>', 5, '이룬 버킷리스트', '남은 버킷 6개')}
+    {tile('#fdf0c4', '#b58a2a', '<rect x="4" y="6.500" width="16" height="12" rx="2.500"/><path d="M4.500 8l7.500 5.500L19.500 8"/>', 1, '주고받은 편지')}
+  </div>
+</div>"""
+
+
+def recap_next():
+    def nx(nm, sub, d):
+        return f'<div class="nx"><div><div class="j" style="font-size:30px">{nm}</div><div class="xs" style="color:#6b5e62;margin-top:4px">{sub}</div></div><span class="sp"></span><span class="d">{d}</span></div>'
+    return f"""<div class="ui recap">
+  {_recap_head(4, '11월에는<br />이런 날이 기다려요')}
+  {nx('600일', '11월 3일 · 기념일', 'D-3')}
+  {nx('빼빼로데이', '11월 11일 · 이벤트데이', 'D-11')}
+  {nx('예정된 일정 8개', '가장 가까운 일정 · 11월 7일 한강에서 라면 먹기', '8')}
+  <div class="row" style="margin-top:30px"><span class="btn line">이미지로 저장</span><span class="btn fill">일정 추가하러 가기</span></div>
+</div>"""
