@@ -1,0 +1,234 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>우리두리 인스타그램 2번 게시물 — 공유 캘린더</title>
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<link rel="stylesheet" href="../base.css" />
+<style>
+  /* 알림 카드 */
+  .pushes { display: flex; flex-direction: column; gap: 18px; }
+  .push { background: #fff; border-radius: 34px; padding: 26px 30px; display: flex; gap: 24px; align-items: center; box-shadow: 0 12px 34px rgba(190,120,135,.12); }
+  .push .app { width: 84px; height: 84px; border-radius: 24px; overflow: hidden; flex: none; background: var(--blush); }
+  .push .app img { width: 100%; height: 100%; object-fit: cover; transform: scale(1.14); }
+  .push .body { flex: 1; min-width: 0; }
+  .push .meta { display: flex; justify-content: space-between; font-size: 22px; color: var(--faint); font-weight: 500; }
+  .push b { display: block; font-size: 31px; font-weight: 700; letter-spacing: -0.025em; margin-top: 6px; }
+  .push span.d { display: block; font-size: 26px; color: var(--desc); margin-top: 4px; letter-spacing: -0.02em; }
+  .when { font-size: 24px; font-weight: 700; color: var(--rose); margin: 22px 0 12px 8px; }
+  .when:first-child { margin-top: 0; }
+
+  .pushes.big .push { padding: 36px 34px; }
+  .pushes.big .when { margin: 30px 0 14px 8px; font-size: 26px; }
+  .pushes.big .when:first-child { margin-top: 0; }
+
+  /* 일정 적기 */
+  .form { padding: 36px 40px 12px; }
+  .form .title { font-size: 44px; font-weight: 800; letter-spacing: -0.03em; padding-bottom: 24px; border-bottom: 2px solid var(--line); }
+  .form .title i { display: inline-block; width: 3px; height: 44px; background: var(--rose); vertical-align: -6px; margin-left: 6px; }
+  .chips { display: flex; gap: 14px; margin: 24px 0; }
+  .chip { flex: 1; text-align: center; font-size: 27px; font-weight: 600; padding: 18px 0; border-radius: 20px; background: #faf3f4; color: var(--desc); }
+  .chip.sel { background: var(--you); color: var(--you-ink); font-weight: 700; }
+  .frow { display: flex; justify-content: space-between; align-items: center; padding: 22px 0; border-top: 1.500px solid var(--line); font-size: 29px; letter-spacing: -0.02em; }
+  .frow .k { color: var(--desc); }
+  .frow .v { font-weight: 600; }
+  .frow.memo { display: block; }
+  .frow.memo .v { display: block; margin-top: 10px; font-weight: 400; color: var(--ink); line-height: 1.5; }
+  .sw { width: 76px; height: 44px; border-radius: 99px; background: #eadfe1; position: relative; flex: none; }
+  .sw::after { content: ''; position: absolute; width: 36px; height: 36px; border-radius: 50%; background: #fff; top: 4px; left: 4px; }
+  .sw.on { background: var(--pink); }
+  .sw.on::after { left: 36px; }
+
+  /* 반복 · 디데이 */
+  .panel { padding: 36px 38px; }
+  .panel h4 { font-size: 24px; font-weight: 700; color: var(--desc); margin: 26px 0 14px; }
+  .panel h4:first-child { margin-top: 0; }
+  .opts { display: flex; gap: 12px; }
+  .opt { font-size: 26px; font-weight: 600; padding: 14px 26px; border-radius: 999px; background: #faf3f4; color: var(--desc); }
+  .opt.sel { background: var(--pink); color: #fff; font-weight: 700; }
+  .opt.day { width: 68px; height: 68px; padding: 0; display: grid; place-items: center; border-radius: 50%; }
+  .dday { margin-top: 22px; background: #fff; border-radius: 32px; padding: 32px 38px; display: flex; align-items: center; gap: 30px; box-shadow: 0 12px 34px rgba(190,120,135,.12); }
+  .dday .n { font-family: 'Jua', sans-serif; font-size: 76px; color: var(--rose); line-height: 1; flex: none; }
+  .dday b { display: block; font-size: 32px; font-weight: 700; letter-spacing: -0.025em; }
+  .dday span { display: block; font-size: 25px; color: var(--desc); margin-top: 6px; letter-spacing: -0.02em; }
+
+  /* 나만 보기 · 수정 기록 */
+  .secret { padding: 40px 38px; display: flex; gap: 26px; align-items: center; }
+  .secret .lock { width: 88px; height: 88px; border-radius: 26px; background: var(--pink-soft); display: grid; place-items: center; flex: none; }
+  .secret .lock svg { width: 44px; height: 44px; stroke: var(--rose); fill: none; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; }
+  .secret small { font-size: 23px; font-weight: 700; color: var(--rose); }
+  .secret b { display: block; font-size: 34px; font-weight: 700; letter-spacing: -0.025em; margin-top: 6px; }
+  .secret span { display: block; font-size: 25px; color: var(--desc); margin-top: 6px; }
+  .logs { margin-top: 22px; padding: 32px 38px 12px; }
+  .logs h4 { font-size: 26px; font-weight: 700; color: var(--rose); margin-bottom: 8px; }
+  .log { display: flex; gap: 22px; align-items: center; padding: 22px 0; border-top: 1.500px solid var(--line); }
+  .log:first-of-type { border-top: 0; }
+  .log .av { width: 68px; height: 68px; background-size: 202px 202px; }
+  .log .av.blue { background-position: -34px -74px; }
+  .log .av.peach { background-position: -115px -79px; }
+  .log b { display: block; font-size: 29px; font-weight: 700; letter-spacing: -0.025em; }
+  .log b s { color: var(--faint); font-weight: 500; }
+  .log span { display: block; font-size: 23px; color: var(--desc); margin-top: 5px; }
+</style>
+</head>
+<body>
+
+<!-- 1. 표지 -->
+<section class="slide blush" id="s1">
+  <div class="top"><span class="brand">우리두리</span><span class="tag" style="color:#c9a0aa">사용법 01 · 공유 캘린더</span></div>
+  <div class="pushes" style="margin-top:64px">
+    <div class="push">
+      <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+      <div class="body"><div class="meta"><span>우리두리</span><span>지금</span></div><b>두부님이 일정을 추가했어요</b><span class="d">12월 12일 (토) · 친구 결혼식</span></div>
+    </div>
+    <div class="push">
+      <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+      <div class="body"><div class="meta"><span>우리두리</span><span>오후 9:00</span></div><b>내일 일정이 있어요</b><span class="d">두부 · 팀 회식</span></div>
+    </div>
+    <div class="push">
+      <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+      <div class="body"><div class="meta"><span>우리두리</span><span>오전 9:00</span></div><b>크리스마스 데이트까지 3일</b><span class="d">디데이로 표시한 일정이에요</span></div>
+    </div>
+  </div>
+  <div class="stage">
+    <div class="cover-h">말 안 해도,<br /><span class="hl">서로의 일정이 보여요</span></div>
+    <div class="cover-foot" style="align-items:center"><p>우리두리 공유 캘린더,<br />어떻게 쓰는지 하나씩 보여드릴게요</p><span class="go"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M5 12h14M13 6l6 6-6 6" /></svg></span></div>
+  </div>
+</section>
+
+<!-- 2. 한 캘린더, 색으로 구분 -->
+<section class="slide" id="s2">
+  <div class="top"><span class="brand">우리두리</span><span class="tag">① 한 캘린더</span></div>
+  <h1 style="margin-top:72px">누구 일정인지<br /><em>색만 봐도 알아요</em></h1>
+  <p class="sub">내 일정, 상대 일정, 데이트, 여행이 달력 하나에.<br />색은 취향대로 바꿀 수 있어요.</p>
+  <div class="stage">
+    <div class="card cal">
+      <div class="cal-head">
+        <b>2026년 12월</b>
+        <div class="legend"><span><i style="background:var(--me)"></i>토리</span><span><i style="background:var(--you)"></i>두부</span><span><i style="background:var(--us)"></i>데이트</span><span><i style="background:var(--trip)"></i>여행</span></div>
+      </div>
+      <div class="grid" id="calgrid"></div>
+    </div>
+    <div class="notis">
+      <div class="noti"><svg viewBox="0 0 24 24"><path d="M4 12a8 8 0 0 1 13.700-5.600L20 8.500M20 4v4.500h-4.500M20 12a8 8 0 0 1-13.700 5.600L4 15.500M4 20v-4.500h4.500" /></svg><span>적는 순간 <b>상대 화면에도</b></span></div>
+      <div class="noti"><svg viewBox="0 0 24 24"><path d="M5 12.500a10 10 0 0 1 14 0M8 15.500a5.500 5.500 0 0 1 8 0M12 19h.01" /></svg><span>연결이 끊겨도 <b>나중에 저장</b></span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 3. 일정 적기 -->
+<section class="slide" id="s3">
+  <div class="top"><span class="brand">우리두리</span><span class="tag">② 일정 적기</span></div>
+  <h1 style="margin-top:72px">제목이랑 날짜,<br /><em>그거면 끝이에요</em></h1>
+  <p class="sub">누구 일정인지만 고르면 돼요. 메모는 적고 싶을 때만.</p>
+  <div class="stage">
+    <div class="card form">
+      <div class="title">친구 결혼식<i></i></div>
+      <div class="chips"><span class="chip">데이트</span><span class="chip">토리</span><span class="chip sel">두부</span></div>
+      <div class="frow"><span class="k">날짜</span><span class="v">2026년 12월 12일 (토)</span></div>
+      <div class="frow memo"><span class="k">메모</span><span class="v">12시 반 강남 · 대학 동기들이랑 · 끝나고 연락할게</span></div>
+      <div class="frow"><span class="k">디데이로 표시</span><i class="sw"></i></div>
+      <div class="frow"><span class="k">나만 보기</span><i class="sw"></i></div>
+      <div class="frow"><span class="k">반복 일정으로 만들기</span><i class="sw"></i></div>
+    </div>
+  </div>
+</section>
+
+<!-- 4. 알림 -->
+<section class="slide" id="s4">
+  <div class="top"><span class="brand">우리두리</span><span class="tag">③ 알림</span></div>
+  <h1 style="margin-top:72px">적어 두기만 하면<br /><em>알림이 대신 말해줘요</em></h1>
+  <p class="sub">알림은 종류별로 켜고 끌 수 있어요.</p>
+  <div class="stage">
+    <div class="pushes big" style="gap:0">
+      <div class="when">상대가 일정을 추가하면 바로</div>
+      <div class="push">
+        <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+        <div class="body"><b style="margin-top:0">두부님이 일정을 추가했어요</b><span class="d">12월 12일 (토) · 친구 결혼식</span></div>
+      </div>
+      <div class="when">내일 일정은 전날 저녁 9시에</div>
+      <div class="push">
+        <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+        <div class="body"><b style="margin-top:0">내일 일정이 있어요</b><span class="d">두부 · 팀 회식</span></div>
+      </div>
+      <div class="when">디데이는 3일 전, 하루 전 아침 9시에</div>
+      <div class="push">
+        <div class="app"><img src="../../../assets/logo.png" alt="" /></div>
+        <div class="body"><b style="margin-top:0">크리스마스 데이트까지 3일</b><span class="d">디데이로 표시한 일정이에요</span></div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- 5. 반복 · 디데이 -->
+<section class="slide" id="s5">
+  <div class="top"><span class="brand">우리두리</span><span class="tag">④ 반복 · 디데이</span></div>
+  <h1 style="margin-top:72px">매주 가는 필라테스,<br /><em>한 번만 적어요</em></h1>
+  <p class="sub">매일·매주·매월·매년 반복하고, 언제까지 할지도 정해요.<br />기다리는 날은 디데이로 표시해 두세요.</p>
+  <div class="stage">
+    <div class="card panel">
+      <h4>반복 주기</h4>
+      <div class="opts"><span class="opt">매일</span><span class="opt sel">매주</span><span class="opt">매월</span><span class="opt">매년</span></div>
+      <h4>요일</h4>
+      <div class="opts"><span class="opt day">일</span><span class="opt day">월</span><span class="opt day sel">화</span><span class="opt day">수</span><span class="opt day sel">목</span><span class="opt day">금</span><span class="opt day">토</span></div>
+      <h4>종료 조건</h4>
+      <div class="opts"><span class="opt sel">날짜까지</span><span class="opt">횟수만큼</span><span class="opt" style="background:none;color:var(--ink);padding-left:8px">2027년 2월 25일</span></div>
+    </div>
+    <div class="dday">
+      <div class="n">D-12</div>
+      <div><b>크리스마스 데이트</b><span>디데이로 표시한 일정은 홈 화면에서 날짜를 세어 줘요</span></div>
+    </div>
+  </div>
+</section>
+
+<!-- 6. 나만 보기 · 수정 기록 -->
+<section class="slide" id="s6">
+  <div class="top"><span class="brand">우리두리</span><span class="tag">⑤ 나만 보기 · 수정 기록</span></div>
+  <h1 style="margin-top:72px">몰래 준비하는 날은<br /><em>나만 보기로</em></h1>
+  <p class="sub">서프라이즈는 지켜 주고,<br />바뀐 일정은 누가 언제 바꿨는지 남겨 둬요.</p>
+  <div class="stage">
+    <div class="card secret">
+      <div class="lock"><svg viewBox="0 0 24 24"><rect x="5" y="10.500" width="14" height="10" rx="2.500" /><path d="M8 10.500V7.500a4 4 0 0 1 8 0v3" /></svg></div>
+      <div><small>나만 보기</small><b>두부 생일 선물 사러 가기</b><span>12월 20일 (일) · 상대 캘린더엔 안 보여요</span></div>
+    </div>
+    <div class="card logs">
+      <h4>수정 기록</h4>
+      <div class="log"><i class="av peach"></i><div><b>날짜 <s>12월 18일</s> → 12월 19일</b><span>두부 · 어제 · 강릉 1박 2일</span></div></div>
+      <div class="log"><i class="av blue"></i><div><b>메모를 고쳤어요</b><span>토리 · 12월 3일 · 전시회</span></div></div>
+      <div class="log"><i class="av blue"></i><div><b>일정을 추가했어요</b><span>토리 · 12월 1일 · 전시회</span></div></div>
+    </div>
+  </div>
+</section>
+
+<!-- 7. 마무리 -->
+<section class="slide blush end" id="s7">
+  <div class="mascot"><img src="../../../assets/logo.png" alt="" /></div>
+  <div class="name">우리두리</div>
+  <h2>내일 일정부터<br />같이 적어 볼까요?</h2>
+  <div class="how">Google Play에서 <b>‘우리두리’</b> 검색</div>
+  <div class="stores">안드로이드 · 무료 설치</div>
+  <div class="next"><span>저장해 두고, 같이 쓸 사람에게 보내기</span><span>다음 글 <b>여행 계획 자세히</b></span></div>
+</section>
+
+<script>
+  // 캘린더: 2026년 12월(1일 = 화요일)
+  (function () {
+    const g = document.getElementById('calgrid');
+    '일월화수목금토'.split('').forEach((d) => { g.insertAdjacentHTML('beforeend', `<div class="dow">${d}</div>`); });
+    const ev = {
+      5: ['us', '전시회'], 9: ['you', '회식'], 12: ['you', '결혼식'], 15: ['me', '출장'],
+      18: ['trip span2', '강릉 1박 2일'], 24: ['us', '크리스마스'], 28: ['me', '송년회'], 31: ['us', '해돋이'],
+    };
+    for (let i = 0; i < 35; i++) {
+      const day = i - 1;
+      const dim = day < 1 || day > 31;
+      const n = day < 1 ? 30 + day : day > 31 ? day - 31 : day;
+      const e = !dim && ev[day] ? `<div class="ev ${ev[day][0]}">${ev[day][1]}</div>` : '';
+      g.insertAdjacentHTML('beforeend', `<div class="cell${dim ? ' dim' : ''}${i % 7 === 0 ? ' sun' : ''}"><span class="n">${n}</span>${e}</div>`);
+    }
+  })();
+</script>
+</body>
+</html>
