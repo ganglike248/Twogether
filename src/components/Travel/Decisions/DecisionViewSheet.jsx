@@ -2,6 +2,7 @@
 // 보기 설정 시트 — 카테고리(비교 주제) 필터·확정만·즐겨찾기만 + 카테고리/후보 정렬.
 // 시트 안에서 고른 값은 "적용하기"를 눌러야 반영됨(초기화는 시트 안 값만 기본값으로).
 import React, { useState } from 'react';
+import { useDialog } from '../../../hooks/useDialog';
 import { MdCheckCircle, MdStar } from 'react-icons/md';
 import { getDecidedCount } from '../../../services/travelDecisionService';
 import {
@@ -13,6 +14,7 @@ import {
 import './DecisionViewSheet.css';
 
 const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
+  const dialogRef = useDialog(true, onClose);
   const allIds = decisions.map(d => d.id);
   const [draft, setDraft] = useState({ ...view, topicIds: view.topicIds || allIds });
   const [openedAt] = useState(() => Date.now());
@@ -37,7 +39,7 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
 
   return (
     <div className="dvs-overlay" onClick={handleOverlayClick}>
-      <div className="dvs-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label="보기 설정">
+      <div className="dvs-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="보기 설정" ref={dialogRef} tabIndex={-1}>
         <div className="dvs-grabber" />
         <div className="dvs-head">
           <span className="dvs-title">보기 설정</span>
@@ -47,7 +49,7 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
         <div className="dvs-scroll">
           {decisions.length > 0 && (
             <div className="dvs-group">
-              <span className="dvs-label">카테고리</span>
+              <span className="dvs-label">비교 주제</span>
               <div className="dvs-chips">
                 {decisions.map(d => {
                   const on = draft.topicIds.includes(d.id);
@@ -90,7 +92,7 @@ const DecisionViewSheet = ({ decisions, userId, view, onApply, onClose }) => {
           </div>
 
           <div className="dvs-group">
-            <span className="dvs-label">카테고리 순서</span>
+            <span className="dvs-label">주제 순서</span>
             <div className="dvs-chips">
               {TOPIC_SORTS.map(s => (
                 <button

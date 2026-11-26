@@ -86,7 +86,7 @@ const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
           <h2 className="checklist-modal-title">
             {isEditing ? '항목 수정' : '새 항목 추가'}
           </h2>
-          <button className="checklist-modal-close" onClick={onClose}>
+          <button type="button" className="checklist-modal-close" onClick={onClose} aria-label="닫기">
             <MdClose size={20} />
           </button>
         </div>

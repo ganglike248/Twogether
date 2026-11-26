@@ -130,7 +130,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
       <ConfirmModal
         isOpen={!!itemToDelete}
         title="항목 삭제"
-        message="이 항목을 삭제하시겠습니까?"
+        message="이 항목을 삭제할까요?"
         confirmText="삭제"
         onConfirm={confirmDeleteItem}
         onCancel={() => setItemToDelete(null)}

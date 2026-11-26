@@ -14,6 +14,7 @@ import ScheduledDaysChip from './ScheduledDaysChip';
 import './OptionShared.css';
 import './OptionDetailSheet.css';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
+import { useDialog } from '../../../hooks/useDialog';
 
 const COMMENT_MAX = 200;
 
@@ -29,6 +30,7 @@ const OptionDetailSheet = ({
   scheduledDays,
   onClose,
 }) => {
+  const dialogRef = useDialog(true, onClose);
   const myScore = getUserScore(option, currentUserId);
   const [scoring, setScoring] = useState(startScoring || myScore == null);
   const [score, setScore] = useState(myScore);
@@ -69,7 +71,7 @@ const OptionDetailSheet = ({
 
   return (
     <div className="ods-overlay" onClick={handleOverlayClick}>
-      <div className="ods-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-label={option.title}>
+      <div className="ods-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label={option.title} ref={dialogRef} tabIndex={-1}>
         <div className="ods-topbar">
           <div className="ods-grabber" />
           <button className="ods-close" onClick={onClose} aria-label="닫기">

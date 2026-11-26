@@ -71,7 +71,7 @@ const DecisionModal = ({ isOpen, onClose, onSave, editingDecision }) => {
           <h2 className="decision-modal-title">
             {editingDecision ? '비교 주제 수정' : '새로운 비교 주제 추가'}
           </h2>
-          <button className="decision-modal-close" onClick={onClose}>
+          <button type="button" className="decision-modal-close" onClick={onClose} aria-label="닫기">
             <MdClose size={20} />
           </button>
         </div>

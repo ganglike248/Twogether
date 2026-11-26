@@ -1,5 +1,5 @@
 // src/components/Travel/Decisions/TravelDecisionsTab.jsx
-// 선택 사항 탭 — [비교 주제 N · ＋카테고리 추가] / [카테고리 · 즐겨찾기만 · 정렬] / 주제별 세로 섹션.
+// 선택 사항 탭 — [비교 주제 N · ＋주제 추가] / [주제 · 즐겨찾기만 · 정렬] / 주제별 세로 섹션.
 // 후보 상세 시트(?modal=option&d=&o=)와 보기 설정 시트(?modal=decision-view)는 URL로 열고 닫음
 // (앱 모달 아키텍처: 열림 상태를 URL에서 파생, 닫기는 navigate(-1) 또는 첫 진입이면 replace).
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
@@ -116,8 +116,8 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
   const topics = useMemo(() => buildVisibleTopics(decisions, view, user?.uid), [decisions, view, user?.uid]);
   const sortLabel = OPTION_SORTS.find(s => s.key === view.optionSort)?.label || '점수순';
   const categoryLabel = view.topicIds
-    ? `카테고리 ${view.topicIds.filter(id => decisions.some(d => d.id === id)).length}/${decisions.length}`
-    : '카테고리 전체';
+    ? `주제 ${view.topicIds.filter(id => decisions.some(d => d.id === id)).length}/${decisions.length}`
+    : '주제 전체';
 
   if (loading) {
     return (
@@ -133,7 +133,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
       <div className="tdt-top">
         <span className="tdt-count">비교 주제 <span className="tdt-count-num">{decisions.length}</span></span>
         <button className="tdt-add-topic" onClick={actions.createTopic}>
-          <MdAdd />카테고리 추가
+          <MdAdd />주제 추가
         </button>
       </div>
 
@@ -166,7 +166,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
       {decisions.length === 0 ? (
         <div className="tdt-empty">
           <div className="tdt-empty-icon"><MdGpsFixed size={48} /></div>
-          <p className="tdt-empty-title">아직 선택지가 없습니다</p>
+          <p className="tdt-empty-title">아직 비교 주제가 없어요</p>
           <p className="tdt-empty-text">숙소, 식당, 액티비티 등을 비교해보세요!</p>
         </div>
       ) : topics.length === 0 ? (

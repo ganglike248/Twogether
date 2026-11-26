@@ -92,23 +92,23 @@ const useDecisionActions = ({ trip, userId, decisions = [], nav, onOptionDeleted
     } else if (type === 'askSchedule') {
       onAddToSchedule(decision, option);
     } else if (type === 'deleteOption') {
-      const ok = await run(() => deleteOption(trip.id, decision.id, option.id), '옵션이 삭제됐어요.', '옵션 삭제 중 오류가 발생했어요.');
+      const ok = await run(() => deleteOption(trip.id, decision.id, option.id), '후보를 삭제했어요.', '후보 삭제 중 오류가 발생했어요.');
       if (ok) onOptionDeleted?.(option.id);
     } else if (type === 'deleteTopic') {
-      await run(() => deleteDecision(trip.id, decision.id), '선택지가 삭제됐어요.', '선택지 삭제 중 오류가 발생했어요.');
+      await run(() => deleteDecision(trip.id, decision.id), '비교 주제를 삭제했어요.', '비교 주제 삭제 중 오류가 발생했어요.');
     }
   };
 
   const handleAddOption = async (optionData) => {
-    const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '옵션이 추가됐어요.', '옵션 추가 중 오류가 발생했어요.');
+    const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '후보가 추가됐어요.', '후보 추가 중 오류가 발생했어요.');
     if (ok) nav.close();
   };
 
   const handleUpdateOption = async (updatedData) => {
     const ok = await run(
       () => updateOption(trip.id, editing.decision.id, editing.option.id, updatedData),
-      '옵션이 수정됐어요.',
-      '옵션 수정 중 오류가 발생했어요.',
+      '후보가 수정됐어요.',
+      '후보 수정 중 오류가 발생했어요.',
     );
     if (ok) nav.close();
   };
@@ -117,8 +117,8 @@ const useDecisionActions = ({ trip, userId, decisions = [], nav, onOptionDeleted
     if (topicModal.mode === 'create') {
       const ok = await run(
         () => createDecision(trip.id, { ...decisionData, coupleId: trip.coupleId }),
-        '선택지가 추가됐어요.',
-        '선택지 추가 중 오류가 발생했어요.',
+        '비교 주제가 추가됐어요.',
+        '비교 주제 추가 중 오류가 발생했어요.',
       );
       if (ok) nav.close();
     } else {
@@ -135,6 +135,7 @@ const useDecisionActions = ({ trip, userId, decisions = [], nav, onOptionDeleted
     }
   };
 
+  const topicOptionCount = confirm?.type === 'deleteTopic' ? (confirm.decision.options || []).length : 0;
   const confirmCopy = {
     undecide: { title: '확정 취소', message: '이 후보의 확정을 취소할까요?', confirmText: '확정 취소', danger: true },
     askSchedule: {
@@ -144,8 +145,13 @@ const useDecisionActions = ({ trip, userId, decisions = [], nav, onOptionDeleted
       cancelText: '나중에',
       danger: false,
     },
-    deleteOption: { title: '옵션 삭제', message: '이 옵션을 삭제하시겠습니까?', confirmText: '삭제', danger: true },
-    deleteTopic: { title: '선택지 삭제', message: '이 선택지를 삭제하시겠습니까?', confirmText: '삭제', danger: true },
+    deleteOption: { title: '후보 삭제', message: '이 후보를 삭제할까요?', confirmText: '삭제', danger: true },
+    deleteTopic: {
+      title: '비교 주제 삭제',
+      message: topicOptionCount > 0 ? `이 비교 주제를 삭제할까요? 후보 ${topicOptionCount}개도 함께 삭제돼요.` : '이 비교 주제를 삭제할까요?',
+      confirmText: '삭제',
+      danger: true,
+    },
   };
 
   const modals = (

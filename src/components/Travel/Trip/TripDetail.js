@@ -4,6 +4,7 @@ import { createPortal } from 'react-dom';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { useQueryModal } from '../../../hooks/useQueryModal';
 import { isOffline } from '../../../services/offlineWrite';
+import { useDialog } from '../../../hooks/useDialog';
 import { format, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
@@ -185,6 +186,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
 
+    const dayPickRef = useDialog(showDaySelector && !!optionForSchedule, qm.close);
     const handleAddOptionToSchedule = (decision, option) => qm.open('day-pick', { d: decision.id, o: option.id });
 
     const handleDaySelected = (day) => {
@@ -364,7 +366,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             {/* 날짜 선택 모달 */}
             {showDaySelector && optionForSchedule && createPortal(
                 <div className="day-selector-overlay">
-                    <div className="day-selector-modal">
+                    <div className="day-selector-modal" ref={dayPickRef} role="dialog" aria-modal="true" aria-label="어느 날에 추가할까요?" tabIndex={-1}>
                         <div className="dsm-header">
                             <h3 className="dsm-title">어느 날에 추가할까요?</h3>
                         </div>

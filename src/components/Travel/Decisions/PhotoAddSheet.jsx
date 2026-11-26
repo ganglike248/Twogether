@@ -6,6 +6,7 @@ import { createPortal } from 'react-dom';
 import { toast } from 'react-toastify';
 import { extractUrl } from '../../../utils/appLinkUtils';
 import './PhotoAddSheet.css';
+import { useDialog } from '../../../hooks/useDialog';
 
 const ClipboardIcon = () => (
   <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -15,6 +16,7 @@ const ClipboardIcon = () => (
 );
 
 const PhotoAddSheet = ({ existing, onAdd, onClose }) => {
+  const dialogRef = useDialog(true, onClose);
   const [input, setInput] = useState('');
   // 미리보기 상태: 주소가 바뀔 때마다 'loading'으로 시작해서 img의 load/error로 결정
   const [previewState, setPreviewState] = useState({ src: null, status: 'idle' });
@@ -43,7 +45,7 @@ const PhotoAddSheet = ({ existing, onAdd, onClose }) => {
 
   return createPortal(
     <div className="pas-overlay">
-      <div className="pas-sheet" role="dialog" aria-label="사진 추가">
+      <div className="pas-sheet" role="dialog" aria-modal="true" aria-label="사진 추가" ref={dialogRef} tabIndex={-1}>
         <div className="pas-grabber" />
         <span className="pas-title">사진 추가</span>
 

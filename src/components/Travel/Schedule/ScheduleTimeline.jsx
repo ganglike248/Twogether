@@ -66,7 +66,7 @@ const ScheduleTimeline = ({
                 </div>
             ) : schedules.length === 0 ? (
                 <div className="td-empty">
-                    <div className="td-empty-icon"><MdDateRange size={48} color="#4dabf7" /></div>
+                    <div className="td-empty-icon"><MdDateRange size={48} color="var(--color-primary)" /></div>
                     <p className="td-empty-text">일정이 없어요</p>
                     <button className="td-empty-add-btn" onClick={onAddFirst}>
                         첫 일정 추가하기

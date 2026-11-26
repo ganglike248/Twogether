@@ -154,7 +154,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                     <h2 className="schedule-modal-title">
                         {schedule?.id ? '일정 수정' : '새 일정 추가'}
                     </h2>
-                    <button className="schedule-modal-close" onClick={onClose}>&times;</button>
+                    <button type="button" className="schedule-modal-close" onClick={onClose} aria-label="닫기">&times;</button>
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -304,6 +304,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                             <input
                                 id="schedule-cost"
                                 type="text"
+                                inputMode="numeric"
                                 value={formData.cost}
                                 onChange={(e) => handleChange('cost', e.target.value)}
                                 placeholder="0"
@@ -315,7 +316,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
 
                     {showDeleteConfirm ? (
                         <div className="schedule-modal-delete-confirm">
-                            <span className="schedule-modal-delete-confirm-text">정말 삭제하시겠습니까?</span>
+                            <span className="schedule-modal-delete-confirm-text">이 일정을 삭제할까요?</span>
                             <div className="schedule-modal-delete-confirm-btns">
                                 <button
                                     type="button"

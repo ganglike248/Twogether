@@ -63,8 +63,9 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                             onEdit(trip);
                         }}
                         title="수정"
+                        aria-label="여행 수정"
                     >
-                        <MdEdit color="#74c0fc" />
+                        <MdEdit color="var(--color-gray-500)" />
                     </button>
                     <button
                         className="trip-card-delete-btn"
@@ -73,6 +74,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                             onDelete(trip.id);
                         }}
                         title="삭제"
+                        aria-label="여행 삭제"
                     >
                         <MdDelete color="var(--color-danger)" />
                     </button>

@@ -163,15 +163,14 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     if (!isOpen) return null;
 
     return (
-        <div className="trip-modal-overlay" onClick={(e) => {
-            if (e.target === e.currentTarget) onClose();
-        }}>
+        // 바깥을 눌러도 닫지 않음 — 입력하던 내용이 실수로 사라지지 않게(일정 모달과 같게). 닫기는 ×·취소·Esc·뒤로가기
+        <div className="trip-modal-overlay">
             <div className="trip-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
                 <div className="trip-modal-header">
                     <h2 className="trip-modal-title">
                         {trip?.id ? '여행 계획 수정' : '새 여행 계획'}
                     </h2>
-                    <button className="trip-modal-close" onClick={onClose}>&times;</button>
+                    <button type="button" className="trip-modal-close" onClick={onClose} aria-label="닫기">&times;</button>
                 </div>
 
                 <form onSubmit={handleSubmit}>
@@ -259,10 +258,10 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                             <input
                                 id="trip-budget"
                                 type="text"
+                                inputMode="numeric"
                                 value={formData.budget}
                                 onChange={(e) => handleChange('budget', e.target.value)}
                                 placeholder="0"
-                                min="0"
                                 className={errors.budget ? 'trip-modal-error' : ''}
                             />
                             {errors.budget && <span className="trip-modal-error-text">{errors.budget}</span>}

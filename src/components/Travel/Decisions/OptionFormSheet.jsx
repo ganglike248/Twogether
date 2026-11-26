@@ -14,6 +14,7 @@ import useLinkFillCollapsed from '../../../hooks/useLinkFillCollapsed';
 import PhotoAddSheet from './PhotoAddSheet';
 import './OptionFormSheet.css';
 import AutoGrowTextarea from '../../common/AutoGrowTextarea';
+import { useDialog } from '../../../hooks/useDialog';
 
 const EMPTY_FORM = { title: '', url: '', address: '', description: '', price: '', images: [] };
 
@@ -37,6 +38,7 @@ const toForm = (option) => ({
 
 // photoOpen/onOpenPhoto: 사진 추가 시트도 주소(&photo=1)로 여닫음 — 닫기는 onClose(뒤로)와 같음
 const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose, photoOpen = false, onOpenPhoto }) => {
+  const dialogRef = useDialog(true, onClose);
   const isEdit = mode === 'edit';
   const [formData, setFormData] = useState(() => (isEdit ? toForm(option) : EMPTY_FORM));
   const [saving, setSaving] = useState(false);
@@ -126,7 +128,7 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose, photoOpen 
 
   return createPortal(
     <div className="ofs-overlay">
-      <form className="ofs-sheet" onSubmit={handleSubmit} role="dialog" aria-label={isEdit ? '후보 수정' : '후보 추가'}>
+      <form className="ofs-sheet" onSubmit={handleSubmit} role="dialog" aria-modal="true" aria-label={isEdit ? '후보 수정' : '후보 추가'} ref={dialogRef} tabIndex={-1}>
         <div className="ofs-grabber" />
         <div className="ofs-header">
           <span />
