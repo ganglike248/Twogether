@@ -56,7 +56,7 @@ const SealedMessagesPage = () => {
     const unsubscribe = subscribeSealedMessages(coupleId, (data) => {
       setMessages(data);
       setIsLoading(false);
-    });
+    }, () => setIsLoading(false)); // 구독 실패해도 로딩이 끝나게
     return unsubscribe;
   }, [coupleId]);
 

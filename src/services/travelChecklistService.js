@@ -1,12 +1,13 @@
 // src/services/travelChecklistService.js
 import {
   doc,
-  setDoc,
   serverTimestamp,
   onSnapshot,
   runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { safeSetDoc } from './offlineWrite';
+import { reportSubscribeError } from './subscribeError';
 
 // items 배열을 읽고-수정-쓰는 작업은 반드시 트랜잭션으로 — getDoc → updateDoc으로 하면 두 사람이
 // 거의 동시에 항목을 체크/추가할 때 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로 덮어써 버림
@@ -42,14 +43,14 @@ export const createChecklist = async (tripId, coupleId) => {
     updatedAt: serverTimestamp(),
   };
 
-  await setDoc(checklistRef, checklistData);
+  await safeSetDoc(checklistRef, checklistData);
   return { id: 'main', ...checklistData };
 };
 
 /**
  * 체크리스트 구독 (실시간)
  */
-export const subscribeToChecklist = (tripId, callback) => {
+export const subscribeToChecklist = (tripId, callback, onError) => {
   const tripRef = doc(db, 'trips', tripId);
   const checklistRef = doc(tripRef, 'checklists', 'main');
 
@@ -59,7 +60,7 @@ export const subscribeToChecklist = (tripId, callback) => {
     } else {
       callback(null);
     }
-  });
+  }, (error) => reportSubscribeError('checklist', error, onError));
 };
 
 /**

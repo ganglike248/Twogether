@@ -9,6 +9,7 @@ import EmptyState from '../common/EmptyState';
 import { MemoryListSkeleton } from './MemoryCardSkeleton';
 import { MdPhotoCamera } from 'react-icons/md';
 import './MemoryList.css';
+import { reportSubscribeError } from '../../services/subscribeError';
 
 const PAGE_SIZE = 10;
 // 검색 스캔 안전장치 — 디바운스로 "검색 1회당 최대 1번" 실행되는 게 보장된 상태에서,
@@ -125,7 +126,7 @@ const MemoryList = () => {
         .filter(m => m.start && m.start.split('T')[0] <= todayStr)
         .sort((a, b) => (a.start > b.start ? -1 : 1));
       setPersonalMemories(data);
-    });
+    }, (error) => reportSubscribeError('personalMemories', error));
     return () => unsubscribe();
   }, [userId]);
 

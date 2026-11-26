@@ -15,7 +15,7 @@ export const useTrips = (coupleId) => {
     const unsubscribe = subscribeToTrips(coupleId, (tripsData) => {
       setTrips(tripsData);
       setLoading(false);
-    });
+    }, () => setLoading(false)); // 구독 실패해도 로딩이 끝나게(안내는 서비스에서)
     return () => { if (unsubscribe) unsubscribe(); };
   }, [coupleId]);
 
@@ -35,7 +35,7 @@ export const useTripSchedules = (tripId) => {
     const unsubscribe = subscribeToTripSchedules(tripId, (schedulesData) => {
       setSchedules(schedulesData);
       setLoading(false);
-    });
+    }, () => setLoading(false));
     return () => { if (unsubscribe) unsubscribe(); };
   }, [tripId]);
 

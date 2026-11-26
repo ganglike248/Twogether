@@ -10,6 +10,7 @@ import { db } from '../firebase';
 import { generateOccurrenceDates } from '../utils/recurrenceRules';
 import { getLocalDateStr } from '../utils/dataUtils';
 import { saveEditLog } from './eventService';
+import { commitBatch } from './offlineWrite';
 
 const instanceCollectionName = (isPersonal) => (isPersonal ? 'personal_events' : 'events');
 
@@ -98,7 +99,7 @@ export async function createRecurringEvent({ rule, template, userId, coupleId, i
     });
   });
 
-  await batch.commit();
+  await commitBatch(batch);
   if (!isPersonal) {
     // 인스턴스마다 개별 로그를 남기면 수정기록이 스팸이 되므로 시리즈 단위 요약 1건만 기록
     await saveEditLog(seriesId, { title: template.title, occurrenceCount: dates.length, ...normalizedRule }, 'recurrence_created', userId, coupleId);
@@ -158,7 +159,7 @@ export async function updateRecurringEvent({
       updatedAt: serverTimestamp(),
       updatedBy: userId,
     });
-    await batch.commit();
+    await commitBatch(batch);
     if (!isPersonal) {
       const changes = {};
       Object.keys(newFields).forEach((k) => {
@@ -226,7 +227,7 @@ export async function updateRecurringEvent({
       occurrenceCount: pastDocs.length + dates.length,
       updatedAt: serverTimestamp(),
     });
-    await batch.commit();
+    await commitBatch(batch);
     if (!isPersonal) {
       await saveEditLog(seriesId, { scope: 'all', title: template.title, ...normalizedRule }, 'recurrence_updated', userId, coupleId);
     }
@@ -262,7 +263,7 @@ export async function updateRecurringEvent({
       updatedBy: userId,
     });
   });
-  await batch.commit();
+  await commitBatch(batch);
   if (!isPersonal) {
     await saveEditLog(seriesId, { scope: 'future', from: cutDateStr, title: template.title, ...normalizedRule }, 'recurrence_updated', userId, coupleId);
   }
@@ -298,7 +299,7 @@ export async function deleteRecurringEvent({ eventId, seriesId, scope, isPersona
     try {
       const batch = writeBatch(db);
       batch.delete(evRef);
-      await batch.commit();
+      await commitBatch(batch);
     } catch (error) {
       if (error?.code === 'permission-denied') return { deletedCount: 0 };
       throw error;
@@ -321,7 +322,7 @@ export async function deleteRecurringEvent({ eventId, seriesId, scope, isPersona
     // until을 삭제 기준일(cutDateStr) 자체로 두는 근사치로도 충분함(그 날짜 포함 이후가 실제로 삭제됨).
     batch.update(seriesRef, { until: cutDateStr, endType: 'date', count: null, updatedAt: serverTimestamp() });
   }
-  await batch.commit();
+  await commitBatch(batch);
   if (!isPersonal) {
     await saveEditLog(seriesId, { scope, from: cutDateStr, deletedCount: toDelete.length }, 'recurrence_deleted', userId, coupleId);
   }

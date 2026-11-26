@@ -124,7 +124,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
             <div className="trip-card-footer">
                 <div className="trip-card-meta">
                     <span className="trip-card-created-date">
-                        {formatDate(trip.createdAt)} 생성
+                        {trip.createdAt ? `${formatDate(trip.createdAt)} 생성` : '방금 만듦'}
                     </span>
                 </div>
                 <div className="trip-card-arrow">→</div>

@@ -1,9 +1,6 @@
 // src/services/travelDecisionService.js
 import {
   collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   doc,
   query,
   orderBy,
@@ -12,6 +9,8 @@ import {
   runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
+import { safeAddDoc, safeDeleteDoc, safeUpdateDoc } from './offlineWrite';
+import { reportSubscribeError } from './subscribeError';
 
 // options 배열을 읽고-수정-쓰는 작업은 반드시 트랜잭션으로 — 그냥 getDoc → updateDoc으로 하면
 // 두 사람이 거의 동시에 점수를 매기거나 옵션을 고칠 때 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로
@@ -65,7 +64,7 @@ export const createDecision = async (tripId, decisionData) => {
     updatedAt: serverTimestamp(),
   };
 
-  const docRef = await addDoc(decisionsRef, newDecision);
+  const docRef = await safeAddDoc(decisionsRef, newDecision);
   return { id: docRef.id, ...newDecision };
 };
 
@@ -74,7 +73,7 @@ export const createDecision = async (tripId, decisionData) => {
  */
 export const updateDecision = async (tripId, decisionId, updates) => {
   const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  await updateDoc(decisionRef, {
+  await safeUpdateDoc(decisionRef, {
     ...updates,
     updatedAt: serverTimestamp(),
   });
@@ -85,7 +84,7 @@ export const updateDecision = async (tripId, decisionId, updates) => {
  */
 export const deleteDecision = async (tripId, decisionId) => {
   const decisionRef = doc(db, 'trips', tripId, 'travelDecisions', decisionId);
-  await deleteDoc(decisionRef);
+  await safeDeleteDoc(decisionRef);
 };
 
 /**
@@ -154,7 +153,7 @@ export const setOptionDecided = async (tripId, decisionId, optionId, userId, dec
 /**
  * 선택지 목록 실시간 구독
  */
-export const subscribeToDecisions = (tripId, callback) => {
+export const subscribeToDecisions = (tripId, callback, onError) => {
   const tripRef = doc(db, 'trips', tripId);
   const decisionsRef = collection(tripRef, 'travelDecisions');
   const q = query(decisionsRef, orderBy('updatedAt', 'desc'));
@@ -165,7 +164,7 @@ export const subscribeToDecisions = (tripId, callback) => {
       ...d.data(),
     }));
     callback(decisions);
-  });
+  }, (error) => reportSubscribeError('travelDecisions', error, onError));
 };
 
 /**

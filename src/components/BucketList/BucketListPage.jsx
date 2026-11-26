@@ -1,7 +1,7 @@
 // src/components/BucketList/BucketListPage.jsx
 import React, { useEffect, useState, useMemo, useRef, useCallback } from 'react';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { collection, addDoc, updateDoc, deleteDoc, doc, query, where, onSnapshot } from 'firebase/firestore';
+import { collection, doc, query, where, onSnapshot } from 'firebase/firestore';
 import { toast } from 'react-toastify';
 import { db } from '../../firebase';
 import { useAuthContext } from '../../contexts/AuthContext';
@@ -21,6 +21,7 @@ import useDoubleClickPrevention from '../../hooks/useDoubleClickPrevention';
 import useAnalytics from '../../hooks/useAnalytics';
 import EmptyState from '../common/EmptyState';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
+import { safeAddDoc, safeDeleteDoc, safeUpdateDoc } from '../../services/offlineWrite';
 
 const BucketItem = React.memo(({
   item,
@@ -188,7 +189,7 @@ function BucketListPage() {
   const handleSaveCategories = async (updatedCategories) => {
     try {
       const coupleDocRef = doc(db, 'couples', coupleId);
-      await updateDoc(coupleDocRef, { customCategories: updatedCategories });
+      await safeUpdateDoc(coupleDocRef, { customCategories: updatedCategories });
       // onSnapshot이 즉시 실행되어 customCategories + categoryOptions 업데이트
       toast.success('카테고리가 저장되었습니다.');
     } catch (error) {
@@ -211,7 +212,7 @@ function BucketListPage() {
         completedAt: null,
         createdAt: new Date().toISOString(),
       };
-      await addDoc(collection(db, 'bucketlists'), newItem);
+      await safeAddDoc(collection(db, 'bucketlists'), newItem);
       logEvent('bucket_created', {
         category: addForm.category,
         hasContent: !!addForm.content,
@@ -247,7 +248,7 @@ function BucketListPage() {
     }
 
     try {
-      await updateDoc(doc(db, 'bucketlists', selectedItemId), {
+      await safeUpdateDoc(doc(db, 'bucketlists', selectedItemId), {
         completed: true,
         completedAt: completionDate
       });
@@ -268,7 +269,7 @@ function BucketListPage() {
 
   const handleConfirmDelete = useCallback(async () => {
     try {
-      await deleteDoc(doc(db, 'bucketlists', editForm.id));
+      await safeDeleteDoc(doc(db, 'bucketlists', editForm.id));
       closeModal();
     } catch (error) {
       console.error('삭제 실패:', error);
@@ -314,7 +315,7 @@ function BucketListPage() {
     if (!canClick()) return;
     if (!editForm.title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
     try {
-      await updateDoc(doc(db, 'bucketlists', editForm.id), {
+      await safeUpdateDoc(doc(db, 'bucketlists', editForm.id), {
         title: editForm.title,
         content: editForm.content,
         category: editForm.category,
@@ -334,7 +335,7 @@ function BucketListPage() {
 
   const handleEditUncheck = async (id = editForm.id) => {
     try {
-      await updateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
+      await safeUpdateDoc(doc(db, 'bucketlists', id), { completed: false, completedAt: null });
       if (modalState.type === 'edit') {
         closeModal();
       }

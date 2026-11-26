@@ -21,7 +21,7 @@ export const useTravelDecisions = (tripId) => {
       const unsubscribe = subscribeToDecisions(tripId, (data) => {
         setDecisions(data);
         setLoading(false);
-      });
+      }, (err) => { setError(err); setLoading(false); }); // 구독 실패해도 로딩이 끝나게
 
       return () => {
         if (unsubscribe) unsubscribe();

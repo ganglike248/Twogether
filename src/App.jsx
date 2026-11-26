@@ -7,6 +7,7 @@ import './components/common/Toast.css';
 
 import { AuthProvider } from './contexts/AuthContext';
 import ErrorBoundary from './components/common/ErrorBoundary';
+import OfflineBanner from './components/common/OfflineBanner';
 import ProtectedRoute from './components/Auth/ProtectedRoute';
 import Layout from './components/common/Layout';
 import ScrollToTop from './components/common/ScrollToTop';
@@ -70,6 +71,7 @@ const RootLayout = () => (
       <ToastContainer position="bottom-center" hideProgressBar closeButton={false} icon={false} />
       <PWAUpdatePrompt />
       <InAppUpdatePrompt />
+      <OfflineBanner />
       <AndroidBackButtonHandler />
       <Suspense fallback={<PageLoader />}>
         <Outlet />

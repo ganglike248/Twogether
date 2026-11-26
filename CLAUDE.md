@@ -18,7 +18,7 @@
 8. **"배포"**: 확인 없이 빌드 + cap sync + Hosting 배포 + 버전 확인 + 커밋 + 푸시. 네이티브 반영 필요하면 네이티브 버전도 올림
    (앱은 dist를 번들하므로 웹 변경도 다음 AAB/Archive부터 반영)
 - "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
-- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 22곳을 열어 오류 확인.
+- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 24곳(저장·오프라인 저장 포함)을 열어 오류 확인.
   운영 데이터 무관. 새 화면·라우트를 만들면 `scripts/smoke/smoke.mjs`의 `CHECKS`에 한 줄 추가. 설정은 루트 `firebase.smoke.json`
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
 
@@ -29,7 +29,10 @@
 - iOS: 입력창 font-size **1rem 이상**(미만이면 포커스 시 확대). grid 안 `input[type=date]`는 `min-width:0`
 - 날짜 문자열은 `toISOString()` 금지(KST 하루 밀림) → `getLocalDateStr()`(`utils/dataUtils.js`)
 - Firestore 오프라인 캐시는 origin별 IndexedDB — 여러 계정을 같은 브라우저로 번갈아 테스트하지 말 것(시크릿 창 분리).
-  `AuthContext`는 users/couples 구독 전에 `getDocFromServer()`로 첫 값을 서버에서 확인함(유지)
+  `AuthContext`는 users/couples 구독 전에 서버에서 첫 값을 확인함(유지) — 단 3초 넘으면 캐시로 진행(`serverFirst`, 약한 신호에서 첫 화면 지연 방지)
+- **화면에서 기다리는 쓰기는 `services/offlineWrite.js`의 `safeSetDoc/safeUpdateDoc/safeDeleteDoc/safeAddDoc/commitBatch`** — 오프라인·8초 지연이면
+  기다리지 않고 "연결되면 저장돼요"(대기열에 남음). 그냥 `await setDoc`을 쓰면 오프라인에서 버튼이 멈춤. 트랜잭션은 오프라인이면 바로 실패하므로 대상 아님.
+  오프라인 띠·안내는 `common/OfflineBanner`. 실시간 구독은 반드시 오류 콜백(`reportSubscribeError`, `services/subscribeError.js`)으로 로딩을 끝낼 것
 
 ## Firebase
 - `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` 명시 필수(없으면 rules가 appspot 버킷에 배포돼 403)

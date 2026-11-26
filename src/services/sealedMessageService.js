@@ -17,6 +17,7 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { uploadSealedMessageImage, deleteSealedMessageImage } from './storageService';
+import { reportSubscribeError } from './subscribeError';
 
 // 새 편지 생성 — unlockAt(Date, 선택)을 넘기면 예약 공개, 안 넘기면 작성자가 나중에 직접 공개할 때까지 무기한 봉인
 export const createSealedMessage = async ({ coupleId, authorUid, recipientUid, title, content, imageFile, unlockAt }) => {
@@ -47,7 +48,7 @@ export const createSealedMessage = async ({ coupleId, authorUid, recipientUid, t
 };
 
 // 커플의 봉인 편지 목록 실시간 구독 (내가 쓴 것 + 파트너가 쓴 것 전부 — 내용은 별도로 조회)
-export const subscribeSealedMessages = (coupleId, callback) => {
+export const subscribeSealedMessages = (coupleId, callback, onError) => {
   const q = query(
     collection(db, 'sealedMessages'),
     where('coupleId', '==', coupleId),
@@ -55,7 +56,7 @@ export const subscribeSealedMessages = (coupleId, callback) => {
   );
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map((d) => ({ id: d.id, ...d.data() })));
-  });
+  }, (error) => reportSubscribeError('sealedMessages', error, onError));
 };
 
 // 열람 가능(본인 작성 또는 이미 공개됨)할 때만 호출해야 함 — 그 외엔 firestore.rules가 거부함

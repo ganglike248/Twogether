@@ -1,10 +1,6 @@
 // src/services/tripService.js
 import {
   collection,
-  addDoc,
-  setDoc,
-  updateDoc,
-  deleteDoc,
   doc,
   getDoc,
   getDocs,
@@ -20,6 +16,8 @@ import { db } from '../firebase';
 import { updateTravelEvent, deleteTravelEvent } from './eventService';
 import { mergeRegions, tripPlaceName } from './regions/regionData';
 import { matchRegions } from './regions/regionMatch';
+import { commitBatch, safeAddDoc, safeDeleteDoc, safeSetDoc, safeUpdateDoc } from './offlineWrite';
+import { reportSubscribeError } from './subscribeError';
 
 export const createTrip = async (tripData, userId = 'anonymous', coupleId = null) => {
   const tripRef = doc(collection(db, 'trips'));
@@ -61,12 +59,12 @@ export const createTrip = async (tripData, userId = 'anonymous', coupleId = null
     timestamp: serverTimestamp(),
     userAgent: navigator.userAgent,
   });
-  await batch.commit();
+  await commitBatch(batch);
 
   return { id: tripRef.id, ...newTrip };
 };
 
-export const subscribeToTrips = (coupleId, callback) => {
+export const subscribeToTrips = (coupleId, callback, onError) => {
   const q = query(
     collection(db, 'trips'),
     where('coupleId', '==', coupleId),
@@ -76,7 +74,7 @@ export const subscribeToTrips = (coupleId, callback) => {
     // Firestore query의 orderBy('startDate', 'desc')가 이미 정렬 처리
     const trips = querySnapshot.docs.map(d => ({ id: d.id, ...d.data() }));
     callback(trips);
-  });
+  }, (error) => reportSubscribeError('trips', error, onError));
 };
 
 export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
@@ -108,10 +106,10 @@ export const updateTrip = async (tripId, tripData, userId = 'anonymous', coupleI
       timestamp: serverTimestamp(),
       userAgent: navigator.userAgent,
     });
-    await batch.commit();
+    await commitBatch(batch);
   } else {
     // 레거시 여행: tripId로 쿼리해서 이벤트 업데이트
-    await batch.commit();
+    await commitBatch(batch);
     try {
       await updateTravelEvent(tripId, tripData, userId, coupleId);
     } catch (error) {
@@ -147,7 +145,7 @@ export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) 
   while (remaining.length > DELETE_BATCH_LIMIT) {
     const chunkBatch = writeBatch(db);
     remaining.slice(0, DELETE_BATCH_LIMIT).forEach((ref) => chunkBatch.delete(ref));
-    await chunkBatch.commit();
+    await commitBatch(chunkBatch);
     remaining = remaining.slice(DELETE_BATCH_LIMIT);
   }
 
@@ -159,7 +157,7 @@ export const deleteTrip = async (tripId, userId = 'anonymous', coupleId = null) 
     // 신규 여행: calendarEventId로 직접 삭제
     batch.delete(doc(db, 'events', calendarEventId));
   }
-  await batch.commit();
+  await commitBatch(batch);
 
   if (!calendarEventId) {
     // 레거시 여행: tripId로 쿼리해서 이벤트 삭제
@@ -193,7 +191,7 @@ export const mutateTripSchedule = async (tripId, day, mutate) => {
     // 같은 tripId+day에 중복 문서가 생기는 경쟁 조건을 막음. 기존 자동생성 ID 문서는 위 쿼리로 계속 찾아
     // 트랜잭션으로 갱신되므로 마이그레이션 없이 호환됨. (없는 문서는 규칙상 read가 거부돼 트랜잭션으로
     // 읽을 수 없어서, 그날의 첫 일정 생성만은 트랜잭션 없이 씀 — 첫 생성이 동시에 겹치는 건 드묾)
-    await setDoc(doc(db, 'tripSchedules', `${tripId}_${day}`), {
+    await safeSetDoc(doc(db, 'tripSchedules', `${tripId}_${day}`), {
       tripId,
       day,
       schedules: normalizeSchedules(mutate([])),
@@ -242,18 +240,18 @@ export const moveTripSchedule = async (tripId, fromDay, toDay, scheduleData) => 
   if (stale.length) {
     const batch = writeBatch(db);
     stale.forEach(d => batch.delete(d.ref));
-    await batch.commit();
+    await commitBatch(batch);
   }
 };
 
-export const subscribeToTripSchedules = (tripId, callback) => {
+export const subscribeToTripSchedules = (tripId, callback, onError) => {
   const q = query(collection(db, 'tripSchedules'), where('tripId', '==', tripId));
   return onSnapshot(q, (querySnapshot) => {
     const schedules = querySnapshot.docs
       .map(d => ({ id: d.id, ...d.data() }))
       .sort((a, b) => a.day - b.day);
     callback(schedules);
-  });
+  }, (error) => reportSubscribeError('tripSchedules', error, onError));
 };
 
 export const toggleScheduleCompletion = async (tripId, day, scheduleId) => {
@@ -287,10 +285,10 @@ export const saveTravelTime = async (tripId, day, fromScheduleId, toScheduleId, 
   const snap = await getDocs(q);
   const data = { tripId, day, fromScheduleId, toScheduleId, travelTime, updatedAt: serverTimestamp() };
   if (travelTime.trim() === '') {
-    if (!snap.empty) await deleteDoc(snap.docs[0].ref);
+    if (!snap.empty) await safeDeleteDoc(snap.docs[0].ref);
   } else {
-    if (snap.empty) await addDoc(collection(db, 'travelTimes'), data);
-    else await updateDoc(snap.docs[0].ref, data);
+    if (snap.empty) await safeAddDoc(collection(db, 'travelTimes'), data);
+    else await safeUpdateDoc(snap.docs[0].ref, data);
   }
 };
 
@@ -303,7 +301,7 @@ export const subscribeTravelTimes = (tripId, day, callback) => {
   );
   return onSnapshot(q, (snap) => {
     callback(snap.docs.map(d => ({ id: d.id, ...d.data() })));
-  });
+  }, (error) => reportSubscribeError('travelTimes', error));
 };
 
 // 일정 주소로 여행 지역 자동 추가(우리 지도) — 이미 있는 지역이면 아무것도 안 씀. 트랜잭션으로 서버 최신 regions에 합침

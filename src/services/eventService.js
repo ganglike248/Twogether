@@ -1,14 +1,10 @@
 // src/services/eventService.js
 import {
   collection,
-  addDoc,
-  updateDoc,
-  deleteDoc,
   doc,
   getDocs,
   getDoc,
   getDocFromCache,
-  setDoc,
   query,
   where,
   serverTimestamp,
@@ -19,11 +15,12 @@ import {
 } from 'firebase/firestore';
 import { db } from '../firebase';
 import { tripPlaceName } from './regions/regionData';
+import { commitBatch, safeAddDoc, safeDeleteDoc, safeSetDoc, safeUpdateDoc } from './offlineWrite';
 
 // recurrenceService.js에서도 재사용 (반복 일정 생성/수정/삭제 시 시리즈 단위 요약 로그 기록용)
 export const saveEditLog = async (eventId, changes, action, userId = 'anonymous', coupleId = null) => {
   try {
-    await addDoc(collection(db, 'edit_logs'), {
+    await safeAddDoc(collection(db, 'edit_logs'), {
       eventId,
       action,
       changes,
@@ -64,7 +61,7 @@ export const createEvent = async (eventData, userId = 'anonymous', coupleId = nu
   };
   const docRef = doc(collection(db, 'events'));
   await Promise.all([
-    setDoc(docRef, newEvent),
+    safeSetDoc(docRef, newEvent),
     saveEditLog(docRef.id, newEvent, 'created', userId, coupleId),
   ]);
   return { id: docRef.id, ...newEvent };
@@ -88,7 +85,7 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
     }
   });
   await Promise.all([
-    updateDoc(eventRef, updatedData),
+    safeUpdateDoc(eventRef, updatedData),
     saveEditLog(eventId, changes, 'updated', userId, coupleId),
   ]);
   return { id: eventId, ...updatedData };
@@ -112,7 +109,7 @@ export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null
   }
 
   try {
-    await deleteDoc(doc(db, 'events', eventId));
+    await safeDeleteDoc(doc(db, 'events', eventId));
   } catch (error) {
     // getDoc과 deleteDoc 사이에 다른 기기/중복 클릭으로 이미 삭제된 경우도 동일하게 처리
     if (error?.code === 'permission-denied') return eventId;
@@ -202,7 +199,7 @@ export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', 
       updatedAt: serverTimestamp(),
       updatedBy: userId,
     };
-    await updateDoc(eventDoc.ref, updatedEventData);
+    await safeUpdateDoc(eventDoc.ref, updatedEventData);
     await saveEditLog(eventDoc.id, updatedEventData, 'updated', userId, coupleId);
   }
 };
@@ -212,7 +209,7 @@ export const deleteTravelEvent = async (tripId, userId = 'anonymous', coupleId =
   const querySnapshot = await getDocs(q);
   await Promise.all(querySnapshot.docs.map(async (eventDoc) => {
     await saveEditLog(eventDoc.id, {}, 'deleted', userId, coupleId);
-    await deleteDoc(eventDoc.ref);
+    await safeDeleteDoc(eventDoc.ref);
   }));
 };
 
@@ -229,7 +226,7 @@ export const createPersonalEvent = async (eventData, userId, coupleId = null) =>
     createdAt: serverTimestamp(),
     updatedAt: serverTimestamp(),
   };
-  const docRef = await addDoc(collection(db, 'personal_events'), newEvent);
+  const docRef = await safeAddDoc(collection(db, 'personal_events'), newEvent);
   return { id: docRef.id, ...newEvent };
 };
 
@@ -240,13 +237,13 @@ export const updatePersonalEvent = async (eventId, eventData, userId, _coupleId 
     ...dataWithoutIsPersonal,
     updatedAt: serverTimestamp(),
   };
-  await updateDoc(eventRef, updatedData);
+  await safeUpdateDoc(eventRef, updatedData);
   return { id: eventId, ...updatedData };
 };
 
 export const deletePersonalEvent = async (eventId) => {
   try {
-    await deleteDoc(doc(db, 'personal_events', eventId));
+    await safeDeleteDoc(doc(db, 'personal_events', eventId));
   } catch (error) {
     // 이미 삭제된 문서를 다시 지우는 경우 permission-denied로 내려옴 (deleteEvent 주석 참고) — 이미 삭제된 것으로 간주
     if (error?.code === 'permission-denied') return eventId;
@@ -293,7 +290,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       timestamp: serverTimestamp(),
       userAgent: navigator.userAgent,
     });
-    await batch.commit();
+    await commitBatch(batch);
     return { id: newEventRef.id, ...newEventData };
   } else {
     // events → personal_events (원자적 변환)
@@ -327,7 +324,7 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       timestamp: serverTimestamp(),
       userAgent: navigator.userAgent,
     });
-    await batch.commit();
+    await commitBatch(batch);
     return { id: newPersonalRef.id, ...newPersonalData };
   }
 };

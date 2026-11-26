@@ -1,0 +1,3 @@
+/* 오프라인 띠 — 노치 아래 고정, 내용을 밀지 않고 위에 겹침 */
+.offline-banner { position: fixed; top: calc(env(safe-area-inset-top) + 0.4rem); left: 50%; transform: translateX(-50%); z-index: 1000; max-width: calc(100% - 2rem); box-sizing: border-box; display: flex; align-items: center; gap: 0.4rem; padding: 0.45rem 0.9rem; border-radius: 999px; background: var(--color-gray-900); color: white; font-size: 0.78rem; box-shadow: var(--shadow-md); pointer-events: none; }
+.offline-banner svg { flex: none; font-size: 1rem; }

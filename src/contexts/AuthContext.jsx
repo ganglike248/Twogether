@@ -6,6 +6,14 @@ import { auth, db } from '../firebase';
 
 const AuthContext = createContext(null);
 
+// 서버에서 먼저 확인하되 오래 기다리지 않음(AUDIT E-2) — 신호가 약하면 서버 확인 실패가 확정될 때까지 첫 화면이 늦어져서,
+// SERVER_WAIT_MS가 지나면 캐시로 진행(실패·지연 모두 아래 .catch로 흘러가 기존 폴백과 같음)
+const SERVER_WAIT_MS = 3000;
+const serverFirst = (ref) => Promise.race([
+  getDocFromServer(ref),
+  new Promise((_, reject) => setTimeout(() => reject(new Error('server-wait-timeout')), SERVER_WAIT_MS)),
+]);
+
 export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [userDoc, setUserDoc] = useState(null);
@@ -43,7 +51,7 @@ export const AuthProvider = ({ children }) => {
     let unsubscribeUser = () => {};
     let cancelled = false;
 
-    getDocFromServer(userRef)
+    serverFirst(userRef)
       .catch(() => {}) // 오프라인 등으로 서버 접근 실패 시 캐시로 폴백(기존 동작 유지)
       .finally(() => {
         if (cancelled) return;
@@ -78,7 +86,7 @@ export const AuthProvider = ({ children }) => {
     let unsubscribeCouple = () => {};
     let cancelled = false;
 
-    getDocFromServer(coupleRef)
+    serverFirst(coupleRef)
       .catch(() => {})
       .finally(() => {
         if (cancelled) return;

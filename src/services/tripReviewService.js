@@ -2,10 +2,11 @@
 // 여행이 끝난 뒤 기록 — 사람마다 trips.review[uid] = { mood, text, top3:[scheduleId], doneAt | skipped, updatedAt }.
 // 지도 지역은 여행 하나에 하나(trips.regions) — 먼저 기록한 사람이 확정(regionsConfirmedBy/At), 나중 사람은 확인·고치기.
 // review는 필드 경로(review.<uid>.x)로만 씀 → 두 사람이 동시에 써도 서로의 기록을 덮지 않음.
-import { doc, updateDoc, serverTimestamp } from 'firebase/firestore';
+import { doc, serverTimestamp } from 'firebase/firestore';
 import { db } from '../firebase';
 import { convertToDate, getLocalDateStr } from '../utils/dataUtils';
 import { mergeRegions } from './regions/regionData';
+import { safeUpdateDoc } from './offlineWrite';
 
 // 이 날짜 이후에 끝난 여행만 기록 카드를 띄움(기능 나오기 전 지난 여행이 한꺼번에 쌓이지 않게)
 export const REVIEW_FEATURE_START = '2026-11-01';
@@ -50,7 +51,7 @@ const tripRef = (tripId) => doc(db, 'trips', tripId);
 export const saveMyReview = (tripId, uid, fields) => {
   const updates = { [`review.${uid}.updatedAt`]: Date.now() };
   Object.entries(fields).forEach(([k, v]) => { updates[`review.${uid}.${k}`] = v; });
-  return updateDoc(tripRef(tripId), updates);
+  return safeUpdateDoc(tripRef(tripId), updates);
 };
 
 export const skipReview = (tripId, uid) => saveMyReview(tripId, uid, { skipped: true });
@@ -63,7 +64,7 @@ export const finishReview = (tripId, uid, { regions, confirmRegions }) => {
     updates.regionsConfirmedBy = uid;
     updates.regionsConfirmedAt = serverTimestamp();
   }
-  return updateDoc(tripRef(tripId), updates);
+  return safeUpdateDoc(tripRef(tripId), updates);
 };
 
 /** 이번 여행으로 커플 지도에 처음 칠해지는 시·군·구 — 다른 '이미 시작한' 여행에 없는 곳 */
