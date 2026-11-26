@@ -70,7 +70,7 @@
     margin: 0;
     font-size: 15px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     word-break: break-word;
 }
 
@@ -78,7 +78,7 @@
     margin: 0;
     font-size: 12px;
     line-height: 1.5;
-    color: #6C757D;
+    color: var(--color-gray-600);
     white-space: pre-wrap;
     word-break: break-word;
 }
@@ -131,16 +131,16 @@
 
 /* 완료된 일정(접힌 영역을 펼쳤을 때) */
 .tl-item-done .tl-title {
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     text-decoration: line-through;
 }
 
 .tl-item-done .tl-desc {
-    color: #ADB5BD;
+    color: var(--color-gray-500);
 }
 
 .tl-item-done .tl-time {
-    color: #ADB5BD;
+    color: var(--color-gray-500);
 }
 
 .tl-item-done .tl-meta {

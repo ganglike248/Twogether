@@ -1,8 +1,8 @@
 // src/components/Recap/YearCards.jsx
 // 연말 랩업 카드 11장 — buildYearRecap() 결과를 그림. 시안(캔버스 RecapYear*) 기준.
 import React, { useState } from 'react';
+import { formatMonthDay as md } from '../../utils/dateFormat';
 
-const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 const maxOf = (arr) => Math.max(1, ...arr);
 
 const Bars = ({ items, highlight }) => {

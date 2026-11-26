@@ -397,7 +397,7 @@
   justify-content: space-between;
   gap: 0.75rem;
   padding: 0.6rem 0.75rem;
-  border: 1.5px solid var(--color-gray-200, #e9ecef);
+  border: 1.5px solid var(--color-gray-200);
   border-radius: var(--border-radius);
 }
 
@@ -417,13 +417,13 @@
   font-size: 0.85rem;
   font-weight: 600;
   margin: 0;
-  color: var(--color-gray-700, #495057);
+  color: var(--color-gray-700);
 }
 
 .profile-linked-account-status {
   font-size: 0.75rem;
   margin: 0.1rem 0 0;
-  color: var(--color-gray-500, #adb5bd);
+  color: var(--color-gray-500);
 }
 
 .profile-linked-account-btn {
@@ -454,8 +454,8 @@
 }
 
 .profile-linked-account-btn.unlink {
-  border-color: var(--color-gray-300, #dee2e6);
-  color: var(--color-gray-500, #adb5bd);
+  border-color: var(--color-gray-300);
+  color: var(--color-gray-500);
 }
 
 .profile-code {
@@ -531,14 +531,14 @@
   margin: 0.75rem auto 0;
   background: none;
   border: none;
-  color: var(--color-gray-500, #adb5bd);
+  color: var(--color-gray-500);
   font-size: 0.8rem;
   font-family: inherit;
   cursor: pointer;
 }
 
 .profile-google-conflict-cancel:hover {
-  color: var(--color-gray-700, #495057);
+  color: var(--color-gray-700);
 }
 
 /* 섹션 설명 */

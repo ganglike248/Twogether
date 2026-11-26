@@ -20,7 +20,7 @@
 - "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
 - **`npm test`**(Vitest 단위 테스트, 1초 — 반복 일정·지역 찾기·기념일·지도 집계·오프라인 저장·서버 기념일 문구). 순수 함수를 고치면 같이 실행.
   서버 예약 알림의 날짜·문구 계산은 `functions/reminderText.js`(Firebase 의존 없음, COUPLE_DAYS 일치도 테스트로 확인)
-- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 26곳(저장·오프라인 저장·Esc·키보드 포함)을 열어 오류 확인.
+- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 26곳(저장·오프라인 저장·Esc·키보드 포함)을 열어 오류 화면·처리 안 된 오류·**빨간 오류 토스트**까지 확인.
   운영 데이터 무관. 새 화면·라우트를 만들면 `scripts/smoke/smoke.mjs`의 `CHECKS`에 한 줄 추가. 설정은 루트 `firebase.smoke.json`
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
 
@@ -34,7 +34,7 @@
   `AuthContext`는 users/couples 구독 전에 서버에서 첫 값을 확인함(유지) — 단 3초 넘으면 캐시로 진행(`serverFirst`, 약한 신호에서 첫 화면 지연 방지)
 - **화면에서 기다리는 쓰기는 `services/offlineWrite.js`의 `safeSetDoc/safeUpdateDoc/safeDeleteDoc/safeAddDoc/commitBatch`** — 오프라인·8초 지연이면
   기다리지 않고 "연결되면 저장돼요"(대기열에 남음). 그냥 `await setDoc`을 쓰면 오프라인에서 버튼이 멈춤. 트랜잭션은 오프라인이면 바로 실패하므로 대상 아님.
-  오프라인 띠·안내는 `common/OfflineBanner`. 실시간 구독은 반드시 오류 콜백(`reportSubscribeError`, `services/subscribeError.js`)으로 로딩을 끝낼 것
+  오프라인 띠·안내는 `common/OfflineBanner`. 실시간 구독은 반드시 오류 콜백(`reportSubscribeError`, `services/subscribeError.js`)으로 로딩을 끝낼 것. 여행 하위 데이터(일정표·후보·체크리스트) 구독은 `subscribeWithPermissionRetry`로 — 방금 만든 여행은 서버 반영 전 '권한 없음'이 한 번 날 수 있음
 
 ## Firebase
 - `firebase.json`에 `"bucket": "twogether-206fb.firebasestorage.app"` 명시 필수(없으면 rules가 appspot 버킷에 배포돼 403)
@@ -104,6 +104,7 @@
 - 확인 모달: `common/AppModal.css`가 `confirm-modal-*`/`profile-modal-*`/`couple-info-modal-*`를 통일. 단순 확인은 `ConfirmModal` 사용
 - 모달 열림 상태는 URL(`?modal=` 또는 경로)에서 파생, `navigate()` 기반. 첫 진입(`location.key==='default'`)이면 닫을 때 replace
 - 여러 줄 입력은 `common/AutoGrowTextarea.jsx`
+- 지도 경로 계산은 `components/Map/mapGeometry.js`(labelPoint·bounds), 'YYYY-MM-DD'→'11월 14일'은 `utils/dateFormat.js`의 `formatMonthDay`. Analytics는 `analyticsService`가 첫 기록 때 불러옴(firebase.js에서 getAnalytics 금지)
 - **접근성**: 누르는 div·카드는 `{...pressable(handler)}`(`utils/pressable.js` — role·탭·Enter/Space), 새 모달 컨테이너는
   `ref={useDialog(open, onClose)} role="dialog" aria-modal="true" tabIndex={-1}`(`hooks/useDialog.js` — 포커스 이동·Esc·맨 위 모달만).
   작은 아이콘 버튼은 보이는 크기는 두고 `::after`로 누르는 영역 44px(index.css 블록)
@@ -143,7 +144,7 @@
 링크 자동 채우기 카드는 모달 열 때마다 접힌 채로 시작(`useLinkFillCollapsed`, 기억 안 함). 상세 화면 하단 FAB 공간 `padding-bottom: calc(56px + 2rem)`. 이동 시간은 `subscribeTravelTimes`
 
 **여행 끝 기록**(`Travel/Review/`, `services/tripReviewService.js`): `/travel/:tripId/review?step=1|2|3`(기분+자유 기록 2000자 → TOP 3 → 지도 확인, Layout 밖).
-`trips.review[uid]`는 반드시 필드 경로(`review.<uid>.x`)로만 씀(동시 기록 보호). 지도 지역은 먼저 끝낸 사람이 확정(`regionsConfirmedBy`), 나중 사람은 확인·고치기.
+`trips.review[uid]`는 반드시 필드 경로(`review.<uid>.x`)로만 씀(동시 기록 보호). 규칙도 `review` 안에서 자기 키만 바뀌는지 검사(`reviewOnlyMine`). 지도 지역은 먼저 끝낸 사람이 확정(`regionsConfirmedBy`), 나중 사람은 확인·고치기.
 홈 `TripEndCard`는 `REVIEW_FEATURE_START`(2026-11-01) 이후 끝난 여행 중 내가 `doneAt`/`skipped` 안 한 것, 알림은 `sendTripReviewReminders`(종료 다음 날 21시, type `tripReview`).
 처음 칠한 시·군·구는 `/map/:sido`에 `state.spark`로 넘겨 반짝임
 

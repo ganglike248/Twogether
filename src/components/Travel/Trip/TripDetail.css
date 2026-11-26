@@ -151,7 +151,7 @@
 
 .td-info-label {
     font-size: 10px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .td-info-value {
@@ -162,7 +162,7 @@
 
 .td-info-sub {
     font-weight: 400;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .td-info-over {
@@ -190,7 +190,7 @@
 
 .td-info-memo {
     font-size: 13px;
-    color: #495057;
+    color: var(--color-gray-700);
     line-height: 1.55;
     white-space: pre-wrap;
     word-break: break-word;
@@ -213,7 +213,7 @@
     border-radius: 12px;
     border: 1px solid transparent;
     background: transparent;
-    color: #6C757D;
+    color: var(--color-gray-600);
     font-family: inherit;
     font-size: 13px;
     font-weight: 700;
@@ -320,12 +320,12 @@
 .td-day-label {
     font-size: 12px;
     font-weight: 700;
-    color: #495057;
+    color: var(--color-gray-700);
 }
 
 .td-day-date {
     font-size: 11px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     white-space: nowrap;
 }
 

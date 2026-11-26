@@ -15,10 +15,10 @@
 
 .tdt-count {
     font-size: 13px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
-.tdt-count-num { color: #343A40; }
+.tdt-count-num { color: var(--color-gray-800); }
 
 .tdt-add-topic {
     height: 32px;
@@ -51,7 +51,7 @@
     border-radius: 17px;
     border: 1.5px solid rgba(255, 182, 193, 0.28);
     background: #ffffff;
-    color: #495057;
+    color: var(--color-gray-700);
     font-family: inherit;
     font-size: 13px;
     display: flex;
@@ -77,7 +77,7 @@
     padding: 0 8px;
     border: none;
     background: transparent;
-    color: #495057;
+    color: var(--color-gray-700);
     font-family: inherit;
     font-size: 13px;
     display: flex;

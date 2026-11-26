@@ -52,7 +52,7 @@
     border: none;
     border-radius: 50%;
     background: #f4f1f2;
-    color: #6C757D;
+    color: var(--color-gray-600);
     font-size: 18px;
     display: flex;
     align-items: center;
@@ -90,13 +90,13 @@
 
 .ods-category {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .ods-title {
     font-size: 19px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     word-break: break-word;
 }
 
@@ -120,7 +120,7 @@
     cursor: pointer;
 }
 
-.ods-icon-btn.fav { color: #ced4da; font-size: 17px; }
+.ods-icon-btn.fav { color: var(--color-gray-400); font-size: 17px; }
 .ods-icon-btn.fav.on { color: #f5b400; }
 .ods-icon-btn.edit { color: #81bbf5; }
 .ods-icon-btn.delete { color: var(--color-primary-medium); font-size: 17px; }
@@ -134,7 +134,7 @@
 
 .ods-address {
     font-size: 13px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     display: flex;
     gap: 5px;
     align-items: center;
@@ -149,7 +149,7 @@
     word-break: break-all;
 }
 
-.ods-link.plain { color: #6C757D; }
+.ods-link.plain { color: var(--color-gray-600); }
 
 .ods-desc {
     background: #fff8fa;
@@ -157,7 +157,7 @@
     padding: 11px 13px;
     font-size: 12px;
     line-height: 1.7;
-    color: #495057;
+    color: var(--color-gray-700);
     white-space: pre-line;
     word-break: break-word;
 }
@@ -199,7 +199,7 @@
     padding: 9px 11px;
     font-family: inherit;
     font-size: 16px; /* iOS 확대 방지 */
-    color: #343A40;
+    color: var(--color-gray-800);
     outline: none;
 }
 
@@ -208,7 +208,7 @@
 .ods-comment-count {
     align-self: flex-end;
     font-size: 10px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
 }
 
 .ods-scoring-actions {
@@ -249,7 +249,7 @@
 .ods-btn.secondary {
     border: 1px solid rgba(255, 182, 193, 0.6);
     background: #ffffff;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .ods-btn.secondary.pink { color: #e0606f; }
@@ -276,11 +276,11 @@
     align-items: baseline;
 }
 
-.ssl-label { font-size: 12px; color: #495057; }
+.ssl-label { font-size: 12px; color: var(--color-gray-700); }
 
 .ssl-value { font-size: 20px; color: var(--color-primary-dark); }
 
-.ssl-value-max { font-size: 11px; color: #6C757D; }
+.ssl-value-max { font-size: 11px; color: var(--color-gray-600); }
 
 .ssl-track-wrap {
     position: relative;
@@ -352,7 +352,7 @@
     background: transparent;
     font-family: inherit;
     font-size: 10px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     text-align: center;
     cursor: pointer;
 }
@@ -361,7 +361,7 @@
 
 .ssl-partner-note {
     font-size: 11px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     display: flex;
     align-items: center;
     gap: 6px;
@@ -385,17 +385,17 @@
     padding: 11px 13px;
     font-size: 13px;
     line-height: 1.55;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .ods-empty-info svg {
     flex-shrink: 0;
     font-size: 16px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     margin-top: 2px;
 }
 
 .ods-empty-hint {
     font-size: 12px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
 }

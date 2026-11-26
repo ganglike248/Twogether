@@ -158,10 +158,16 @@ service cloud.firestore {
       allow create: if isAuthenticated() &&
         isCoupleMe(request.resource.data.coupleId) &&
         isValidTrip();
+      // 여행 끝 기록(review.<uid>)은 자기 것만 고칠 수 있음(AUDIT S-6) — 예전엔 커플 멤버가 상대 기록까지 덮어쓸 수 있었음
+      function reviewOnlyMine() {
+        return !('review' in request.resource.data.diff(resource.data).affectedKeys()) ||
+          request.resource.data.get('review', {}).diff(resource.data.get('review', {})).affectedKeys().hasOnly([request.auth.uid]);
+      }
       allow update: if isAuthenticated() &&
         isCoupleMe(resource.data.coupleId) &&
         request.resource.data.coupleId == resource.data.coupleId &&
-        isValidTrip();
+        isValidTrip() &&
+        reviewOnlyMine();
     }
 
     match /tripSchedules/{docId} {

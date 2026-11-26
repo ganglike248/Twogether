@@ -2,9 +2,9 @@
 // 월간 요약 카드 4장 — buildMonthlyRecap() 결과를 그림. 시안(캔버스 "월간 요약") 기준.
 import React from 'react';
 import { MdCalendarToday, MdFlight, MdCheck, MdMail } from 'react-icons/md';
+import { formatMonthDay as md } from '../../utils/dateFormat';
 
 const WEEKDAYS = ['일', '월', '화', '수', '목', '금', '토'];
-const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 const range = (a, b) => (a === b ? md(a) : `${md(a)} – ${md(b)}`);
 
 export const MonthCalendarCard = ({ calendar }) => (

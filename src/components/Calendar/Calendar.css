@@ -6,11 +6,11 @@
    useColorSync는 사용자가 설정에서 색을 바꿨을 때만 덮어쓰므로, 기본값을 그냥 지우면 캘린더 색이 바뀜.
    캘린더 고유의 회색 톤만 캘린더 안으로 범위를 좁혀 유지. 전역 변수를 여기서 :root로 다시 정의하지 말 것. */
 .calendar-container {
-  --color-gray-100: #f8f9fa;
+  --color-gray-100: var(--color-gray-100);
   --color-gray-200: #ececec;
   --color-gray-300: #e0e0e0;
   --color-gray-500: #bdbdbd;
-  --color-gray-700: #6d6875;
+  --color-gray-700: var(--text-main);
   --color-gray-800: #444;
 }
 

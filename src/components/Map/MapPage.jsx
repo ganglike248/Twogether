@@ -14,6 +14,7 @@ import { SIDO_LIST, SIDO_BY_CODE, SGG_BY_CODE, REGION_SOURCE, groupRegions } fro
 import sidoData from './data/sido.json';
 import '../common/MenuPage.css';
 import './MapPage.css';
+import { formatMonthDay as md } from '../../utils/dateFormat';
 
 const loadSgg = (code) => import(`./data/sgg/${code}.json`).then(m => m.default || m);
 // 여행 기록 한 줄(지역 여행 목록) — 둘 중 먼저 찾은 기록의 첫 줄 앞부분
@@ -23,7 +24,6 @@ const quoteOf = (t) => {
   const line = text.split('\n')[0];
   return line.length > 32 ? `${line.slice(0, 32)}…` : line;
 };
-const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 
 // 상단 요약(시안 '다듬기 B') — 함께 가 본 곳 N/전체 · 여행 수 + 진행 막대 + 한 줄 정보
 const MapSummary = ({ done, total, trips, meta }) => (

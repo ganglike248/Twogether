@@ -10,9 +10,9 @@ import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import { useNameByUid } from '../../../hooks/useNameByUid';
 import './TripReview.css';
 import { pressable } from '../../../utils/pressable';
+import { formatMonthDay as md } from '../../../utils/dateFormat';
 
 const dayDiff = (a, b) => Math.round((new Date(`${b}T00:00:00`) - new Date(`${a}T00:00:00`)) / 86400000);
-const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
 
 const TripEndCard = ({ trips, uid }) => {
   const nameOf = useNameByUid();

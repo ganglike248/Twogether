@@ -23,7 +23,7 @@
     flex-direction: column;
     gap: 14px;
     box-shadow: 0 -6px 24px rgba(52, 58, 64, 0.12);
-    color: #343A40;
+    color: var(--color-gray-800);
 }
 
 .pas-grabber {
@@ -49,7 +49,7 @@
 
 .pas-label {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .pas-input-row {
@@ -79,7 +79,7 @@
     padding: 0 12px;
     font-family: inherit;
     font-size: 16px;
-    color: #343A40;
+    color: var(--color-gray-800);
     outline: none;
 }
 
@@ -167,18 +167,18 @@
 
 .pas-howto-title {
     font-size: 12px;
-    color: #495057;
+    color: var(--color-gray-700);
 }
 
 .pas-howto-steps {
     font-size: 11px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     line-height: 1.6;
 }
 
 .pas-howto-steps b {
     font-weight: 400;
-    color: #343A40;
+    color: var(--color-gray-800);
 }
 
 .pas-actions {

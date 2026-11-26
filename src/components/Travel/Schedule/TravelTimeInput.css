@@ -31,7 +31,7 @@
 .tl-travel-icon.add {
     border: 1px dashed #c9ced3;
     background: #ffffff;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     font-size: 12px;
     line-height: 1;
 }
@@ -54,7 +54,7 @@
     text-align: left;
 }
 
-.tl-travel-text.add { color: #ADB5BD; }
+.tl-travel-text.add { color: var(--color-gray-500); }
 
 .tl-travel-delete {
     width: 18px;
@@ -88,7 +88,7 @@
     background: #ffffff;
     font-family: inherit;
     font-size: 16px; /* iOS 확대 방지 — 16px 미만 금지 */
-    color: #343A40;
+    color: var(--color-gray-800);
     outline: none;
     box-sizing: border-box;
 }
@@ -116,5 +116,5 @@
 .tl-travel-cancel {
     border: 1px solid rgba(255, 182, 193, 0.6);
     background: #ffffff;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }

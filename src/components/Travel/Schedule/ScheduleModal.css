@@ -176,7 +176,7 @@
 .schedule-modal-delete-confirm-text {
     flex: 1;
     font-size: 0.875rem;
-    color: #495057;
+    color: var(--color-gray-700);
     font-weight: 500;
 }
 
@@ -254,7 +254,7 @@
     border-radius: 0.625rem;
     font-size: 16px;
     background: white;
-    color: #343A40;
+    color: var(--color-gray-800);
     outline: none;
     box-sizing: border-box;
     font-family: inherit;

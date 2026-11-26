@@ -29,13 +29,13 @@
 .dsec-title {
     font-size: 18px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     word-break: break-word;
 }
 
 .dsec-summary {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .dsec-summary-ok { color: #3f8f45; }
@@ -62,7 +62,7 @@
 .dsec-chevron {
     flex-shrink: 0;
     font-size: 22px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     transition: transform 0.2s ease;
 }
 
@@ -86,7 +86,7 @@
     margin: 0;
     padding: 0 16px;
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     word-break: break-word;
 }
 

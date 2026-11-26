@@ -1,7 +1,7 @@
 .privacy-page {
   flex: 1 0 auto;
   min-height: 100%;
-  background: linear-gradient(135deg, #fdf5f7 0%, #fff0f5 100%);
+  background: linear-gradient(135deg, var(--main-bg) 0%, #fff0f5 100%);
   padding: calc(env(safe-area-inset-top, 0px) + 2rem) 1rem calc(env(safe-area-inset-bottom, 0px) + 4rem);
 }
 
@@ -101,7 +101,7 @@ section ul li {
 }
 
 .privacy-contact {
-  background: #fdf5f7;
+  background: var(--main-bg);
   border-radius: 8px;
   padding: 0.75rem 1rem;
   margin-top: 0.5rem !important;

@@ -11,7 +11,7 @@ import {
   HiCalendarDays, HiPhoto, HiMapPin, HiPaperAirplane, HiSparkles, HiCheckCircle, HiHeart, HiLockClosed
 } from 'react-icons/hi2';
 import { useCalendarData } from '../../hooks/useCalendarData';
-import { useTripSchedules, useTrips } from '../../hooks/useTrip';
+import { useTripSchedules } from '../../hooks/useTrip';
 import MapEntryCard from '../Map/MapEntryCard';
 import { tripPlaceName } from '../../services/regions/regionData';
 import TripEndCard from '../Travel/Review/TripEndCard';
@@ -70,7 +70,7 @@ const Home = () => {
     setActiveTab(tab);
   };
   const { events, trips, isLoading: calendarLoading } = useCalendarData(coupleId, user?.uid);
-  const { trips: tripDocs } = useTrips(coupleId); // 우리 지도 카드용(지역 regions가 있는 원본 여행 문서)
+  const tripDocs = trips; // 원본 여행 문서(regions·review 포함) — useCalendarData가 이미 구독 중이라 따로 구독하지 않음(AUDIT P-4)
   const navigate = useNavigate();
 
   // "우리 둘의 첫 걸음" 카드 — 예전 TutorialSlides 대체(v1.0.28). 끈 적 없으면 기존 사용자도 업데이트 후 한 번 보임

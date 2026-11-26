@@ -50,13 +50,13 @@
 .ci-title {
     font-size: 15px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     word-break: break-word;
 }
 
 .ci-sub {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     line-height: 1.45;
     white-space: pre-line;
     word-break: break-word;
@@ -95,7 +95,7 @@
 
 .ci-icon-btn.edit { color: #81bbf5; font-size: 14px; }
 .ci-icon-btn.delete { color: var(--color-primary-medium); font-size: 16px; }
-.ci-icon-btn.done-delete { color: #ced4da; font-size: 15px; width: 24px; height: 24px; }
+.ci-icon-btn.done-delete { color: var(--color-gray-400); font-size: 15px; width: 24px; height: 24px; }
 
 /* ===== 준비 완료 줄 ===== */
 .ci-done-row {
@@ -110,7 +110,7 @@
 .ci-done-title {
     min-width: 0;
     font-size: 14px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     text-decoration: line-through;
     white-space: nowrap;
     overflow: hidden;
@@ -126,6 +126,6 @@
 
 .ci-done-meta {
     font-size: 11px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     white-space: nowrap;
 }

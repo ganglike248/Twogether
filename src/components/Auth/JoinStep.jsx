@@ -2,7 +2,8 @@
 // 초대받은 쪽 — 6자리 초대 코드 입력. 실제 합류는 서버 콜러블(joinCoupleWithInviteCode)이 검증.
 import React from 'react';
 
-const JoinStep = ({ code, onCodeChange, onSubmit, loading, error, onBack }) => (
+// hasSoloCouple: 이미 '새로 시작'으로 혼자 커플을 만들어 둔 경우 — 합류하면 그 커플에 넣은 기록은 옮겨지지 않음을 미리 알림(AUDIT B-4)
+const JoinStep = ({ code, onCodeChange, onSubmit, loading, error, onBack, hasSoloCouple = false }) => (
   <form className="auth-screen" onSubmit={onSubmit} noValidate>
     <button type="button" className="auth-back" onClick={onBack} aria-label="뒤로">
       <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
@@ -28,6 +29,12 @@ const JoinStep = ({ code, onCodeChange, onSubmit, loading, error, onBack }) => (
         autoFocus
       />
     </div>
+
+    {hasSoloCouple && (
+      <p className="auth-hint join-solo-note">
+        먼저 혼자 만들어 둔 우리 공간에 넣은 일정·기록은 상대의 공간으로 옮겨지지 않아요.
+      </p>
+    )}
 
     {error && <p className="auth-error" role="alert">{error}</p>}
 

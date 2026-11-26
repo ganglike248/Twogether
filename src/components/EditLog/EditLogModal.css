@@ -175,7 +175,7 @@
   color: #666;
   margin: 8px 0;
   padding: 8px 12px;
-  background: #f8f9fa;
+  background: var(--color-gray-100);
   border-radius: 4px;
   border-left: 3px solid var(--color-primary);
 }
@@ -229,12 +229,12 @@
 }
 
 .change-field {
-  background: #f8f9fa;
+  background: var(--color-gray-100);
   padding: 8px 12px;
   font-weight: 600;
   font-size: 0.85rem;
-  color: #495057;
-  border-bottom: 1px solid #e9ecef;
+  color: var(--color-gray-700);
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
 .change-values-vertical {
@@ -252,7 +252,7 @@
 
 .before-value-vertical {
   background: #fff5f5;
-  border-bottom: 1px solid #e9ecef;
+  border-bottom: 1px solid var(--color-gray-200);
 }
 
 .after-value-vertical {

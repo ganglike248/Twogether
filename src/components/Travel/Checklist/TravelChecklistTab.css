@@ -58,19 +58,19 @@
 .tct-summary-title {
     font-size: 15px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
 }
 
 .tct-summary-sub {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 /* 소제목 — 바로 아래 목록과는 8px만 띄움 */
 .tct-label {
     font-size: 12px;
     font-weight: 700;
-    color: #6C757D;
+    color: var(--color-gray-600);
     padding: 2px 4px 0;
     margin-bottom: -4px;
 }
@@ -99,7 +99,7 @@
     border-top: 1px solid rgba(255, 182, 193, 0.12);
     background: transparent;
     font-family: inherit;
-    color: #6C757D;
+    color: var(--color-gray-600);
     font-size: 12px;
     cursor: pointer;
 }
@@ -128,12 +128,12 @@
 .tct-empty-title {
     font-size: 15px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     margin: 0 0 4px;
 }
 
 .tct-empty-text {
     font-size: 13px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     margin: 0;
 }

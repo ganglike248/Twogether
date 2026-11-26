@@ -1,6 +1,7 @@
 // src/hooks/useTravelChecklist.js
 import { useState, useEffect } from 'react';
 import { subscribeToChecklist } from '../services/travelChecklistService';
+import { subscribeWithPermissionRetry } from '../services/subscribeError';
 
 export const useTravelChecklist = (tripId) => {
   const [checklist, setChecklist] = useState(null);
@@ -18,10 +19,10 @@ export const useTravelChecklist = (tripId) => {
     setError(null);
 
     try {
-      const unsubscribe = subscribeToChecklist(tripId, (data) => {
+      const unsubscribe = subscribeWithPermissionRetry((onErr) => subscribeToChecklist(tripId, (data) => {
         setChecklist(data);
         setLoading(false);
-      }, (err) => { setError(err); setLoading(false); }); // 구독 실패해도 로딩이 끝나게
+      }, (err) => { const r = onErr(err); if (r !== 'retry') { setError(err); setLoading(false); } return r; }));
 
       return () => {
         if (unsubscribe) unsubscribe();

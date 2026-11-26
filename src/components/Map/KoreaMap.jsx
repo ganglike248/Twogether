@@ -4,24 +4,11 @@
 // 지역을 누르면 onSelect(code) — 끌어서 움직인 경우엔 누름으로 치지 않음.
 import React, { useMemo, useRef, useState, useCallback } from 'react';
 import { level } from './mapStats';
+import { labelPoint } from './mapGeometry';
 
 const MIN = 1;
 const MAX = 6;
 const clamp = (v, a, b) => Math.min(b, Math.max(a, v));
-
-// 이름표 위치: 가장 큰 고리(본토)의 꼭짓점 평균 — 섬 때문에 중심이 바다로 가지 않게
-const labelPoint = (d) => {
-  let best = null;
-  for (const ring of d.split('Z')) {
-    if (!ring.startsWith('M')) continue;
-    const pts = ring.slice(1).split('L').map(p => p.split(',').map(Number));
-    const xs = pts.map(p => p[0]);
-    const ys = pts.map(p => p[1]);
-    const area = (Math.max(...xs) - Math.min(...xs)) * (Math.max(...ys) - Math.min(...ys));
-    if (!best || area > best.area) best = { area, x: xs.reduce((a, b) => a + b, 0) / xs.length, y: ys.reduce((a, b) => a + b, 0) / ys.length };
-  }
-  return best || { x: 0, y: 0 };
-};
 
 // sparkCodes: 방금 처음 칠해진 곳(여행 끝 기록 직후) — 반짝임 / selected: 아래 시트에 열린 지역
 const KoreaMap = ({ data, counts = {}, nameOf, onSelect, ariaLabel, labelSize = 8, sparkCodes = [], selected = null }) => {

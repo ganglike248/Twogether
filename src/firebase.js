@@ -8,7 +8,6 @@ import {
   getFirestore,
 } from 'firebase/firestore';
 import { getAuth, initializeAuth, browserLocalPersistence, connectAuthEmulator } from 'firebase/auth';
-import { getAnalytics } from 'firebase/analytics';
 import { getStorage, connectStorageEmulator } from 'firebase/storage';
 import { getFunctions, connectFunctionsEmulator } from 'firebase/functions';
 import { Capacitor } from '@capacitor/core';
@@ -48,7 +47,7 @@ export const auth = Capacitor.getPlatform() === 'ios'
   : getAuth(app);
 export const storage = getStorage(app);
 export const functionsInstance = getFunctions(app);
-export const analytics = getAnalytics(app);
+// Analytics는 처음 기록할 때 불러옴(services/analyticsService.js, AUDIT P-6) — 앱 시작에 필요 없고, 지원 안 되는 웹뷰에서 시작을 막지 않게
 
 // 로컬 에뮬레이터 연결 — **개발 서버 전용**(`import.meta.env.DEV`라 운영 빌드에선 코드째 빠짐). 로그인이 필요한 화면을
 // 운영 데이터와 무관하게 끝까지 눌러보는 용도(커플 연결 해제·탈퇴 화면 검증에 처음 사용, v1.0.21).

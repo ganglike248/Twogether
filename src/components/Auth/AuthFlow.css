@@ -816,3 +816,6 @@
   .connected-screen { padding-top: calc(env(safe-area-inset-top) + 36px); }
   .connected-caption { margin-top: 44px; }
 }
+
+/* 합류 화면 — 혼자 만든 커플이 있을 때 안내(AUDIT B-4) */
+.join-solo-note { display: block; margin: 0.25rem 0 0.5rem; padding: 0.6rem 0.75rem; border-radius: 10px; background: var(--color-primary-light); color: var(--color-text-desc); line-height: 1.5; }

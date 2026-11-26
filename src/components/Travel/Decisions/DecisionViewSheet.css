@@ -46,7 +46,7 @@
 .dvs-title {
     font-size: 17px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
 }
 
 .dvs-reset {
@@ -55,7 +55,7 @@
     background: transparent;
     font-family: inherit;
     font-size: 13px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     cursor: pointer;
 }
 
@@ -77,7 +77,7 @@
 
 .dvs-label {
     font-size: 12px;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .dvs-chips {
@@ -92,7 +92,7 @@
     border-radius: 16px;
     border: 1.5px solid rgba(255, 182, 193, 0.35);
     background: #ffffff;
-    color: #6C757D;
+    color: var(--color-gray-600);
     font-family: inherit;
     font-size: 12px;
     cursor: pointer;
@@ -120,7 +120,7 @@
     align-items: center;
     height: 40px;
     font-size: 14px;
-    color: #343A40;
+    color: var(--color-gray-800);
     cursor: pointer;
 }
 
@@ -129,7 +129,7 @@
     vertical-align: -2px;
 }
 
-.dvs-label-hint { color: #ADB5BD; }
+.dvs-label-hint { color: var(--color-gray-500); }
 
 .dvs-star {
     color: #f5b400;

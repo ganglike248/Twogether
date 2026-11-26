@@ -149,7 +149,7 @@ const CHECKS = [
   { name: '버킷리스트', path: '/bucket', expect: '캠핑 가기' },
   { name: '여행 목록 + 지도 카드', path: '/travel', expect: '강릉 바다 여행', act: async (p) => { await p.getByText('기록을 기다리는 여행').first().waitFor({ timeout: 8000 }); } },
   { name: '새 여행 모달 + 지역 칸', path: '/travel?modal=trip', expect: '지역 더하기' },
-  { name: '여행 저장(새 여행 만들기 → 목록에 보임)', path: '/travel?modal=trip', expect: '지역 더하기', act: async (p) => {
+  { name: '여행 저장(새 여행 만들기 → 목록에 보임)', path: '/travel?modal=trip', expect: '지역 더하기', settleMs: 2500, act: async (p) => {
     // 저장 함수(offlineWrite 등)를 바꿀 때 실제 쓰기가 되는지 확인 — 여행지 '속초'로 지역 자동 추천까지
     await p.locator('#trip-title').fill('스모크 저장 여행');
     await p.locator('#trip-destination').fill('속초');
@@ -226,9 +226,12 @@ const main = async () => {
         await page.waitForTimeout(600);
         if (c.expect) await page.getByText(c.expect).first().waitFor({ timeout: 10000 });
         if (c.act) await c.act(page);
-        await page.waitForTimeout(300);
+        await page.waitForTimeout(c.settleMs || 300);
+        // 화면에 뜬 오류 알림(빨간 토스트)도 실패로 — 예: 새 여행 저장 직후 '권한이 없어요'(v1.1.11에서 발견)
+        const errorToasts = await page.locator('.Toastify__toast--error').allInnerTexts();
         const body = await page.locator('body').innerText();
-        if (body.includes('문제가 발생했어요')) error = '오류 화면(ErrorBoundary)이 떴어요';
+        if (body.includes('문제가 생겼어요') || body.includes('문제가 발생했어요')) error = '오류 화면(ErrorBoundary)이 떴어요';
+        else if (errorToasts.length) error = `오류 알림: ${errorToasts[0].replace(/\s+/g, ' ').slice(0, 120)}`;
         else if (body.includes('페이지를 찾을 수 없어요')) error = '없는 페이지로 나왔어요';
         else if (new URL(page.url()).pathname.startsWith('/login')) error = '로그인 화면으로 튕겼어요';
         else {

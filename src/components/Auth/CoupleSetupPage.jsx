@@ -197,6 +197,7 @@ const CoupleSetupPage = () => {
           loading={formLoading}
           error={error}
           onBack={goChoice}
+          hasSoloCouple={!!userDoc?.coupleId && (coupleDoc?.members?.length || 0) === 1}
         />
       ) : (
         <CoupleChoiceStep

@@ -57,7 +57,7 @@
 .dcard-title {
     font-size: 16px;
     font-weight: 700;
-    color: #343A40;
+    color: var(--color-gray-800);
     word-break: break-word;
 }
 
@@ -75,7 +75,7 @@
     border-radius: 50%;
     border: 1px solid rgba(255, 182, 193, 0.28);
     background: #ffffff;
-    color: #6C757D;
+    color: var(--color-gray-600);
     font-size: 16px;
     display: flex;
     align-items: center;
@@ -105,7 +105,7 @@
     background: #ffffff;
     font-family: inherit;
     font-size: 13px;
-    color: #343A40;
+    color: var(--color-gray-800);
     text-align: left;
     cursor: pointer;
 }
@@ -115,7 +115,7 @@
 
 .dcard-address {
     font-size: 13px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     display: flex;
     gap: 5px;
     align-items: center;
@@ -139,7 +139,7 @@
 .dcard-desc {
     font-size: 10px;
     line-height: 1.55;
-    color: #495057;
+    color: var(--color-gray-700);
     display: -webkit-box;
     -webkit-line-clamp: 3;
     -webkit-box-orient: vertical;
@@ -168,7 +168,7 @@
     text-overflow: ellipsis;
 }
 
-.dcard-link.plain { color: #6C757D; }
+.dcard-link.plain { color: var(--color-gray-600); }
 
 .dcard-score {
     border-top: 1px dashed rgba(255, 182, 193, 0.55);
@@ -181,7 +181,7 @@
 
 .dcard-comment {
     font-size: 11px;
-    color: #6C757D;
+    color: var(--color-gray-600);
     white-space: nowrap;
     overflow: hidden;
     text-overflow: ellipsis;
@@ -235,17 +235,17 @@
     padding: 10px 11px;
     font-size: 12px;
     line-height: 1.5;
-    color: #6C757D;
+    color: var(--color-gray-600);
 }
 
 .dcard-empty-info svg {
     flex-shrink: 0;
     font-size: 15px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
     margin-top: 1px;
 }
 
 .dcard-empty-hint {
     font-size: 11px;
-    color: #ADB5BD;
+    color: var(--color-gray-500);
 }
