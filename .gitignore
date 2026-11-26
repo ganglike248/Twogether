@@ -45,3 +45,4 @@ firestore-debug.log
 
 # 인스타그램 게시물 참고용 실제 화면 캡처(scripts/instagram/capture.sh로 다시 만들 수 있음)
 marketing/instagram/shots/
+__pycache__/
