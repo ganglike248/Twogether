@@ -76,6 +76,8 @@ const DecisionCard = ({
             {menuOpen && (
               <div className="dcard-menu">
                 <button onClick={() => { setMenuOpen(false); actions.editOption(decision, option); }}>수정</button>
+                {/* 평가 전에도 확정할 수 있게(아래 버튼은 평가 → 확정 순서를 유지) */}
+                {!decided && <button onClick={() => { setMenuOpen(false); actions.toggleDecided(decision, option); }}>확정하기</button>}
                 <button className="danger" onClick={() => { setMenuOpen(false); actions.requestDeleteOption(decision, option); }}>삭제</button>
               </div>
             )}

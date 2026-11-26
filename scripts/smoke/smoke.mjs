@@ -149,7 +149,7 @@ const CHECKS = [
     await p.waitForURL((u) => !/\/calendar\/day\//.test(u.pathname), { timeout: 5000 });
   } },
   { name: '여행 카드를 키보드(Enter)로 열기', path: '/travel', expect: '강릉 바다 여행', act: async (p) => {
-    const card = p.locator('.trip-card').filter({ hasText: '강릉 바다 여행' }).first();
+    const card = p.locator('.tvl-item').filter({ hasText: '강릉 바다 여행' }).first();
     await card.focus();
     await p.keyboard.press('Enter');
     await p.waitForURL(/\/travel\/t1/, { timeout: 5000 });
@@ -220,11 +220,11 @@ const CHECKS = [
     await p.locator('.map-sheet').waitFor({ timeout: 5000 });
   } },
   { name: '우리 지도 · 강원 시·군', path: '/map/51', expect: '강릉 바다 여행', act: async (p) => { await p.locator('svg.km path').first().waitFor({ timeout: 10000 }); } },
-  { name: '여행 상태 자동(다녀옴) + 필터', path: '/travel', expect: '강릉 바다 여행', act: async (p) => {
-    await p.locator('.trip-card', { hasText: '강릉 바다 여행' }).getByText('다녀옴').first().waitFor({ timeout: 5000 });
-    await p.locator('.travel-plan-filter-button', { hasText: '다가오는' }).click();
-    await p.locator('.trip-card', { hasText: '제주 여행' }).first().waitFor({ timeout: 5000 });
-    if (await p.locator('.trip-card', { hasText: '강릉 바다 여행' }).count()) throw new Error("끝난 여행이 '다가오는'에 보여요");
+  { name: '여행 목록 구역(다가오는 D-day / 다녀옴) + 검색', path: '/travel', expect: '강릉 바다 여행', act: async (p) => {
+    await p.locator('section[aria-label="다녀온 여행"] .tvl-prow', { hasText: '강릉 바다 여행' }).first().waitFor({ timeout: 5000 });
+    await p.locator('section[aria-label="다가오는 여행"] .tvl-card', { hasText: '제주 여행' }).getByText('D-20').first().waitFor({ timeout: 5000 });
+    await p.locator('.travel-plan-search-input').fill('제주');
+    await p.locator('.tvl-item', { hasText: '강릉 바다 여행' }).first().waitFor({ state: 'detached', timeout: 5000 });
   } },
   { name: '체크리스트 첫 항목 추가(문서 없던 여행)', path: '/travel/t2', expect: '제주 여행', settleMs: 1500, act: async (p) => {
     await p.locator('.td-tab', { hasText: '체크리스트' }).click();

@@ -5,10 +5,10 @@ import { useQueryModal } from '../../hooks/useQueryModal';
 import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
 import { createTrip, updateTrip, deleteTrip, trimTripSchedules } from '../../services/tripService';
-import { getTripPhase, getTripDayCount } from '../../services/tripPhase';
+import { getTripDayCount } from '../../services/tripPhase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import TripModal from './Trip/TripModal';
-import TripCard from './Trip/TripCard';
+import TripList from './Trip/TripList';
 import TripDetail from './Trip/TripDetail';
 import EmptyState from '../common/EmptyState';
 import ConfirmModal from '../common/ConfirmModal';
@@ -25,7 +25,6 @@ const TravelPlanPage = () => {
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [editingTrip, setEditingTrip] = useState(null); // 모달에 전달할 편집 대상
     const [deleting, setDeleting] = useState(false);
-    const [filter, setFilter] = useState('all'); // 'all' | 'upcoming'(다가오는 + 여행 중) | 'past'(다녀옴) — 날짜로 계산
     const [searchQuery, setSearchQuery] = useState('');
     const [tripToDelete, setTripToDelete] = useState(null);
 
@@ -51,25 +50,12 @@ const TravelPlanPage = () => {
         if (!loading) navigate('/travel', { replace: true }); // 로드 후에도 없으면 목록으로
     }, [tripId, trips, loading, navigate]);
 
-    // 필터링 및 검색
+    // 검색(제목·여행지) — 구역(여행 중/다가오는/다녀옴)은 TripList가 날짜로 나눔
     useEffect(() => {
-        let filtered = trips;
-
-        // 상태별 필터링
-        if (filter !== 'all') {
-            filtered = filtered.filter(trip => (getTripPhase(trip) === 'past') === (filter === 'past'));
-        }
-
-        // 검색어 필터링
-        if (searchQuery.trim()) {
-            filtered = filtered.filter(trip =>
-                trip.title?.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                tripPlaceName(trip).toLowerCase().includes(searchQuery.toLowerCase())
-            );
-        }
-
-        setFilteredTrips(filtered);
-    }, [trips, filter, searchQuery]);
+        const q = searchQuery.trim().toLowerCase();
+        setFilteredTrips(!q ? trips : trips.filter(trip =>
+            trip.title?.toLowerCase().includes(q) || tripPlaceName(trip).toLowerCase().includes(q)));
+    }, [trips, searchQuery]);
 
     // 여행 저장
     // overflowMode: 기간을 줄여 잘리는 Day의 일정을 'move'(마지막 날로) | 'delete' — 모달이 물어본 답(안 물었으면 안전하게 옮김)
@@ -181,9 +167,14 @@ const TravelPlanPage = () => {
 
     return (
         <div className="travel-plan-container">
-            <div className="travel-plan-header">
-                <h1 className="travel-plan-title">여행</h1>
-                <p className="travel-plan-subtitle">함께 만들어가는 여행 추억</p>
+            <div className="travel-plan-head-row">
+                <div className="travel-plan-header">
+                    <h1 className="travel-plan-title">여행</h1>
+                    <p className="travel-plan-subtitle">함께 만들어가는 여행 추억</p>
+                </div>
+                <button type="button" className="travel-plan-new-btn" onClick={() => { setEditingTrip(null); openModal('trip'); }}>
+                    + 새 여행
+                </button>
             </div>
 
             {/* 기록을 기다리는 여행 개수 — 누르면 가장 최근 것부터 기록 */}
@@ -204,76 +195,33 @@ const TravelPlanPage = () => {
 
             {trips.length > 0 && <MapEntryCard trips={trips} className="travel-plan-map-card" showMap />}
 
-            <div className="travel-plan-toolbar">
-                <div className="travel-plan-filter-search-section">
-                    <div className="travel-plan-filter-container">
-                        <button
-                            onClick={() => setFilter('all')}
-                            className={`travel-plan-filter-button ${filter === 'all' ? 'travel-plan-active' : ''}`}
-                        >
-                            전체
-                        </button>
-                        <button
-                            onClick={() => setFilter('upcoming')}
-                            className={`travel-plan-filter-button ${filter === 'upcoming' ? 'travel-plan-active' : ''}`}
-                        >
-                            다가오는
-                        </button>
-                        <button
-                            onClick={() => setFilter('past')}
-                            className={`travel-plan-filter-button ${filter === 'past' ? 'travel-plan-active' : ''}`}
-                        >
-                            다녀옴
-                        </button>
-                    </div>
-
-                    <div className="travel-plan-search-container">
-                        <input
-                            type="text"
-                            placeholder="여행지나 제목을 검색하세요"
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="travel-plan-search-input"
-                        />
-                    </div>
+            {trips.length > 0 && (
+                <div className="travel-plan-search">
+                    <input
+                        type="search"
+                        placeholder="여행지나 제목으로 찾기"
+                        value={searchQuery}
+                        onChange={(e) => setSearchQuery(e.target.value)}
+                        className="travel-plan-search-input"
+                        aria-label="여행 검색"
+                    />
                 </div>
-
-                <button
-                    onClick={() => {
-                        setEditingTrip(null);
-                        openModal('trip');
-                    }}
-                    className="travel-plan-add-trip-btn"
-                >
-                    <span className="travel-plan-add-icon">+</span>
-                    새 여행 추가
-                </button>
-            </div>
+            )}
 
             {loading ? (
                 <TravelPlanSkeleton />
             ) : filteredTrips.length === 0 ? (
                 <EmptyState
                     icon={<MdFlightTakeoff size={56} />}
-                    title={searchQuery || filter !== 'all' ? '검색 결과가 없어요' : '아직 여행 계획이 없어요'}
-                    text={searchQuery || filter !== 'all' ? '다른 검색어나 필터를 시도해보세요' : '새로운 여행을 계획해보세요!'}
-                    button={!searchQuery && filter === 'all' ? {
+                    title={searchQuery ? '검색 결과가 없어요' : '아직 여행 계획이 없어요'}
+                    text={searchQuery ? '다른 검색어로 찾아 보세요' : '새로운 여행을 계획해보세요!'}
+                    button={!searchQuery ? {
                         text: '첫 여행 계획 만들기',
                         onClick: () => { setEditingTrip(null); openModal('trip'); }
                     } : undefined}
                 />
             ) : (
-                <div className="travel-plan-trips-grid">
-                    {filteredTrips.map(trip => (
-                        <TripCard
-                            key={trip.id}
-                            trip={trip}
-                            onView={handleViewTrip}
-                            onEdit={handleEditTrip}
-                            onDelete={handleDeleteTrip}
-                        />
-                    ))}
-                </div>
+                <TripList trips={filteredTrips} onOpen={handleViewTrip} />
             )}
 
             {showTripModal && (

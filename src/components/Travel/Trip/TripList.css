@@ -1,0 +1,54 @@
+/* src/components/Travel/Trip/TripList.css — 여행 목록 구역(여행 중 / 다가오는 / 다녀옴), 시안 '여행 목록 A' */
+.tvl { display: flex; flex-direction: column; gap: 1.1rem; }
+.tvl-section { display: flex; flex-direction: column; gap: 0.6rem; }
+.tvl-sec { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1rem; color: var(--color-gray-700); display: flex; align-items: center; gap: 6px; }
+.tvl-sec span { font-family: inherit; font-size: 0.8rem; color: var(--color-gray-500); }
+.tvl-item { cursor: pointer; }
+
+/* 여행 중 */
+.tvl-now {
+  position: relative; background: white; border: 2px solid var(--color-primary); border-radius: 18px;
+  padding: 14px 16px; display: flex; flex-direction: column; gap: 6px; box-shadow: var(--shadow-md);
+}
+.tvl-tape { position: absolute; top: -8px; left: 18px; width: 60px; height: 16px; background: var(--color-primary-light); transform: rotate(-3deg); }
+.tvl-now-k { margin: 0; font-size: 0.75rem; color: var(--color-primary-dark); }
+.tvl-now-t { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.25rem; color: var(--color-gray-800); }
+.tvl-now-m { margin: 0; font-size: 0.78rem; color: var(--color-text-desc); line-height: 1.45; }
+.tvl-bar { display: block; height: 6px; border-radius: 3px; background: var(--color-primary-light); overflow: hidden; }
+.tvl-bar i { display: block; height: 100%; background: var(--color-primary); transition: width 0.3s ease; }
+
+/* 다가오는 */
+.tvl-card {
+  background: white; border-radius: 16px; padding: 12px 14px; box-shadow: var(--shadow-sm);
+  display: flex; align-items: center; gap: 12px;
+}
+.tvl-dd {
+  flex: none; min-width: 56px; height: 56px; padding: 0 6px; box-sizing: border-box; border-radius: 14px;
+  background: var(--color-primary-light); color: var(--color-primary-dark);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; line-height: 1.15;
+}
+.tvl-dd b { font-family: var(--font-display); font-weight: 400; font-size: 1.05rem; }
+.tvl-dd small { font-size: 0.62rem; color: var(--color-text-desc); }
+.tvl-tx { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px; }
+.tvl-tx b { font-weight: 400; font-size: 0.98rem; color: var(--color-gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tvl-tx span { font-size: 0.72rem; color: var(--color-text-desc); }
+
+/* 다녀옴 */
+.tvl-past { list-style: none; margin: 0; padding: 4px 14px; background: white; border-radius: 14px; box-shadow: var(--shadow-sm); }
+.tvl-prow { display: flex; align-items: center; gap: 10px; padding: 11px 0; border-bottom: 1px dashed var(--card-border); font-size: 0.85rem; }
+.tvl-prow:last-child { border-bottom: none; }
+.tvl-prow em { flex: none; width: 48px; font-style: normal; font-family: var(--font-display); font-size: 0.78rem; color: var(--color-gray-500); }
+.tvl-prow b { flex: 1; min-width: 0; font-weight: 400; color: var(--color-gray-800); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tvl-prow span { flex: none; max-width: 40%; font-size: 0.72rem; color: var(--color-gray-500); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.tvl-prow span.wait { color: var(--color-primary-dark); }
+.tvl-more { align-self: center; border: none; background: none; font-family: inherit; font-size: 0.8rem; color: var(--color-primary-dark); cursor: pointer; padding: 4px 8px; }
+
+/* 목록 머리: 제목 + 새 여행 버튼, 검색 */
+.travel-plan-head-row { display: flex; align-items: flex-end; justify-content: space-between; gap: 12px; margin-bottom: 1rem; }
+.travel-plan-head-row .travel-plan-header { margin-bottom: 0; }
+.travel-plan-new-btn {
+  flex: none; height: 38px; padding: 0 16px; border-radius: 999px; border: none; background: var(--color-primary);
+  color: white; font-family: inherit; font-weight: 700; font-size: 0.85rem; cursor: pointer; white-space: nowrap;
+}
+.travel-plan-search { margin-bottom: 1rem; }
+.travel-plan-search .travel-plan-search-input { font-size: 1rem; } /* iOS: 1rem 미만이면 포커스 때 화면이 확대됨 */
