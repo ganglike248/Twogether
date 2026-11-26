@@ -1,7 +1,9 @@
 import React from 'react';
 import { MdClose } from 'react-icons/md';
+import { useDialog } from '../../hooks/useDialog';
 
 function BaseModal({ isOpen, onClose, title, icon: Icon, iconColor, children, className = '' }) {
+  const dialogRef = useDialog(isOpen, onClose);
   if (!isOpen) return null;
 
   return (
@@ -16,7 +18,7 @@ function BaseModal({ isOpen, onClose, title, icon: Icon, iconColor, children, cl
         if (e.target === e.currentTarget) onClose();
       }}
     >
-      <div className={`bucket-modal-box ${className}`}>
+      <div className={`bucket-modal-box ${className}`} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="bucket-modal-header">
           {Icon && <Icon className="bucket-modal-icon" style={iconColor ? { color: iconColor } : undefined} />}
           <h2 className="bucket-modal-title">{title}</h2>

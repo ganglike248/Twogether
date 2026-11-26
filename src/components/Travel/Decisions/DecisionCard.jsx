@@ -14,6 +14,7 @@ import { pickCommentLine } from './optionScoreUtils';
 import ScheduledDaysChip from './ScheduledDaysChip';
 import './OptionShared.css';
 import './DecisionCard.css';
+import { pressable } from '../../../utils/pressable';
 
 const DecisionCard = ({
   decision, option, rank, members, currentUserId, actions, onOpenSheet, onAddToSchedule, scheduledDaysByOption,
@@ -45,7 +46,7 @@ const DecisionCard = ({
   };
 
   return (
-    <div className={`dcard ${decided ? 'decided' : rank === 1 ? 'top' : ''}`} onClick={handleCardClick}>
+    <div className={`dcard ${decided ? 'decided' : rank === 1 ? 'top' : ''}`} {...pressable(handleCardClick)}>
       <OptionPhotos
         images={option.images}
         alt={option.title}

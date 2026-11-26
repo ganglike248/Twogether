@@ -4,7 +4,7 @@ import './EmptyState.css';
 
 const EmptyState = ({
   icon = null,
-  title = '데이터가 없습니다',
+  title = '데이터가 없어요',
   text = '',
   button = null,
   children = null,

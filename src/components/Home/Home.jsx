@@ -37,6 +37,7 @@ import { getRecapWindowMonth, hasCoupleEventInMonth, getWrapUpWindowYear, countC
 import '../Recap/Recap.css';
 import mascotImg from '../images/mascot.png';
 import './Home.css';
+import { pressable } from '../../utils/pressable';
 
 const TAB_ORDER = ['today', 'story'];
 
@@ -308,7 +309,7 @@ const Home = () => {
       {/* 히어로: 사진(좌) + 기념일/이번달/연애기간(우) */}
       <div className="home-hero-split">
         {/* 사진을 누르면 프로필(홈 화면 사진 변경 포함)로 — 뒤로가기로 홈에 돌아오도록 push(replace 아님) */}
-        <div className="hero-photo-col clickable" onClick={() => navigate('/profile')}>
+        <div className="hero-photo-col clickable" {...pressable(() => navigate('/profile'))}>
           <div className="hero-tape" />
           {heroImageUrl ? (
             <>
@@ -338,7 +339,7 @@ const Home = () => {
           {loveStartDate && nextAnniversary && (
             <div
               className="hero-stat-card clickable"
-              onClick={() => navigate(`/calendar?date=${milestoneDateStr}`)}
+              {...pressable(() => navigate(`/calendar?date=${milestoneDateStr}`))}
             >
               <HiSparkles className="stat-icon pink" />
               <div className="stat-content">
@@ -414,7 +415,7 @@ const Home = () => {
 
           {/* 여행 섹션 — 다음/진행 중인 여행이 없으면 카드 자체를 표시 안 함 */}
           {relevantTrip && (
-            <div className="home-card home-trip-section" onClick={() => navigate('/travel', { replace: true })}>
+            <div className="home-card home-trip-section" {...pressable(() => navigate('/travel', { replace: true }))}>
               <div className="card-label">
                 {ongoingTrip
                   ? <HiMapPin className="card-label-icon" />
@@ -461,7 +462,7 @@ const Home = () => {
                   <div
                     key={e.id}
                     className="next-event-content clickable"
-                    onClick={() => navigate(`/calendar?date=${format(today, 'yyyy-MM-dd')}`)}
+                    {...pressable(() => navigate(`/calendar?date=${format(today, 'yyyy-MM-dd')}`))}
                   >
                     <div className="event-type-dot" style={{ background: eventTypeColor(e) }} />
                     <div className="next-event-info">
@@ -481,7 +482,7 @@ const Home = () => {
           {nextEvent && (
             <div
               className="home-card home-next-event"
-              onClick={() => navigate(`/calendar?date=${nextEvent.start.split('T')[0]}`)}
+              {...pressable(() => navigate(`/calendar?date=${nextEvent.start.split('T')[0]}`))}
             >
               <div className="card-label">
                 <HiCalendarDays className="card-label-icon" />
@@ -517,7 +518,7 @@ const Home = () => {
                     <div
                       key={e.id}
                       className="trip-section-row clickable"
-                      onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
+                      {...pressable(() => navigate(`/calendar?date=${e.start.split('T')[0]}`))}
                     >
                       <div className="trip-section-info">
                         <div className="trip-section-title">{e.title}</div>
@@ -548,7 +549,7 @@ const Home = () => {
         >
           {/* 연말 랩업 */}
           {showWrapUpCard && (
-            <div className="home-card home-recap-card wrapup" onClick={() => navigate(`/recap/${wrapUpYear}`)}>
+            <div className="home-card home-recap-card wrapup" {...pressable(() => navigate(`/recap/${wrapUpYear}`))}>
               <span className="home-recap-month" aria-hidden="true">{wrapUpYear}</span>
               <span className="home-recap-tx">
                 <b>{wrapUpYear}년 우리의 다이어리가 완성됐어요</b>
@@ -560,7 +561,7 @@ const Home = () => {
 
           {/* 월간 요약 */}
           {showRecapCard && (
-            <div className="home-card home-recap-card" onClick={() => navigate(`/recap/${recapMonth}`)}>
+            <div className="home-card home-recap-card" {...pressable(() => navigate(`/recap/${recapMonth}`))}>
               <span className="home-recap-month" aria-hidden="true">{Number(recapMonth.slice(5))}월</span>
               <span className="home-recap-tx">
                 <b>{Number(recapMonth.slice(5))}월의 우리, 요약이 도착했어요</b>
@@ -581,7 +582,7 @@ const Home = () => {
                 <div
                   key={i}
                   className="year-ago-item clickable"
-                  onClick={() => navigate(`/calendar?date=${e.start.split('T')[0]}`)}
+                  {...pressable(() => navigate(`/calendar?date=${e.start.split('T')[0]}`))}
                 >
                   <div className="event-type-dot" style={{ background: eventTypeColor(e) }} />
                   <div className="year-ago-info">
@@ -642,7 +643,7 @@ const Home = () => {
           {/* 버킷리스트 진행률 + 돌림판 */}
           {bucketStats.total > 0 && (
             <div className="home-bucket-section">
-              <div className="home-card home-bucket-preview" onClick={() => navigate('/bucket', { replace: true })}>
+              <div className="home-card home-bucket-preview" {...pressable(() => navigate('/bucket', { replace: true }))}>
                 <div className="card-label">
                   <HiCheckCircle className="card-label-icon" />
                   버킷리스트 진행률
@@ -659,7 +660,7 @@ const Home = () => {
                   </span>
                 </div>
               </div>
-              <div className="home-card home-wheel-button" onClick={() => navigate('/?modal=wheel', { state: { modal: true } })}>
+              <div className="home-card home-wheel-button" {...pressable(() => navigate('/?modal=wheel', { state: { modal: true } }))}>
                 <div className="card-label">
                   <span className="wheel-icon">🎡</span>
                   돌림판

@@ -11,8 +11,10 @@ import RegionPicker from './RegionPicker';
 import { matchRegions, suggestRegionsFromSchedules } from '../../../services/regions/regionMatch';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { describeRegions } from '../../../services/regions/regionData';
+import { useDialog } from '../../../hooks/useDialog';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
+  const dialogRef = useDialog(isOpen, onClose);
     const [formData, setFormData] = useState({
         title: '',
         destination: '',
@@ -90,7 +92,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         }
         if (formData.startDate && formData.endDate &&
             new Date(formData.startDate) > new Date(formData.endDate)) {
-            newErrors.endDate = '종료일은 시작일보다 늦어야 합니다';
+            newErrors.endDate = '종료일은 시작일보다 늦어야 해요';
         }
         if (formData.budget && (isNaN(removeCommas(formData.budget)) || removeCommas(formData.budget) < 0)) {
             newErrors.budget = '올바른 예산을 입력해주세요';
@@ -122,7 +124,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
             await onSave(tripData);
         } catch (error) {
             console.error('Error saving trip:', error);
-            toast.error(`여행 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+            toast.error(`여행 저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
         } finally {
             setLoading(false);
         }
@@ -152,7 +154,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         <div className="trip-modal-overlay" onClick={(e) => {
             if (e.target === e.currentTarget) onClose();
         }}>
-            <div className="trip-modal-container">
+            <div className="trip-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
                 <div className="trip-modal-header">
                     <h2 className="trip-modal-title">
                         {trip ? '여행 계획 수정' : '새 여행 계획'}

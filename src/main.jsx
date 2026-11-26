@@ -12,7 +12,7 @@ if (import.meta.env.VITE_SENTRY_DSN) {
     environment: import.meta.env.MODE,
   });
 } else if (import.meta.env.PROD) {
-  console.warn('[Sentry] VITE_SENTRY_DSN 미설정 — 프로덕션에서 에러 추적이 비활성화됩니다.');
+  console.warn('[Sentry] VITE_SENTRY_DSN 미설정 — 프로덕션에서 에러 추적이 비활성화돼요.');
 }
 
 createRoot(document.getElementById('root')).render(

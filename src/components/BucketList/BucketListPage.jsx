@@ -22,6 +22,7 @@ import useAnalytics from '../../hooks/useAnalytics';
 import EmptyState from '../common/EmptyState';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
 import { safeAddDoc, safeDeleteDoc, safeUpdateDoc } from '../../services/offlineWrite';
+import { pressable } from '../../utils/pressable';
 
 const BucketItem = React.memo(({
   item,
@@ -38,7 +39,7 @@ const BucketItem = React.memo(({
   return (
     <div
       className={`bucket-item ${isCompleted ? 'completed' : ''}`}
-      onClick={() => onOpenEditModal(item)}
+      {...pressable(() => onOpenEditModal(item))}
       style={{ borderLeftColor: categoryColor }}
     >
       <label className="bucket-checkbox" onClick={(e) => e.stopPropagation()}>
@@ -124,11 +125,11 @@ function BucketListPage() {
         setCategoryOptions(options);
       } catch (error) {
         console.error('카테고리 로드 실패:', error);
-        toast.error('카테고리를 로드하는 중 오류가 발생했습니다.');
+        toast.error('카테고리를 로드하는 중 오류가 발생했어요.');
       }
     }, (error) => {
       console.error('카테고리 구독 실패:', error);
-      toast.error('카테고리 데이터를 불러올 수 없습니다.');
+      toast.error('카테고리 데이터를 불러올 수 없어요.');
     });
     return () => unsubscribe();
   }, [coupleId]);
@@ -149,7 +150,7 @@ function BucketListPage() {
       (error) => {
         console.error('버킷리스트 로드 실패:', error);
         if (error.code !== 'cancelled') {
-          toast.error('데이터를 불러오는 중 오류가 발생했습니다.');
+          toast.error('데이터를 불러오는 중 오류가 발생했어요.');
         }
         setIsLoading(false);
       }
@@ -191,10 +192,10 @@ function BucketListPage() {
       const coupleDocRef = doc(db, 'couples', coupleId);
       await safeUpdateDoc(coupleDocRef, { customCategories: updatedCategories });
       // onSnapshot이 즉시 실행되어 customCategories + categoryOptions 업데이트
-      toast.success('카테고리가 저장되었습니다.');
+      toast.success('카테고리가 저장됐어요.');
     } catch (error) {
       console.error('카테고리 저장 실패:', error);
-      toast.error('카테고리 저장에 실패했습니다.');
+      toast.error('카테고리 저장에 실패했어요.');
     }
   };
 
@@ -217,12 +218,12 @@ function BucketListPage() {
         category: addForm.category,
         hasContent: !!addForm.content,
       });
-      toast.success('버킷을 추가했습니다!');
+      toast.success('버킷을 추가했어요!');
       setAddForm({ title: '', content: '', category: getFirstCategory() });
       closeModal();
     } catch (error) {
       console.error('버킷 추가 실패:', error);
-      toast.error('버킷 추가 중 오류가 발생했습니다.');
+      toast.error('버킷 추가 중 오류가 발생했어요.');
     }
   };
 
@@ -243,7 +244,7 @@ function BucketListPage() {
     const todayObj = new Date(today.getFullYear(), today.getMonth(), today.getDate(), 0, 0, 0, 0);
 
     if (selectedDateObj > todayObj) {
-      toast.warning('미래 날짜는 선택할 수 없습니다');
+      toast.warning('미래 날짜는 선택할 수 없어요');
       return;
     }
 
@@ -254,14 +255,14 @@ function BucketListPage() {
       });
       // 이미 완료된 항목의 날짜 수정인 경우
       if (modalState.data === 'from-edit' && editForm.completed) {
-        toast.success('완료 날짜를 수정했습니다!');
+        toast.success('완료 날짜를 수정했어요!');
       } else {
-        toast.success('완료했습니다!');
+        toast.success('완료했어요!');
       }
       closeModal();
     } catch (error) {
       console.error('버킷 완료 실패:', error);
-      toast.error('버킷 완료 중 오류가 발생했습니다.');
+      toast.error('버킷 완료 중 오류가 발생했어요.');
     }
     // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -273,7 +274,7 @@ function BucketListPage() {
       closeModal();
     } catch (error) {
       console.error('삭제 실패:', error);
-      toast.error('삭제 중 오류가 발생했습니다.');
+      toast.error('삭제 중 오류가 발생했어요.');
     }
     // closeModal은 아래에서 선언돼 여기 의존성에 넣으면 선언 전 참조 오류 — 상태만 비우는 함수라 빠져도 안전
     // eslint-disable-next-line react-hooks/exhaustive-deps
@@ -298,7 +299,7 @@ function BucketListPage() {
     const validCategory = isValidCategory(item.category) ? item.category : getFirstCategory();
     // 유효하지 않은 카테고리인 경우 경고
     if (validCategory !== item.category) {
-      toast.info('삭제된 카테고리를 유효한 카테고리로 변경했습니다');
+      toast.info('삭제된 카테고리를 유효한 카테고리로 변경했어요');
     }
     setEditForm({
       id: item.id,
@@ -320,11 +321,11 @@ function BucketListPage() {
         content: editForm.content,
         category: editForm.category,
       });
-      toast.success('수정했습니다!');
+      toast.success('수정했어요!');
       closeModal();
     } catch (error) {
       console.error('버킷 수정 실패:', error);
-      toast.error('버킷 수정 중 오류가 발생했습니다.');
+      toast.error('버킷 수정 중 오류가 발생했어요.');
     }
   }, [editForm, canClick, closeModal]);
 
@@ -341,7 +342,7 @@ function BucketListPage() {
       }
     } catch (error) {
       console.error('미완료 변경 실패:', error);
-      toast.error('미완료 처리 중 오류가 발생했습니다.');
+      toast.error('미완료 처리 중 오류가 발생했어요.');
     }
   };
 
@@ -482,10 +483,10 @@ function BucketListPage() {
         ) : activeList.length === 0 ? (
           <EmptyState
             icon={activeTab === 'pending' ? <MdSchedule size={56} color="#f59f00" /> : <MdCheckCircle size={56} color="#51cf66" />}
-            title={activeTab === 'pending' ? '예정된 항목이 없습니다' : '완료된 항목이 없습니다'}
+            title={activeTab === 'pending' ? '예정된 항목이 없어요' : '완료된 항목이 없어요'}
             text={bucketList.length === 0
               ? '새로운 버킷을 추가해보세요!'
-              : '조건에 맞는 항목이 없습니다.'}
+              : '조건에 맞는 항목이 없어요.'}
             button={bucketList.length === 0 ? {
               text: '첫 버킷 추가하기',
               onClick: handleOpenAddModal

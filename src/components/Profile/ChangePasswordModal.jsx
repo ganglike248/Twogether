@@ -5,8 +5,10 @@ import { HiLockClosed, HiXMark } from 'react-icons/hi2';
 import { auth } from '../../firebase';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './ChangePasswordModal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const ChangePasswordModal = ({ isOpen, onClose }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const [currentPassword, setCurrentPassword] = useState('');
   const [newPassword, setNewPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
@@ -37,17 +39,17 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     }
 
     if (newPassword.length < 6) {
-      toast.error('새 비밀번호는 최소 6자 이상이어야 합니다.');
+      toast.error('새 비밀번호는 최소 6자 이상이어야 해요.');
       return;
     }
 
     if (newPassword !== confirmPassword) {
-      toast.error('새 비밀번호가 일치하지 않습니다.');
+      toast.error('새 비밀번호가 일치하지 않아요.');
       return;
     }
 
     if (currentPassword === newPassword) {
-      toast.error('새 비밀번호는 현재 비밀번호와 달라야 합니다.');
+      toast.error('새 비밀번호는 현재 비밀번호와 달라야 해요.');
       return;
     }
 
@@ -55,7 +57,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     try {
       const user = auth.currentUser;
       if (!user || !user.email) {
-        toast.error('사용자 정보를 찾을 수 없습니다.');
+        toast.error('사용자 정보를 찾을 수 없어요.');
         return;
       }
 
@@ -63,7 +65,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
       await reauthenticateWithCredential(user, credential);
       await updatePassword(user, newPassword);
 
-      toast.success('비밀번호가 변경됐습니다.');
+      toast.success('비밀번호가 변경됐어요.');
       setCurrentPassword('');
       setNewPassword('');
       setConfirmPassword('');
@@ -71,13 +73,13 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     } catch (error) {
       console.error('[ChangePasswordModal] 비밀번호 변경 실패:', error);
       if (error.code === 'auth/wrong-password') {
-        toast.error('현재 비밀번호가 잘못됐습니다.');
+        toast.error('현재 비밀번호가 잘못됐어요.');
       } else if (error.code === 'auth/weak-password') {
-        toast.error('비밀번호는 최소 6자 이상이어야 합니다.');
+        toast.error('비밀번호는 최소 6자 이상이어야 해요.');
       } else if (error.code === 'auth/requires-recent-login') {
         toast.error('보안을 위해 다시 로그인해주세요.');
       } else {
-        toast.error(`비밀번호 변경 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+        toast.error(`비밀번호 변경 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
       }
     } finally {
       setLoading(false);
@@ -90,7 +92,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
     <div className="change-password-modal-overlay" onClick={(e) => {
       if (e.target === e.currentTarget && !loading) onClose();
     }}>
-      <div className="change-password-modal">
+      <div className="change-password-modal" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="change-password-modal-header">
           <h2 className="change-password-modal-title">
             <HiLockClosed className="change-password-modal-icon" />

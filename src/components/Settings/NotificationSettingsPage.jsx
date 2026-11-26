@@ -69,13 +69,13 @@ const NotificationSettingsPage = () => {
     try {
       if (notifEnabled) {
         await disableNotifications(user.uid);
-        toast.success('이 기기의 알림을 껐습니다.');
+        toast.success('이 기기의 알림을 껐어요.');
       } else {
         await enableNotifications();
-        toast.success('알림이 켜졌습니다.');
+        toast.success('알림이 켜졌어요.');
       }
     } catch (err) {
-      toast.error(getFriendlyErrorMessage(err, '알림 설정 중 오류가 발생했습니다.'));
+      toast.error(getFriendlyErrorMessage(err, '알림 설정 중 오류가 발생했어요.'));
     } finally {
       setNotifLoading(false);
     }
@@ -88,7 +88,7 @@ const NotificationSettingsPage = () => {
       });
     } catch (err) {
       console.error('[NotificationSettingsPage] 저장 실패:', err);
-      toast.error('저장 중 오류가 발생했습니다.');
+      toast.error('저장 중 오류가 발생했어요.');
     }
   };
 
@@ -107,7 +107,7 @@ const NotificationSettingsPage = () => {
                 ? '이 브라우저는 알림을 지원하지 않아요'
                 : notifDenied
                 ? '브라우저에서 알림이 차단됐어요 — 브라우저 사이트 설정에서 직접 허용해주세요'
-                : '이 기기에서 푸시 알림을 받습니다'}
+                : '이 기기에서 푸시 알림을 받아요'}
             </div>
           </div>
           <label className="nsp-toggle">

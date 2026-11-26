@@ -217,7 +217,7 @@ export const mutateTripSchedule = async (tripId, day, mutate) => {
 // 않고 양쪽에 남는 쪽이 나음. 완료 여부·sourceOptionId 등 폼에 없는 값은 원래 날의 서버 최신 항목에서 그대로 가져감.
 // 이동시간(travelTimes)은 "같은 날의 일정A→일정B" 짝이라 원래 날에서 이 일정이 끼어 있던 것은 지움(안 지우면 고아 데이터).
 export const moveTripSchedule = async (tripId, fromDay, toDay, scheduleData) => {
-  if (fromDay === toDay) throw new Error('같은 날로는 옮길 수 없습니다.');
+  if (fromDay === toDay) throw new Error('같은 날로는 옮길 수 없어요.');
   const { id } = scheduleData;
 
   // 원래 날의 서버 최신 항목(완료 여부 등) — 없으면(그 사이 상대가 지움) 옮길 게 없음

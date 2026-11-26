@@ -47,7 +47,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
         setInitialized(true);
       } catch (error) {
         console.error('Error creating checklist:', error);
-        toast.error('체크리스트 생성 중 오류가 발생했습니다.');
+        toast.error('체크리스트 생성 중 오류가 발생했어요.');
       }
     };
 
@@ -59,17 +59,17 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
       if (itemData.itemId) {
         // 수정 모드
         await updateChecklistItem(trip.id, itemData.itemId, itemData);
-        toast.success('항목이 수정되었습니다.');
+        toast.success('항목이 수정됐어요.');
       } else {
         // 추가 모드
         await addChecklistItem(trip.id, itemData);
-        toast.success('항목이 추가되었습니다.');
+        toast.success('항목이 추가됐어요.');
       }
       setShowModal(false);
       setEditingItem(null);
     } catch (error) {
       console.error('Error saving item:', error);
-      toast.error('항목 저장 중 오류가 발생했습니다.');
+      toast.error('항목 저장 중 오류가 발생했어요.');
     }
   };
 
@@ -83,7 +83,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
       await toggleChecklistItem(trip.id, itemId, user?.uid);
     } catch (error) {
       console.error('Error toggling item:', error);
-      toast.error('상태 변경 중 오류가 발생했습니다.');
+      toast.error('상태 변경 중 오류가 발생했어요.');
     }
   };
 
@@ -104,10 +104,10 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
     setItemToDelete(null);
     try {
       await deleteChecklistItem(trip.id, itemId);
-      toast.success('항목이 삭제되었습니다.');
+      toast.success('항목이 삭제됐어요.');
     } catch (error) {
       console.error('Error deleting item:', error);
-      toast.error('항목 삭제 중 오류가 발생했습니다.');
+      toast.error('항목 삭제 중 오류가 발생했어요.');
     }
   };
 

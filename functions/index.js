@@ -303,13 +303,13 @@ exports.onEventSeriesCreate = functions.firestore
 // 자가 복구하도록 함 — 관리자가 전체 커플을 순회하는 별도 백필 스크립트 없이도 접근한 사용자 단위로 해결됨.
 exports.ensureCoupleClaims = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요해요.');
   }
   const uid = context.auth.uid;
   const userSnap = await db.collection('users').doc(uid).get();
   const coupleId = userSnap.data()?.coupleId;
   if (!coupleId) {
-    throw new functions.https.HttpsError('failed-precondition', '연결된 커플이 없습니다.');
+    throw new functions.https.HttpsError('failed-precondition', '연결된 커플이 없어요.');
   }
 
   const existingClaims = (await auth.getUser(uid)).customClaims || {};
@@ -331,12 +331,12 @@ exports.ensureCoupleClaims = functions.https.onCall(async (data, context) => {
 // members/joined/coupleId를 원자적으로 갱신하는 방식으로만 가능함.
 exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요해요.');
   }
   const uid = context.auth.uid;
   const code = typeof data?.inviteCode === 'string' ? data.inviteCode.trim().toUpperCase() : '';
   if (!code) {
-    throw new functions.https.HttpsError('invalid-argument', '초대 코드가 필요합니다.');
+    throw new functions.https.HttpsError('invalid-argument', '초대 코드가 필요해요.');
   }
 
   const inviteRef = db.collection('inviteCodes').doc(code);
@@ -357,7 +357,7 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
     const currentMembers = currentCoupleSnap?.exists ? (currentCoupleSnap.data().members || []) : [];
 
     if (!inviteSnap.exists) {
-      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드입니다.');
+      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드예요.');
     }
 
     const { coupleId: targetCoupleId, creatorUid, joined } = inviteSnap.data();
@@ -366,32 +366,32 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
       if (currentMembers.length >= 2 && currentMembers.includes(uid)) {
         return currentCoupleId;
       }
-      throw new functions.https.HttpsError('failed-precondition', '이미 커플이 연결된 코드입니다.');
+      throw new functions.https.HttpsError('failed-precondition', '이미 커플이 연결된 코드예요.');
     }
     if (creatorUid === uid) {
-      throw new functions.https.HttpsError('failed-precondition', '자신의 초대 코드는 사용할 수 없습니다.');
+      throw new functions.https.HttpsError('failed-precondition', '자신의 초대 코드는 사용할 수 없어요.');
     }
     if (currentCoupleId && currentCoupleId !== targetCoupleId && currentMembers.length >= 2) {
-      throw new functions.https.HttpsError('failed-precondition', '이미 다른 커플과 연결되어 있습니다.');
+      throw new functions.https.HttpsError('failed-precondition', '이미 다른 커플과 연결되어 있어요.');
     }
 
     const coupleRef = db.collection('couples').doc(targetCoupleId);
     const coupleSnap = await transaction.get(coupleRef);
     if (!coupleSnap.exists) {
-      throw new functions.https.HttpsError('not-found', '연결할 커플을 찾을 수 없습니다.');
+      throw new functions.https.HttpsError('not-found', '연결할 커플을 찾을 수 없어요.');
     }
     const members = coupleSnap.data().members || [];
     // 코드가 정말 그 커플의 것인지 확인(AUDIT S-2) — 커플 문서의 inviteCode와 같고, 코드를 만든 사람이 그 커플 멤버여야 함.
     // (예전 커플 중 inviteCode 필드가 없는 문서는 만든 사람 확인만)
     const coupleInviteCode = coupleSnap.data().inviteCode;
     if ((coupleInviteCode && coupleInviteCode !== code) || !members.includes(creatorUid)) {
-      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드입니다.');
+      throw new functions.https.HttpsError('not-found', '유효하지 않은 초대 코드예요.');
     }
     if (members.includes(uid)) {
-      throw new functions.https.HttpsError('failed-precondition', '이미 연결된 커플입니다.');
+      throw new functions.https.HttpsError('failed-precondition', '이미 연결된 커플이에요.');
     }
     if (members.length >= 2) {
-      throw new functions.https.HttpsError('failed-precondition', '이미 인원이 가득 찬 커플입니다.');
+      throw new functions.https.HttpsError('failed-precondition', '이미 인원이 가득 찬 커플이에요.');
     }
 
     // 혼자 만들어 둔 내 커플의 초대 코드 무효화 — 커플 문서 자체는 지우지 않음(혼자 있는 동안
@@ -422,11 +422,11 @@ exports.joinCoupleWithInviteCode = functions.https.onCall(async (data, context) 
 // — web은 fcmTokens(data-only 발송용), android/ios는 nativeFcmTokens(notification 포함 발송용)에 저장.
 exports.registerFcmToken = functions.https.onCall(async (data, context) => {
   if (!context.auth) {
-    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+    throw new functions.https.HttpsError('unauthenticated', '로그인이 필요해요.');
   }
   const { token, platform } = data;
   if (!token || typeof token !== 'string') {
-    throw new functions.https.HttpsError('invalid-argument', 'token이 필요합니다.');
+    throw new functions.https.HttpsError('invalid-argument', 'token이 필요해요.');
   }
   const field = platform === 'android' || platform === 'ios' ? 'nativeFcmTokens' : 'fcmTokens';
 
@@ -873,7 +873,7 @@ exports.fetchLinkPreview = functions
   .runWith({ timeoutSeconds: 20, memory: '256MB' })
   .https.onCall(async (data, context) => {
     if (!context.auth) {
-      throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+      throw new functions.https.HttpsError('unauthenticated', '로그인이 필요해요.');
     }
     try {
       return await fetchLinkPreview(data?.url);
@@ -909,7 +909,7 @@ const lifecycle = createCoupleLifecycle({
 });
 
 const requireAuth = (context) => {
-  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', '로그인이 필요합니다.');
+  if (!context.auth) throw new functions.https.HttpsError('unauthenticated', '로그인이 필요해요.');
   return context.auth.uid;
 };
 

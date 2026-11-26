@@ -25,7 +25,7 @@ function CategoryManagerModal({ isOpen, onClose, customCategories = {}, onSave }
     }
 
     if (newCategoryName in allCategories) {
-      toast.error('이미 존재하는 카테고리명입니다.');
+      toast.error('이미 존재하는 카테고리명이에요.');
       return;
     }
 

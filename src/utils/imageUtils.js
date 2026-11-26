@@ -22,7 +22,7 @@ export const ensureBrowserDisplayableImage = async (file) => {
     return new File([blob], newName, { type: 'image/jpeg' });
   } catch (error) {
     console.error('[imageUtils] HEIC 변환 실패:', error);
-    throw new Error('이 사진 형식은 지원되지 않습니다. 다른 사진을 선택해주세요.');
+    throw new Error('이 사진 형식은 지원되지 않아요. 다른 사진을 선택해주세요.');
   }
 };
 

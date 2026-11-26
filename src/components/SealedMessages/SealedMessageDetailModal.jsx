@@ -14,6 +14,7 @@ import {
 import UnlockTimePicker from './UnlockTimePicker';
 import ConfirmModal from '../common/ConfirmModal';
 import './sealed-message-modal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const toLocalInputValue = (timestamp) => {
   if (!timestamp) return '';
@@ -24,6 +25,7 @@ const toLocalInputValue = (timestamp) => {
 };
 
 const SealedMessageDetailModal = ({ message, onClose }) => {
+  const dialogRef = useDialog(true, onClose);
   const { user, coupleId } = useAuthContext();
   const canClick = useDoubleClickPrevention(800);
 
@@ -41,7 +43,7 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
       .then((data) => { if (!cancelled) setContent(data); })
       .catch((error) => {
         console.error('편지 내용 조회 실패:', error);
-        if (!cancelled) toast.error('편지 내용을 불러올 수 없습니다.');
+        if (!cancelled) toast.error('편지 내용을 불러올 수 없어요.');
       })
       .finally(() => { if (!cancelled) setLoading(false); });
     return () => { cancelled = true; };
@@ -58,7 +60,7 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
       toast.success('예약 시각을 수정했어요.');
     } catch (error) {
       console.error('예약 시각 수정 실패:', error);
-      toast.error('예약 시각 수정 중 오류가 발생했습니다.');
+      toast.error('예약 시각 수정 중 오류가 발생했어요.');
     } finally {
       setIsSaving(false);
     }
@@ -78,7 +80,7 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
       onClose();
     } catch (error) {
       console.error('편지 삭제 실패:', error);
-      toast.error('삭제하는 중 오류가 발생했습니다.');
+      toast.error('삭제하는 중 오류가 발생했어요.');
       setIsDeleting(false);
     }
   };
@@ -97,14 +99,14 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
       onClose();
     } catch (error) {
       console.error('즉시 공개 실패:', error);
-      toast.error('공개하는 중 오류가 발생했습니다.');
+      toast.error('공개하는 중 오류가 발생했어요.');
       setIsSaving(false);
     }
   };
 
   return (
     <div className="sm-modal-overlay" onClick={onClose}>
-      <div className="sm-modal-box" onClick={(e) => e.stopPropagation()}>
+      <div className="sm-modal-box" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="sm-modal-header">
           <HiEnvelopeOpen className="sm-modal-icon" />
           <h2 className="sm-modal-title">{message.title}</h2>

@@ -12,6 +12,7 @@ import '../Account/account.css';
 import { MenuPageHeader } from '../common/MenuPage';
 import './CoupleInfoPage.css';
 import '../common/AppModal.css';
+import { pressable } from '../../utils/pressable';
 
 const CoupleInfoPage = () => {
   const navigate = useNavigate();
@@ -63,10 +64,10 @@ const CoupleInfoPage = () => {
         await updateDoc(doc(db, 'couples', coupleDoc.id), { anniversaryDate });
       }
       setOrigDate(anniversaryDate);
-      toast.success('기념일이 저장되었습니다.');
+      toast.success('기념일이 저장됐어요.');
     } catch (error) {
       console.error('Failed to save:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -75,7 +76,7 @@ const CoupleInfoPage = () => {
   const handleCopyInviteCode = () => {
     if (coupleDoc?.inviteCode) {
       navigator.clipboard.writeText(coupleDoc.inviteCode);
-      toast.success('초대 코드가 복사되었습니다.');
+      toast.success('초대 코드가 복사됐어요.');
       setCopied(true);
       setTimeout(() => setCopied(false), 2000);
     }
@@ -114,7 +115,7 @@ const CoupleInfoPage = () => {
       }
     } catch (error) {
       console.error('Failed to save:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
       if (blocker.state === 'blocked') blocker.reset();
     } finally {
       setLoading(false);
@@ -200,7 +201,7 @@ const CoupleInfoPage = () => {
                 <span className="couple-info-waiting-text">연결 대기 중</span>
                 {coupleDoc?.inviteCode && (
                   <>
-                    <div className="couple-info-code-row" onClick={handleCopyInviteCode}>
+                    <div className="couple-info-code-row" {...pressable(handleCopyInviteCode)}>
                       <span className="couple-info-code-text">{coupleDoc.inviteCode}</span>
                       <button type="button" className="couple-info-code-copy-btn" aria-label="초대 코드 복사">
                         {copied ? <HiCheck /> : <HiClipboardDocument />}
@@ -231,7 +232,7 @@ const CoupleInfoPage = () => {
             // 변환으로 어제 날짜를 반환해 오늘을 선택 못 하는 버그가 있었음 (2026-08-25 발견/수정)
             max={getLocalDateStr()}
           />
-          <span className="couple-info-hint">변경하면 D+day가 다시 계산됩니다</span>
+          <span className="couple-info-hint">바꾸면 D+day가 다시 계산돼요</span>
         </div>
       </div>
 

@@ -13,51 +13,51 @@
 //     직접 지정한 한글 문구이므로(예: joinCouple의 "유효하지 않은 초대 코드입니다") 그대로 신뢰함
 
 const FIRESTORE_ERROR_MESSAGES = {
-  'permission-denied': '이 작업을 수행할 권한이 없습니다.',
-  'unavailable': '네트워크 연결이 원활하지 않습니다. 잠시 후 다시 시도해주세요.',
-  'not-found': '요청한 데이터를 찾을 수 없습니다. 이미 삭제되었을 수 있습니다.',
-  'already-exists': '이미 존재하는 데이터입니다.',
-  'resource-exhausted': '요청이 너무 많습니다. 잠시 후 다시 시도해주세요.',
-  'failed-precondition': '지금은 이 작업을 수행할 수 없습니다. 새로고침 후 다시 시도해주세요.',
-  'aborted': '다른 요청과 충돌이 발생했습니다. 다시 시도해주세요.',
-  'cancelled': '요청이 취소되었습니다.',
-  'deadline-exceeded': '요청 시간이 초과되었습니다. 네트워크 상태를 확인해주세요.',
-  'unauthenticated': '로그인이 필요합니다. 다시 로그인해주세요.',
-  'internal': '일시적인 오류가 발생했습니다. 잠시 후 다시 시도해주세요.',
-  'data-loss': '데이터 처리 중 문제가 발생했습니다.',
+  'permission-denied': '이 작업을 수행할 권한이 없어요.',
+  'unavailable': '네트워크 연결이 원활하지 않아요. 잠시 후 다시 시도해주세요.',
+  'not-found': '요청한 데이터를 찾을 수 없어요. 이미 삭제되었을 수 있어요.',
+  'already-exists': '이미 존재하는 데이터예요.',
+  'resource-exhausted': '요청이 너무 많아요. 잠시 후 다시 시도해주세요.',
+  'failed-precondition': '지금은 이 작업을 수행할 수 없어요. 새로고침 후 다시 시도해주세요.',
+  'aborted': '다른 요청과 충돌이 발생했어요. 다시 시도해주세요.',
+  'cancelled': '요청이 취소됐어요.',
+  'deadline-exceeded': '요청 시간이 초과됐어요. 네트워크 상태를 확인해주세요.',
+  'unauthenticated': '로그인이 필요해요. 다시 로그인해주세요.',
+  'internal': '일시적인 오류가 발생했어요. 잠시 후 다시 시도해주세요.',
+  'data-loss': '데이터 처리 중 문제가 발생했어요.',
   'invalid-argument': '입력한 값을 확인해주세요.',
   'out-of-range': '입력한 값의 범위를 확인해주세요.',
-  'unimplemented': '지원하지 않는 기능입니다.',
+  'unimplemented': '지원하지 않는 기능이에요.',
 };
 
 const AUTH_ERROR_MESSAGES = {
-  'auth/email-already-in-use': '이미 사용 중인 이메일입니다.',
-  'auth/invalid-email': '유효하지 않은 이메일 형식입니다.',
-  'auth/weak-password': '비밀번호는 6자 이상이어야 합니다.',
-  'auth/user-not-found': '등록되지 않은 이메일입니다.',
-  'auth/wrong-password': '비밀번호가 올바르지 않습니다.',
-  'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않습니다.',
-  'auth/too-many-requests': '너무 많은 시도가 있었습니다. 잠시 후 다시 시도해주세요.',
+  'auth/email-already-in-use': '이미 사용 중인 이메일이에요.',
+  'auth/invalid-email': '유효하지 않은 이메일 형식이에요.',
+  'auth/weak-password': '비밀번호는 6자 이상이어야 해요.',
+  'auth/user-not-found': '등록되지 않은 이메일이에요.',
+  'auth/wrong-password': '비밀번호가 올바르지 않아요.',
+  'auth/invalid-credential': '이메일 또는 비밀번호가 올바르지 않아요.',
+  'auth/too-many-requests': '너무 많은 시도가 있었어요. 잠시 후 다시 시도해주세요.',
   'auth/requires-recent-login': '보안을 위해 다시 로그인한 후 시도해주세요.',
   'auth/network-request-failed': '네트워크 연결을 확인해주세요.',
-  'auth/user-disabled': '비활성화된 계정입니다. 고객센터에 문의해주세요.',
-  'auth/operation-not-allowed': '현재 지원하지 않는 로그인 방식입니다.',
-  'auth/popup-closed-by-user': '로그인 창이 닫혔습니다. 다시 시도해주세요.',
-  'auth/cancelled-popup-request': '이미 진행 중인 로그인 요청이 있습니다.',
-  'auth/credential-already-in-use': '이미 다른 계정에 연결된 인증 정보입니다.',
+  'auth/user-disabled': '비활성화된 계정이에요. 고객센터에 문의해주세요.',
+  'auth/operation-not-allowed': '현재 지원하지 않는 로그인 방식이에요.',
+  'auth/popup-closed-by-user': '로그인 창이 닫혔어요. 다시 시도해주세요.',
+  'auth/cancelled-popup-request': '이미 진행 중인 로그인 요청이 있어요.',
+  'auth/credential-already-in-use': '이미 다른 계정에 연결된 인증 정보예요.',
   'auth/user-mismatch': '지금 로그인한 계정과 다른 계정이에요. 같은 계정으로 다시 확인해주세요.',
-  'auth/invalid-action-code': '유효하지 않거나 만료된 링크입니다.',
-  'auth/expired-action-code': '만료된 링크입니다. 다시 시도해주세요.',
+  'auth/invalid-action-code': '유효하지 않거나 만료된 링크예요.',
+  'auth/expired-action-code': '만료된 링크예요. 다시 시도해주세요.',
 };
 
 const STORAGE_ERROR_MESSAGES = {
-  'storage/unauthorized': '이 파일에 접근할 권한이 없습니다.',
-  'storage/canceled': '업로드가 취소되었습니다.',
-  'storage/unknown': '파일 처리 중 알 수 없는 오류가 발생했습니다.',
-  'storage/quota-exceeded': '저장 공간이 부족합니다.',
-  'storage/object-not-found': '파일을 찾을 수 없습니다.',
-  'storage/invalid-checksum': '파일 업로드에 실패했습니다. 다시 시도해주세요.',
-  'storage/retry-limit-exceeded': '네트워크 상태가 좋지 않습니다. 다시 시도해주세요.',
+  'storage/unauthorized': '이 파일에 접근할 권한이 없어요.',
+  'storage/canceled': '업로드가 취소됐어요.',
+  'storage/unknown': '파일 처리 중 알 수 없는 오류가 발생했어요.',
+  'storage/quota-exceeded': '저장 공간이 부족해요.',
+  'storage/object-not-found': '파일을 찾을 수 없어요.',
+  'storage/invalid-checksum': '파일 업로드에 실패했어요. 다시 시도해주세요.',
+  'storage/retry-limit-exceeded': '네트워크 상태가 좋지 않아요. 다시 시도해주세요.',
 };
 
 const KNOWN_ERROR_MESSAGES = {
@@ -66,7 +66,7 @@ const KNOWN_ERROR_MESSAGES = {
   ...STORAGE_ERROR_MESSAGES,
 };
 
-const DEFAULT_FALLBACK = '요청을 처리하지 못했습니다. 잠시 후 다시 시도해주세요.';
+const DEFAULT_FALLBACK = '요청을 처리하지 못했어요. 잠시 후 다시 시도해주세요.';
 
 /**
  * 예외 객체를 사용자에게 보여줘도 안전한 한글 문구로 변환.

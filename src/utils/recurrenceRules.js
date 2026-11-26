@@ -4,7 +4,7 @@ import { addDays, addMonths, addYears, getDay, getDaysInMonth, isLeapYear } from
 import { getLocalDateStr } from './dataUtils';
 
 export const RECURRENCE_MAX_OCCURRENCES = 50;
-export const RECURRENCE_LIMIT_MESSAGE = '일정의 수가 너무 많습니다. 반복되는 기간 등을 조절해주세요.';
+export const RECURRENCE_LIMIT_MESSAGE = '일정이 너무 많아요. 반복 기간을 줄여 주세요.';
 
 export const WEEKDAY_LABELS = ['일', '월', '화', '수', '목', '금', '토'];
 
@@ -121,7 +121,7 @@ export function generateOccurrenceDates(rule, startDateStr) {
       i++;
     }
   } else {
-    throw new Error(`알 수 없는 반복 유형입니다: ${freq}`);
+    throw new Error(`알 수 없는 반복 유형이에요: ${freq}`);
   }
 
   return dates;

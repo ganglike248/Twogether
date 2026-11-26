@@ -5,6 +5,8 @@ import "./DayModal.css";
 import { useAuthContext } from "../../contexts/AuthContext";
 import EmptyState from "../common/EmptyState";
 import { MdCalendarToday } from "react-icons/md";
+import { pressable } from '../../utils/pressable';
+import { useDialog } from '../../hooks/useDialog';
 
 const DayModal = ({
   isOpen,
@@ -15,6 +17,7 @@ const DayModal = ({
   onAddEvent,
   onEditEvent,
 }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const { getMemberName } = useAuthContext();
   const openedAtRef = useRef(0);
 
@@ -71,14 +74,14 @@ const DayModal = ({
 
   return (
     <div className="day-modal-overlay" onClick={handleOverlayClick}>
-      <div className="day-modal-container" onClick={(e) => e.stopPropagation()}>
+      <div className="day-modal-container" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="day-modal-header">
           <div className="day-modal-date">
             <h2 className="day-modal-title">{formatDate(selectedDate)}</h2>
             <p className="day-modal-subtitle">
               {dayEvents.length > 0
                 ? `총 ${dayEvents.length}개의 일정`
-                : "일정이 없습니다"}
+                : "일정이 없어요"}
             </p>
           </div>
           <button className="day-modal-close" onClick={onClose}>
@@ -103,7 +106,7 @@ const DayModal = ({
           {dayEvents.length === 0 ? (
             <EmptyState
               icon={<MdCalendarToday size={56} color="#4dabf7" />}
-              title="이 날에는 일정이 없습니다"
+              title="이 날에는 일정이 없어요"
               text="새로운 일정을 추가하거나 추억을 기록해보세요!"
             />
           ) : (
@@ -120,7 +123,7 @@ const DayModal = ({
                     <div
                       key={event.id}
                       className={`day-event-item ${eventTypeClass}`}
-                      onClick={() => onEditEvent(event)}
+                      {...pressable(() => onEditEvent(event))}
                     >
                       {/* 왼쪽 색 띠(종류 색) + 제목 + 종류 칩(아이콘·이름 한 줄, 길면 말줄임) — 예전엔 좁은 왼쪽 칸(10%)에
                           닉네임을 세로로 넣어 글자 단위로 줄바꿈됐고, 같은 이름이 오른쪽 배지에 한 번 더 나왔음 */}

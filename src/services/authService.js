@@ -75,7 +75,7 @@ export const sendPasswordReset = async (email) => {
 // 계정만 그 단계를 거치므로, 구글 가입자도 구글 이름 대신 닉네임을 직접 정할 기회가 생김.
 export const confirmNickname = async (displayName) => {
   const user = auth.currentUser;
-  if (!user) throw new Error('로그인이 필요합니다.');
+  if (!user) throw new Error('로그인이 필요해요.');
   await updateProfile(user, { displayName });
   await updateDoc(doc(db, 'users', user.uid), { displayName, nicknameConfirmed: true });
 };
@@ -145,10 +145,10 @@ const getNativeGoogleCredential = async () => {
   const result = await withTimeout(
     FirebaseAuthentication.signInWithGoogle({ useCredentialManager: false }),
     NATIVE_GOOGLE_SIGN_IN_TIMEOUT_MS,
-    '구글 로그인 응답이 없습니다. 네트워크 상태를 확인하고 다시 시도해주세요.'
+    '구글 로그인 응답이 없어요. 네트워크 상태를 확인하고 다시 시도해주세요.'
   );
   const idToken = result.credential?.idToken;
-  if (!idToken) throw new Error('구글 로그인에 실패했습니다. 다시 시도해주세요.');
+  if (!idToken) throw new Error('구글 로그인에 실패했어요. 다시 시도해주세요.');
   return GoogleAuthProvider.credential(idToken);
 };
 
@@ -166,7 +166,7 @@ export const signInWithGoogle = async () => {
     // 있게 정보를 담아 던짐 (LoginPage에서 비밀번호 재확인 UI로 처리)
     if (error.code === 'auth/account-exists-with-different-credential') {
       const pendingCredential = GoogleAuthProvider.credentialFromError(error);
-      const linkError = new Error('이미 이 이메일로 가입된 계정이 있습니다.');
+      const linkError = new Error('이미 이 이메일로 가입된 계정이 있어요.');
       linkError.code = 'account-exists-with-different-credential';
       linkError.email = error.customData?.email;
       linkError.pendingCredential = pendingCredential;
@@ -186,7 +186,7 @@ export const linkPendingGoogleCredential = async (email, password, pendingCreden
 
 // 로그인된 상태에서 현재 계정에 구글 계정을 추가로 연동 (ProfilePage용)
 export const linkGoogleAccount = async () => {
-  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  if (!auth.currentUser) throw new Error('로그인이 필요해요.');
   if (Capacitor.isNativePlatform()) {
     return linkWithCredential(auth.currentUser, await getNativeGoogleCredential());
   }
@@ -200,13 +200,13 @@ export const getSignInProviders = () => (auth.currentUser?.providerData || []).m
 
 export const reauthenticateWithPassword = async (password) => {
   const user = auth.currentUser;
-  if (!user?.email) throw new Error('로그인이 필요합니다.');
+  if (!user?.email) throw new Error('로그인이 필요해요.');
   await reauthenticateWithCredential(user, EmailAuthProvider.credential(user.email, password));
 };
 
 export const reauthenticateWithGoogle = async () => {
   const user = auth.currentUser;
-  if (!user) throw new Error('로그인이 필요합니다.');
+  if (!user) throw new Error('로그인이 필요해요.');
   if (Capacitor.isNativePlatform()) {
     await reauthenticateWithCredential(user, await getNativeGoogleCredential());
   } else {
@@ -218,7 +218,7 @@ export const reauthenticateWithGoogle = async () => {
 // 그대로 허용함(로그아웃 전까지는 계속 쓸 수 있고, 이후엔 이 계정으로 재로그인이 불가능해질
 // 뿐 서버가 막아주지 않음). "마지막 수단인지" 경고는 ProfilePage.jsx의 확인 모달이 담당.
 export const unlinkGoogleAccount = async () => {
-  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  if (!auth.currentUser) throw new Error('로그인이 필요해요.');
   await unlink(auth.currentUser, GoogleAuthProvider.PROVIDER_ID);
 };
 
@@ -258,12 +258,12 @@ export const inspectConflictingGoogleAccount = async (pendingCredential) => {
 export const deleteEmptyConflictingAccount = async (pendingCredential, expectedUid) => {
   await withTempAuthSession(pendingCredential, async (user) => {
     if (user.uid !== expectedUid) {
-      throw new Error('계정 정보가 일치하지 않습니다. 처음부터 다시 시도해주세요.');
+      throw new Error('계정 정보가 일치하지 않아요. 처음부터 다시 시도해주세요.');
     }
     const userRef = doc(db, 'users', user.uid);
     const snap = await getDoc(userRef);
     if (snap.exists() && snap.data().coupleId) {
-      throw new Error('이 계정은 커플이 연결되어 있어서 삭제할 수 없습니다.');
+      throw new Error('이 계정은 커플이 연결되어 있어서 삭제할 수 없어요.');
     }
     if (snap.exists()) await deleteDoc(userRef);
     await deleteUser(user);
@@ -274,11 +274,11 @@ export const deleteEmptyConflictingAccount = async (pendingCredential, expectedU
 // 로그인. coupleId가 있으면(실제 데이터 존재) 안전을 위해 거부 — 현재 계정을 지우는 쪽이라
 // 되돌릴 수 없는 작업인 만큼 deleteEmptyConflictingAccount보다 더 신중하게 다뤄야 함.
 export const deleteCurrentAccountAndSwitchToGoogle = async (pendingCredential) => {
-  if (!auth.currentUser) throw new Error('로그인이 필요합니다.');
+  if (!auth.currentUser) throw new Error('로그인이 필요해요.');
   const userRef = doc(db, 'users', auth.currentUser.uid);
   const snap = await getDoc(userRef);
   if (snap.exists() && snap.data().coupleId) {
-    throw new Error('현재 계정은 커플이 연결되어 있어서 삭제할 수 없습니다.');
+    throw new Error('현재 계정은 커플이 연결되어 있어서 삭제할 수 없어요.');
   }
   if (snap.exists()) await deleteDoc(userRef);
   await deleteUser(auth.currentUser);

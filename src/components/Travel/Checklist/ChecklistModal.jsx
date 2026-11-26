@@ -3,8 +3,10 @@ import React, { useState } from 'react';
 import { MdClose, MdCircle } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './ChecklistModal.css';
+import { useDialog } from '../../../hooks/useDialog';
 
 const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -69,7 +71,7 @@ const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
       }
     } catch (error) {
       console.error('Error saving item:', error);
-      toast.error('항목 저장 중 오류가 발생했습니다.');
+      toast.error('항목 저장 중 오류가 발생했어요.');
     } finally {
       setLoading(false);
     }
@@ -77,7 +79,7 @@ const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
 
   return (
     <div className="checklist-modal-overlay">
-      <div className="checklist-modal-container">
+      <div className="checklist-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="checklist-modal-header">
           <h2 className="checklist-modal-title">
             {isEditing ? '항목 수정' : '새 항목 추가'}

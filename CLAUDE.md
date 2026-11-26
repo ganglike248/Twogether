@@ -18,7 +18,7 @@
 8. **"배포"**: 확인 없이 빌드 + cap sync + Hosting 배포 + 버전 확인 + 커밋 + 푸시. 네이티브 반영 필요하면 네이티브 버전도 올림
    (앱은 dist를 번들하므로 웹 변경도 다음 AAB/Archive부터 반영)
 - "마무리"·"배포" 전에 `release-check` 스킬(`node .claude/skills/release-check/check.mjs`)로 버전·배포 순서·금지 패턴·삭제된 CSS 변수 점검
-- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 24곳(저장·오프라인 저장 포함)을 열어 오류 확인.
+- 같은 때 **`npm run smoke`**(화면 자동 점검, 1~2분)도 실행 — 에뮬레이터(데모 프로젝트)+테스트 계정으로 주요 화면 26곳(저장·오프라인 저장·Esc·키보드 포함)을 열어 오류 확인.
   운영 데이터 무관. 새 화면·라우트를 만들면 `scripts/smoke/smoke.mjs`의 `CHECKS`에 한 줄 추가. 설정은 루트 `firebase.smoke.json`
 - AAB(Play)/Archive(App Store) 빌드·업로드는 항상 사용자 수동(keystore·Apple 계정 없음)
 
@@ -102,6 +102,10 @@
 - 확인 모달: `common/AppModal.css`가 `confirm-modal-*`/`profile-modal-*`/`couple-info-modal-*`를 통일. 단순 확인은 `ConfirmModal` 사용
 - 모달 열림 상태는 URL(`?modal=` 또는 경로)에서 파생, `navigate()` 기반. 첫 진입(`location.key==='default'`)이면 닫을 때 replace
 - 여러 줄 입력은 `common/AutoGrowTextarea.jsx`
+- **접근성**: 누르는 div·카드는 `{...pressable(handler)}`(`utils/pressable.js` — role·탭·Enter/Space), 새 모달 컨테이너는
+  `ref={useDialog(open, onClose)} role="dialog" aria-modal="true" tabIndex={-1}`(`hooks/useDialog.js` — 포커스 이동·Esc·맨 위 모달만).
+  작은 아이콘 버튼은 보이는 크기는 두고 `::after`로 누르는 영역 44px(index.css 블록)
+- **문구 말투는 '~어요'체**(토스트·오류·안내 전부). 개인정보처리방침·이용약관만 격식체
 - 홈 카드는 모두 같은 스타일(`.home-card`), 새 UI 패턴 전에 같은 맥락의 기존 패턴 재사용. 버킷 카테고리 색은 파스텔 팔레트(v1.0.38, `categoryColorService` — 예전 원색은 `toPastelCategoryColor`로 표시 시 변환)
 
 ## 기능별 규칙

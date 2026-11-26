@@ -39,7 +39,7 @@ const getActiveServiceWorkerRegistration = async () => {
   return withTimeout(
     navigator.serviceWorker.ready,
     10000,
-    '서비스워커 준비가 지연되고 있습니다. 새로고침 후 다시 시도해주세요.'
+    '서비스워커 준비가 지연되고 있어요. 새로고침 후 다시 시도해주세요.'
   );
 };
 
@@ -85,21 +85,21 @@ export const shouldReceiveNotifications = () =>
 // (같은 브라우저로 예전에 다른 계정을 테스트했다면 서버에서 그 계정 문서의 토큰을 정리하고 현재 계정에만 등록함)
 const enableWebNotifications = async () => {
   if (!isNotificationSupported()) {
-    throw new Error('이 브라우저는 알림을 지원하지 않습니다.');
+    throw new Error('이 브라우저는 알림을 지원하지 않아요.');
   }
 
   const permission = await withTimeout(
     Notification.requestPermission(),
     15000,
-    '알림 권한 요청이 응답하지 않습니다. 다시 시도해주세요.'
+    '알림 권한 요청이 응답하지 않아요. 다시 시도해주세요.'
   );
   if (permission !== 'granted') {
-    throw new Error('알림 권한이 거부되었습니다.');
+    throw new Error('알림 권한이 거부됐어요.');
   }
 
   const messaging = await getMessagingInstance();
   if (!messaging) {
-    throw new Error('이 브라우저는 웹 푸시를 지원하지 않습니다.');
+    throw new Error('이 브라우저는 웹 푸시를 지원하지 않아요.');
   }
 
   const { getToken } = await import('firebase/messaging');
@@ -110,17 +110,17 @@ const enableWebNotifications = async () => {
       serviceWorkerRegistration: registration,
     }),
     10000,
-    '알림 토큰 발급이 지연되고 있습니다. 다시 시도해주세요.'
+    '알림 토큰 발급이 지연되고 있어요. 다시 시도해주세요.'
   );
 
   if (!token) {
-    throw new Error('알림 토큰을 발급받지 못했습니다.');
+    throw new Error('알림 토큰을 발급받지 못했어요.');
   }
 
   await withTimeout(
     httpsCallable(functionsInstance, 'registerFcmToken')({ token }),
     10000,
-    '알림 등록이 지연되고 있습니다. 다시 시도해주세요.'
+    '알림 등록이 지연되고 있어요. 다시 시도해주세요.'
   );
   localStorage.setItem(TOKEN_STORAGE_KEY, token);
   localStorage.removeItem(DISABLED_FLAG_KEY);
@@ -134,26 +134,26 @@ const enableNativeNotifications = async () => {
   const { receive } = await withTimeout(
     FirebaseMessaging.requestPermissions(),
     15000,
-    '알림 권한 요청이 응답하지 않습니다. 다시 시도해주세요.'
+    '알림 권한 요청이 응답하지 않아요. 다시 시도해주세요.'
   );
   localStorage.setItem(NATIVE_PERMISSION_STORAGE_KEY, receive === 'granted' ? 'granted' : 'denied');
   if (receive !== 'granted') {
-    throw new Error('알림 권한이 거부되었습니다.');
+    throw new Error('알림 권한이 거부됐어요.');
   }
 
   const { token } = await withTimeout(
     FirebaseMessaging.getToken(),
     10000,
-    '알림 토큰 발급이 지연되고 있습니다. 다시 시도해주세요.'
+    '알림 토큰 발급이 지연되고 있어요. 다시 시도해주세요.'
   );
   if (!token) {
-    throw new Error('알림 토큰을 발급받지 못했습니다.');
+    throw new Error('알림 토큰을 발급받지 못했어요.');
   }
 
   await withTimeout(
     httpsCallable(functionsInstance, 'registerFcmToken')({ token, platform: Capacitor.getPlatform() }),
     10000,
-    '알림 등록이 지연되고 있습니다. 다시 시도해주세요.'
+    '알림 등록이 지연되고 있어요. 다시 시도해주세요.'
   );
   localStorage.setItem(TOKEN_STORAGE_KEY, token);
   localStorage.removeItem(DISABLED_FLAG_KEY);
@@ -175,7 +175,7 @@ export const disableNotifications = async (userId) => {
   await withTimeout(
     updateDoc(doc(db, 'users', userId), { [serverTokenField()]: arrayRemove(token) }),
     10000,
-    '알림 해제가 지연되고 있습니다. 다시 시도해주세요.'
+    '알림 해제가 지연되고 있어요. 다시 시도해주세요.'
   );
   localStorage.removeItem(TOKEN_STORAGE_KEY);
 };
@@ -189,7 +189,7 @@ export const unregisterDeviceToken = async (userId) => {
   await withTimeout(
     updateDoc(doc(db, 'users', userId), { [serverTokenField()]: arrayRemove(token) }),
     4000,
-    '알림 해제가 지연되고 있습니다.'
+    '알림 해제가 지연되고 있어요.'
   );
   localStorage.removeItem(TOKEN_STORAGE_KEY);
 };

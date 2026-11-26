@@ -302,7 +302,7 @@ const Calendar = () => {
 
   const handleSaveEvent = useCallback(async (eventData) => {
     if (!eventData.start || !eventData.end || !eventData.title) {
-      toast.error('일정 저장 중 오류가 발생했습니다.\n일정 정보가 올바르지 않습니다.');
+      toast.error('일정 저장 중 오류가 발생했어요.\n일정 정보가 올바르지 않아요.');
       return;
     }
     const uid = user?.uid;
@@ -360,7 +360,7 @@ const Calendar = () => {
     })();
 
     const saveErrorMessage = (error) =>
-      `일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`;
+      `일정 저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`;
 
     try {
       const { timedOut } = await waitAtMost(saveTask, SAVE_ACK_TIMEOUT_MS);
@@ -373,7 +373,7 @@ const Calendar = () => {
         return;
       }
       closeModal();
-      toast.success(eventData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
+      toast.success(eventData.id ? '일정이 수정됐어요.' : '일정이 추가됐어요.');
     } catch (error) {
       toast.error(saveErrorMessage(error));
     }
@@ -403,9 +403,9 @@ const Calendar = () => {
         await deleteEvent(eventId, user?.uid, coupleId);
       }
       closeModal();
-      toast.success('일정을 삭제했습니다.');
+      toast.success('일정을 삭제했어요.');
     } catch (error) {
-      toast.error(`일정 삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`일정 삭제 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
     }
   }, [events, user?.uid, coupleId, closeModal]);
 

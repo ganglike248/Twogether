@@ -4,8 +4,10 @@ import { createPortal } from 'react-dom';
 import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './DecisionModal.css';
+import { useDialog } from '../../../hooks/useDialog';
 
 const DecisionModal = ({ isOpen, onClose, onSave, editingDecision }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const [formData, setFormData] = useState({
     title: '',
     description: '',
@@ -56,7 +58,7 @@ const DecisionModal = ({ isOpen, onClose, onSave, editingDecision }) => {
       });
     } catch (error) {
       console.error('Error saving decision:', error);
-      toast.error(editingDecision ? '수정 중 오류가 발생했습니다.' : '생성 중 오류가 발생했습니다.');
+      toast.error(editingDecision ? '수정 중 오류가 발생했어요.' : '생성 중 오류가 발생했어요.');
     } finally {
       setLoading(false);
     }
@@ -64,7 +66,7 @@ const DecisionModal = ({ isOpen, onClose, onSave, editingDecision }) => {
 
   return createPortal(
     <div className="decision-modal-overlay">
-      <div className="decision-modal-container">
+      <div className="decision-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="decision-modal-header">
           <h2 className="decision-modal-title">
             {editingDecision ? '비교 주제 수정' : '새로운 비교 주제 추가'}

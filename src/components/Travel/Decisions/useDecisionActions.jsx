@@ -42,13 +42,13 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
   const actions = {
     toggleFavorite: (decision, option) => run(
       () => toggleFavorite(trip.id, decision.id, option.id),
-      option.isFavorite ? '즐겨찾기를 해제했습니다.' : '즐겨찾기했습니다.',
-      '즐겨찾기 처리 중 오류가 발생했습니다.',
+      option.isFavorite ? '즐겨찾기를 해제했어요.' : '즐겨찾기했어요.',
+      '즐겨찾기 처리 중 오류가 발생했어요.',
     ),
     saveScore: (decision, option, score, comment) => run(
       () => addScore(trip.id, decision.id, option.id, userId, score, comment),
-      `${score}점 평가했습니다!`,
-      '점수 저장 중 오류가 발생했습니다.',
+      `${score}점 평가했어요!`,
+      '점수 저장 중 오류가 발생했어요.',
     ),
     // 확정은 여러 개 가능하고 되돌릴 수 있어서 확인 없이 바로 — 대신 일정에 아직 없으면 이어서 추가할지 물어봄.
     // 확정 취소만 확인을 거침
@@ -61,7 +61,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
       const ok = await run(
         () => setOptionDecided(trip.id, decision.id, option.id, userId, true),
         alreadyScheduled || !onAddToSchedule ? '확정했어요!' : null,
-        '확정 중 오류가 발생했습니다.',
+        '확정 중 오류가 발생했어요.',
       );
       if (ok && !alreadyScheduled && onAddToSchedule) setConfirm({ type: 'askSchedule', decision, option });
     },
@@ -80,28 +80,28 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
       await run(
         () => setOptionDecided(trip.id, decision.id, option.id, userId, false),
         '확정을 취소했어요.',
-        '확정 취소 중 오류가 발생했습니다.',
+        '확정 취소 중 오류가 발생했어요.',
       );
     } else if (type === 'askSchedule') {
       onAddToSchedule(decision, option);
     } else if (type === 'deleteOption') {
-      const ok = await run(() => deleteOption(trip.id, decision.id, option.id), '옵션이 삭제되었습니다.', '옵션 삭제 중 오류가 발생했습니다.');
+      const ok = await run(() => deleteOption(trip.id, decision.id, option.id), '옵션이 삭제됐어요.', '옵션 삭제 중 오류가 발생했어요.');
       if (ok) onOptionDeleted?.(option.id);
     } else if (type === 'deleteTopic') {
-      await run(() => deleteDecision(trip.id, decision.id), '선택지가 삭제되었습니다.', '선택지 삭제 중 오류가 발생했습니다.');
+      await run(() => deleteDecision(trip.id, decision.id), '선택지가 삭제됐어요.', '선택지 삭제 중 오류가 발생했어요.');
     }
   };
 
   const handleAddOption = async (optionData) => {
-    const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '옵션이 추가되었습니다.', '옵션 추가 중 오류가 발생했습니다.');
+    const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '옵션이 추가됐어요.', '옵션 추가 중 오류가 발생했어요.');
     if (ok) setAddingTo(null);
   };
 
   const handleUpdateOption = async (updatedData) => {
     const ok = await run(
       () => updateOption(trip.id, editing.decision.id, editing.option.id, updatedData),
-      '옵션이 수정되었습니다.',
-      '옵션 수정 중 오류가 발생했습니다.',
+      '옵션이 수정됐어요.',
+      '옵션 수정 중 오류가 발생했어요.',
     );
     if (ok) setEditing(null);
   };
@@ -110,8 +110,8 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
     if (topicModal.mode === 'create') {
       const ok = await run(
         () => createDecision(trip.id, { ...decisionData, coupleId: trip.coupleId }),
-        '선택지가 추가되었습니다.',
-        '선택지 추가 중 오류가 발생했습니다.',
+        '선택지가 추가됐어요.',
+        '선택지 추가 중 오류가 발생했어요.',
       );
       if (ok) setTopicModal(null);
     } else {
@@ -121,8 +121,8 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
           title: decisionData.title,
           description: decisionData.description,
         }),
-        '비교 주제가 수정되었습니다.',
-        '저장 중 오류가 발생했습니다.',
+        '비교 주제가 수정됐어요.',
+        '저장 중 오류가 발생했어요.',
       );
       if (ok) setTopicModal(null);
     }

@@ -57,10 +57,10 @@ const EventTypeColorSettingsModal = ({ isOpen, onClose }) => {
     setSaving(true);
     try {
       await updateDoc(doc(db, 'users', user.uid), { eventTypeColors });
-      toast.success('색상 설정이 저장되었습니다!');
+      toast.success('색상 설정이 저장됐어요!');
       onClose();
     } catch (error) {
-      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setSaving(false);
     }

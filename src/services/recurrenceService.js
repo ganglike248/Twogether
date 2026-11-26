@@ -63,7 +63,7 @@ export async function createRecurringEvent({ rule, template, userId, coupleId, i
   const normalizedRule = normalizeRule(rule);
   const dates = generateOccurrenceDates(normalizedRule, template.startDate);
   if (dates.length === 0) {
-    throw new Error('생성할 반복 일정이 없습니다. 종료 조건을 확인해주세요.');
+    throw new Error('생성할 반복 일정이 없어요. 종료 조건을 확인해주세요.');
   }
 
   const seriesRef = doc(collection(db, 'eventSeries'));
@@ -185,7 +185,7 @@ export async function updateRecurringEvent({
     const dates = generateOccurrenceDates(normalizedRule, cutDateStr); // 50개 초과 시 여기서 throw (아직 아무 것도 안 지움)
     if (dates.length === 0) {
       // 종료 조건(날짜/횟수)이 재생성 시작점보다 앞서면 향후 일정이 통째로 사라져버리므로 미리 차단
-      throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없습니다.');
+      throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없어요.');
     }
 
     const batch = writeBatch(db);
@@ -243,7 +243,7 @@ export async function updateRecurringEvent({
   const hasEarlierDocs = allDocsForFuture.some((d) => (d.data().start || '').split('T')[0] < cutDateStr);
   const dates = generateOccurrenceDates(normalizedRule, cutDateStr); // 50개 초과 시 여기서 throw
   if (dates.length === 0) {
-    throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없습니다.');
+    throw new Error('반복 종료 조건을 확인해주세요. 앞으로 생성될 일정이 없어요.');
   }
 
   const batch = writeBatch(db);

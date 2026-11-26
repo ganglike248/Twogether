@@ -6,6 +6,7 @@ import { useAuthContext } from '../../contexts/AuthContext';
 import { calcDday } from '../../utils/dataUtils';
 import Sidebar from './Sidebar';
 import './AppHeader.css';
+import { pressable } from '../../utils/pressable';
 
 const AppHeader = () => {
   const navigate = useNavigate();
@@ -45,10 +46,10 @@ const AppHeader = () => {
         <button className="app-header-menu" onClick={openSidebar}>
           <HiBars3 />
         </button>
-        <span className="app-header-title" onClick={() => navigate('/', { replace: true })}>
+        <span className="app-header-title" {...pressable(() => navigate('/', { replace: true }))}>
           우리두리
         </span>
-        <div className="app-header-right" onClick={() => navigate('/', { replace: true })}>
+        <div className="app-header-right" {...pressable(() => navigate('/', { replace: true }))}>
           <HiHeart className="app-header-heart" />
           {dday !== null && <span className="app-header-dday">+ {dday}</span>}
         </div>

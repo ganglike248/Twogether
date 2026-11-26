@@ -9,6 +9,7 @@ import { getLocalDateStr } from '../../../utils/dataUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
 import { useNameByUid } from '../../../hooks/useNameByUid';
 import './TripReview.css';
+import { pressable } from '../../../utils/pressable';
 
 const dayDiff = (a, b) => Math.round((new Date(`${b}T00:00:00`) - new Date(`${a}T00:00:00`)) / 86400000);
 const md = (s) => { const [, m, d] = s.split('-').map(Number); return `${m}월 ${d}일`; };
@@ -37,7 +38,7 @@ const TripEndCard = ({ trips, uid }) => {
   };
 
   return (
-    <div className="home-card trip-end-card" onClick={() => navigate(`/travel/${trip.id}/review`)}>
+    <div className="home-card trip-end-card" {...pressable(() => navigate(`/travel/${trip.id}/review`))}>
       <p className="trip-end-k">{ago <= 1 ? '어제 끝난 여행' : `${ago}일 전에 끝난 여행`}</p>
       <h2 className="trip-end-t">{trip.title},<br />어땠어요?</h2>
       <p className="trip-end-sub">{md(start)}{start !== end ? ` – ${md(end)} · ${nights}박 ${nights + 1}일` : ''}</p>

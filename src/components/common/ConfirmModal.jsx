@@ -5,6 +5,7 @@
 // (다른 파일에서도 불러 쓰므로 EventModal.css 로드 여부와 무관하게 항상 동작해야 함).
 import React from 'react';
 import './AppModal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const ConfirmModal = ({
   isOpen,
@@ -17,6 +18,7 @@ const ConfirmModal = ({
   onCancel,
   confirmDisabled = false,
 }) => {
+  const dialogRef = useDialog(isOpen, onCancel);
   if (!isOpen) return null;
 
   // 다른 모달 위에 겹쳐 뜨는 경우가 많아(예: SealedMessageDetailModal), 배경 클릭이 이
@@ -29,7 +31,7 @@ const ConfirmModal = ({
 
   return (
     <div className="confirm-modal-overlay" onClick={handleOverlayClick}>
-      <div className="confirm-modal-card" onClick={(e) => e.stopPropagation()}>
+      <div className="confirm-modal-card" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         {title && <p className="confirm-modal-title">{title}</p>}
         <p className="confirm-modal-body">{message}</p>
         <div className="confirm-modal-actions">

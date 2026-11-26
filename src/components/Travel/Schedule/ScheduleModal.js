@@ -11,6 +11,7 @@ import useLinkFill from '../../../hooks/useLinkFill';
 import { parseSharedText } from '../../../utils/sharedTextParser';
 // LinkFillCard의 스타일(.lfc*, .ofs-field/.ofs-input/.ofs-divider)은 선택 사항 시트 CSS에 있음
 import '../Decisions/OptionFormSheet.css';
+import { useDialog } from '../../../hooks/useDialog';
 
 // 비어 있는 칸만 채움 — 선택 사항 후보 추가와 같은 규칙(이미 적은 내용은 덮어쓰지 않음, 사용자 결정)
 const fillEmpty = (prev, values) => {
@@ -23,6 +24,7 @@ const fillEmpty = (prev, values) => {
 // day: 지금 보고 있는 Day(새 일정의 기본값이자 수정 중인 일정이 원래 있던 날), dayOptions: [{ day, label }] —
 // 날짜를 바꿔 저장하면 onSave(data, 바꾼 day)로 넘겨서 TripDetail이 다른 날로 옮김(v1.0.24~)
 const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOptions = [] }) => {
+  const dialogRef = useDialog(isOpen, onClose);
     const [formData, setFormData] = useState({
         time: '',
         endTime: '',
@@ -97,7 +99,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
             newErrors.title = '일정 제목을 입력해주세요';
         }
         if (formData.time && formData.endTime && formData.time >= formData.endTime) {
-            newErrors.endTime = '종료 시간은 시작 시간보다 늦어야 합니다';
+            newErrors.endTime = '종료 시간은 시작 시간보다 늦어야 해요';
         }
         if (formData.cost && (isNaN(removeCommas(formData.cost)) || removeCommas(formData.cost) < 0)) {
             newErrors.cost = '올바른 비용을 입력해주세요';
@@ -125,7 +127,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
             await onSave(scheduleData, targetDay);
         } catch (error) {
             console.error('Error saving schedule:', error);
-            toast.error('일정 저장 중 오류가 발생했습니다.');
+            toast.error('일정 저장 중 오류가 발생했어요.');
         } finally {
             setLoading(false);
         }
@@ -147,7 +149,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
 
     return (
         <div className="schedule-modal-overlay">
-            <div className="schedule-modal-container">
+            <div className="schedule-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
                 <div className="schedule-modal-header">
                     <h2 className="schedule-modal-title">
                         {schedule ? '일정 수정' : '새 일정 추가'}

@@ -5,8 +5,10 @@ import { subDays, parseISO, format } from 'date-fns';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dataUtils';
 import './MemoryDetail.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const MemoryDetail = ({ isOpen, onClose, memory }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const { getMemberName } = useAuthContext();
   const navigate = useNavigate();
   if (!isOpen || !memory) return null;
@@ -26,7 +28,7 @@ const MemoryDetail = ({ isOpen, onClose, memory }) => {
 
   return (
     <div className="memory-modal-overlay" onClick={onClose}>
-      <div className="memory-modal-container" onClick={e => e.stopPropagation()}>
+      <div className="memory-modal-container" onClick={e => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="memory-modal-header">
           <h2 className="memory-modal-title">{memory.title}</h2>
           <button 

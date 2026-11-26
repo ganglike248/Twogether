@@ -6,6 +6,7 @@ import { MdEdit, MdDelete, MdLocationOn } from 'react-icons/md';
 import './TripCard.css';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
+import { pressable } from '../../../utils/pressable';
 
 const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);
@@ -54,7 +55,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     }, [schedules]);
 
     return (
-        <div className="trip-card" onClick={() => onView(trip)}>
+        <div className="trip-card" {...pressable(() => onView(trip))}>
             <div className="trip-card-header">
                 <div className="trip-card-status-badge">
                     <span className={`trip-card-status-indicator ${statusBadge.class}`}>

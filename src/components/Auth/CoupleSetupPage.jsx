@@ -94,7 +94,7 @@ const CoupleSetupPage = () => {
       setGeneratedCode(code);
       reloadFormer();
     } catch {
-      setError('커플 생성 중 오류가 발생했습니다. 다시 시도해주세요.');
+      setError('커플 생성 중 오류가 발생했어요. 다시 시도해주세요.');
     } finally {
       setFormLoading(false);
     }
@@ -107,7 +107,7 @@ const CoupleSetupPage = () => {
       await joinCouple(user.uid, inviteCode.trim());
       setConnected(true);
     } catch (err) {
-      setError(err.message || '초대 코드가 유효하지 않습니다.');
+      setError(err.message || '초대 코드가 유효하지 않아요.');
     } finally {
       setFormLoading(false);
     }

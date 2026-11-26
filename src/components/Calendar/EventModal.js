@@ -10,6 +10,7 @@ import RecurrenceScopeModal from './RecurrenceScopeModal';
 import { generateOccurrenceDates, RecurrenceLimitError } from '../../utils/recurrenceRules';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
+import { useDialog } from '../../hooks/useDialog';
 
 const DEFAULT_RECURRENCE = {
   enabled: false,
@@ -32,6 +33,7 @@ const toRuleObject = (r) => ({
 });
 
 const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const { getMemberName, myRole } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
@@ -135,7 +137,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     try {
       const dates = generateOccurrenceDates(toRuleObject(recurrence), startDate);
       if (dates.length === 0) {
-        return { count: 0, error: '반복 종료 조건을 확인해주세요. 생성될 일정이 없습니다.' };
+        return { count: 0, error: '반복 종료 조건을 확인해주세요. 생성될 일정이 없어요.' };
       }
       return { count: dates.length, error: '' };
     } catch (err) {
@@ -207,7 +209,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
 
     const finalEndDate = endDate || startDate;
     if (new Date(startDate) > new Date(finalEndDate)) {
-      toast.error('종료일은 시작일보다 늦거나 같아야 합니다.');
+      toast.error('종료일은 시작일보다 늦거나 같아야 해요.');
       return;
     }
 
@@ -259,7 +261,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       // 버그로 실제 재현됨 — AppHeader.jsx의 closeSidebar 주석에 있는 것과 동일한 문제).
     } catch (error) {
       console.error('Error saving event:', error);
-      toast.error(`일정 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`일정 저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
     } finally {
       setLoading(false);
     }
@@ -283,7 +285,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       await onDelete(event.id);
       setShowDeleteModal(false);
     } catch (err) {
-      toast.error(`삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(err)}`);
+      toast.error(`삭제 중 오류가 발생했어요.\n${getFriendlyErrorMessage(err)}`);
     } finally {
       setDeleting(false);
     }
@@ -306,7 +308,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       // onClose()는 따로 안 부름 — 위 handleSubmit과 같은 이유(Calendar.jsx가 이미 닫음).
     } catch (err) {
       const label = scopeMode === 'delete' ? '삭제' : '저장';
-      toast.error(`${label} 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(err)}`);
+      toast.error(`${label} 중 오류가 발생했어요.\n${getFriendlyErrorMessage(err)}`);
     } finally {
       setLoading(false);
       setPendingEventData(null);
@@ -332,7 +334,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         onClose();
       }}
     >
-      <div className="sheet-card">
+      <div className="sheet-card" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="sheet-top-row">
           <span className="sheet-eyebrow">
             {event && event.id ? "일정 수정" : "새 일정 추가"}

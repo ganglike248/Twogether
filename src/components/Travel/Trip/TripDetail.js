@@ -182,10 +182,10 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             setOptionForSchedule(null);
             // 새 일정을 다른 날에 넣었으면 그날로 이동해서 바로 보이게
             if (targetDay !== activeDay) setActiveDay(targetDay);
-            toast.success(scheduleData.id ? '일정이 수정되었습니다.' : '일정이 추가되었습니다.');
+            toast.success(scheduleData.id ? '일정이 수정됐어요.' : '일정이 추가됐어요.');
         } catch (error) {
             console.error('Error saving schedule:', error);
-            toast.error('일정 저장 중 오류가 발생했습니다.');
+            toast.error('일정 저장 중 오류가 발생했어요.');
         }
     };
 
@@ -220,10 +220,10 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const handleDeleteSchedule = async (scheduleId) => {
         try {
             await mutateTripSchedule(trip.id, activeDay, (current) => current.filter(s => s.id !== scheduleId));
-            toast.success('일정을 삭제했습니다.');
+            toast.success('일정을 삭제했어요.');
         } catch (error) {
             console.error('Error deleting schedule:', error);
-            toast.error('일정 삭제 중 오류가 발생했습니다.');
+            toast.error('일정 삭제 중 오류가 발생했어요.');
         }
     };
 
@@ -240,10 +240,10 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 ...prev,
                 [activeDay]: { ...prev[activeDay], [key]: travelTime.trim() || undefined }
             }));
-            toast.success(travelTime.trim() ? '이동 시간을 저장했습니다.' : '이동 시간을 삭제했습니다.');
+            toast.success(travelTime.trim() ? '이동 시간을 저장했어요.' : '이동 시간을 삭제했어요.');
         } catch (error) {
             console.error('Error saving travel time:', error);
-            toast.error('이동 시간 저장 중 오류가 발생했습니다.');
+            toast.error('이동 시간 저장 중 오류가 발생했어요.');
         }
     };
 

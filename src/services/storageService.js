@@ -23,7 +23,7 @@ const refreshAuthTokenWithClaims = async (coupleId) => {
   const currentUser = auth.currentUser;
 
   if (!currentUser) {
-    throw new Error('로그인이 필요합니다.');
+    throw new Error('로그인이 필요해요.');
   }
 
   // ID token 갱신 (force=true로 강제)
@@ -35,14 +35,14 @@ const refreshAuthTokenWithClaims = async (coupleId) => {
       await httpsCallable(functionsInstance, 'ensureCoupleClaims')();
     } catch (error) {
       console.error('[storageService] custom claims 복구 실패:', error);
-      throw new Error('이 커플에 접근할 권한이 없습니다. (custom claims 검증 실패)');
+      throw new Error('이 커플에 접근할 권한이 없어요. (custom claims 검증 실패)');
     }
     tokenResult = await currentUser.getIdTokenResult(true);
     coupleIds = tokenResult.claims.coupleIds;
   }
 
   if (!coupleIds || !coupleIds.includes(coupleId)) {
-    throw new Error('이 커플에 접근할 권한이 없습니다. (custom claims 검증 실패)');
+    throw new Error('이 커플에 접근할 권한이 없어요. (custom claims 검증 실패)');
   }
 };
 
@@ -52,23 +52,23 @@ const validateCoupleIdAccess = async (coupleId) => {
   const currentUser = auth.currentUser;
 
   if (!currentUser) {
-    throw new Error('로그인이 필요합니다.');
+    throw new Error('로그인이 필요해요.');
   }
 
   if (!coupleId) {
-    throw new Error('커플 정보가 없습니다.');
+    throw new Error('커플 정보가 없어요.');
   }
 
   const userDocRef = doc(db, 'users', currentUser.uid);
   const userDocSnap = await getDoc(userDocRef);
 
   if (!userDocSnap.exists()) {
-    throw new Error('사용자 정보를 찾을 수 없습니다.');
+    throw new Error('사용자 정보를 찾을 수 없어요.');
   }
 
   const userCoupleId = userDocSnap.data().coupleId;
   if (userCoupleId !== coupleId) {
-    throw new Error('권한이 없습니다: 다른 커플의 리소스에 접근할 수 없습니다.');
+    throw new Error('권한이 없어요: 다른 커플의 리소스에 접근할 수 없어요.');
   }
 };
 
@@ -83,7 +83,7 @@ export const uploadHeroImage = async (coupleId, file) => {
   // 3. 파일 검증
   const contentType = inferContentType(file);
   if (!contentType.startsWith('image/')) {
-    throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
+    throw new Error(`지원하지 않는 파일 형식이에요: ${contentType}`);
   }
 
   // 4. 업로드 (Storage Rules에서 custom claims 재검증) — 올리기 전에 줄임(긴 변 1600px, AUDIT P-2)
@@ -92,7 +92,7 @@ export const uploadHeroImage = async (coupleId, file) => {
   const metadata = { contentType: uploadFile === file ? contentType : uploadFile.type };
   try {
     const snapshot = await uploadBytes(storageRef, uploadFile, metadata);
-    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
+    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않아요.');
     const url = await getDownloadURL(snapshot.ref);
     // 항상 같은 경로에 덮어쓰므로 다운로드 URL이 이전과 똑같이 나올 수 있음 — 그러면 브라우저가 캐시된
     // 예전 사진을 계속 보여주고, Firestore heroImageUrl 값도 안 바뀌어 파트너 화면도 갱신되지 않음
@@ -101,7 +101,7 @@ export const uploadHeroImage = async (coupleId, file) => {
     return `${url}${url.includes('?') ? '&' : '?'}v=${Date.now()}`;
   } catch (error) {
     if (error.code === 'storage/unauthorized') {
-      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+      throw new Error('Storage Rules에서 접근을 거부했어요. (관리자 지원 필요)');
     }
     throw error;
   }
@@ -114,7 +114,7 @@ export const uploadSealedMessageImage = async (coupleId, messageId, file) => {
 
   const contentType = inferContentType(file);
   if (!contentType.startsWith('image/')) {
-    throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
+    throw new Error(`지원하지 않는 파일 형식이에요: ${contentType}`);
   }
 
   // 파일 이름에 추측할 수 없는 값을 붙임(AUDIT S-3) — 예전엔 sealedMessages/{coupleId}/{messageId}로 정해져 있어,
@@ -125,11 +125,11 @@ export const uploadSealedMessageImage = async (coupleId, messageId, file) => {
   const metadata = { contentType: uploadFile === file ? contentType : uploadFile.type };
   try {
     const snapshot = await uploadBytes(storageRef, uploadFile, metadata);
-    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
+    if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않아요.');
     return getDownloadURL(snapshot.ref);
   } catch (error) {
     if (error.code === 'storage/unauthorized') {
-      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+      throw new Error('Storage Rules에서 접근을 거부했어요. (관리자 지원 필요)');
     }
     throw error;
   }
@@ -174,7 +174,7 @@ export const removeHeroImage = async (coupleId) => {
       return;
     }
     if (error.code === 'storage/unauthorized') {
-      throw new Error('Storage Rules에서 접근을 거부했습니다. (관리자 지원 필요)');
+      throw new Error('Storage Rules에서 접근을 거부했어요. (관리자 지원 필요)');
     }
     throw error;
   }

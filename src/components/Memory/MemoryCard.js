@@ -5,6 +5,7 @@ import MemoryDetail from './MemoryDetail';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { formatDate } from '../../utils/dataUtils';
 import './MemoryCard.css';
+import { pressable } from '../../utils/pressable';
 
 const MemoryCard = React.memo(({ memory }) => {
   const { getMemberName } = useAuthContext();
@@ -30,7 +31,7 @@ const MemoryCard = React.memo(({ memory }) => {
     <>
       <div
         className="memory-card"
-        onClick={() => navigate(`/memories?memory=${memory.id}`, { state: { modal: true } })}
+        {...pressable(() => navigate(`/memories?memory=${memory.id}`, { state: { modal: true } }))}
       >
         <div className="card-header-container">
           <div className={`card-icon ${

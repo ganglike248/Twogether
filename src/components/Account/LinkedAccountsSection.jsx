@@ -62,12 +62,12 @@ const LinkedAccountsSection = () => {
           setGoogleConflict(prev => prev && {
             ...prev,
             inspecting: false,
-            error: '상대 계정 정보를 불러오지 못했습니다. 잠시 후 다시 시도해주세요.',
+            error: '상대 계정 정보를 불러오지 못했어요. 잠시 후 다시 시도해주세요.',
           });
         }
       } else if (!(error.message || '').toLowerCase().includes('cancel')) {
         console.error('[LinkedAccounts] 구글 계정 연동 실패:', error);
-        toast.error('구글 계정 연동 중 오류가 발생했습니다.');
+        toast.error('구글 계정 연동 중 오류가 발생했어요.');
       }
     } finally {
       setGoogleLinkLoading(false);
@@ -101,7 +101,7 @@ const LinkedAccountsSection = () => {
       closeGoogleConflict();
     } catch (error) {
       console.error('[LinkedAccounts] 계정 정리 실패:', error);
-      toast.error(getFriendlyErrorMessage(error, '처리 중 오류가 발생했습니다.'));
+      toast.error(getFriendlyErrorMessage(error, '처리 중 오류가 발생했어요.'));
       setGoogleConflict(prev => prev && { ...prev, resolving: false });
       setConflictConfirming(false);
     }
@@ -132,7 +132,7 @@ const LinkedAccountsSection = () => {
       toast.success('구글 계정 연동이 해제됐어요.');
     } catch (error) {
       console.error('[LinkedAccounts] 구글 계정 연동 해제 실패:', error);
-      toast.error('연동 해제 중 오류가 발생했습니다.');
+      toast.error('연동 해제 중 오류가 발생했어요.');
     } finally {
       setGoogleLinkLoading(false);
     }

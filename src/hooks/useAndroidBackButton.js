@@ -44,7 +44,7 @@ const useAndroidBackButton = () => {
         return;
       }
       lastBackPressRef.current = now;
-      toast.info('뒤로가기를 한 번 더 누르면 종료됩니다', { autoClose: EXIT_CONFIRM_WINDOW_MS });
+      toast.info('뒤로가기를 한 번 더 누르면 종료돼요', { autoClose: EXIT_CONFIRM_WINDOW_MS });
     }).then((h) => {
       handle = h;
     });

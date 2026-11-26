@@ -10,8 +10,10 @@ import { leaveCouple } from '../../services/coupleLifecycleService';
 import useRecordSave from '../../hooks/useRecordSave';
 import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import './account.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const LeaveCoupleModal = ({ isOpen, onClose, partnerName }) => {
+  const dialogRef = useDialog(isOpen, () => !busy && onClose());
   const navigate = useNavigate();
   const { saving, saveCurrent } = useRecordSave();
   const [leaving, setLeaving] = useState(false);
@@ -37,7 +39,7 @@ const LeaveCoupleModal = ({ isOpen, onClose, partnerName }) => {
 
   return (
     <div className="acc-overlay" onClick={() => !busy && onClose()}>
-      <div className="acc-card" role="dialog" aria-modal="true" aria-labelledby="leave-title" onClick={(e) => e.stopPropagation()}>
+      <div className="acc-card" role="dialog" aria-modal="true" aria-labelledby="leave-title" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1}>
         <p className="acc-title" id="leave-title">커플 연결을 해제할까요?</p>
         <ul className="acc-list">
           <li>해제하면 두 사람 모두 <strong>우리 기록(일정·여행·버킷리스트·봉인 편지)</strong>을 볼 수 없게 돼요. 개인 일정은 그대로 남아요.</li>

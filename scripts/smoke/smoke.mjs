@@ -129,6 +129,22 @@ const CHECKS = [
     await cell.click();
     await p.waitForURL(/\/calendar\/day\//, { timeout: 8000 });
   } },
+  { name: '날짜 모달 Esc로 닫기', path: '/', expect: '우리 이야기', act: async (p) => {
+    // useDialog(Esc) 확인 — 캘린더 날짜 모달을 열고 Esc로 닫힘
+    await p.goto(p.url().replace(/\/$/, '') + '/calendar', { waitUntil: 'domcontentloaded' });
+    const cell = p.locator(`.fc-daygrid-day[data-date="${ymd(today)}"]`).filter({ visible: true }).first();
+    await cell.click();
+    await p.waitForURL(/\/calendar\/day\//, { timeout: 8000 });
+    await p.locator('[role="dialog"]').first().waitFor({ timeout: 5000 });
+    await p.keyboard.press('Escape');
+    await p.waitForURL((u) => !/\/calendar\/day\//.test(u.pathname), { timeout: 5000 });
+  } },
+  { name: '여행 카드를 키보드(Enter)로 열기', path: '/travel', expect: '강릉 바다 여행', act: async (p) => {
+    const card = p.locator('.trip-card').filter({ hasText: '강릉 바다 여행' }).first();
+    await card.focus();
+    await p.keyboard.press('Enter');
+    await p.waitForURL(/\/travel\/t1/, { timeout: 5000 });
+  } },
   { name: '추억', path: '/memories' },
   { name: '버킷리스트', path: '/bucket', expect: '캠핑 가기' },
   { name: '여행 목록 + 지도 카드', path: '/travel', expect: '강릉 바다 여행', act: async (p) => { await p.getByText('기록을 기다리는 여행').first().waitFor({ timeout: 8000 }); } },

@@ -106,10 +106,10 @@ const TravelPlanPage = () => {
                 await createTrip(tripData, user?.uid, coupleId);
             }
             closeModal();
-            toast.success(tripData.id ? '여행이 수정되었습니다.' : '여행이 추가되었습니다.');
+            toast.success(tripData.id ? '여행이 수정됐어요.' : '여행이 추가됐어요.');
         } catch (error) {
             console.error('Error saving trip:', error);
-            toast.error(`여행 저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+            toast.error(`여행 저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
         }
     }, [user?.uid, coupleId, closeModal]);
 
@@ -133,10 +133,10 @@ const TravelPlanPage = () => {
             await deleteTrip(targetId, user?.uid, coupleId);
             navigate('/travel', { replace: true });
             setTripToDelete(null);
-            toast.success('여행을 삭제했습니다.');
+            toast.success('여행을 삭제했어요.');
         } catch (error) {
             console.error('Error deleting trip:', error);
-            toast.error(`여행 삭제 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+            toast.error(`여행 삭제 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
         } finally {
             setDeleting(false);
         }
@@ -278,7 +278,7 @@ const TravelPlanPage = () => {
             ) : filteredTrips.length === 0 ? (
                 <EmptyState
                     icon={<MdFlightTakeoff size={56} />}
-                    title={searchQuery || filter !== 'all' ? '검색 결과가 없습니다' : '아직 여행 계획이 없습니다'}
+                    title={searchQuery || filter !== 'all' ? '검색 결과가 없어요' : '아직 여행 계획이 없어요'}
                     text={searchQuery || filter !== 'all' ? '다른 검색어나 필터를 시도해보세요' : '새로운 여행을 계획해보세요!'}
                     button={!searchQuery && filter === 'all' ? {
                         text: '첫 여행 계획 만들기',

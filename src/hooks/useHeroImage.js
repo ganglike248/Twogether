@@ -32,12 +32,12 @@ const useHeroImage = (currentHeroImageUrl) => {
     if (!file) return;
 
     if (file.size > MAX_IMAGE_SIZE_MB * 1024 * 1024) {
-      toast.error(`파일 크기는 ${MAX_IMAGE_SIZE_MB}MB 이하여야 합니다.`);
+      toast.error(`파일 크기는 ${MAX_IMAGE_SIZE_MB}MB 이하여야 해요.`);
       return;
     }
 
     if (file.type && !ALLOWED_IMAGE_TYPES.includes(file.type) && !file.type.startsWith('image/')) {
-      toast.error('이미지 파일만 업로드할 수 있습니다. (JPG, PNG, WEBP, GIF)');
+      toast.error('이미지 파일만 업로드할 수 있어요. (JPG, PNG, WEBP, GIF)');
       return;
     }
 

@@ -4,6 +4,7 @@ import { Capacitor } from '@capacitor/core';
 import { MdCheck, MdLocationOn } from 'react-icons/md';
 import { getScheduleCategory } from './scheduleCategories';
 import './ScheduleItem.css';
+import { pressable } from '../../../utils/pressable';
 
 // 타임라인의 한 일정 — 왼쪽 동그라미가 곧 완료 체크 버튼, 시간은 제목 왼쪽 같은 줄.
 // isFirst/isLast는 세로 연결선을 동그라미 중심에서 시작/끝내기 위한 위치 정보.
@@ -71,7 +72,7 @@ const ScheduleItem = ({ schedule, onEdit, onToggleComplete, isFirst = false, isL
     return (
         <div
             className={`tl-item ${schedule.completed ? 'tl-item-done' : ''} ${railClass}`}
-            onClick={() => onEdit(schedule)}
+            {...pressable(() => onEdit(schedule))}
         >
             {/* 왼쪽 칸: 완료 체크 원 */}
             <div className="tl-left">

@@ -462,10 +462,10 @@ const MemoryList = () => {
       ) : filteredMemories.length === 0 ? (
         <EmptyState
           icon={<MdPhotoCamera size={56} />}
-          title="해당하는 추억이 없습니다"
+          title="해당하는 추억이 없어요"
           text={filter === 'all'
             ? '캘린더에서 일정을 만들어보세요!'
-            : '선택한 필터에 해당하는 추억이 없습니다.'}
+            : '선택한 필터에 해당하는 추억이 없어요.'}
           button={{ text: '추억 만들러 가기', link: '/calendar' }}
         />
       ) : (

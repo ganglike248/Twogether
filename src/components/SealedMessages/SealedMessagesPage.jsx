@@ -10,6 +10,7 @@ import SealedMessageComposeModal from './SealedMessageComposeModal';
 import SealedMessageDetailModal from './SealedMessageDetailModal';
 import EmptyState from '../common/EmptyState';
 import './SealedMessagesPage.css';
+import { pressable } from '../../utils/pressable';
 
 const formatCreatedLabel = (msg) => {
   if (!msg.createdAt) return '작성 중...';
@@ -115,7 +116,7 @@ const SealedMessagesPage = () => {
                 key={msg.id}
                 className={`sm-item ${openable ? '' : 'sm-item--locked'}`}
                 style={{ borderLeftColor: authorColor(msg.authorUid) }}
-                onClick={() => openable && navigate(`/letters?letter=${msg.id}`, { state: { modal: true } })}
+                {...pressable(() => openable && navigate(`/letters?letter=${msg.id}`, { state: { modal: true } }))}
               >
                 {msg.isUnlocked ? (
                   <HiLockOpen className="sm-item-icon sm-item-icon--unlocked" />

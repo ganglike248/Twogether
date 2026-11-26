@@ -12,6 +12,7 @@ import {
   enableNotifications,
 } from '../../services/notificationService';
 import './NotificationPrimingModal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const PRIMING_SHOWN_KEY = 'twogether_notification_priming_shown';
 
@@ -35,6 +36,7 @@ const NotificationPrimingModal = () => {
     enableNotifications().catch(() => {});
   };
 
+  const dialogRef = useDialog(visible, null);
   if (!visible) return null;
 
   // main-content(스크롤 컨테이너) 안에서 렌더링되면, iOS에서 position:fixed 오버레이가
@@ -42,7 +44,7 @@ const NotificationPrimingModal = () => {
   // 버튼이 안 눌리는 문제가 있어 document.body로 포탈 렌더링함.
   return createPortal(
     <div className="npm-overlay">
-      <div className="npm-card" onClick={(e) => e.stopPropagation()}>
+      <div className="npm-card" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <HiBell className="npm-icon" />
         <h3 className="npm-title">알림을 받아보세요</h3>
         <ul className="npm-list">

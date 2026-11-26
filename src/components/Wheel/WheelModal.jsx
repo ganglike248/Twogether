@@ -7,6 +7,7 @@ import { toast } from 'react-toastify';
 import WheelSelectStep from './WheelSelectStep';
 import WheelSpinStep from './WheelSpinStep';
 import './WheelModal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 const MEMORY_KEY = 'twogether_wheel_last';
 
@@ -25,6 +26,7 @@ const saveMemory = (direct, bucketIds) => {
 };
 
 const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const [step, setStep] = useState('select'); // 'select' | 'spin'
   const [directItems, setDirectItems] = useState([]); // [{ id, title, isLocal }]
   const [selectedIds, setSelectedIds] = useState([]); // 버킷 id
@@ -82,7 +84,7 @@ const WheelModal = ({ isOpen, onClose, bucketList, customCategories }) => {
 
   return (
     <div className="wm-overlay" onClick={onClose}>
-      <div className="wm-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="돌림판">
+      <div className="wm-sheet" onClick={(e) => e.stopPropagation()} role="dialog" aria-modal="true" aria-label="돌림판" ref={dialogRef} tabIndex={-1}>
         <span className="wm-grabber" aria-hidden="true" />
         {step === 'select' ? (
           <WheelSelectStep

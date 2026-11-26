@@ -4,6 +4,7 @@ import { getEditLogs, getEventById } from '../../services/eventService';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { MdCalendarToday, MdEdit } from 'react-icons/md';
 import './EditLogModal.css';
+import { useDialog } from '../../hooks/useDialog';
 
 // 필터 버튼별로 포함할 action 목록 — 반복 일정은 시리즈 단위 요약 로그(recurrence_*)로 남으므로
 // 같은 성격의 필터에 함께 묶음(예전엔 action === filter로만 비교해서 어느 필터에도 안 잡혔음)
@@ -20,6 +21,7 @@ const MAX_PAGES_PER_FETCH = 20;
 const actionClassName = (action) => (action || '').replace(/^recurrence_/, '');
 
 const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
+  const dialogRef = useDialog(isOpen, onClose);
   const { coupleId } = useAuthContext();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
@@ -215,7 +217,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     <div className="modal-overlay" onClick={(e) => {
       if (e.target === e.currentTarget) onClose();
     }}>
-      <div className="log-modal-container">
+      <div className="log-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="log-modal-header">
           <h2 className="log-modal-title">
             {eventId ? '이벤트 수정 기록' : '전체 수정 기록'}

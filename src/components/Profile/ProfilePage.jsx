@@ -14,6 +14,7 @@ import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import { MenuPageHeader } from '../common/MenuPage';
 import './ProfilePage.css';
 import '../common/AppModal.css';
+import { pressable } from '../../utils/pressable';
 
 const ProfilePage = () => {
   const navigate = useNavigate();
@@ -103,7 +104,7 @@ const ProfilePage = () => {
       return true;
     } catch (error) {
       console.error('[ProfilePage] 저장 실패:', error);
-      toast.error(`저장 중 오류가 발생했습니다.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(`저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
       return false;
     } finally {
       setLoading(false);
@@ -156,7 +157,7 @@ const ProfilePage = () => {
         <div className="profile-section">
           <div className="profile-section-title">홈 화면 이미지</div>
           <div className="profile-hero-container">
-            <div className="profile-hero-wrap" onClick={() => handleHeroClick(loading || isProcessingHeroImage)}>
+            <div className="profile-hero-wrap" {...pressable(() => handleHeroClick(loading || isProcessingHeroImage))}>
               {displayHeroUrl
                 ? <img
                     src={displayHeroUrl}

@@ -36,7 +36,7 @@ const useInAppUpdate = () => {
 
         listenerHandle = await AppUpdate.addListener('onFlexibleUpdateStateChange', (state) => {
           if (state.installStatus === FlexibleUpdateInstallStatus.DOWNLOADED) {
-            toast.info('업데이트 준비가 완료됐습니다. 눌러서 재시작해주세요.', {
+            toast.info('업데이트 준비가 완료됐어요. 눌러서 재시작해주세요.', {
               autoClose: false,
               closeOnClick: false,
               onClick: () => AppUpdate.completeFlexibleUpdate(),

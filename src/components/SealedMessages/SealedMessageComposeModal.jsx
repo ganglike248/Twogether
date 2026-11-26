@@ -10,6 +10,7 @@ import { ensureBrowserDisplayableImage } from '../../utils/imageUtils';
 import UnlockTimePicker from './UnlockTimePicker';
 import './sealed-message-modal.css';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
+import { useDialog } from '../../hooks/useDialog';
 
 // 예약 시각 기본값: 지금부터 1시간 뒤를 가장 가까운 15분 단위로 올림 (checkSealedMessages가 15분마다만 돎)
 const defaultUnlockAtLocal = () => {
@@ -20,6 +21,7 @@ const defaultUnlockAtLocal = () => {
 };
 
 const SealedMessageComposeModal = ({ onClose }) => {
+  const dialogRef = useDialog(true, onClose);
   const { user, coupleId, partnerDoc } = useAuthContext();
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(800);
@@ -62,7 +64,7 @@ const SealedMessageComposeModal = ({ onClose }) => {
     if (!canClick()) return;
     if (!title.trim()) { toast.warning('제목을 입력해주세요.'); return; }
     if (!content.trim()) { toast.warning('내용을 입력해주세요.'); return; }
-    if (!partnerDoc?.id) { toast.error('파트너 정보를 불러올 수 없습니다.'); return; }
+    if (!partnerDoc?.id) { toast.error('파트너 정보를 불러올 수 없어요.'); return; }
     if (unlockMode === 'scheduled') {
       if (!unlockAtLocal) { toast.warning('공개 시각을 선택해주세요.'); return; }
       if (isPastUnlock) { toast.warning('이미 지난 시각은 예약할 수 없어요.'); return; }
@@ -84,14 +86,14 @@ const SealedMessageComposeModal = ({ onClose }) => {
       onClose();
     } catch (error) {
       console.error('봉인 편지 작성 실패:', error);
-      toast.error('편지를 봉인하는 중 오류가 발생했습니다.');
+      toast.error('편지를 봉인하는 중 오류가 발생했어요.');
       setIsSubmitting(false);
     }
   };
 
   return (
     <div className="sm-modal-overlay" onClick={onClose}>
-      <div className="sm-modal-box" onClick={(e) => e.stopPropagation()}>
+      <div className="sm-modal-box" onClick={(e) => e.stopPropagation()} ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="sm-modal-header">
           <HiPencilSquare className="sm-modal-icon" />
           <h2 className="sm-modal-title">편지 봉인하기</h2>

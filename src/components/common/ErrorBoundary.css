@@ -1,0 +1,10 @@
+/* 오류 화면 — 앱 색·글꼴(ErrorBoundary). Layout 밖에서도 뜨므로 독립 페이지 규칙(flex:1 0 auto) */
+.eb-screen { flex: 1 0 auto; min-height: 100%; width: 100%; box-sizing: border-box; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 0.6rem; padding: calc(env(safe-area-inset-top) + 1.5rem) 1.5rem calc(env(safe-area-inset-bottom) + 1.5rem); background: var(--main-bg, var(--color-primary-light)); text-align: center; }
+.eb-icon { font-size: 3.5rem; color: var(--color-primary-dark); margin-bottom: 0.4rem; }
+.eb-title { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 1.4rem; color: var(--color-gray-900); }
+.eb-desc { margin: 0 0 1rem; max-width: 22rem; font-size: 0.92rem; line-height: 1.6; color: var(--color-text-desc); }
+.eb-btn { min-width: 10rem; height: 48px; padding: 0 1.5rem; border: none; border-radius: 999px; background: var(--color-primary); color: white; font-family: inherit; font-size: 1rem; font-weight: 700; cursor: pointer; }
+.eb-btn:active { background: var(--color-primary-medium); }
+.eb-dev { width: 100%; max-width: 36rem; margin-bottom: 1rem; padding: 0.8rem; background: white; border: 1px solid var(--color-gray-200); border-radius: 8px; text-align: left; }
+.eb-dev summary { cursor: pointer; color: var(--color-danger); }
+.eb-dev pre { margin: 0.6rem 0 0; padding: 0.6rem; overflow: auto; font-size: 12px; background: var(--color-gray-100); border-radius: 6px; color: var(--color-gray-800); }
