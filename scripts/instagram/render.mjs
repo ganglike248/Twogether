@@ -25,7 +25,7 @@ async function loadPlaywright() {
 // 우리 지도 카드: 앱의 실제 시·도 경계를 그대로 써요
 function mapSvg() {
   const sido = JSON.parse(fs.readFileSync(path.join(root, 'src/components/Map/data/sido.json'), 'utf8'));
-  const on = (process.env.MAP_ON || '11,26,47,50,51').split(',').filter(Boolean);
+  const on = (process.env.MAP_ON || '11,26,47,50').split(',').filter(Boolean);
   const paths = Object.entries(sido.d)
     .map(([code, d]) => `<path d="${d}"${on.includes(code) ? ' class="on"' : ''}/>`)
     .join('');
@@ -41,6 +41,7 @@ const browser = await chromium.launch();
 const page = await browser.newPage({ viewport: { width: 1080, height: 1350 }, deviceScaleFactor: 1 });
 await page.goto(pathToFileURL(built).href, { waitUntil: 'networkidle' });
 await page.evaluate(() => document.fonts.ready);
+await page.waitForTimeout(400); // 그래픽 높이 맞춤이 끝날 때까지
 const out = path.join(dir, file === 'slides.html' ? 'out' : `out-${path.basename(file, '.html')}`);
 fs.mkdirSync(out, { recursive: true });
 const slides = await page.locator('.slide').all();

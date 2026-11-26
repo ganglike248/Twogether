@@ -209,3 +209,21 @@ h1, .sub, .eyebrow { flex: none; }
 .end .stores { font-size: 25px; color: #8d6f77; margin-top: 22px; font-weight: 500; }
 .end .next { margin-top: auto; width: 100%; border-top: 2px solid rgba(224,122,147,.22); padding-top: 30px; display: flex; justify-content: space-between; font-size: 26px; color: #8d6f77; }
 .end .next b { color: var(--ink); font-weight: 700; }
+
+/* ── 실제 앱 화면(캡처)에서 잘라 보여 주는 조각 ── */
+.stage.shots { align-items: center; gap: 20px; }
+.shot { flex: none; border-radius: 40px; border: 10px solid #fff; background-color: #fff; background-repeat: no-repeat; box-shadow: 0 2px 0 rgba(224,122,147,.06), 0 22px 56px rgba(190,120,135,.2); box-sizing: content-box; }
+.slide.compact h1 { margin-top: 48px; }
+.slide.compact .sub { margin-top: 22px; }
+
+/* ── 게시물별 표지 ── */
+.slide.cv { padding-bottom: 0; }
+.cv .lead { font-size: 30px; line-height: 1.5; letter-spacing: -0.015em; margin-top: 26px; opacity: .75; position: relative; z-index: 2; }
+.cv .cover-h { position: relative; z-index: 2; }
+.cv .phone { position: absolute; border-radius: 64px; border: 14px solid #fff; background-color: #fff; background-repeat: no-repeat; box-shadow: 0 30px 80px rgba(60,50,90,.2); box-sizing: content-box; }
+.cv .round { position: absolute; border-radius: 50%; background-repeat: no-repeat; box-shadow: 0 30px 80px rgba(120,90,20,.18); border: 16px solid #fff; box-sizing: content-box; }
+.cv .piece { position: absolute; border-radius: 36px; border: 10px solid #fff; background-color: #fff; background-repeat: no-repeat; box-shadow: 0 24px 60px rgba(90,60,120,.18); box-sizing: content-box; }
+.cv .go { position: absolute; right: 88px; bottom: 80px; z-index: 3; }
+
+.stage.fit { align-items: center; }
+.cv .art { position: absolute; transform-origin: top left; }

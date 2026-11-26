@@ -2,14 +2,14 @@
 <html lang="ko">
 <head>
 <meta charset="utf-8" />
-<title>우리두리 인스타그램 1번 게시물</title>
+<title>우리두리 인스타그램 1 — 앱 소개</title>
 <link rel="preconnect" href="https://fonts.googleapis.com" />
-<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" />
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap" />
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
 <link rel="stylesheet" href="../base.css" />
+<link rel="stylesheet" href="../app.css" />
 </head>
 <body>
-
 <!-- 1. 표지 -->
 <section class="slide blush" id="s1">
   <div class="top"><span class="brand">우리두리</span></div>
@@ -49,175 +49,83 @@
   </div>
 </section>
 
-<!-- 3. 캘린더 -->
-<section class="slide" id="s3">
+<section class="slide compact">
   <div class="top"><span class="brand">우리두리</span><span class="tag">01 공유 캘린더 ①</span></div>
-  <h1 style="margin-top:72px">“내일 어디 간다고 했지?”<br /><em>이제 안 물어봐도 돼요</em></h1>
-  <p class="sub">각자 적은 일정이 상대 캘린더에도 바로 떠요.<br />누구 일정인지는 색으로 구분돼요.</p>
-  <div class="stage">
-    <div class="card cal">
-      <div class="cal-head">
-        <b>2026년 12월</b>
-        <div class="legend"><span><i style="background:var(--me)"></i>나</span><span><i style="background:var(--you)"></i>상대</span><span><i style="background:var(--us)"></i>우리</span><span><i style="background:var(--trip)"></i>여행</span></div>
-      </div>
-      <div class="grid" id="calgrid"></div>
-    </div>
-    <div class="notis">
-      <div class="noti"><svg viewBox="0 0 24 24"><path d="M6 9.500a6 6 0 0 1 12 0c0 5 2 6.500 2 6.500H4s2-1.500 2-6.500zM10 19.500a2.200 2.200 0 0 0 4 0" /></svg><span>내일 일정은 <b>전날 밤</b>에 알림</span></div>
-      <div class="noti"><svg viewBox="0 0 24 24"><path d="M12 20s-7.500-4.600-7.500-10A4.300 4.300 0 0 1 12 7.400 4.300 4.300 0 0 1 19.500 10c0 5.400-7.500 10-7.500 10z" /></svg><span>디데이는 <b>3일 전</b>부터 알림</span></div>
-    </div>
+  <h1>“내일 어디 간다고 했지?”<br /><em>이제 안 물어봐도 돼요</em></h1>
+  <p class="sub">각자 적은 일정이 한 달력에. 누구 일정인지는 색으로 보여요.</p>
+  <div class="stage fit">
+<div class="fitbox"><div class="ui page">
+  <div class="cal-top"><span class="nav">‹</span><span class="nav">›</span><span class="ym">2026년 12월</span><span class="mini">오늘</span><span class="mini">수정기록</span></div>
+  <div class="cal-filter"><span class="on">전체</span><span>개인</span><span>커플</span></div>
+  <div class="cal-grid" style="--ch:112px;--ef:17px"><div class="dow sun">일</div><div class="dow">월</div><div class="dow">화</div><div class="dow">수</div><div class="dow">목</div><div class="dow">금</div><div class="dow sat">토</div><div class="cell dim sun"><span class="n">29</span></div><div class="cell dim"><span class="n">30</span></div><div class="cell"><span class="n">1</span></div><div class="cell"><span class="n">2</span></div><div class="cell"><span class="n">3</span></div><div class="cell"><span class="n">4</span></div><div class="cell sat"><span class="n">5</span><span class="e us">전시회</span></div><div class="cell sun"><span class="n">6</span></div><div class="cell"><span class="n">7</span></div><div class="cell"><span class="n">8</span></div><div class="cell"><span class="n">9</span><span class="e you">팀 회식</span><span class="e me">필라테스</span></div><div class="cell"><span class="n">10</span></div><div class="cell"><span class="n">11</span></div><div class="cell sat"><span class="n">12</span><span class="e you">친구 결혼식</span></div><div class="cell sun"><span class="n">13</span></div><div class="cell"><span class="n">14</span></div><div class="cell"><span class="n">15</span><span class="e me">출장</span></div><div class="cell"><span class="n">16</span></div><div class="cell"><span class="n">17</span></div><div class="cell"><span class="n">18</span><span class="e trip w2">강릉 1박 2일</span></div><div class="cell sat"><span class="n">19</span></div><div class="cell sun"><span class="n">20</span></div><div class="cell"><span class="n">21</span></div><div class="cell"><span class="n">22</span></div><div class="cell"><span class="n">23</span></div><div class="cell"><span class="n">24</span><span class="e us">크리스마스</span></div><div class="cell"><span class="n">25</span></div><div class="cell sat"><span class="n">26</span></div><div class="cell sun"><span class="n">27</span></div><div class="cell"><span class="n">28</span><span class="e me">송년회</span></div><div class="cell"><span class="n">29</span></div><div class="cell"><span class="n">30</span></div><div class="cell"><span class="n">31</span><span class="e us">해돋이</span></div><div class="cell dim"><span class="n">1</span></div><div class="cell dim sat"><span class="n">2</span></div></div>
+</div></div>
   </div>
 </section>
-
-<!-- 3-2. 캘린더: 같이 계획하고 기록 -->
-<section class="slide" id="s3b">
+<section class="slide compact">
   <div class="top"><span class="brand">우리두리</span><span class="tag">01 공유 캘린더 ②</span></div>
-  <h1 style="margin-top:72px">일정은 같이 잡고,<br /><em>지나면 우리 기록으로</em></h1>
-  <p class="sub">날짜만 누르면 누가 어디서 누굴 만나는지 보여요.<br />함께한 날은 그대로 추억에 쌓이고요.</p>
-  <div class="stage">
-    <div class="card daycard">
-      <div class="day-head"><b>12월 9일 수요일</b><span>내일</span></div>
-      <div class="drow">
-        <div class="stripe" style="background:var(--you)"></div>
-        <div class="body"><span class="who" style="background:var(--you);color:var(--you-ink)">상대</span><b>팀 회식</b><small>저녁 7시 강남역 · 팀장님, 동기들이랑 · 늦을 수도</small></div>
-      </div>
-      <div class="drow">
-        <div class="stripe" style="background:var(--me)"></div>
-        <div class="body"><span class="who" style="background:var(--me);color:var(--me-ink)">나</span><b>필라테스</b><small>8시 수업 · 끝나고 통화하기</small></div>
-      </div>
-      <div class="drow">
-        <div class="stripe" style="background:var(--us)"></div>
-        <div class="body"><span class="who" style="background:var(--us);color:var(--us-ink)">우리</span><b>주말 전시회 예매하기</b><small>토요일 2시 타임으로</small></div>
-      </div>
-    </div>
-    <div class="facts">
-      <div class="fact"><b>매주·매달 반복 일정</b><span>학원, 운동, 정기 모임도 한 번에</span></div>
-      <div class="fact"><b>수정 기록</b><span>누가 언제 바꿨는지 남아요</span></div>
-      <div class="fact"><b>나만 보는 개인 일정</b><span>공유하지 않을 일정은 따로</span></div>
-      <div class="fact"><b>기념일 · 디데이</b><span>100일, 1주년도 자동으로 챙겨요</span></div>
-    </div>
+  <h1>날짜만 누르면<br /><em>그날 둘의 일정이 한눈에</em></h1>
+  <p class="sub">누가 어디서 누굴 만나는지, 메모까지 같이 봐요.</p>
+  <div class="stage fit">
+<div class="fitbox"><div class="ui sheet">
+  <div class="row"><div><div class="t" style="font-size:42px">12월 9일 수요일</div><div class="sm mute" style="margin-top:8px">총 2개의 일정</div></div><span class="sp"></span><span class="x">×</span></div>
+  <div style="margin-top:26px">
+    <div class="evt me"><b>필라테스</b><p>8시 수업 · 끝나고 통화하기</p><div class="who"><i class="blue"></i>하나</div></div>
+    <div class="evt you"><b>팀 회식</b><p>저녁 7시 강남역 · 팀장님, 동기들이랑 · 늦을 수도</p><div class="who"><i class="peach"></i>두리</div></div>
+  </div>
+  <div class="row" style="margin-top:24px"><span class="sp"></span><span class="btn fill" style="flex:none;padding:18px 34px;border-radius:22px">+ 일정 추가</span></div>
+</div></div>
   </div>
 </section>
-
-<!-- 4. 여행 -->
-<section class="slide" id="s4">
+<section class="slide compact">
   <div class="top"><span class="brand">우리두리</span><span class="tag">02 여행 계획</span></div>
-  <h1 style="margin-top:72px">여행 계획,<br /><em>카톡방에 흩어지지 않게</em></h1>
-  <p class="sub">일정표, 가고 싶은 후보, 준비물, 예산까지<br />여행 하나에 전부 담아요.</p>
-  <div class="stage">
-    <div class="card trip-card">
-      <div class="trip-title"><b>강릉 1박 2일</b><span>12월 18일 – 19일</span></div>
-      <div class="days"><span class="day on">Day 1 · 금</span><span class="day">Day 2 · 토</span></div>
-      <div class="row">
-        <time>11:30</time>
-        <div class="dot" style="background:var(--butter)"><svg viewBox="0 0 24 24" stroke="#8a6a1c"><path d="M7 3v8M4.500 3v4.500a2.500 2.500 0 0 0 5 0V3M7 11v10M17 3c-2 1.500-3 4-3 7h3zm0 7v11" /></svg></div>
-        <div class="what">초당 순두부 <small>링크만 붙여넣으면 정보가 자동으로</small></div>
-        <span class="pill">후보 3곳 중 확정</span>
-      </div>
-      <div class="move">차로 12분</div>
-      <div class="row">
-        <time>13:30</time>
-        <div class="dot" style="background:var(--me)"><svg viewBox="0 0 24 24" stroke="#4d5a96"><path d="M3 17c2 0 2-1.500 4.500-1.500S10 17 12 17s2-1.500 4.500-1.500S19 17 21 17M3 21c2 0 2-1.500 4.500-1.500S10 21 12 21s2-1.500 4.500-1.500S19 21 21 21" /><circle cx="16.500" cy="7" r="3" /></svg></div>
-        <div class="what">안목해변 산책</div>
-      </div>
-      <div class="row">
-        <time>15:00</time>
-        <div class="dot" style="background:var(--us)"><svg viewBox="0 0 24 24" stroke="#b9506b"><path d="M5 9h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 10.500h1.500a2.500 2.500 0 0 1 0 5H17M8 3.500v2.500M12 3.500v2.500" /></svg></div>
-        <div class="what">오션뷰 카페</div>
-      </div>
-    </div>
-    <div class="minis">
-      <div class="mini">
-        <h4>준비물 체크리스트</h4>
-        <div class="chk done"><i></i>기차표 예매</div>
-        <div class="chk done"><i></i>숙소 예약</div>
-        <div class="chk"><i></i>필름 카메라</div>
-      </div>
-      <div class="mini budget">
-        <h4>예산</h4>
-        <b>248,000</b> <span>/ 400,000원</span>
-        <div class="bar"><i></i></div>
-        <p>일정에 적은 비용이 자동으로 합쳐져요</p>
-      </div>
+  <h1>여행 계획,<br /><em>카톡방에 흩어지지 않게</em></h1>
+  <p class="sub">일정표, 숙소 후보, 준비물, 예산까지 여행 하나에.</p>
+  <div class="stage fit">
+<div class="fitbox"><div class="ui page">
+  
+  <div class="days" style="margin-top:0"><span class="on">Day 1<small>12.18 (금)</small></span><span>Day 2<small>12.19 (토)</small></span></div>
+  <div class="c">
+    <div class="row"><span class="t" style="font-size:28px">Day 1 일정</span><span class="sp"></span><span class="xs mute">남은 일정 4</span></div>
+    <div class="tl">
+      <div class="it"><div class="tm">11:30</div><div class="nm"><span class="ic" style="background:#fdf0c4"><svg viewBox="0 0 24 24" stroke="#b58a2a"><path d="M7 3v8M4.500 3v4.500a2.500 2.500 0 0 0 5 0V3M7 11v10M17 3c-2 1.500-3 4-3 7h3zm0 7v11"/></svg></span>초당 순두부</div><div class="co">24,000원</div></div><div class="mv">차로 12분</div>
+      <div class="it"><div class="tm">13:30</div><div class="nm"><span class="ic" style="background:#dff3df"><svg viewBox="0 0 24 24" stroke="#3f9d55"><rect x="3.500" y="7" width="17" height="12.500" rx="3"/><circle cx="12" cy="13.200" r="3.200"/><path d="M8.500 7l1.200-2.500h4.600L15.500 7"/></svg></span>안목해변 산책</div></div><div class="mv">걸어서 5분</div>
+      <div class="it"><div class="tm">15:00</div><div class="nm"><span class="ic" style="background:#efe3d6"><svg viewBox="0 0 24 24" stroke="#8a6a4f"><path d="M5 9h12v5a5 5 0 0 1-5 5h-2a5 5 0 0 1-5-5zM17 10.500h1.500a2.500 2.500 0 0 1 0 5H17M8 3.500v2.500M12 3.500v2.500"/></svg></span>오션뷰 카페</div><div class="co">14,000원</div></div><div class="mv">차로 8분</div>
+      <div class="it"><div class="tm">17:00</div><div class="nm"><span class="ic" style="background:#e8defa"><svg viewBox="0 0 24 24" stroke="#7a5fc9"><path d="M3 18v-7a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2v7M3 15h18M3 18v2M21 18v2M7 9V6.500A1.500 1.500 0 0 1 8.500 5h7A1.500 1.500 0 0 1 17 6.500V9"/></svg></span>경포 오션뷰 호텔 체크인</div><div class="co">150,000원</div></div>
     </div>
   </div>
+</div></div>
+  </div>
 </section>
-
-<!-- 5. 하고 싶은 것 + 돌림판 -->
-<section class="slide" id="s5">
+<section class="slide compact">
   <div class="top"><span class="brand">우리두리</span><span class="tag">03 하고 싶은 것 · 돌림판</span></div>
-  <h1 style="margin-top:72px">“아무거나” 대신,<br /><em>돌림판이 골라줘요</em></h1>
-  <p class="sub">생각날 때 하고 싶은 걸 적어 두세요.<br />못 고르는 날엔 돌리고, 정해지면 바로 일정으로.</p>
-  <div class="stage">
-    <div class="duo">
-      <div class="card wheel-card">
-        <div class="wheel-wrap"><div class="pin"></div><svg id="wheel" viewBox="-110 -110 220 220"></svg></div>
-        <div class="result">오늘은<b>보드게임 카페</b></div>
-      </div>
-      <div class="list">
-        <div class="item">
-          <span class="k" style="background:var(--trip);color:var(--trip-ink)">해보고 싶은 것</span>
-          <b>겨울 바다 보러 가기</b>
-          <div class="meta"><span>12월 19일로 잡았어요</span><span class="btn">일정 보기</span></div>
-        </div>
-        <div class="item">
-          <span class="k" style="background:var(--you);color:var(--you-ink)">자주 할 것</span>
-          <b>보드게임 카페</b>
-          <div class="meta"><span>지금까지 4번</span><span class="btn">했어요</span></div>
-        </div>
-        <div class="item">
-          <span class="k" style="background:var(--trip);color:var(--trip-ink)">해보고 싶은 것</span>
-          <b>둘이서 김장 해보기</b>
-          <div class="meta"><span>아직 계획 없음</span><span class="btn">언제 할까?</span></div>
-        </div>
-      </div>
-    </div>
+  <h1>“아무거나” 대신,<br /><em>돌림판이 골라줘요</em></h1>
+  <p class="sub">하고 싶은 걸 적어 두고, 못 고르는 날엔 돌려요.</p>
+  <div class="stage fit">
+<div class="fitbox"><div class="ui sheet" style="background:#fff3f5">
+  <div style="margin-top:26px"><div class="wheelbox" style="--wd:430px"><span class="ptr"></span><svg viewBox="-110 -110 220 220"><circle r="108" fill="#fff"/><path d="M0,0L-50.00,-86.60A100,100 0 0 1 50.00,-86.60Z" fill="#ffe3cf" stroke="#fff" stroke-width="2.500"/><text transform="rotate(-90.0) translate(66,0) rotate(90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">맛집 탐방</text><path d="M0,0L50.00,-86.60A100,100 0 0 1 100.00,0.00Z" fill="#ffd6e0" stroke="#fff" stroke-width="2.500"/><text transform="rotate(-30.0) translate(66,0) rotate(90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">겨울 바다</text><path d="M0,0L100.00,0.00A100,100 0 0 1 50.00,86.60Z" fill="#dff3df" stroke="#fff" stroke-width="2.500"/><text transform="rotate(30.0) translate(66,0) rotate(-90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">김장 해보기</text><path d="M0,0L50.00,86.60A100,100 0 0 1 -50.00,86.60Z" fill="#dce9fb" stroke="#fff" stroke-width="2.500"/><text transform="rotate(90.0) translate(66,0) rotate(-90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">보드게임 카페</text><path d="M0,0L-50.00,86.60A100,100 0 0 1 -100.00,0.00Z" fill="#fff0c4" stroke="#fff" stroke-width="2.500"/><text transform="rotate(150.0) translate(66,0) rotate(-90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">집에서 영화</text><path d="M0,0L-100.00,0.00A100,100 0 0 1 -50.00,-86.60Z" fill="#e6dcf7" stroke="#fff" stroke-width="2.500"/><text transform="rotate(210.0) translate(66,0) rotate(90)" text-anchor="middle" dominant-baseline="central" font-size="11.500" fill="#5a4d51" font-family="Jua">전시회 가기</text></svg><span class="hub">돌리기</span></div></div>
+  <div class="c" style="margin-top:34px;text-align:center;position:relative"><span class="tape" style="left:50%;margin-left:-60px"></span>
+    <div class="sm" style="color:#6b5e62">오늘은 이거!</div><div class="t" style="font-size:46px;margin-top:8px">맛집 탐방</div><div class="xs mute" style="margin-top:8px">하고 싶은 것</div>
+    <div class="row" style="margin-top:20px"><span class="btn line">언제 할까?</span><span class="btn fill">오늘 했어요</span></div>
+  </div>
+</div></div>
   </div>
 </section>
-
-<!-- 6. 추억 -->
-<section class="slide" id="s6">
+<section class="slide compact">
   <div class="top"><span class="brand">우리두리</span><span class="tag">04 우리 이야기</span></div>
-  <h1 style="margin-top:72px">지나간 날도<br /><em>그냥 지나가지 않게</em></h1>
-  <p class="sub">같이 보낸 시간이 쌓일수록 볼 게 많아져요.</p>
-  <div class="stage">
-    <div class="quad">
-      <div class="q">
-        <h3>봉인 편지</h3>
-        <p>열리는 날을 정해서 보내요.<br />그날까지는 못 열어요.</p>
-        <div class="v"><div class="letter">
-          <svg viewBox="0 0 24 24"><rect x="5" y="10.500" width="14" height="10" rx="2.500" /><path d="M8 10.500V7.500a4 4 0 0 1 8 0v3" /></svg>
-          <div><b>크리스마스에 열려요</b><span>29일 남음</span></div>
-        </div></div>
-      </div>
-      <div class="q">
-        <h3>그날의 우리</h3>
-        <p>작년, 재작년 이맘때<br />뭘 했는지 꺼내 보여줘요.</p>
-        <div class="v"><div class="ago"><small>1년 전 오늘</small><b>첫 제주 여행 둘째 날</b><span>2025년 11월 26일</span></div></div>
-      </div>
-      <div class="q map">
-        <div class="txt">
-          <h3>우리 지도</h3>
-          <p>여행 다녀온 지역이<br />하나씩 칠해져요.</p>
-          <div class="count"><b>5</b>곳 다녀왔어요</div>
-        </div>
-        <!--MAP-->
-      </div>
-      <div class="q">
-        <h3>월간 요약</h3>
-        <p>한 달이 끝나면 둘의 한 달을<br />카드로 정리해 줘요.</p>
-        <div class="v"><div class="stats">
-          <div class="stat"><b>12</b><span>함께한 일정</span></div>
-          <div class="stat"><b>3</b><span>이룬 것</span></div>
-          <div class="stat"><b>1</b><span>여행</span></div>
-        </div></div>
-      </div>
-    </div>
+  <h1>지나간 날도<br /><em>그냥 지나가지 않게</em></h1>
+  <p class="sub">다녀온 곳, 봉인 편지, 하고 싶은 것이 한곳에 쌓여요.</p>
+  <div class="stage fit">
+<div class="fitbox"><div class="ui page">
+  <div class="c hc"><div class="h"><svg viewBox="0 0 24 24"><path d="M9 4.500L3.500 6.500v13L9 17.500l6 2 5.500-2v-13L15 6.500l-6-2zM9 4.500v13M15 6.500v13"/></svg>우리 지도</div><div class="row"><div><div class="m">함께 가 본 곳 <span class="rose">4</span>/16</div><div class="s">누르면 시·군·구까지 볼 수 있어요</div></div><span class="sp"></span><span class="mute">›</span></div></div>
+  <div class="c hc"><div class="h"><svg viewBox="0 0 24 24"><rect x="5" y="10.500" width="14" height="10" rx="2.500"/><path d="M8 10.500V7.500a4 4 0 0 1 8 0v3"/></svg>봉인 편지함</div><div class="row"><div><div class="m">봉인된 편지 <span class="rose">1</span>통</div><div class="s">가장 빠른 편지 <span class="rose">12월 25일 (금) 00:00</span> 공개</div></div><span class="sp"></span><span class="dchip">D-28</span></div></div>
+  <div class="row gap" style="align-items:stretch;gap:20px">
+    <div class="c hc" style="flex:1.150;margin:0"><div class="h"><svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="8.500"/><path d="M8.500 12.200l2.400 2.400 4.600-4.800"/></svg>하고 싶은 것</div><div class="m">보드게임 카페</div><div class="s rose">6개 담김 · 이룬 것 3</div></div>
+    <div class="c hc" style="flex:1;margin:0;text-align:center;display:flex;flex-direction:column;justify-content:center"><div class="m rose" style="margin:0;font-size:30px">돌림판</div><div class="s">뭐 할까? 골라줘</div></div>
+  </div>
+</div></div>
   </div>
 </section>
-
-<!-- 7. 마무리 -->
-<section class="slide blush end" id="s7">
+<section class="slide blush end">
   <div class="mascot"><img src="../../../assets/logo.png" alt="" /></div>
   <div class="name">우리두리</div>
   <h2>내일 일정부터<br />같이 적어 볼까요?</h2>
@@ -225,44 +133,15 @@
   <div class="stores">안드로이드 · 무료 설치</div>
   <div class="next"><span>저장해 두고, 같이 쓸 사람에게 보내기</span><span>다음 글 <b>공유 캘린더 자세히</b></span></div>
 </section>
-
 <script>
-  // 캘린더: 2026년 12월(1일 = 화요일)
-  (function () {
-    const g = document.getElementById('calgrid');
-    '일월화수목금토'.split('').forEach((d) => { g.insertAdjacentHTML('beforeend', `<div class="dow">${d}</div>`); });
-    const ev = {
-      5: ['us', '전시회'], 9: ['you', '회식'], 12: ['you', '결혼식'], 15: ['me', '출장'],
-      18: ['trip span2', '강릉 1박 2일'], 24: ['us', '저녁 7시'], 28: ['me', '송년회'], 31: ['us', '해돋이'],
-    };
-    for (let i = 0; i < 35; i++) {
-      const day = i - 1; // i=2 → 1일
-      const dim = day < 1 || day > 31;
-      const n = day < 1 ? 30 + day : day > 31 ? day - 31 : day;
-      const e = !dim && ev[day] ? `<div class="ev ${ev[day][0]}">${ev[day][1]}</div>` : '';
-      g.insertAdjacentHTML('beforeend', `<div class="cell${dim ? ' dim' : ''}${i % 7 === 0 ? ' sun' : ''}"><span class="n">${n}</span>${e}</div>`);
-    }
-  })();
-
-  // 돌림판
-  (function () {
-    const svg = document.getElementById('wheel');
-    const items = ['보드게임', '전시회', '집 영화', '등산', '맛집 탐방', '드라이브'];
-    const fills = ['#ffd6e0', '#fdebb8', '#c7ceea', '#b5ead7', '#e8d7f1', '#ffeaee'];
-    const inks = ['#b9506b', '#8a6a1c', '#4d5a96', '#2f7a5f', '#7a4f95', '#b9506b'];
-    const R = 104, n = items.length, step = (Math.PI * 2) / n;
-    let html = '';
-    for (let i = 0; i < n; i++) {
-      const a0 = -Math.PI / 2 - step / 2 + i * step, a1 = a0 + step, am = (a0 + a1) / 2;
-      const p = (a, r) => `${(Math.cos(a) * r).toFixed(2)},${(Math.sin(a) * r).toFixed(2)}`;
-      html += `<path d="M0,0L${p(a0, R)}A${R},${R} 0 0 1 ${p(a1, R)}Z" fill="${fills[i]}" stroke="#fff" stroke-width="2.500"/>`;
-      const deg = (am * 180) / Math.PI;
-      const flip = deg > 90 || deg < -90;
-      html += `<text transform="rotate(${deg}) translate(63,0) rotate(${flip ? 180 : 0})" text-anchor="middle" dominant-baseline="central" font-size="14.500" font-weight="700" fill="${inks[i]}" font-family="Pretendard" letter-spacing="-0.4">${items[i]}</text>`;
-    }
-    html += '<circle r="15" fill="#fff"/><circle r="7" fill="#e07a93"/>';
-    svg.innerHTML = html;
-  })();
+  document.fonts.ready.then(() => {
+    document.querySelectorAll('.stage.fit').forEach((st) => {
+      const el = st.firstElementChild;
+      const room = st.clientHeight;
+      const h = el ? el.getBoundingClientRect().height : 0;
+      if (h > room) el.style.zoom = room / h;
+    });
+  });
 </script>
 </body>
 </html>
