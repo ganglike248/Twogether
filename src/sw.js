@@ -4,7 +4,7 @@
 // 하나의 서비스워커에 프리캐싱 + 푸시 처리를 함께 둔다.
 import { precacheAndRoute } from 'workbox-precaching';
 import { registerRoute } from 'workbox-routing';
-import { NetworkFirst } from 'workbox-strategies';
+import { NetworkFirst, StaleWhileRevalidate, CacheFirst } from 'workbox-strategies';
 import { ExpirationPlugin } from 'workbox-expiration';
 import { initializeApp } from 'firebase/app';
 import { getMessaging, onBackgroundMessage } from 'firebase/messaging/sw';
@@ -29,6 +29,23 @@ registerRoute(
         maxEntries: 100,
         maxAgeSeconds: 60 * 60 * 24, // 1일
       }),
+    ],
+  })
+);
+
+// Google Fonts(주아·고운돋움) — 한 번 받은 글꼴을 기기에 저장해 오프라인·느린 연결에서도 같은 글꼴(AUDIT P-5).
+// 글꼴 목록 CSS는 새 버전을 뒤에서 확인(StaleWhileRevalidate), 글꼴 파일(한글은 조각이 많음)은 1년 보관(CacheFirst).
+// 글꼴은 CORS(정상 200) 응답이라 기본 설정으로 저장됨 — firebasestorage(불투명 응답) 같은 문제 없음
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.googleapis.com',
+  new StaleWhileRevalidate({ cacheName: 'google-fonts-stylesheets' })
+);
+registerRoute(
+  ({ url }) => url.origin === 'https://fonts.gstatic.com',
+  new CacheFirst({
+    cacheName: 'google-fonts-webfonts',
+    plugins: [
+      new ExpirationPlugin({ maxEntries: 300, maxAgeSeconds: 60 * 60 * 24 * 365 }),
     ],
   })
 );

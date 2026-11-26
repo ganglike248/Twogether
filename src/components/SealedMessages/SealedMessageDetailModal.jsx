@@ -123,7 +123,7 @@ const SealedMessageDetailModal = ({ message, onClose }) => {
           ) : (
             <>
               {content.imageUrl && (
-                <img src={content.imageUrl} alt="첨부 사진" className="sm-detail-image" />
+                <img src={content.imageUrl} alt="첨부 사진" className="sm-detail-image" loading="lazy" decoding="async" />
               )}
               <p className="sm-detail-content">{content.content}</p>
               <p className="sm-detail-meta">

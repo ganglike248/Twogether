@@ -40,6 +40,9 @@
   `storageService.refreshAuthTokenWithClaims()`가 콜러블 `ensureCoupleClaims`로 자가 복구. write는 `size<10MB && image/*`
 - Storage 규칙은 create/update와 delete를 **분리**(delete엔 `request.resource`가 null이라 size/type 조건이 있으면 삭제가 막힘)
 - Workbox runtimeCaching에 `firebasestorage.googleapis.com` 넣지 말 것(opaque 응답 → iOS 이미지 실패)
+- 사진 업로드는 `storageService`가 올리기 직전 `shrinkImageForUpload`(`utils/imageUtils.js`, 긴 변 1600px·JPEG)로 줄임 — 새 업로드 경로도 같은 함수 사용.
+  봉인 편지 사진은 `sealedMessages/{coupleId}/{messageId}_{임의값}`(주소는 private/content에만), 삭제는 내용 문서의 imageUrl로(예전 고정 경로도 같이 시도).
+  글꼴은 `index.html` preconnect+link(CSS @import 금지), sw.js가 Google Fonts를 기기에 저장
 - Hosting 헤더: `source:"**"` no-cache를 **먼저**, `/assets/**` immutable을 뒤에(리터럴 `/index.html`은 SPA 리라이트에 안 걸림)
 - Firestore list 쿼리는 규칙이 참조하는 필드(`coupleId`/`userId`)를 **where 동등 조건에 반드시 포함**(없으면 목록 전체 거부, 단건 get은 됨)
 - 모든 update 규칙은 소유권 필드 불변(`request.resource.data.X == resource.data.X`). 커플 합류는 반드시 콜러블

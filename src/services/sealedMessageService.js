@@ -83,7 +83,13 @@ export const unlockSealedMessageNow = async (messageId) => {
 // 편지 삭제 — 작성자만 가능(rules에서도 재검증). private/content가 상위 문서를 get()으로 조회해
 // 작성자를 확인하는 규칙이라, 상위 문서보다 먼저 지워야 함. 첨부 이미지도 함께 정리.
 export const deleteSealedMessage = async (messageId, coupleId) => {
+  // 사진 주소는 내용 문서에만 있으니 지우기 전에 읽어 둠(작성자는 봉인 중에도 읽을 수 있음)
+  let imageUrl = null;
+  try {
+    const contentSnap = await getDoc(doc(db, 'sealedMessages', messageId, 'private', 'content'));
+    imageUrl = contentSnap.exists() ? contentSnap.data().imageUrl || null : null;
+  } catch { /* 못 읽어도 예전 경로로 정리 시도 */ }
   await deleteDoc(doc(db, 'sealedMessages', messageId, 'private', 'content'));
-  await deleteSealedMessageImage(coupleId, messageId);
+  await deleteSealedMessageImage(coupleId, messageId, imageUrl);
   await deleteDoc(doc(db, 'sealedMessages', messageId));
 };

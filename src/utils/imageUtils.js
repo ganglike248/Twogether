@@ -25,3 +25,49 @@ export const ensureBrowserDisplayableImage = async (file) => {
     throw new Error('이 사진 형식은 지원되지 않습니다. 다른 사진을 선택해주세요.');
   }
 };
+
+// 올리기 전에 사진 줄이기(AUDIT P-2) — 예전엔 원본(최대 10MB)을 그대로 올려 홈 사진이 열 때마다 느리게 떴음.
+// 긴 변 maxSide px · JPEG quality로 다시 그림. 이미 작으면(긴 변·용량 모두 기준 이하) 그대로, 결과가 더 크면 원본 유지.
+// GIF(움직이는 그림)·SVG는 건드리지 않음. 투명 PNG는 흰 배경으로 채움(홈·편지 사진은 사진이 대부분).
+const SKIP_TYPES = ['image/gif', 'image/svg+xml'];
+
+const loadBitmap = async (file) => {
+  if (typeof createImageBitmap === 'function') {
+    try { return await createImageBitmap(file, { imageOrientation: 'from-image' }); } catch { /* 아래 <img>로 */ }
+  }
+  const url = URL.createObjectURL(file);
+  try {
+    const img = new Image();
+    img.decoding = 'async';
+    img.src = url;
+    await img.decode();
+    return img;
+  } finally {
+    URL.revokeObjectURL(url);
+  }
+};
+
+export const shrinkImageForUpload = async (file, { maxSide = 1600, quality = 0.82, keepUnder = 600 * 1024 } = {}) => {
+  if (!file || SKIP_TYPES.includes(file.type)) return file;
+  try {
+    const bitmap = await loadBitmap(file);
+    const w = bitmap.width; const h = bitmap.height;
+    const scale = Math.min(1, maxSide / Math.max(w, h));
+    if (scale === 1 && file.size <= keepUnder) return file;
+    const canvas = document.createElement('canvas');
+    canvas.width = Math.round(w * scale);
+    canvas.height = Math.round(h * scale);
+    const ctx = canvas.getContext('2d');
+    ctx.fillStyle = 'white';
+    ctx.fillRect(0, 0, canvas.width, canvas.height);
+    ctx.drawImage(bitmap, 0, 0, canvas.width, canvas.height);
+    if (typeof bitmap.close === 'function') bitmap.close();
+    const blob = await new Promise((resolve) => canvas.toBlob(resolve, 'image/jpeg', quality));
+    if (!blob || blob.size >= file.size) return file;
+    const name = (file.name || 'photo').replace(/\.[^.]+$/, '') + '.jpg';
+    return new File([blob], name, { type: 'image/jpeg' });
+  } catch (error) {
+    console.warn('[imageUtils] 사진 줄이기 실패 — 원본으로 올림:', error);
+    return file;
+  }
+};

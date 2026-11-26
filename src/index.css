@@ -1,5 +1,6 @@
 /* src/index.css */
-@import url('https://fonts.googleapis.com/css2?family=Gowun+Dodum&family=Jua&display=swap');
+/* 글꼴(주아·고운돋움)은 index.html에서 미리 연결 + <link>로 불러옴(AUDIT P-5 — CSS @import는 이 파일을 받은 뒤에야 시작돼 첫 화면이 늦었음).
+   한 번 받은 글꼴은 서비스워커(sw.js)가 기기에 저장해 오프라인에서도 같은 글꼴로 보임 */
 
 :root {
   /* 제목·로고·숫자용 둥근 폰트(주아, OFL). 본문은 body의 Gowun Dodum 유지 — 주아는 굵기가 하나라 긴 글엔 답답함 */

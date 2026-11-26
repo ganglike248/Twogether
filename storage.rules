@@ -39,10 +39,10 @@ service firebase.storage {
         hasCoupleIdAccess(coupleId);
     }
 
-    // 봉인 편지 첨부 이미지: 경로 sealedMessages/{coupleId}/{messageId}
+    // 봉인 편지 첨부 이미지: 경로 sealedMessages/{coupleId}/{messageId}_{임의값} (v1.1.8~, 예전 편지는 _{임의값} 없음)
     // ✅ coupleId custom claim 검증 필수 — 편지 내용의 열람 제한(봉인 여부)은 Firestore 쪽에서 처리하고,
-    // 이미지 파일 자체는 같은 커플이면 읽을 수 있음(URL을 안다는 전제하에 — 클라이언트는 Firestore에서
-    // 잠긴 편지의 imageUrl을 애초에 받아오지 못하므로 실질적으로 노출되지 않음)
+    // 이미지 파일 자체는 같은 커플이면 읽을 수 있음. 파일 이름의 임의값은 private/content(봉인 중엔 작성자만 읽음)에만
+    // 있어 받는 사람이 경로를 추측할 수 없음(예전 고정 경로는 편지 ID만 알면 받아볼 수 있었음 — AUDIT S-3)
     match /sealedMessages/{coupleId}/{messageId} {
       allow read: if request.auth != null &&
         hasCoupleIdAccess(coupleId);

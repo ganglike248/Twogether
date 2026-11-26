@@ -4,6 +4,7 @@ import { getAuth } from 'firebase/auth';
 import { getDoc, doc } from 'firebase/firestore';
 import { httpsCallable } from 'firebase/functions';
 import { storage, db, functionsInstance } from '../firebase';
+import { shrinkImageForUpload } from '../utils/imageUtils';
 
 // file.type이 비어 있을 경우 파일명으로 content type 추론
 const inferContentType = (file) => {
@@ -85,11 +86,12 @@ export const uploadHeroImage = async (coupleId, file) => {
     throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
   }
 
-  // 4. 업로드 (Storage Rules에서 custom claims 재검증)
+  // 4. 업로드 (Storage Rules에서 custom claims 재검증) — 올리기 전에 줄임(긴 변 1600px, AUDIT P-2)
   const storageRef = ref(storage, `couples/${coupleId}/hero`);
-  const metadata = { contentType };
+  const uploadFile = await shrinkImageForUpload(file);
+  const metadata = { contentType: uploadFile === file ? contentType : uploadFile.type };
   try {
-    const snapshot = await uploadBytes(storageRef, file, metadata);
+    const snapshot = await uploadBytes(storageRef, uploadFile, metadata);
     if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
     const url = await getDownloadURL(snapshot.ref);
     // 항상 같은 경로에 덮어쓰므로 다운로드 URL이 이전과 똑같이 나올 수 있음 — 그러면 브라우저가 캐시된
@@ -115,10 +117,14 @@ export const uploadSealedMessageImage = async (coupleId, messageId, file) => {
     throw new Error(`지원하지 않는 파일 형식입니다: ${contentType}`);
   }
 
-  const storageRef = ref(storage, `sealedMessages/${coupleId}/${messageId}`);
-  const metadata = { contentType };
+  // 파일 이름에 추측할 수 없는 값을 붙임(AUDIT S-3) — 예전엔 sealedMessages/{coupleId}/{messageId}로 정해져 있어,
+  // 편지 ID를 아는 받는 사람이 봉인 중에도 사진을 직접 받아볼 수 있었음. 주소는 private/content(봉인 중엔 작성자만 읽음)에만 저장됨
+  const token = (crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}${Math.random()}`).replace(/[^a-zA-Z0-9]/g, '');
+  const storageRef = ref(storage, `sealedMessages/${coupleId}/${messageId}_${token}`);
+  const uploadFile = await shrinkImageForUpload(file);
+  const metadata = { contentType: uploadFile === file ? contentType : uploadFile.type };
   try {
-    const snapshot = await uploadBytes(storageRef, file, metadata);
+    const snapshot = await uploadBytes(storageRef, uploadFile, metadata);
     if (!snapshot?.ref) throw new Error('업로드 응답이 올바르지 않습니다.');
     return getDownloadURL(snapshot.ref);
   } catch (error) {
@@ -130,19 +136,23 @@ export const uploadSealedMessageImage = async (coupleId, messageId, file) => {
 };
 
 // 봉인 편지 첨부 이미지 삭제 (편지 자체를 삭제할 때 함께 정리)
-export const deleteSealedMessageImage = async (coupleId, messageId) => {
+// imageUrl: private/content에 저장된 다운로드 주소(새 경로는 이름에 임의 값이 붙어 주소로만 찾을 수 있음).
+// 예전 편지(고정 경로 sealedMessages/{coupleId}/{messageId})도 지울 수 있게 두 곳 다 시도 — 없으면 무시
+export const deleteSealedMessageImage = async (coupleId, messageId, imageUrl = null) => {
   await validateCoupleIdAccess(coupleId);
   await refreshAuthTokenWithClaims(coupleId);
 
-  const storageRef = ref(storage, `sealedMessages/${coupleId}/${messageId}`);
-  try {
-    await deleteObject(storageRef);
-  } catch (error) {
-    if (error.code === 'storage/object-not-found') {
-      // 사진 없이 작성된 편지일 수 있음 — 무시
-      return;
+  const targets = [ref(storage, `sealedMessages/${coupleId}/${messageId}`)];
+  if (imageUrl) {
+    try { targets.unshift(ref(storage, imageUrl)); } catch { /* 주소 형식이 다르면 예전 경로만 */ }
+  }
+  for (const storageRef of targets) {
+    try {
+      await deleteObject(storageRef);
+    } catch (error) {
+      if (error.code === 'storage/object-not-found') continue; // 사진 없이 쓴 편지·예전/새 경로 중 한쪽만 있는 경우
+      throw error;
     }
-    throw error;
   }
 };
 

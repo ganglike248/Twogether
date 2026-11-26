@@ -312,7 +312,7 @@ const Home = () => {
           <div className="hero-tape" />
           {heroImageUrl ? (
             <>
-              <img src={heroImageUrl} alt="우리" className="hero-img" />
+              <img src={heroImageUrl} alt="우리" className="hero-img" decoding="async" />
               <div className="hero-overlay" />
             </>
           ) : (

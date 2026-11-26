@@ -170,7 +170,7 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
             <div className="ofs-photos">
               {formData.images.map((src, idx) => (
                 <span key={`${src}-${idx}`} className="ofs-photo">
-                  <img src={src} alt={`사진 ${idx + 1}`} />
+                  <img src={src} alt={`사진 ${idx + 1}`} loading="lazy" decoding="async" />
                   {idx === 0 && <span className="ofs-photo-main">대표</span>}
                   <button type="button" className="ofs-photo-remove" onClick={() => handleRemoveImage(idx)} aria-label="사진 제거">×</button>
                 </span>
