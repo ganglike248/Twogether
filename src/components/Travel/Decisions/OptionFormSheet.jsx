@@ -35,11 +35,11 @@ const toForm = (option) => ({
   images: option.images || [],
 });
 
-const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
+// photoOpen/onOpenPhoto: 사진 추가 시트도 주소(&photo=1)로 여닫음 — 닫기는 onClose(뒤로)와 같음
+const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose, photoOpen = false, onOpenPhoto }) => {
   const isEdit = mode === 'edit';
   const [formData, setFormData] = useState(() => (isEdit ? toForm(option) : EMPTY_FORM));
   const [saving, setSaving] = useState(false);
-  const [photoSheetOpen, setPhotoSheetOpen] = useState(false);
   const [linkCollapsed, toggleLinkCollapsed] = useLinkFillCollapsed();
 
   const setField = (field, value) => {
@@ -84,7 +84,7 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
 
   const handleAddImage = (url) => {
     setFormData(prev => ({ ...prev, images: [...prev.images, url] }));
-    setPhotoSheetOpen(false);
+    onClose(); // 사진 시트만 닫힘(주소의 photo=1이 빠짐)
   };
 
   const handleSubmit = async (e) => {
@@ -175,7 +175,7 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
                   <button type="button" className="ofs-photo-remove" onClick={() => handleRemoveImage(idx)} aria-label="사진 제거">×</button>
                 </span>
               ))}
-              <button type="button" className="ofs-photo-add" onClick={() => setPhotoSheetOpen(true)}>
+              <button type="button" className="ofs-photo-add" onClick={onOpenPhoto}>
                 <span className="ofs-photo-add-plus">＋</span>사진 추가
               </button>
             </div>
@@ -251,11 +251,11 @@ const OptionFormSheet = ({ mode, topicTitle, option, onSave, onClose }) => {
         </div>
       </form>
 
-      {photoSheetOpen && (
+      {photoOpen && (
         <PhotoAddSheet
           existing={formData.images}
           onAdd={handleAddImage}
-          onClose={() => setPhotoSheetOpen(false)}
+          onClose={onClose}
         />
       )}
     </div>,

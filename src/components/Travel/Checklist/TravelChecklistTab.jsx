@@ -17,6 +17,7 @@ import ChecklistModal from './ChecklistModal';
 import ConfirmModal from '../../common/ConfirmModal';
 import { MdChecklist } from 'react-icons/md';
 import { toast } from 'react-toastify';
+import { useQueryModal } from '../../../hooks/useQueryModal';
 import './TravelChecklistTab.css';
 
 const PRIORITY_ORDER = { high: 0, medium: 1, low: 2 };
@@ -26,8 +27,10 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
   const { user, coupleDoc, getMemberName } = useAuthContext();
   const [showAllCompleted, setShowAllCompleted] = useState(false);
   const { checklist, loading } = useTravelChecklist(trip.id);
-  const [showModal, setShowModal] = useState(false);
-  const [editingItem, setEditingItem] = useState(null);
+  // 항목 추가/수정 모달은 주소에서 파생(?modal=checklist[&item=id]) — 뒤로가기로 닫힘
+  const qm = useQueryModal();
+  const showModal = qm.modal === 'checklist';
+  const editingItem = showModal && qm.get('item') ? (checklist?.items || []).find(i => i.id === qm.get('item')) || null : null;
   const [itemToDelete, setItemToDelete] = useState(null);
 
   const handleAddItem = async (itemData) => {
@@ -42,18 +45,14 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
         await addChecklistItem(trip.id, itemData, trip.coupleId);
         toast.success('항목이 추가됐어요.');
       }
-      setShowModal(false);
-      setEditingItem(null);
+      qm.close();
     } catch (error) {
       console.error('Error saving item:', error);
       toast.error('항목 저장 중 오류가 발생했어요.');
     }
   };
 
-  const handleEditItem = (item) => {
-    setEditingItem(item);
-    setShowModal(true);
-  };
+  const handleEditItem = (item) => qm.open('checklist', { item: item.id });
 
   const handleToggle = async (itemId) => {
     try {
@@ -66,11 +65,8 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
 
   // FAB 메서드 노출
   useImperativeHandle(ref, () => ({
-    showChecklistModal: () => {
-      setEditingItem(null);
-      setShowModal(true);
-    }
-  }), []);
+    showChecklistModal: () => qm.open('checklist'),
+  }), [qm]);
 
   const handleDelete = (itemId) => {
     setItemToDelete(itemId);
@@ -125,10 +121,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
       {showModal && (
         <ChecklistModal
           isOpen={showModal}
-          onClose={() => {
-            setShowModal(false);
-            setEditingItem(null);
-          }}
+          onClose={qm.close}
           onSave={handleAddItem}
           editingItem={editingItem}
         />

@@ -152,7 +152,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
             <div className="schedule-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
                 <div className="schedule-modal-header">
                     <h2 className="schedule-modal-title">
-                        {schedule ? '일정 수정' : '새 일정 추가'}
+                        {schedule?.id ? '일정 수정' : '새 일정 추가'}
                     </h2>
                     <button className="schedule-modal-close" onClick={onClose}>&times;</button>
                 </div>

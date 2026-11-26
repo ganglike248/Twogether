@@ -244,6 +244,33 @@ const CHECKS = [
     await p.locator('.td-day', { hasText: 'Day 2' }).click();
     await p.getByText('중앙시장 닭강정').first().waitFor({ timeout: 8000 });
   } },
+  { name: '일정 완료 체크 바로 반영', path: '/travel/t1', expect: '강릉 바다 여행', settleMs: 1500, act: async (p) => {
+    await p.locator('.td-day', { hasText: 'Day 2' }).click();
+    await p.locator('.tl-item', { hasText: '중앙시장 닭강정' }).locator('.tl-check').click();
+    await p.getByText('이 날의 일정을 모두 마쳤어요').first().waitFor({ timeout: 8000 });
+  } },
+  { name: '여행 탭 위치 주소 유지 + 뒤로가기로 모달만 닫힘', path: '/travel/t1?tab=decisions', expect: '비교 주제', act: async (p) => {
+    await p.locator('.tdt-add-topic').click();
+    await p.locator('.decision-modal-container').waitFor({ timeout: 5000 });
+    await p.goBack();
+    await p.locator('.decision-modal-container').waitFor({ state: 'detached', timeout: 5000 });
+    if (!p.url().includes('tab=decisions')) throw new Error('뒤로가기 뒤 탭 위치가 사라졌어요');
+    await p.getByText('비교 주제').first().waitFor({ timeout: 3000 });
+  } },
+  { name: '비교 주제 → 후보 추가 → 일정에 추가(새 일정 제목)', path: '/travel/t1?tab=decisions', expect: '비교 주제', settleMs: 1500, act: async (p) => {
+    await p.locator('.tdt-add-topic').click();
+    await p.locator('.dm-input').first().fill('스모크 숙소');
+    await p.locator('.dm-btn.submit').click();
+    await p.locator('.dsec', { hasText: '스모크 숙소' }).locator('.dsec-add-card').click();
+    await p.locator('.ofs-sheet .ofs-input').first().fill('스모크 호텔');
+    await p.locator('.ofs-btn.submit').click();
+    await p.locator('.dcard', { hasText: '스모크 호텔' }).locator('.dcard-btn.secondary').click();
+    await p.locator('.dsm-day-btn').first().click();
+    await p.getByText('새 일정 추가').first().waitFor({ timeout: 5000 });
+    await p.goBack();
+    await p.locator('.schedule-modal-container').waitFor({ state: 'detached', timeout: 5000 });
+    await p.locator('.dcard', { hasText: '스모크 호텔' }).first().waitFor({ timeout: 3000 });
+  } },
   { name: '지난 요약 목록', path: '/recap', expect: '지난 요약' },
   { name: '월간 요약', path: `/recap/${prevMonth}`, expect: '채웠어요' },
   { name: '봉인 편지함', path: '/letters' },

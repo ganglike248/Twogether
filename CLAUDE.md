@@ -135,7 +135,7 @@
 예약 시각 15분 단위(`UnlockTimePicker`), `checkSealedMessages`는 58/13/28/43분 + 2분 lookahead. 알림은 create/update 트리거 2종,
 받는 사람이 아직 멤버일 때만. 사진은 `uploadSealedMessageImage` 전용 경로
 
-**여행**: 상태(다가오는/여행 중/다녀옴)는 날짜로 계산(`services/tripPhase.js`, `trips.status`는 안 읽음). 기간을 줄이면 `trimTripSchedules`로 잘리는 Day 일정을 옮기거나 지움(모달이 물어봄). 체크리스트 문서는 첫 항목 추가 때 트랜잭션으로 생성(탭을 열 때 만들지 말 것 — 오프라인 덮어쓰기). 남은 검토 항목은 `docs/travel-review.md`. `createTrip`은 trips+events 배치. `deleteTrip`은 일정표·이동시간·`travelDecisions`·`checklists`까지 같이 삭제(서브컬렉션 추가 시 여기도).
+**여행**: 상태(다가오는/여행 중/다녀옴)는 날짜로 계산(`services/tripPhase.js`, `trips.status`는 안 읽음). 기간을 줄이면 `trimTripSchedules`로 잘리는 Day 일정을 옮기거나 지움(모달이 물어봄). 체크리스트 문서는 첫 항목 추가 때 트랜잭션으로 생성(탭을 열 때 만들지 말 것 — 오프라인 덮어쓰기). 여행 상세의 탭(`?tab=`)·모달(`?modal=schedule|day-pick|option|option-add|option-edit|topic|topic-edit|checklist`, 사진 추가는 `&photo=1`)은 전부 주소 파생 — 여닫기는 `hooks/useQueryModal`(탭 위치 유지). 완료 체크는 즉시 반영 후 저장(실패 시 되돌림, 오프라인이면 안내). 남은 검토 항목은 `docs/travel-review.md`. `createTrip`은 trips+events 배치. `deleteTrip`은 일정표·이동시간·`travelDecisions`·`checklists`까지 같이 삭제(서브컬렉션 추가 시 여기도).
 배열 필드 수정은 트랜잭션 헬퍼(`mutateItems`/`mutateOptions`/`mutateTripSchedule`), 배열 안 타임스탬프는 `Date.now()`. 그날 첫 일정은
 결정론적 ID setDoc. 날짜 이동 `moveTripSchedule`은 새 날 추가 → 원래 날 제거. 후보 확정은 후보 단위(`isOptionDecided`), 후보→일정은 `sourceOptionId`.
 링크 자동 채우기 `LinkFillCard`/`useLinkFill`(빈 칸만 채움), 콜러블 `fetchLinkPreview`의 **SSRF 방어 절대 유지**(배포는 functions 별도).

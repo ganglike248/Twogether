@@ -280,7 +280,8 @@ export const subscribeToTripSchedules = (tripId, callback, onError) => {
   }, (error) => reportSubscribeError('tripSchedules', error, onError));
 };
 
-export const toggleScheduleCompletion = async (tripId, day, scheduleId) => {
+// completed를 넘기면 그 값으로 맞춤(화면이 먼저 바꿔 보여준 값 — 연달아 눌러도 뒤집히지 않게), 없으면 뒤집음
+export const toggleScheduleCompletion = async (tripId, day, scheduleId, completed) => {
   const q = query(
     collection(db, 'tripSchedules'),
     where('tripId', '==', tripId),
@@ -294,7 +295,7 @@ export const toggleScheduleCompletion = async (tripId, day, scheduleId) => {
     const scheduleSnap = await transaction.get(scheduleDocRef);
     if (!scheduleSnap.exists()) return;
     const updated = scheduleSnap.data().schedules.map(s =>
-      s.id === scheduleId ? { ...s, completed: !s.completed } : s
+      s.id === scheduleId ? { ...s, completed: typeof completed === 'boolean' ? completed : !s.completed } : s
     );
     transaction.update(scheduleDocRef, { schedules: updated, updatedAt: serverTimestamp() });
   });

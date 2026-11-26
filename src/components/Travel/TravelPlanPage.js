@@ -1,6 +1,7 @@
 // src/components/Travel/TravelPlanPage.js
 import React, { useState, useEffect, useCallback } from 'react';
-import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useParams, useNavigate, useLocation } from 'react-router-dom';
+import { useQueryModal } from '../../hooks/useQueryModal';
 import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
 import { createTrip, updateTrip, deleteTrip, trimTripSchedules } from '../../services/tripService';
@@ -34,30 +35,10 @@ const TravelPlanPage = () => {
     const { user, coupleId } = useAuthContext();
     const { trips, loading } = useTrips(coupleId);
 
-    // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate 훅
-    // (useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
-    const [searchParams] = useSearchParams();
-    const modalType = searchParams.get('modal');
+    // 모달 열림은 주소(?modal=)에서 파생 — 여닫기는 useQueryModal(여행 상세의 탭 위치 ?tab= 유지, 첫 진입이면 replace)
+    const { modal: modalType, open: openModal, close: closeModal } = useQueryModal();
     const showTripModal = modalType === 'trip';
     const showDeleteModal = modalType === 'deleteTrip';
-
-    const currentPath = tripId ? `/travel/${tripId}` : '/travel';
-    // 아래에서 이 둘을 참조하는 useCallback들이 있어, 매 렌더 새 함수가 되지 않도록
-    // useCallback으로 감쌈(안 감싸면 참조가 계속 바뀌어서 참조하는 콜백들의 메모이제이션이
-    // 무의미해짐).
-    const openModal = useCallback(
-      (type) => navigate(`${currentPath}?modal=${type}`, { state: { modal: true } }),
-      [navigate, currentPath]
-    );
-    // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
-    // 앱 밖으로 나갈 수 있어 대신 현재 페이지로 보냄 — 캘린더 closeModal과 동일한 패턴.
-    const closeModal = useCallback(() => {
-      if (location.key === 'default') {
-        navigate(currentPath, { replace: true });
-      } else {
-        navigate(-1);
-      }
-    }, [navigate, currentPath, location.key]);
 
     // 특정 여행 상세 보기
     useEffect(() => {

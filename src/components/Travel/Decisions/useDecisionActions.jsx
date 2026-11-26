@@ -1,6 +1,8 @@
 // src/components/Travel/Decisions/useDecisionActions.jsx
 // 선택 사항 탭의 후보/주제 동작 + 그에 딸린 확인·편집 모달을 한곳에서 관리.
 // 카드와 후보 상세 시트가 같은 동작을 쓰므로 탭 최상단에서 한 번만 만들어 내려줌.
+// 입력 시트·모달(후보 추가/수정, 비교 주제 추가/수정, 사진 추가)은 주소에서 파생(nav) — 뒤로가기로 닫힘:
+//   ?modal=option-add&d= · option-edit&d=&o= · topic · topic-edit&d= (+ &photo=1 사진 추가 시트). 확인창만 상태로 둠.
 import React, { useState } from 'react';
 import { toast } from 'react-toastify';
 import {
@@ -20,12 +22,17 @@ import OptionFormSheet from './OptionFormSheet';
 import DecisionModal from './DecisionModal';
 
 // scheduledDaysByOption: { [optionId]: [day...] } — 이미 일정에 들어간 후보는 확정 후 "일정에 추가할까요?"를 건너뜀
-const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOption = {}, onAddToSchedule }) => {
+const useDecisionActions = ({ trip, userId, decisions = [], nav, onOptionDeleted, scheduledDaysByOption = {}, onAddToSchedule }) => {
   // { type: 'undecide'|'askSchedule'|'deleteOption'|'deleteTopic', decision, option }
   const [confirm, setConfirm] = useState(null);
-  const [editing, setEditing] = useState(null); // { decision, option }
-  const [addingTo, setAddingTo] = useState(null); // decision
-  const [topicModal, setTopicModal] = useState(null); // { mode: 'create' } | { mode: 'edit', decision }
+  const navDecision = decisions.find(d => d.id === nav.get('d')) || null;
+  const navOption = navDecision ? (navDecision.options || []).find(o => o.id === nav.get('o')) || null : null;
+  const addingTo = nav.modal === 'option-add' ? navDecision : null;
+  const editing = nav.modal === 'option-edit' && navDecision && navOption ? { decision: navDecision, option: navOption } : null;
+  const topicModal = nav.modal === 'topic' ? { mode: 'create' }
+    : nav.modal === 'topic-edit' && navDecision ? { mode: 'edit', decision: navDecision } : null;
+  const photoOpen = nav.get('photo') === '1';
+  const openPhoto = () => nav.open(nav.modal, { d: nav.get('d'), o: nav.get('o'), photo: '1' });
 
   const run = async (task, successMsg, errorMsg) => {
     try {
@@ -67,10 +74,10 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
     },
     requestDeleteOption: (decision, option) => setConfirm({ type: 'deleteOption', decision, option }),
     requestDeleteTopic: (decision) => setConfirm({ type: 'deleteTopic', decision }),
-    editOption: (decision, option) => setEditing({ decision, option }),
-    addOption: (decision) => setAddingTo(decision),
-    createTopic: () => setTopicModal({ mode: 'create' }),
-    editTopic: (decision) => setTopicModal({ mode: 'edit', decision }),
+    editOption: (decision, option) => nav.open('option-edit', { d: decision.id, o: option.id }),
+    addOption: (decision) => nav.open('option-add', { d: decision.id }),
+    createTopic: () => nav.open('topic'),
+    editTopic: (decision) => nav.open('topic-edit', { d: decision.id }),
   };
 
   const handleConfirm = async () => {
@@ -94,7 +101,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
 
   const handleAddOption = async (optionData) => {
     const ok = await run(() => addOption(trip.id, addingTo.id, optionData), '옵션이 추가됐어요.', '옵션 추가 중 오류가 발생했어요.');
-    if (ok) setAddingTo(null);
+    if (ok) nav.close();
   };
 
   const handleUpdateOption = async (updatedData) => {
@@ -103,7 +110,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
       '옵션이 수정됐어요.',
       '옵션 수정 중 오류가 발생했어요.',
     );
-    if (ok) setEditing(null);
+    if (ok) nav.close();
   };
 
   const handleSaveTopic = async (decisionData) => {
@@ -113,7 +120,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
         '선택지가 추가됐어요.',
         '선택지 추가 중 오류가 발생했어요.',
       );
-      if (ok) setTopicModal(null);
+      if (ok) nav.close();
     } else {
       const ok = await run(
         () => updateDecision(trip.id, topicModal.decision.id, {
@@ -124,7 +131,7 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
         '비교 주제가 수정됐어요.',
         '저장 중 오류가 발생했어요.',
       );
-      if (ok) setTopicModal(null);
+      if (ok) nav.close();
     }
   };
 
@@ -147,7 +154,9 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
         <OptionFormSheet
           mode="add"
           topicTitle={addingTo.title}
-          onClose={() => setAddingTo(null)}
+          photoOpen={photoOpen}
+          onOpenPhoto={openPhoto}
+          onClose={nav.close}
           onSave={handleAddOption}
         />
       )}
@@ -157,14 +166,16 @@ const useDecisionActions = ({ trip, userId, onOptionDeleted, scheduledDaysByOpti
           mode="edit"
           topicTitle={editing.decision.title}
           option={editing.option}
-          onClose={() => setEditing(null)}
+          photoOpen={photoOpen}
+          onOpenPhoto={openPhoto}
+          onClose={nav.close}
           onSave={handleUpdateOption}
         />
       )}
       {topicModal && (
         <DecisionModal
           isOpen
-          onClose={() => setTopicModal(null)}
+          onClose={nav.close}
           tripId={trip.id}
           coupleId={trip.coupleId}
           editingDecision={topicModal.mode === 'edit' ? topicModal.decision : null}

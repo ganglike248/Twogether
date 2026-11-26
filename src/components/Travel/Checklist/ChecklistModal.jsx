@@ -32,7 +32,9 @@ const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
         dueDate: '',
       });
     }
-  }, [editingItem, isOpen]);
+    // 항목 내용이 아니라 '어느 항목인지'가 바뀔 때만 폼을 다시 채움(상대가 다른 항목을 체크해도 입력 중인 글이 안 지워지게)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [editingItem?.id, isOpen]);
 
   if (!isOpen) return null;
 

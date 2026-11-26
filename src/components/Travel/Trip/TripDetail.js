@@ -1,7 +1,9 @@
 // src/components/Travel/TripDetail.js
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
-import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
+import { useNavigate, useLocation } from 'react-router-dom';
+import { useQueryModal } from '../../../hooks/useQueryModal';
+import { isOffline } from '../../../services/offlineWrite';
 import { format, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
@@ -30,36 +32,38 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const { user } = useAuthContext();
     const navigate = useNavigate();
     const location = useLocation();
-    // 모달 열림 상태를 useState 대신 ?modal= 쿼리에서 파생 — 손수 만든 pushState/popstate 훅
-    // (useModalBackButton) 없이 React Router가 히스토리를 전담하게 함(캘린더와 같은 이유).
-    const [searchParams] = useSearchParams();
-    const showScheduleModal = searchParams.get('modal') === 'schedule';
-    const openScheduleModal = () => navigate(`${location.pathname}?modal=schedule`, { state: { modal: true } });
-    // location.key === 'default'면 이 세션에서 첫 진입(딥링크/새로고침)이라 navigate(-1)이
-    // 앱 밖으로 나갈 수 있어 대신 현재 페이지로 보냄 — 캘린더 closeModal과 동일한 패턴.
+    // 모달·탭은 주소에서 파생(?tab=decisions|checklist, ?modal=schedule|day-pick…) — 뒤로가기로 모달만 닫히고,
+    // 새로고침·딥링크에도 같은 탭이 열림. 여닫기는 useQueryModal(탭 위치 유지)
+    const qm = useQueryModal();
+    const showScheduleModal = qm.modal === 'schedule';
+    const openScheduleModal = (opts) => qm.open('schedule', {}, opts);
     const closeScheduleModal = () => {
         setSelectedSchedule(null);
-        if (location.key === 'default') {
-            navigate(location.pathname, { replace: true });
-        } else {
-            navigate(-1);
-        }
+        qm.close();
     };
-    const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'decisions' | 'checklist'
+    const tabParam = qm.get('tab');
+    const activeTab = tabParam === 'decisions' || tabParam === 'checklist' ? tabParam : 'schedule';
+    const setActiveTab = (tab) => navigate(tab === 'schedule' ? location.pathname : `${location.pathname}?tab=${tab}`, { replace: true });
     const [activeDayRaw, setActiveDay] = useState(1);
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [daySchedules, setDaySchedules] = useState({});
     const [travelTimes, setTravelTimes] = useState({});
     const [totalBudget, setTotalBudget] = useState(0);
     const [usedBudget, setUsedBudget] = useState(0);
-    const [showDaySelector, setShowDaySelector] = useState(false);
-    const [optionForSchedule, setOptionForSchedule] = useState(null);
+    // 완료 체크는 누르는 즉시 화면에 반영(서버 확인 전) — { [scheduleId]: true|false }, 실패하면 되돌림
+    const [doneOverrides, setDoneOverrides] = useState({});
 
     const decisionsTabRef = React.useRef(null);
     const checklistTabRef = React.useRef(null);
 
     const { schedules, loading } = useTripSchedules(trip.id);
     const { decisions } = useTravelDecisions(trip.id);
+
+    // 후보 → 일정: "어느 날에 추가할까요?"(?modal=day-pick&d=&o=) — 후보는 주소의 id로 찾음
+    const showDaySelector = qm.modal === 'day-pick';
+    const optionForSchedule = showDaySelector
+        ? (decisions.find(d => d.id === qm.get('d'))?.options || []).find(o => o.id === qm.get('o')) || null
+        : null;
 
     // 후보 → 그 후보로 만든 일정이 있는 날 목록(카드/상세의 "Day N 일정" 표시용). 일정 항목의 sourceOptionId로 거꾸로
     // 계산하므로 일정을 지우면 표시도 같이 사라짐
@@ -158,7 +162,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             // Math.random()을 여기서 써도 안전함 — react-hooks/purity는 렌더 중 호출만
             // 문제 삼는 규칙인데 이 파일의 다른 부분 때문에 분석이 이 줄까지 닿으면서
             // 오탐으로 걸림.
-            // eslint-disable-next-line react-hooks/purity
             const newId = `schedule_${Date.now()}_${Math.random().toString(36).substr(2, 9)}`;
             // 화면이 들고 있던 목록이 아니라 서버 최신 목록에 이 변경만 적용(동시 수정 유실 방지)
             // 후보에서 만든 새 일정이면 어느 후보인지 남김(선택 사항의 "Day N 일정" 표시) — 모달 폼엔 없는 값이라
@@ -173,7 +176,6 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             ));
             syncRegionsFromSchedule(scheduleData);
             closeScheduleModal();
-            setOptionForSchedule(null);
             // 새 일정을 다른 날에 넣었으면 그날로 이동해서 바로 보이게
             if (targetDay !== activeDay) setActiveDay(targetDay);
             toast.success(scheduleData.id ? '일정이 수정됐어요.' : '일정이 추가됐어요.');
@@ -183,14 +185,11 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
 
-    const handleAddOptionToSchedule = (decision, option) => {
-        setOptionForSchedule(option);
-        setShowDaySelector(true);
-    };
+    const handleAddOptionToSchedule = (decision, option) => qm.open('day-pick', { d: decision.id, o: option.id });
 
     const handleDaySelected = (day) => {
+        if (!optionForSchedule) return;
         setActiveDay(day);
-        setShowDaySelector(false);
 
         // 선택한 옵션 정보를 일정 모달에 pre-fill — 후보 칸을 일정의 같은 의미 칸으로 그대로 옮김
         // (예전엔 설명에 `[제목]`을 또 붙여서 제목이 두 번 들어갔음). 링크는 일정에 별도 칸이 없어 설명 끝에 둠.
@@ -208,7 +207,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         };
 
         setSelectedSchedule(scheduleData);
-        openScheduleModal();
+        // 날짜 고르기 자리를 일정 모달로 바꿈 — 닫으면 날짜 고르기가 아니라 그 전 화면(후보)으로
+        openScheduleModal({ replace: true });
     };
 
     const handleDeleteSchedule = async (scheduleId) => {
@@ -221,9 +221,23 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
 
+    // 완료 체크 — 바로 반영하고 서버에 저장, 실패하면 되돌리고 알림(예전엔 실패해도 아무 반응이 없었음).
+    // 서버가 필요한 동작(트랜잭션)이라 오프라인이면 시도하지 않고 안내.
     const handleToggleCompletion = async (scheduleId) => {
-        try { await toggleScheduleCompletion(trip.id, activeDay, scheduleId); }
-        catch (error) { console.error('Error toggling schedule completion:', error); }
+        if (isOffline()) { toast.info('오프라인이에요. 연결되면 다시 눌러 주세요.', { toastId: 'schedule-offline' }); return; }
+        const current = (daySchedules[activeDay] || []).find(s => s.id === scheduleId);
+        if (!current) return;
+        const next = !(scheduleId in doneOverrides ? doneOverrides[scheduleId] : current.completed);
+        setDoneOverrides(prev => ({ ...prev, [scheduleId]: next }));
+        const clear = () => setDoneOverrides(prev => { const { [scheduleId]: _drop, ...rest } = prev; return rest; });
+        try {
+            await toggleScheduleCompletion(trip.id, activeDay, scheduleId, next);
+            setTimeout(clear, 1500); // 서버 값이 화면에 도착한 뒤 임시 표시를 걷음
+        } catch (error) {
+            console.error('Error toggling schedule completion:', error);
+            clear();
+            toast.error(getFriendlyErrorMessage(error, '완료 표시를 저장하지 못했어요. 잠시 후 다시 눌러 주세요.'));
+        }
     };
 
     const handleSaveTravelTime = async (fromScheduleId, toScheduleId, travelTime) => {
@@ -256,6 +270,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     };
 
     const currentDaySchedules = (daySchedules[activeDay] || [])
+        .map(s => (s.id in doneOverrides ? { ...s, completed: doneOverrides[s.id] } : s))
         .sort((a, b) => {
             if (a.completed !== b.completed) return a.completed ? 1 : -1;
             return (a.time || '00:00').localeCompare(b.time || '00:00');
@@ -322,7 +337,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                         onEdit={s => { setSelectedSchedule(s); openScheduleModal(); }}
                         onToggleComplete={handleToggleCompletion}
                         onSaveTravelTime={handleSaveTravelTime}
-                        onAddFirst={openScheduleModal}
+                        onAddFirst={handleFABScheduleAdd}
                     />
                 </>
             )}
@@ -367,10 +382,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                         </div>
                         <button
                             className="dsm-cancel-btn"
-                            onClick={() => {
-                                setShowDaySelector(false);
-                                setOptionForSchedule(null);
-                            }}
+                            onClick={qm.close}
                         >
                             취소
                         </button>

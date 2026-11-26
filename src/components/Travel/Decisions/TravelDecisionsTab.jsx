@@ -3,7 +3,8 @@
 // 후보 상세 시트(?modal=option&d=&o=)와 보기 설정 시트(?modal=decision-view)는 URL로 열고 닫음
 // (앱 모달 아키텍처: 열림 상태를 URL에서 파생, 닫기는 navigate(-1) 또는 첫 진입이면 replace).
 import React, { forwardRef, useEffect, useImperativeHandle, useMemo, useRef, useState } from 'react';
-import { useLocation, useNavigate, useSearchParams } from 'react-router-dom';
+import { useLocation } from 'react-router-dom';
+import { useQueryModal } from '../../../hooks/useQueryModal';
 import { MdAdd, MdCheckCircle, MdGpsFixed, MdKeyboardArrowDown, MdStar, MdSwapVert } from 'react-icons/md';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelDecisions } from '../../../hooks/useTravelDecisions';
@@ -52,10 +53,9 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
   const [view, setView] = useState(() => loadView(trip.id));
   const [openMap, setOpenMap] = useState(() => loadOpenMap(trip.id));
 
-  const navigate = useNavigate();
   const location = useLocation();
-  const [searchParams] = useSearchParams();
-  const modal = searchParams.get('modal');
+  const qm = useQueryModal();
+  const modal = qm.modal;
 
   // iOS에서 모달 여닫기 내비게이션이 겹치면 히스토리가 꼬이므로 전환 하나가 끝날 때까지 다음 요청 무시
   const navLockRef = useRef(false);
@@ -67,27 +67,20 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
     fn();
   };
 
-  const closeModal = () => guardedNavigate(() => {
-    if (location.key === 'default') navigate(location.pathname, { replace: true });
-    else navigate(-1);
-  });
+  const closeModal = () => guardedNavigate(() => qm.close());
+  const openModal = (type, params, opts) => guardedNavigate(() => qm.open(type, params, opts));
 
-  const openOptionSheet = (decision, option, opts = {}) => guardedNavigate(() => {
-    const params = new URLSearchParams({ modal: 'option', d: decision.id, o: option.id });
-    if (opts.score) params.set('score', '1');
-    navigate(`${location.pathname}?${params.toString()}`, { state: { modal: true } });
-  });
+  const openOptionSheet = (decision, option, opts = {}) => openModal('option', { d: decision.id, o: option.id, score: opts.score ? '1' : '' });
+  const openViewSheet = () => openModal('decision-view');
 
-  const openViewSheet = () => guardedNavigate(() => {
-    navigate(`${location.pathname}?modal=decision-view`, { state: { modal: true } });
-  });
-
-  const sheetDecision = modal === 'option' ? decisions.find(d => d.id === searchParams.get('d')) : null;
-  const sheetOption = sheetDecision ? (sheetDecision.options || []).find(o => o.id === searchParams.get('o')) : null;
+  const sheetDecision = modal === 'option' ? decisions.find(d => d.id === qm.get('d')) : null;
+  const sheetOption = sheetDecision ? (sheetDecision.options || []).find(o => o.id === qm.get('o')) : null;
 
   const { actions, modals } = useDecisionActions({
     trip,
     userId: user?.uid,
+    decisions,
+    nav: { modal, get: qm.get, open: openModal, close: closeModal },
     onOptionDeleted: (optionId) => { if (sheetOption?.id === optionId) closeModal(); },
     scheduledDaysByOption,
     onAddToSchedule,
@@ -213,7 +206,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
           members={members}
           currentUserId={user?.uid}
           actions={actions}
-          startScoring={searchParams.get('score') === '1'}
+          startScoring={qm.get('score') === '1'}
           onAddToSchedule={onAddToSchedule}
           scheduledDays={scheduledDaysByOption?.[sheetOption.id]}
           onClose={closeModal}
