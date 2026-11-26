@@ -12,6 +12,7 @@ import { matchRegions, suggestRegionsFromSchedules } from '../../../services/reg
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { describeRegions } from '../../../services/regions/regionData';
 import { useDialog } from '../../../hooks/useDialog';
+import { getTripDayCount, getOverflowSchedules } from '../../../services/tripPhase';
 
 const TripModal = ({ isOpen, onClose, trip, onSave }) => {
   const dialogRef = useDialog(isOpen, onClose);
@@ -22,7 +23,6 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         endDate: '',
         budget: '',
         description: '',
-        status: 'planning'
     });
     const [loading, setLoading] = useState(false);
     // 우리 지도에 칠해질 지역 — 여행지 글자로 자동 추천, 사용자가 칩을 한 번이라도 만지면 더는 자동으로 안 바꿈
@@ -30,6 +30,8 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
     const [regionsTouched, setRegionsTouched] = useState(false);
     const [regionHint, setRegionHint] = useState('');
     const [errors, setErrors] = useState({});
+    // 기간을 줄여 잘리는 일정이 있으면 저장 전에 물어봄 — { days: [..], count, newDays }
+    const [overflowAsk, setOverflowAsk] = useState(null);
     // 기존 여행이면 일정 장소에서 찾은 지역을 추천 칩으로(새 여행은 일정이 없어 tripId 없음)
     const { schedules: tripScheduleDocs } = useTripSchedules(isOpen ? trip?.id : null);
 
@@ -52,7 +54,6 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 endDate: formatDateForInput(trip.endDate),
                 budget: trip.budget ? addCommas(trip.budget) : '',
                 description: trip.description || '',
-                status: trip.status || 'planning'
             });
         } else {
             setFormData({
@@ -62,7 +63,6 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 endDate: '',
                 budget: '',
                 description: '',
-                status: 'planning'
             });
         }
         // 기존 여행은 저장된 지역 그대로(없으면 여행지로 한 번 추천), 지도에서 넘어온 새 여행은 미리 채운 지역
@@ -107,6 +107,17 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
 
         if (!validateForm()) return;
 
+        // 기존 여행의 기간을 줄였는데 잘리는 Day에 일정이 있으면 먼저 물어봄(옮기기/지우기/취소)
+        if (trip?.id) {
+            const newDays = getTripDayCount(formData.startDate, formData.endDate);
+            const overflow = getOverflowSchedules(tripScheduleDocs, newDays);
+            if (overflow.count > 0) { setOverflowAsk({ ...overflow, newDays }); return; }
+        }
+        await save();
+    };
+
+    const save = async (overflowMode) => {
+        setOverflowAsk(null);
         setLoading(true);
         try {
             const tripData = {
@@ -121,7 +132,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                 tripData.id = trip.id;
             }
 
-            await onSave(tripData);
+            await onSave(tripData, overflowMode ? { overflowMode } : undefined);
         } catch (error) {
             console.error('Error saving trip:', error);
             toast.error(`여행 저장 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
@@ -138,6 +149,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
         }
 
         setFormData(prev => ({ ...prev, [field]: processedValue }));
+        if (field === 'startDate' || field === 'endDate') setOverflowAsk(null);
         if (field === 'destination' && !regionsTouched) {
             const found = matchRegions(processedValue);
             setRegions(found);
@@ -157,7 +169,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
             <div className="trip-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
                 <div className="trip-modal-header">
                     <h2 className="trip-modal-title">
-                        {trip ? '여행 계획 수정' : '새 여행 계획'}
+                        {trip?.id ? '여행 계획 수정' : '새 여행 계획'}
                     </h2>
                     <button className="trip-modal-close" onClick={onClose}>&times;</button>
                 </div>
@@ -257,23 +269,6 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                         </div>
 
                         <div className="trip-modal-form-group">
-                            <label className="trip-modal-form-label" htmlFor="trip-status">
-                                여행 상태
-                            </label>
-                            <select
-                                id="trip-status"
-                                value={formData.status || 'planning'}
-                                onChange={(e) => handleChange('status', e.target.value)}
-                                className="trip-modal-form-select"
-                            >
-                                <option value="planning">계획중</option>
-                                <option value="confirmed">확정됨</option>
-                                <option value="ongoing">진행중</option>
-                                <option value="completed">완료</option>
-                            </select>
-                        </div>
-
-                        <div className="trip-modal-form-group">
                             <label className="trip-modal-form-label" htmlFor="trip-description">
                                 설명
                             </label>
@@ -287,6 +282,18 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                         </div>
                     </div>
 
+                    {overflowAsk ? (
+                        <div className="trip-modal-overflow" role="alertdialog" aria-label="잘리는 일정">
+                            <p className="trip-modal-overflow-text">
+                                기간을 줄이면 <b>Day {overflowAsk.days.join('·')}</b>의 일정 <b>{overflowAsk.count}개</b>가 기간 밖으로 나가요. 어떻게 할까요?
+                            </p>
+                            <div className="trip-modal-overflow-btns">
+                                <button type="button" className="trip-modal-btn trip-modal-btn-secondary" onClick={() => setOverflowAsk(null)}>취소</button>
+                                <button type="button" className="trip-modal-btn trip-modal-btn-danger" onClick={() => save('delete')}>지우기</button>
+                                <button type="button" className="trip-modal-btn trip-modal-btn-primary" onClick={() => save('move')}>Day {overflowAsk.newDays}로 옮기기</button>
+                            </div>
+                        </div>
+                    ) : (
                     <div className="trip-modal-footer">
                         <button
                             type="button"
@@ -309,6 +316,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                             ) : '저장'}
                         </button>
                     </div>
+                    )}
                 </form>
             </div>
         </div>

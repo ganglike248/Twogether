@@ -6,18 +6,28 @@ import {
   runTransaction,
 } from 'firebase/firestore';
 import { db } from '../firebase';
-import { safeSetDoc } from './offlineWrite';
 import { reportSubscribeError } from './subscribeError';
 
 // items 배열을 읽고-수정-쓰는 작업은 반드시 트랜잭션으로 — getDoc → updateDoc으로 하면 두 사람이
 // 거의 동시에 항목을 체크/추가할 때 나중에 쓴 쪽이 먼저 쓴 쪽 변경을 통째로 덮어써 버림
 // (2026-10-12 발견/수정). 배열 항목 안 타임스탬프는 여전히 Date.now() — serverTimestamp() 배열 금지.
-const mutateItems = async (tripId, mutate) => {
+// 체크리스트 문서는 첫 항목을 추가할 때 만듦(createWith: { coupleId }) — 예전엔 탭을 열 때 "없으면 빈 목록으로 생성"했는데,
+// 오프라인이라 기기에 저장본이 없을 뿐인 경우에도 '없음'으로 보고 빈 목록을 대기열에 넣어, 연결되면 상대가 만든 항목을
+// 덮어쓸 수 있었음(v1.2.1 수정). 트랜잭션은 서버 값을 읽으므로 진짜 없을 때만 만들어짐.
+const mutateItems = async (tripId, mutate, createWith = null) => {
   const checklistRef = doc(db, 'trips', tripId, 'checklists', 'main');
   await runTransaction(db, async (transaction) => {
     const checklistSnap = await transaction.get(checklistRef);
     if (!checklistSnap.exists()) {
-      throw new Error('Checklist not found');
+      if (!createWith) throw new Error('Checklist not found');
+      transaction.set(checklistRef, {
+        tripId,
+        coupleId: createWith.coupleId || null,
+        items: mutate([]),
+        createdAt: serverTimestamp(),
+        updatedAt: serverTimestamp(),
+      });
+      return;
     }
     const updatedItems = mutate([...(checklistSnap.data().items || [])]);
     transaction.update(checklistRef, {
@@ -27,25 +37,6 @@ const mutateItems = async (tripId, mutate) => {
   });
 };
 
-
-/**
- * 체크리스트 생성 (빈 상태로 시작)
- */
-export const createChecklist = async (tripId, coupleId) => {
-  const tripRef = doc(db, 'trips', tripId);
-  const checklistRef = doc(tripRef, 'checklists', 'main');
-
-  const checklistData = {
-    tripId,
-    coupleId,
-    items: [],
-    createdAt: serverTimestamp(),
-    updatedAt: serverTimestamp(),
-  };
-
-  await safeSetDoc(checklistRef, checklistData);
-  return { id: 'main', ...checklistData };
-};
 
 /**
  * 체크리스트 구독 (실시간)
@@ -66,7 +57,7 @@ export const subscribeToChecklist = (tripId, callback, onError) => {
 /**
  * 체크리스트 항목 추가
  */
-export const addChecklistItem = async (tripId, itemData) => {
+export const addChecklistItem = async (tripId, itemData, coupleId = null) => {
   await mutateItems(tripId, (items) => [
     ...items,
     {
@@ -81,7 +72,7 @@ export const addChecklistItem = async (tripId, itemData) => {
       order: items.length + 1,
       createdAt: Date.now(),
     },
-  ]);
+  ], { coupleId });
 };
 
 /**

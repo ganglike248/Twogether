@@ -7,6 +7,7 @@ import './TripCard.css';
 import { useTripSchedules } from '../../../hooks/useTrip';
 import { formatDate, convertToDate } from '../../../utils/dataUtils';
 import { pressable } from '../../../utils/pressable';
+import { getTripPhaseInfo } from '../../../services/tripPhase';
 
 const TripCard = ({ trip, onView, onEdit, onDelete }) => {
     const [usedBudget, setUsedBudget] = useState(0);
@@ -24,17 +25,9 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
         }
     };
 
-    const getStatusBadge = () => {
-        const badges = {
-            planning: { text: '계획중', class: 'trip-card-planning' },
-            confirmed: { text: '확정됨', class: 'trip-card-confirmed' },
-            ongoing: { text: '진행중', class: 'trip-card-ongoing' },
-            completed: { text: '완료', class: 'trip-card-completed' }
-        };
-        return badges[trip.status] || badges.planning;
-    };
-
-    const statusBadge = getStatusBadge();
+    // 상태는 날짜로 계산(다가오는/여행 중/다녀옴) — 저장된 trip.status는 안 씀
+    const phase = getTripPhaseInfo(trip);
+    const statusBadge = { text: phase.label, class: `trip-card-${phase.cls}` };
 
     // 사용 예산 계산
     useEffect(() => {
@@ -117,7 +110,7 @@ const TripCard = ({ trip, onView, onEdit, onDelete }) => {
                 )}
 
                 {/* 설명이 있을 때만 표시 */}
-                {trip.description.trim() && (
+                {(trip.description || '').trim() && (
                     <p className="trip-card-description">{trip.description}</p>
                 )}
             </div>

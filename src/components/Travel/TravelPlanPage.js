@@ -3,7 +3,8 @@ import React, { useState, useEffect, useCallback } from 'react';
 import { useParams, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useTrips } from '../../hooks/useTrip';
-import { createTrip, updateTrip, deleteTrip } from '../../services/tripService';
+import { createTrip, updateTrip, deleteTrip, trimTripSchedules } from '../../services/tripService';
+import { getTripPhase, getTripDayCount } from '../../services/tripPhase';
 import { useAuthContext } from '../../contexts/AuthContext';
 import TripModal from './Trip/TripModal';
 import TripCard from './Trip/TripCard';
@@ -23,7 +24,7 @@ const TravelPlanPage = () => {
     const [selectedTrip, setSelectedTrip] = useState(null);
     const [editingTrip, setEditingTrip] = useState(null); // 모달에 전달할 편집 대상
     const [deleting, setDeleting] = useState(false);
-    const [filter, setFilter] = useState('all'); // 'all', 'planning', 'completed'
+    const [filter, setFilter] = useState('all'); // 'all' | 'upcoming'(다가오는 + 여행 중) | 'past'(다녀옴) — 날짜로 계산
     const [searchQuery, setSearchQuery] = useState('');
     const [tripToDelete, setTripToDelete] = useState(null);
 
@@ -75,15 +76,7 @@ const TravelPlanPage = () => {
 
         // 상태별 필터링
         if (filter !== 'all') {
-            filtered = filtered.filter(trip => {
-                if (filter === 'planning') {
-                    return trip.status === 'planning' || trip.status === 'confirmed';
-                }
-                if (filter === 'completed') {
-                    return trip.status === 'completed';
-                }
-                return true;
-            });
+            filtered = filtered.filter(trip => (getTripPhase(trip) === 'past') === (filter === 'past'));
         }
 
         // 검색어 필터링
@@ -98,9 +91,12 @@ const TravelPlanPage = () => {
     }, [trips, filter, searchQuery]);
 
     // 여행 저장
-    const handleSaveTrip = useCallback(async (tripData) => {
+    // overflowMode: 기간을 줄여 잘리는 Day의 일정을 'move'(마지막 날로) | 'delete' — 모달이 물어본 답(안 물었으면 안전하게 옮김)
+    const handleSaveTrip = useCallback(async (tripData, { overflowMode = 'move' } = {}) => {
         try {
             if (tripData.id) {
+                // 잘리는 일정 정리를 먼저(실패하면 기간도 안 바뀌어 일정이 숨지 않음)
+                await trimTripSchedules(tripData.id, getTripDayCount(tripData.startDate, tripData.endDate), overflowMode);
                 await updateTrip(tripData.id, tripData, user?.uid, coupleId);
             } else {
                 await createTrip(tripData, user?.uid, coupleId);
@@ -237,16 +233,16 @@ const TravelPlanPage = () => {
                             전체
                         </button>
                         <button
-                            onClick={() => setFilter('planning')}
-                            className={`travel-plan-filter-button ${filter === 'planning' ? 'travel-plan-active' : ''}`}
+                            onClick={() => setFilter('upcoming')}
+                            className={`travel-plan-filter-button ${filter === 'upcoming' ? 'travel-plan-active' : ''}`}
                         >
-                            계획중
+                            다가오는
                         </button>
                         <button
-                            onClick={() => setFilter('completed')}
-                            className={`travel-plan-filter-button ${filter === 'completed' ? 'travel-plan-active' : ''}`}
+                            onClick={() => setFilter('past')}
+                            className={`travel-plan-filter-button ${filter === 'past' ? 'travel-plan-active' : ''}`}
                         >
-                            완료
+                            다녀옴
                         </button>
                     </div>
 

@@ -202,3 +202,17 @@
     }
 }
 .trip-modal-optional { margin-left: 0.3rem; font-size: 0.75rem; color: var(--color-text-desc); font-weight: 400; }
+
+/* 기간을 줄여 잘리는 일정 확인(저장 버튼 자리) — 바닥 시트라 safe-area 포함 */
+.trip-modal-overflow {
+    padding: 0.875rem 1rem calc(0.875rem + env(safe-area-inset-bottom)) 1rem;
+    border-top: 1px solid var(--card-border);
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+}
+.trip-modal-overflow-text { margin: 0; font-size: 0.88rem; line-height: 1.5; color: var(--color-gray-800); }
+.trip-modal-overflow-text b { font-weight: 400; color: var(--color-primary-dark); }
+.trip-modal-overflow-btns { display: flex; gap: 0.5rem; }
+.trip-modal-overflow-btns .trip-modal-btn { flex: 1; justify-content: center; padding-left: 0.5rem; padding-right: 0.5rem; white-space: nowrap; }
+.trip-modal-btn-danger { background: white; color: var(--color-danger); border: 1px solid var(--color-danger); }

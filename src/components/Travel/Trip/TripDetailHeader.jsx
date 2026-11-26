@@ -5,6 +5,7 @@ import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentTex
 import { formatDate } from '../../../utils/dataUtils';
 import { groupRegions } from '../../../services/regions/regionData';
 import TripMiniMap from '../../Map/TripMiniMap';
+import { getTripPhaseInfo } from '../../../services/tripPhase';
 
 // 여행 지역을 시·도별로 묶음 — [{ sido: '전남광주', places: ['광주 동구', '광주 서구'] }]
 const regionLines = (regions) => {
@@ -14,13 +15,6 @@ const regionLines = (regions) => {
         if (g.codes.length) map.get(g.sidoShort).push(g.label);
     });
     return [...map.entries()].map(([sido, places]) => ({ sido, places }));
-};
-
-const STATUS_MAP = {
-    planning: { text: '계획중', cls: 'planning' },
-    confirmed: { text: '확정', cls: 'confirmed' },
-    ongoing: { text: '진행중', cls: 'ongoing' },
-    completed: { text: '완료', cls: 'completed' },
 };
 
 // "2026.10.31 – 11.02" — 같은 해면 종료일의 연도는 생략
@@ -35,7 +29,9 @@ const formatTripRange = (startDate, endDate) => {
 const formatNightsDays = (tripDays) => (tripDays <= 1 ? '당일치기' : `${tripDays - 1}박 ${tripDays}일`);
 
 const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onEdit, onDelete }) => {
-    const status = STATUS_MAP[trip.status] || STATUS_MAP.planning;
+    // 상태는 날짜로 계산(다가오는/여행 중/다녀옴)
+    const phase = getTripPhaseInfo(trip);
+    const status = { text: phase.label, cls: phase.cls };
     const budgetPercent = totalBudget > 0 ? Math.min((usedBudget / totalBudget) * 100, 100) : 0;
     const isOverBudget = usedBudget > totalBudget && totalBudget > 0;
 

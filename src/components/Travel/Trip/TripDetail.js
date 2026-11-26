@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { createPortal } from 'react-dom';
 import { useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { format, differenceInDays, addDays } from 'date-fns';
+import { format, addDays } from 'date-fns';
 import { ko } from 'date-fns/locale';
 import { toast } from 'react-toastify';
 import { useTripSchedules } from '../../../hooks/useTrip';
@@ -12,6 +12,7 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes, addTripRegionsFromText } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { convertToDate } from '../../../utils/dataUtils';
+import { getTripDayCount } from '../../../services/tripPhase';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
 import { extractUrl } from '../../../utils/appLinkUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
@@ -45,7 +46,7 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         }
     };
     const [activeTab, setActiveTab] = useState('schedule'); // 'schedule' | 'decisions' | 'checklist'
-    const [activeDay, setActiveDay] = useState(1);
+    const [activeDayRaw, setActiveDay] = useState(1);
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [daySchedules, setDaySchedules] = useState({});
     const [travelTimes, setTravelTimes] = useState({});
@@ -87,18 +88,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
       return count + (decision.options || []).filter(opt => !hasUserScored(opt, user?.uid)).length;
     }, 0);
 
-    const getTripDays = () => {
-        try {
-            const startDate = convertToDate(trip.startDate);
-            const endDate = convertToDate(trip.endDate);
-            if (!startDate || !endDate) return 1;
-            return differenceInDays(endDate, startDate) + 1;
-        } catch {
-            return 1;
-        }
-    };
-
-    const tripDays = getTripDays();
+    const tripDays = getTripDayCount(trip.startDate, trip.endDate);
+    // 기간이 줄어 보고 있던 Day가 없어지면 마지막 Day를 봄
+    const activeDay = Math.min(activeDayRaw, tripDays);
 
     useEffect(() => {
         const organized = {};
@@ -107,12 +99,14 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
         });
         setDaySchedules(organized);
 
+        // 예산 합계는 여행 기간 안의 Day만
         let used = 0;
-        Object.values(organized).forEach(dayList => {
+        Object.entries(organized).forEach(([day, dayList]) => {
+            if (Number(day) > tripDays) return;
             dayList.forEach(s => { if (s.cost && s.cost > 0) used += s.cost; });
         });
         setUsedBudget(used);
-    }, [schedules]);
+    }, [schedules, tripDays]);
 
     useEffect(() => {
         const unsubscribe = subscribeTravelTimes(trip.id, activeDay, (times) => {

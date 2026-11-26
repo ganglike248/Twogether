@@ -1,10 +1,9 @@
 // src/components/Travel/Checklist/TravelChecklistTab.jsx
 // 여행 체크리스트 탭 — 진행률 링 카드 → 남은 준비(항목별 카드, 중요도순) → 준비 완료(한 카드, 접힘)
-import React, { useState, useEffect, useMemo, forwardRef, useImperativeHandle } from 'react';
+import React, { useState, useMemo, forwardRef, useImperativeHandle } from 'react';
 import { useAuthContext } from '../../../contexts/AuthContext';
 import { useTravelChecklist } from '../../../hooks/useTravelChecklist';
 import {
-  createChecklist,
   addChecklistItem,
   updateChecklistItem,
   deleteChecklistItem,
@@ -29,30 +28,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
   const { checklist, loading } = useTravelChecklist(trip.id);
   const [showModal, setShowModal] = useState(false);
   const [editingItem, setEditingItem] = useState(null);
-  const [initialized, setInitialized] = useState(false);
   const [itemToDelete, setItemToDelete] = useState(null);
-
-  // 처음 로드 시 체크리스트 생성
-  useEffect(() => {
-    const initChecklist = async () => {
-      if (loading) return;
-      if (checklist) {
-        setInitialized(true);
-        return;
-      }
-
-      // 체크리스트가 없으면 생성
-      try {
-        await createChecklist(trip.id, trip.coupleId);
-        setInitialized(true);
-      } catch (error) {
-        console.error('Error creating checklist:', error);
-        toast.error('체크리스트 생성 중 오류가 발생했어요.');
-      }
-    };
-
-    initChecklist();
-  }, [loading, checklist, trip.id, trip.coupleId]);
 
   const handleAddItem = async (itemData) => {
     try {
@@ -62,7 +38,8 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
         toast.success('항목이 수정됐어요.');
       } else {
         // 추가 모드
-        await addChecklistItem(trip.id, itemData);
+        // 체크리스트 문서가 아직 없으면 이때 만들어짐(탭을 여는 것만으로는 아무것도 안 씀)
+        await addChecklistItem(trip.id, itemData, trip.coupleId);
         toast.success('항목이 추가됐어요.');
       }
       setShowModal(false);
@@ -111,7 +88,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
     }
   };
 
-  if (loading || !initialized) {
+  if (loading) {
     return (
       <div className="tct-loading">
         <div className="tct-spinner" />

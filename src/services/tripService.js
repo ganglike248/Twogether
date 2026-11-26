@@ -244,6 +244,32 @@ export const moveTripSchedule = async (tripId, fromDay, toDay, scheduleData) => 
   }
 };
 
+// 여행 기간을 newDays일로 줄일 때 잘리는 Day(> newDays)의 일정 정리 — 안 하면 화면에서만 사라지고 데이터는 남아
+// 예산 합계에 계속 더해졌음. mode 'move': 마지막 날(newDays)로 옮김(먼저 추가 → 그다음 원래 문서 삭제, 실패해도 안 사라지게),
+// 'delete': 그냥 지움. 잘리는 날의 이동 시간도 같이 삭제. 돌려주는 값: 정리한 일정 수.
+export const trimTripSchedules = async (tripId, newDays, mode = 'move') => {
+  const snap = await getDocs(query(collection(db, 'tripSchedules'), where('tripId', '==', tripId)));
+  const over = snap.docs.filter(d => d.data().day > newDays);
+  if (!over.length) return 0;
+  const items = over
+    .sort((a, b) => a.data().day - b.data().day)
+    .flatMap(d => d.data().schedules || []);
+  if (mode === 'move' && items.length) {
+    await mutateTripSchedule(tripId, newDays, (current) => [
+      ...current,
+      ...items.filter(item => !current.some(s => s.id === item.id)),
+    ]);
+  }
+  const timesSnap = await getDocs(query(collection(db, 'travelTimes'), where('tripId', '==', tripId)));
+  const refs = [...over.map(d => d.ref), ...timesSnap.docs.filter(d => d.data().day > newDays).map(d => d.ref)];
+  for (let i = 0; i < refs.length; i += DELETE_BATCH_LIMIT) {
+    const batch = writeBatch(db);
+    refs.slice(i, i + DELETE_BATCH_LIMIT).forEach(ref => batch.delete(ref));
+    await commitBatch(batch);
+  }
+  return items.length;
+};
+
 export const subscribeToTripSchedules = (tripId, callback, onError) => {
   const q = query(collection(db, 'tripSchedules'), where('tripId', '==', tripId));
   return onSnapshot(q, (querySnapshot) => {

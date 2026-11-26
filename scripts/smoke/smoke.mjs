@@ -89,6 +89,10 @@ const seed = async () => {
     { id: 's1', title: '안목해변 카페', time: '14:00', location: '강원특별자치도 강릉시 창해로 17', category: 'cafe', completed: true },
     { id: 's2', title: '양양 서피비치', time: '17:00', location: '', category: 'sight', completed: true },
   ] });
+  // 기간 줄이기 점검용 — 3일째에 일정 하나
+  await put('tripSchedules/t1_3', { tripId: 't1', day: 3, updatedAt: now, schedules: [
+    { id: 's3', title: '중앙시장 닭강정', time: '11:00', location: '', category: 'food', completed: false },
+  ] });
   await put('bucketlists/b1', { coupleId: c, title: '캠핑 가기', category: '', completed: false, createdAt: now.toISOString(), createdBy: a });
   await put('bucketlists/b2', { coupleId: c, title: '오마카세', category: '', completed: true, completedAt: ymd(addDays(-10)), createdAt: now.toISOString(), createdBy: b });
   // 하고 싶은 것(v1.2): 또 할 것 + 기록, 지난 계획(→ '했어요?' 카드)
@@ -216,6 +220,30 @@ const CHECKS = [
     await p.locator('.map-sheet').waitFor({ timeout: 5000 });
   } },
   { name: '우리 지도 · 강원 시·군', path: '/map/51', expect: '강릉 바다 여행', act: async (p) => { await p.locator('svg.km path').first().waitFor({ timeout: 10000 }); } },
+  { name: '여행 상태 자동(다녀옴) + 필터', path: '/travel', expect: '강릉 바다 여행', act: async (p) => {
+    await p.locator('.trip-card', { hasText: '강릉 바다 여행' }).getByText('다녀옴').first().waitFor({ timeout: 5000 });
+    await p.locator('.travel-plan-filter-button', { hasText: '다가오는' }).click();
+    await p.locator('.trip-card', { hasText: '제주 여행' }).first().waitFor({ timeout: 5000 });
+    if (await p.locator('.trip-card', { hasText: '강릉 바다 여행' }).count()) throw new Error("끝난 여행이 '다가오는'에 보여요");
+  } },
+  { name: '체크리스트 첫 항목 추가(문서 없던 여행)', path: '/travel/t2', expect: '제주 여행', settleMs: 1500, act: async (p) => {
+    await p.locator('.td-tab', { hasText: '체크리스트' }).click();
+    await p.getByText('아직 준비 항목이 없어요').first().waitFor({ timeout: 8000 });
+    await p.locator('.fam-fab').click();
+    await p.locator('.cm-input').first().fill('스모크 여권');
+    await p.locator('.cm-btn.submit').click();
+    await p.getByText('스모크 여권').first().waitFor({ timeout: 8000 });
+  } },
+  { name: '여행 기간 줄이기 → 잘리는 일정 옮기기', path: '/travel/t1', expect: '강릉 바다 여행', settleMs: 2000, act: async (p) => {
+    await p.locator('.td-header-action.edit').click();
+    await p.locator('#trip-end-date').fill(ymd(addDays(-5)));
+    await p.locator('button[type="submit"]').last().click();
+    await p.getByText('기간 밖으로 나가요').first().waitFor({ timeout: 5000 });
+    await p.locator('.trip-modal-overflow-btns button', { hasText: '옮기기' }).click();
+    await p.getByText('여행이 수정됐어요').first().waitFor({ timeout: 10000 });
+    await p.locator('.td-day', { hasText: 'Day 2' }).click();
+    await p.getByText('중앙시장 닭강정').first().waitFor({ timeout: 8000 });
+  } },
   { name: '지난 요약 목록', path: '/recap', expect: '지난 요약' },
   { name: '월간 요약', path: `/recap/${prevMonth}`, expect: '채웠어요' },
   { name: '봉인 편지함', path: '/letters' },
