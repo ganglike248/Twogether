@@ -136,6 +136,7 @@ const TravelPlanPage = () => {
         return (
             <>
                 <TripDetail
+                    key={selectedTrip.id}
                     trip={selectedTrip}
                     onBack={() => navigate('/travel', { replace: true })}
                     onEdit={() => handleEditTrip(selectedTrip)}

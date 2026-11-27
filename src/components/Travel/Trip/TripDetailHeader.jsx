@@ -83,10 +83,18 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
             </div>
 
             {!infoOpen ? (
+                <>
                 <button type="button" className="td-summary" onClick={toggleInfo} aria-expanded="false">
                     <span className="td-summary-text">{summary}</span>
                     <span className="td-summary-more">지도·정보 보기<HiChevronDown aria-hidden="true" /></span>
                 </button>
+                {/* 접혀 있어도 지역을 아직 안 골랐으면 알려 줌(펼친 약도 자리의 '지역 고르기'와 같은 동작) */}
+                {!(trip.regions?.length > 0) && onEdit && (
+                    <button type="button" className="td-summary-region" onClick={() => onEdit(trip)}>
+                        우리 지도에 칠할 지역을 아직 안 골랐어요 · <b>지역 고르기</b>
+                    </button>
+                )}
+                </>
             ) : (
             <>
             {/* 이번 여행 약도 — 제목 바로 아래 별도 섹션, 여행 지역 둘레로 확대 */}

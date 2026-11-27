@@ -1,5 +1,6 @@
 /* src/components/BucketList/BucketCheckCard.css — "○○, 했어요?" 카드(보드·홈 공통, 여행 끝 카드와 같은 톤) */
-.bk-check { border: 2px solid var(--color-primary) !important; display: flex; flex-direction: column; gap: 0.2rem; }
+/* 홈 밖(보드)에서는 홈 카드 스타일(Home.css)이 안 불려 있을 수 있어 바탕·여백을 여기서도 정함 */
+.bk-check { border: 2px solid var(--color-primary) !important; display: flex; flex-direction: column; gap: 0.2rem; background: white; border-radius: var(--border-radius); padding: var(--spacing-lg); box-shadow: var(--shadow-sm); box-sizing: border-box; }
 .bk-check-k { margin: 0; font-size: 0.78rem; color: var(--color-primary-dark); }
 .bk-check-t { margin: 0.1rem 0 0; font-size: 1.15rem; line-height: 1.35; color: var(--color-gray-900); font-weight: 400; }
 .bk-check-acts { display: flex; gap: 0.5rem; margin-top: 0.6rem; }

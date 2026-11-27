@@ -243,7 +243,7 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
     <div class="inner">${bucketRows(list, done)}</div></details>`;
   const bucketRows = (list, done) => (list.length ? `<ul class="list">${list.map((b) => `
     <li class="row"><div class="when">${done ? `<span class="check">✓</span> ${fmtShort(toDate(b.completedAt))}` : '<span class="open">○</span>'}</div>
-    <div class="what"><span class="title">${esc(b.title)}</span>${b.category ? `<span class="tag">${esc(categoryName(b.category))}</span>` : ''}${b.content ? `<div class="desc">${multiline(b.content)}</div>` : ''}</div></li>`).join('')}</ul>` : '<p class="empty">없어요.</p>');
+    <div class="what"><span class="title">${esc(b.title)}</span>${b.category ? `<span class="tag">${esc(categoryName(b.category))}</span>` : ''}${b.kind === 'repeat' ? `<span class="tag">자주 할 것${Math.max(Number(b.doneCount) || 0, (b.history || []).length) ? ` · ${Math.max(Number(b.doneCount) || 0, (b.history || []).length)}번` : ''}</span>` : ''}${b.content ? `<div class="desc">${multiline(b.content)}</div>` : ''}</div></li>`).join('')}</ul>` : '<p class="empty">없어요.</p>');
 
   const letterCard = (m) => {
     const written = toDate(m.createdAt); const opened = toDate(m.unlockedAt);

@@ -293,7 +293,7 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                                 id="schedule-description"
                                 value={formData.description}
                                 onChange={(e) => handleChange('description', e.target.value)}
-                                placeholder="일정에 대한 상세 설명을 입력하세요"
+                                placeholder="메모하고 싶은 내용을 적어요"
                                 rows="3"
                             />
                         </div>

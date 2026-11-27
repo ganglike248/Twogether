@@ -118,7 +118,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   type={showCurrentPassword ? 'text' : 'password'}
                   value={currentPassword}
                   onChange={(e) => setCurrentPassword(e.target.value)}
-                  placeholder="현재 비밀번호를 입력하세요"
+                  placeholder="현재 비밀번호를 적어 주세요"
                   disabled={loading}
                   autoComplete="current-password"
                 />
@@ -141,7 +141,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   type={showNewPassword ? 'text' : 'password'}
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="새 비밀번호를 입력하세요"
+                  placeholder="새 비밀번호를 적어 주세요"
                   disabled={loading}
                   autoComplete="new-password"
                 />
@@ -165,7 +165,7 @@ const ChangePasswordModal = ({ isOpen, onClose }) => {
                   type={showConfirmPassword ? 'text' : 'password'}
                   value={confirmPassword}
                   onChange={(e) => setConfirmPassword(e.target.value)}
-                  placeholder="새 비밀번호를 다시 입력하세요"
+                  placeholder="새 비밀번호를 한 번 더 적어 주세요"
                   disabled={loading}
                   autoComplete="new-password"
                 />

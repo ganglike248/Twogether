@@ -333,7 +333,6 @@
 .td-day.active .td-day-date { color: rgba(255, 255, 255, 0.92); }
 
 /* 로딩/빈 상태 */
-.td-loading,
 .td-empty {
     display: flex;
     flex-direction: column;
@@ -344,18 +343,7 @@
     color: var(--color-gray-500);
 }
 
-.td-spinner {
-    width: 28px;
-    height: 28px;
-    border: 3px solid rgba(255, 182, 193, 0.2);
-    border-top: 3px solid var(--color-primary);
-    border-radius: 50%;
-    animation: td-spin 0.8s linear infinite;
-}
 
-@keyframes td-spin {
-    to { transform: rotate(360deg); }
-}
 
 .td-empty-icon { font-size: 2rem; }
 
@@ -549,3 +537,8 @@
     color: var(--color-primary-dark); cursor: pointer; padding: 4px 8px; display: inline-flex; align-items: center; gap: 2px;
 }
 .td-info-fold { display: flex; margin: 0 auto 8px; }
+.td-summary-region {
+    width: 100%; margin-top: -4px; padding: 9px 12px; border-radius: 12px; border: 1px dashed var(--color-primary-medium);
+    background: white; font-family: inherit; font-size: 0.78rem; color: var(--color-text-desc); cursor: pointer; text-align: center;
+}
+.td-summary-region b { font-weight: 400; color: var(--color-primary-dark); }

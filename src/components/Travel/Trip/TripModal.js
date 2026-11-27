@@ -275,7 +275,7 @@ const TripModal = ({ isOpen, onClose, trip, onSave }) => {
                                 id="trip-description"
                                 value={formData.description}
                                 onChange={(e) => handleChange('description', e.target.value)}
-                                placeholder="여행에 대한 간단한 설명을 입력하세요"
+                                placeholder="어떤 여행인지 간단히 적어요"
                                 rows="4"
                             />
                         </div>

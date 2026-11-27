@@ -356,7 +356,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
             type="text"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
-            placeholder="일정 제목을 입력하세요"
+            placeholder="일정 제목을 적어 주세요"
             aria-label="일정 제목"
             required
           />
@@ -552,7 +552,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         <div className="modal-overlay">
           <div className="confirm-card">
             <p className="confirm-title">일정 삭제</p>
-            <p className="confirm-body">이 일정을 삭제하시겠습니까?</p>
+            <p className="confirm-body">이 일정을 삭제할까요?</p>
             <div className="confirm-actions">
               <button
                 type="button"

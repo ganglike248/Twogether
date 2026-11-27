@@ -16,6 +16,7 @@ import {
 import { db } from '../firebase';
 import { tripPlaceName } from './regions/regionData';
 import { commitBatch, safeAddDoc, safeDeleteDoc, safeSetDoc, safeUpdateDoc } from './offlineWrite';
+import { syncBucketPlanFromEvent } from './bucket/bucketPlanSync';
 
 // recurrenceService.js에서도 재사용 (반복 일정 생성/수정/삭제 시 시리즈 단위 요약 로그 기록용)
 export const saveEditLog = async (eventId, changes, action, userId = 'anonymous', coupleId = null) => {
@@ -88,6 +89,10 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
     safeUpdateDoc(eventRef, updatedData),
     saveEditLog(eventId, changes, 'updated', userId, coupleId),
   ]);
+  // '하고 싶은 것'에서 계획한 일정이면 날짜가 바뀔 때 버킷의 계획 날짜도 맞춤
+  if (oldData.bucketId && eventData.start && eventData.start !== oldData.start) {
+    syncBucketPlanFromEvent(eventId, oldData.bucketId, eventData.start);
+  }
   return { id: eventId, ...updatedData };
 };
 
@@ -116,6 +121,8 @@ export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null
     throw error;
   }
 
+  // '하고 싶은 것'에서 계획한 일정이면 버킷의 계획도 풀어 줌(목록엔 그대로)
+  if (eventData.bucketId) syncBucketPlanFromEvent(eventId, eventData.bucketId, null);
   await saveEditLog(eventId, eventData, 'deleted', userId, coupleId);
   return eventId;
 };
@@ -325,6 +332,8 @@ export const convertEventType = async (eventId, isPersonal, newType, userId = 'a
       userAgent: navigator.userAgent,
     });
     await commitBatch(batch);
+    // 개인 일정으로 바꾸면 커플 일정이 없어지므로 '하고 싶은 것'의 계획도 풀어 줌
+    if (eventData.bucketId) syncBucketPlanFromEvent(eventId, eventData.bucketId, null);
     return { id: newPersonalRef.id, ...newPersonalData };
   }
 };

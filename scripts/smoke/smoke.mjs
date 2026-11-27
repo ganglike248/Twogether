@@ -77,6 +77,7 @@ const seed = async () => {
   await put(`couples/${c}`, { members: [a, b], anniversaryDate: ymd(addDays(-700)), inviteCode: 'SMOKE1', createdAt: now });
   const ev = (id, dateStr, title) => put(`events/${id}`, {
     title, start: `${dateStr}T10:00`, end: `${dateStr}T12:00`, eventType: 'couple', coupleId: c, createdBy: a, createdAt: now, updatedAt: now,
+    ...(id === 'eb5' ? { bucketId: 'b5' } : {}),
   });
   await ev('e1', ymd(today), '오늘 데이트');
   await ev('e2', `${thisMonth}-02`, '전시 보기');
@@ -99,6 +100,9 @@ const seed = async () => {
   await put('bucketlists/b3', { coupleId: c, title: '마라탕 먹기', kind: 'repeat', category: 'food', completed: false, doneCount: 2, lastDoneAt: ymd(addDays(-20)),
     history: [{ date: ymd(addDays(-40)), note: '맵기 2단계', by: a, at: 1 }, { date: ymd(addDays(-20)), note: '', by: b, at: 2 }], likes: { [a]: true, [b]: true }, createdAt: now.toISOString(), createdBy: a });
   await ev('eb4', ymd(addDays(-2)), '한강 피크닉');
+  // 캘린더에서 계획 일정을 지우면 버킷의 계획도 풀리는지 점검용(앞날 계획)
+  await ev('eb5', ymd(addDays(5)), '스모크 계획 버킷');
+  await put('bucketlists/b5', { coupleId: c, title: '스모크 계획 버킷', kind: 'once', category: '', completed: false, plannedDate: ymd(addDays(5)), plannedEventId: 'eb5', createdAt: now.toISOString(), createdBy: a });
   await put('bucketlists/b4', { coupleId: c, title: '한강 피크닉', kind: 'once', category: '', completed: false, plannedDate: ymd(addDays(-2)), plannedEventId: 'eb4', createdAt: now.toISOString(), createdBy: b });
 };
 
@@ -177,6 +181,16 @@ const CHECKS = [
   { name: '뭐 할까? 골라줘(돌림판)', path: '/bucket', expect: '캠핑 가기', act: async (p) => {
     await p.locator('.bk-pick').click();
     await p.getByText('오늘 뭐 할까?').first().waitFor({ timeout: 5000 });
+  } },
+  { name: '캘린더에서 계획 일정 삭제 → 버킷 계획 풀림', path: '/calendar/event/eb5', expect: '삭제', settleMs: 1200, act: async (p) => {
+    await p.locator('.sheet-footer-row .btn-danger').click();
+    await p.locator('.confirm-actions .btn-danger').click();
+    await p.waitForTimeout(1500);
+    await p.goto(`${BASE}/bucket`, { waitUntil: 'domcontentloaded' });
+    const card = p.locator('.bk-card', { hasText: '스모크 계획 버킷' }).first();
+    await card.waitFor({ timeout: 10000 });
+    await p.waitForTimeout(800);
+    if ((await card.innerText()).includes('하기로 했어요')) throw new Error('일정을 지웠는데 버킷에 계획이 남아 있어요');
   } },
   { name: '홈 했어요? 카드(지난 계획)', path: '/', expect: '했어요?' },
   { name: '했어요? 카드 → 아직이에요', path: '/bucket', expect: '했어요?', settleMs: 1200, act: async (p) => {
