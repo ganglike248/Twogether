@@ -18,6 +18,8 @@ export const BACKUP_COLLECTION_KEYS = [
   'travelDecisions',
   'checklists',
   'bucketlists',
+  'decisions',
+  'decisionRounds', // decisions/{topicId}/rounds — 항목에 topicId를 같이 담음
   'sealedMessages',
   'edit_logs',
 ];

@@ -24,6 +24,7 @@ export const SUMMARY_GROUPS = [
   { key: 'trips', label: '여행' },
   { key: 'tripDetails', label: '여행 세부 내용 (일정표·선택 사항·체크리스트)' },
   { key: 'bucketlists', label: '버킷리스트' },
+  { key: 'decisions', label: '같이 정해요 (주제·지난 결정)' },
   { key: 'sealedMessages', label: '봉인 편지' },
   { key: 'edit_logs', label: '수정 기록' },
   { key: 'couple', label: '커플 설정 (기념일·색상·버킷 카테고리·홈 사진)' },
@@ -35,11 +36,15 @@ const summaryGroupOf = (collKey, item) => {
   if (collKey === 'eventSeries') return null;
   if (collKey === 'events' && item.data.eventType === 'travel') return null;
   if (TRIP_DETAIL_KEYS.includes(collKey)) return 'tripDetails';
+  if (collKey === 'decisionRounds') return 'decisions';
   return collKey;
 };
 
-// 서브컬렉션(travelDecisions/checklists)은 여행마다 ID가 겹칠 수 있어(checklists는 항상 'main') tripId까지 키에 포함
-const itemKey = (collKey, item) => (item.tripId ? `${item.tripId}/${item.id}` : item.id);
+// 서브컬렉션(travelDecisions/checklists, 같이 정해요 rounds)은 부모마다 ID가 겹칠 수 있어(checklists는 항상 'main') 부모 ID까지 키에 포함
+const itemKey = (collKey, item) => {
+  const parent = item.tripId || item.topicId;
+  return parent ? `${parent}/${item.id}` : item.id;
+};
 
 const defaultCheckImage = (url) => new Promise((resolve) => {
   if (!url || typeof Image === 'undefined') { resolve(false); return; }
@@ -109,6 +114,7 @@ export const planRestore = async ({ db, backup, coupleId, uid, checkImage = defa
   pick('events', (i) => i.data.coupleId === coupleId);
   pick('trips', (i) => i.data.coupleId === coupleId);
   pick('bucketlists', (i) => i.data.coupleId === coupleId);
+  pick('decisions', (i) => i.data.coupleId === coupleId);
   pick('edit_logs', (i) => i.data.coupleId === coupleId);
   pick('personal_events', (i) => {
     if (i.data.userId === uid) return true;
@@ -128,6 +134,15 @@ export const planRestore = async ({ db, backup, coupleId, uid, checkImage = defa
   pick('travelTimes', (i) => tripExists(i.data.tripId));
   pick('travelDecisions', (i) => tripExists(i.tripId));
   pick('checklists', (i) => tripExists(i.tripId));
+
+  // 같이 정해요의 판은 그 주제가 지금 있거나 이번에 같이 복원될 때만(규칙이 주제의 coupleId를 확인함)
+  const availableTopicIds = new Set([...existing.decisions, ...writes.decisions.map((t) => t.id)]);
+  pick('decisionRounds', (i) => {
+    if (i.data.coupleId !== coupleId) return false;
+    if (availableTopicIds.has(i.topicId)) return true;
+    skipped.orphan += 1;
+    return false;
+  });
 
   // 봉인 편지는 규칙상 작성자 본인만 만들 수 있음 — 파트너가 쓴 편지는 파트너만 지울 수 있으니
   // 파트너가 자기 백업으로 복원하면 됨
@@ -203,6 +218,7 @@ const docRefFor = (db, collKey, item) => {
   if (collKey === 'travelDecisions' || collKey === 'checklists') {
     return doc(db, 'trips', item.tripId, collKey, item.id);
   }
+  if (collKey === 'decisionRounds') return doc(db, 'decisions', item.topicId, 'rounds', item.id);
   return doc(db, collKey, item.id);
 };
 
@@ -243,10 +259,10 @@ export const executeRestore = async ({ db, plan, onProgress }) => {
 
   // 2) 여행 먼저 커밋 — 일정표/이동시간/선택 사항/체크리스트 규칙이 trips 문서 "존재"를 확인하는데,
   //    규칙의 exists()/get()은 같은 배치 안의 쓰기를 못 봄
-  await commitInBatches(db, toEntries('trips'), advance);
+  await commitInBatches(db, [...toEntries('trips'), ...toEntries('decisions')], advance); // 같이 정해요 주제도 판보다 먼저
 
   // 3) 나머지 일반 문서
-  const restKeys = ['events', 'personal_events', 'eventSeries', 'bucketlists', 'edit_logs', ...TRIP_DETAIL_KEYS];
+  const restKeys = ['events', 'personal_events', 'eventSeries', 'bucketlists', 'edit_logs', ...TRIP_DETAIL_KEYS, 'decisionRounds'];
   await commitInBatches(db, restKeys.flatMap(toEntries), advance);
 
   // 4) 봉인 편지 — 규칙상 봉인 상태(isUnlocked:false)로만 만들 수 있고, private/content 규칙이 상위 문서를

@@ -133,7 +133,7 @@ const DataBackupPage = () => {
         <div className="dbp-section-title">기록 파일</div>
         <div className="dbp-title">우리 기록을 한 권으로 저장</div>
         <p className="dbp-desc">
-          함께한 일정·여행·버킷리스트·봉인 편지를 날짜순으로 정리한 문서로 저장해요. 휴대폰이나 컴퓨터 브라우저에서 바로 열어볼 수 있어요.
+          함께한 일정·여행·버킷리스트·같이 정해요·봉인 편지를 날짜순으로 정리한 문서로 저장해요. 휴대폰이나 컴퓨터 브라우저에서 바로 열어볼 수 있어요.
         </p>
         <button
           type="button"
@@ -149,7 +149,7 @@ const DataBackupPage = () => {
         <div className="dbp-section-title">내보내기</div>
         <div className="dbp-title">백업 파일 저장</div>
         <p className="dbp-desc">
-          우리 커플의 일정·여행·버킷리스트·봉인 편지·설정과 내 개인 일정을 파일 하나로 저장해요.
+          우리 커플의 일정·여행·버킷리스트·같이 정해요·봉인 편지·설정과 내 개인 일정을 파일 하나로 저장해요.
         </p>
         <ul className="dbp-notes">
           <li>파트너의 개인 일정과, 파트너가 쓴 아직 안 열린 편지의 내용은 포함되지 않아요.</li>

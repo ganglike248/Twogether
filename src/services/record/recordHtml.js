@@ -136,7 +136,7 @@ footer{color:var(--muted);font-size:12px;border-top:1px dashed var(--line);paddi
  * @param {object}   p.memberNames   { uid: 닉네임 }
  * @param {string}   p.viewerUid     파일을 저장하는 사람
  * @param {object}   p.couple        { anniversaryDate, customCategories, heroImageUrl }
- * @param {object}   p.data          { events, personal_events?, trips, tripSchedules, travelDecisions, checklists, bucketlists, sealedMessages }
+ * @param {object}   p.data          { events, personal_events?, trips, tripSchedules, travelDecisions, checklists, bucketlists, decisions?, decisionRounds?, sealedMessages }
  * @param {Date}     [p.savedAt]
  * @param {string}   [p.note]        상단 안내 문구(예: 보관 기간 안내)
  */
@@ -160,6 +160,18 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
   const letters = (data.sealedMessages || []).map((m) => ({ ...m.data, content: m.content }))
     .sort((a, b) => (toDate(a.createdAt) || 0) - (toDate(b.createdAt) || 0));
   const doneBuckets = buckets.filter((b) => b.completed);
+  // 같이 정해요 — 주제마다 지난 결정(정한 순, 최근 위) + 정하는 중인 판
+  const rounds = (data.decisionRounds || []).map((r) => ({ ...r.data, id: r.id, topicId: r.topicId || r.data.topicId }));
+  const decisionTopics = (data.decisions || []).map((t) => {
+    const mine = rounds.filter((r) => r.topicId === t.id);
+    return {
+      ...t.data,
+      id: t.id,
+      decided: mine.filter((r) => r.status === 'decided').sort((a, b) => (b.decidedAtMs || 0) - (a.decidedAtMs || 0)),
+      current: mine.find((r) => r.status !== 'decided' && r.id === t.data.currentRoundId) || null,
+    };
+  }).sort((a, b) => (b.decided[0]?.decidedAtMs || 0) - (a.decided[0]?.decidedAtMs || 0));
+  const decidedCount = decisionTopics.reduce((n, t) => n + t.decided.length, 0);
 
   // 몇 년치 기록이면 한 페이지가 휴대폰 화면 수천 장이 됨(10년·일정 1.4만 개 실측 ≈ 1,500장) — 연도별로 접고 가장 최근
   // 연도만 펼쳐서, 접힌 연도 목록이 그대로 목차가 되게 함. <details>라 스크립트 없이도 동작.
@@ -234,6 +246,16 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
       ${dayHtml}${decisionHtml}${checklistHtml}</article>`;
   };
 
+  const decisionCard = (t) => {
+    const rows = t.decided.map((r) => `<li class="row"><div class="when">${r.decidedAtMs ? fmtShort(new Date(r.decidedAtMs)) : ''}</div><div class="what">
+      <span class="title">${esc(r.decidedTitle || '')}</span>${r.viaWheel ? '<span class="tag">돌림판</span>' : ''}
+      <div class="desc">후보 ${(r.options || []).length}개 중${(r.options || []).length > 1 ? ` · ${esc((r.options || []).filter((o) => o.id !== r.decidedOptionId).map((o) => o.title).join(', '))}` : ''}</div></div></li>`).join('');
+    const now = t.current && (t.current.options || []).length
+      ? `<div class="sub">정하는 중</div><div class="desc">${esc(t.current.options.map((o) => o.title).join(', '))}</div>` : '';
+    return `<article class="card"><div class="head"><span class="name">${esc(t.title)}</span><span class="meta">${t.decided.length ? `${t.decided.length}번 정함` : '아직 정한 적 없음'}</span></div>
+      ${rows ? `<ul class="list">${rows}</ul>` : ''}${now}</article>`;
+  };
+
   const categoryName = (key) => couple.customCategories?.[key]?.label
     || { food: '음식', place: '여행', date: '데이트' }[key] || key || '';
 
@@ -264,6 +286,7 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
       : trips.length ? `${num(trips.length)}번 함께 여행을 떠났어요.`
       : doneBuckets.length ? `하고 싶던 일 ${num(doneBuckets.length)}가지를 함께 이뤘어요.` : '',
     letters.length ? `${num(letters.length)}통의 편지에 서로의 마음을 담았어요.` : '',
+    decidedCount ? `둘이 함께 고민해서 ${num(decidedCount)}번 정했어요.` : '',
   ].filter(Boolean);
 
   const coupleTitle = `${esc(displayName(bfUid))} <span class="heart">♥</span> ${esc(displayName(gfUid))}`;
@@ -271,6 +294,7 @@ export const buildRecordHtml = ({ members = [], memberNames = {}, viewerUid, cou
     ['events', '함께한 일정', eventRows(events, true)],
     ['trips', '여행', trips.length ? yearBlocks(byYear(trips, (t) => toDate(t.startDate)?.getFullYear()), '여행', (items) => items.map(tripCard).join('')) : '<p class="empty">기록된 여행이 없어요.</p>'],
     ['bucket', '버킷리스트', buckets.length ? `${bucketGroup('이룬 것', doneBuckets.sort((a, b) => (toDate(b.completedAt) || 0) - (toDate(a.completedAt) || 0)), true)}${bucketGroup('하고 싶은 것', buckets.filter((b) => !b.completed), false)}` : '<p class="empty">버킷리스트가 없어요.</p>'],
+    ...(decisionTopics.length ? [['decisions', '같이 정해요', decisionTopics.map(decisionCard).join('')]] : []),
     ['letters', '봉인 편지', letters.length ? yearBlocks(byYear(letters, (m) => toDate(m.createdAt)?.getFullYear()), '편지', (items) => items.map(letterCard).join('')) : '<p class="empty">주고받은 편지가 없어요.</p>'],
     ...(personal.length ? [['personal', '내 개인 일정', eventRows(personal, false)]] : []),
   ];

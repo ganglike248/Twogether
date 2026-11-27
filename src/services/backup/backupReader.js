@@ -51,6 +51,14 @@ export const readBackupData = async ({ db, coupleId, uid, includeSealedContent =
     };
   }));
 
+  step('같이 정해요');
+  const decisionsSnap = await readWhere(db, 'decisions', ['coupleId', coupleId]);
+  const decisions = toItems(decisionsSnap);
+  const decisionRounds = (await Promise.all(decisions.map(async ({ id: topicId }) => {
+    const snap = await getDocsFromServer(query(collection(db, 'decisions', topicId, 'rounds'), where('coupleId', '==', coupleId)));
+    return toItems(snap, { topicId });
+  }))).flat();
+
   step('버킷리스트 · 봉인 편지 · 수정 기록');
   const [bucketSnap, sealedSnap, logsSnap] = await Promise.all([
     readWhere(db, 'bucketlists', ['coupleId', coupleId]),
@@ -82,6 +90,8 @@ export const readBackupData = async ({ db, coupleId, uid, includeSealedContent =
     travelDecisions: flat('travelDecisions'),
     checklists: flat('checklists'),
     bucketlists: toItems(bucketSnap),
+    decisions,
+    decisionRounds,
     sealedMessages,
     edit_logs: toItems(logsSnap),
   };

@@ -217,6 +217,9 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp, notify
       ]);
       return { tripSchedules: items(s), travelTimes: items(tt), travelDecisions: items(d, { tripId: t.id }), checklists: items(c, { tripId: t.id }) };
     }));
+    // 같이 정해요 — 주제 + 판(rounds, topicId를 같이 담음)
+    const decisionsSnap = await db.collection('decisions').where('coupleId', '==', coupleId).get();
+    const decisionRounds = (await Promise.all(decisionsSnap.docs.map(async (t) => items(await t.ref.collection('rounds').get(), { topicId: t.id })))).flat();
     const sealedMessages = await Promise.all(sealedSnap.docs.map(async (m) => {
       const data = m.data();
       const readable = data.authorUid === uid || data.isUnlocked === true;
@@ -246,6 +249,8 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp, notify
         travelDecisions: flat('travelDecisions'),
         checklists: flat('checklists'),
         bucketlists: items(bucketSnap),
+        decisions: items(decisionsSnap),
+        decisionRounds,
         sealedMessages,
       },
     };

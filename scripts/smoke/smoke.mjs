@@ -3,7 +3,7 @@
 // Playwright로 로그인 후 주요 화면을 차례로 열어 오류 화면·처리 안 된 오류·핵심 요소를 확인 → "N/M 통과" 요약.
 // 운영 Firebase는 전혀 건드리지 않음(데모 프로젝트 ID라 에뮬레이터에만 연결됨).
 import { spawn } from 'node:child_process';
-import { readdirSync, existsSync } from 'node:fs';
+import { readdirSync, existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
 import path from 'node:path';
@@ -368,6 +368,28 @@ const CHECKS = [
   { name: '커플 정보', path: '/couple-info' },
   { name: '계정', path: '/account', expect: '로그아웃' },
   { name: '데이터 백업', path: '/data-backup' },
+  // 같이 정해요가 백업·기록 파일에 들어가는지 — 백업 저장 → 주제 d2(와 판)를 지움 → 같은 파일로 되살리기 → d2·r2가 다시 있음
+  { name: '백업·기록 파일에 같이 정해요', path: '/data-backup', expect: '백업 파일 저장', settleMs: 600, act: async (p) => {
+    const [rec] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: '기록 파일 저장' }).click()]);
+    const html = readFileSync(await rec.path(), 'utf8');
+    if (!html.includes('같이 정해요') || !html.includes('성수 팝업')) throw new Error('기록 파일에 같이 정해요가 없어요');
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.getByRole('button', { name: '백업 파일 저장' }).click()]);
+    const file = await dl.path();
+    const json = JSON.parse(readFileSync(file, 'utf8'));
+    if (!json.collections.decisions?.some((d) => d.id === 'd2') || !json.collections.decisionRounds?.some((r) => r.id === 'r2' && r.topicId === 'd2')) {
+      throw new Error('백업 파일에 같이 정해요가 없어요');
+    }
+    const roundIds = json.collections.decisionRounds.filter((r) => r.topicId === 'd2').map((r) => r.id);
+    for (const id of roundIds) await fetch(`${FS}/decisions/d2/rounds/${id}`, { method: 'DELETE', headers: { Authorization: 'Bearer owner' } });
+    await fetch(`${FS}/decisions/d2`, { method: 'DELETE', headers: { Authorization: 'Bearer owner' } });
+    await p.locator('.dbp-file-input').setInputFiles(file);
+    const restoreBtn = p.getByRole('button', { name: /개 되살리기$/ });
+    await restoreBtn.waitFor({ timeout: 15000 });
+    await restoreBtn.click();
+    const ok = async (docPath) => (await fetch(`${FS}/${docPath}`, { headers: { Authorization: 'Bearer owner' } })).ok;
+    for (let i = 0; i < 30 && !(await ok('decisions/d2/rounds/r2')); i++) await p.waitForTimeout(300);
+    if (!(await ok('decisions/d2')) || !(await ok('decisions/d2/rounds/r2'))) throw new Error('같이 정해요가 되살아나지 않았어요');
+  } },
 ];
 
 const main = async () => {

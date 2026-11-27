@@ -167,7 +167,7 @@
 `decisions/{id}`(주제: title·currentRoundId·lastResult·roundCount) + `decisions/{id}/rounds/{id}`(판: options·status·decided*). 둘 다 `coupleId` — 목록은 where coupleId, 정렬은 기기에서(`*AtMs`).
 주제는 계속 다시 씀: 확정하면 판이 '지난 결정'으로, [새로 정하기]는 지난 후보를 체크된 채로(평가는 새로, `freshOption`). 후보 카드·상세·추가 시트는 여행 것 재사용(`CardRow`·`OptionDetailSheet`·`OptionFormSheet`), **여행 데이터는 옮기지 않음**(사용자 결정).
 돌림판은 `WheelSpinStep`(`metaText`·`onDecide`), 지난 결정에 '돌림판' 표시. 이모지 없음(사용자 결정). 홈 '우리 이야기' `DecisionHomeCard` + 설정 목록. 모달 `?modal=option|option-add|option-edit|new-round|wheel|rename`.
-계산은 `dailyDecisionLogic.js`(테스트), 후보 배열은 트랜잭션. 커플 삭제(`purgeCouple`)는 recursiveDelete. 백업·기록 파일엔 아직 없음
+계산은 `dailyDecisionLogic.js`(테스트), 후보 배열은 트랜잭션. 커플 삭제(`purgeCouple`)는 recursiveDelete. 백업은 `decisions`+`decisionRounds`(항목에 `topicId`, 복원은 주제 먼저 커밋), 기록 파일엔 '같이 정해요' 구역(앱·서버 `exportFormerCouple` 둘 다)
 
 **돌림판**(`Wheel/`, v1.0.38 리디자인): `WheelModal`(흐름·후보 상태) + `WheelSelectStep`(직접 적기·버킷 담기) + `WheelSpinStep`(SVG 원판, CSS transform 회전).
 마지막 후보는 로컬스토리지 `twogether_wheel_last`에 기억, 후보 2개 이상일 때만 돌리기, 결과 자동 사라짐 없음, "이건 빼고"로 이번 판에서 제외
@@ -192,5 +192,5 @@
 - 사용자 메모: `docs/dev.md`(2026-11-18 기준 비어 있음 — 이전 항목 모두 완료/보류)
 - 이벤트 사진 첨부(`uploadEventImage` 미구현, MemoryDetail 렌더링 미구현)
 - 카카오 로그인(별도 백엔드 필요, 장기)
-- 로드맵: 4. 일상 결정은 v1.2.14 '같이 정해요'로 완료(여행 데이터는 그대로, 백업·기록 파일 연결은 남음). 5. 우리 지도는 v1.1.0~1.1.2 완료, 7. 연말 랩업 + 월간 요약은 v1.0.47 완료.
+- 로드맵: 4. 일상 결정은 v1.2.14 '같이 정해요'로 완료(여행 데이터는 그대로). 5. 우리 지도는 v1.1.0~1.1.2 완료, 7. 연말 랩업 + 월간 요약은 v1.0.47 완료.
   6. 위치 기반 알림은 폐기(재제안 금지)
