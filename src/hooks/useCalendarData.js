@@ -49,12 +49,12 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
           let color, textColor;
           switch (data.eventType) {
             case 'boyfriend':
-              color = 'var(--color-boyfriend)'; textColor = '#757575'; break;
+              color = 'var(--color-boyfriend)'; textColor = 'var(--color-event-text)'; break;
             case 'girlfriend':
-              color = 'var(--color-girlfriend)'; textColor = '#757575'; break;
+              color = 'var(--color-girlfriend)'; textColor = 'var(--color-event-text)'; break;
             case 'couple':
             default:
-              color = 'var(--color-couple)'; textColor = '#757575'; break;
+              color = 'var(--color-couple)'; textColor = 'var(--color-event-text)'; break;
           }
           return {
             id: doc.id, title: data.title, start: data.start, end: data.end,
@@ -130,7 +130,7 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
           end: `${adjustedEndDate}T00:00:00`,
           allDay: true,
           color: 'var(--color-trip)',
-          textColor: '#757575',
+          textColor: 'var(--color-event-text)',
           extendedProps: {
             description: tripPlaceName(data),
             isTrip: true,
@@ -174,7 +174,7 @@ export const useCalendarData = (coupleId, userId, options = {}) => {
           end: data.end,
           allDay: true,
           color: 'var(--color-personal)',
-          textColor: '#757575',
+          textColor: 'var(--color-event-text)',
           extendedProps: {
             description: data.description,
             eventType: 'personal',

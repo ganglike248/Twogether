@@ -14,8 +14,8 @@ const CalendarHeader = ({
   return (
     <div className="calendar-header">
       <div className="calendar-header-nav">
-        <button className="cal-nav-btn" onClick={onPrevMonth}>‹</button>
-        <button className="cal-nav-btn" onClick={onNextMonth}>›</button>
+        <button className="cal-nav-btn" onClick={onPrevMonth} aria-label="이전 달">‹</button>
+        <button className="cal-nav-btn" onClick={onNextMonth} aria-label="다음 달">›</button>
       </div>
       <span className="calendar-title">{formatMonthTitle(currentDate)}</span>
       <div className="calendar-header-actions">

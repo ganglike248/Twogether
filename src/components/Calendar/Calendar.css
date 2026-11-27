@@ -141,7 +141,7 @@
 
 /* ─── 캘린더 그리드 (라운드 제거, 여백 제거) ─── */
 .fc-theme-standard .fc-scrollgrid {
-  background: #fff;
+  background: white;
   border-radius: 0;
   border: none;
   border-top: 1px solid var(--color-gray-200);
@@ -197,7 +197,7 @@
   color: var(--color-primary-dark);
 }
 .fc .fc-col-header-cell.fc-day-sat .fc-col-header-cell-cushion {
-  color: #7ec8e3;
+  color: var(--color-saturday);
 }
 
 /* 날짜 숫자 */
@@ -221,7 +221,7 @@
 }
 
 /* 주말 색상 */
-.fc-day-sat .fc-daygrid-day-number { color: #7ec8e3; }
+.fc-day-sat .fc-daygrid-day-number { color: var(--color-saturday); }
 .fc-day-sun .fc-daygrid-day-number { color: var(--color-primary-dark); }
 
 /* 공휴일·커플기념일 날짜 숫자 색상 */
@@ -277,19 +277,17 @@
   text-overflow: ellipsis;
 }
 
+/* 배경은 일정 색 변수(설정에서 바꾸면 useColorSync가 덮어씀). 글자색은 useCalendarData의 textColor가 정함 */
 .fc-event.couple-event {
-  background: #ffd6e0;
-  color: #d16ba5;
+  background: var(--color-couple);
 }
 
 .fc-event.girlfriend-event {
-  background: #b5ead7;
-  color: #59b7a3;
+  background: var(--color-girlfriend);
 }
 
 .fc-event.boyfriend-event {
-  background: #c7ceea;
-  color: #6c6ea0;
+  background: var(--color-boyfriend);
 }
 
 .fc-event.personal-event {
@@ -297,8 +295,7 @@
 }
 
 .fc-event.trip-event {
-  background: #e8d7f1;
-  color: #8b5fa0;
+  background: var(--color-trip);
 }
 
 .fc-h-event .fc-event-main {
@@ -350,7 +347,7 @@
 .fc .fc-daygrid-more-link {
   font-size: 0.6rem;
   font-weight: 600;
-  color: #aaa;
+  color: var(--color-gray-500);
   padding: 0 2px;
 }
 

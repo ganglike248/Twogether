@@ -82,7 +82,6 @@ const Calendar = () => {
   const selectedDate = dayMatch?.params?.date ?? null;
   // 수정 대상 이벤트는 events가 아직 로딩 중이면 열지 않음 — 데이터 도착 전 "빈 새 일정
   // 작성" 폼이 스치듯 보이는 걸 방지 (기존 ?date= 딥링크가 !isLoading을 기다리던 것과 동일한 이유).
-  const isModalOpen = !!(eventNewMatch || (eventEditMatch && !isLoading));
   const showEditLog = !!logMatch;
 
   // 모달 열기/닫기 내비게이션 재진입 잠금 + 마지막으로 해석된 수정 대상 이벤트 캐시
@@ -150,6 +149,10 @@ const Calendar = () => {
       return null;
     }
   }, [eventNewDate, eventEditId, events, myRole]);
+
+  const selectedEventReady = !!selectedEvent;
+  // (지워진 일정 주소면 아래 effect가 안내 후 캘린더로 돌려보냄 — 빈 '새 일정' 폼을 띄우지 않음)
+  const isModalOpen = !!(eventNewMatch || (eventEditMatch && !isLoading && selectedEventReady));
 
   const [viewMode, setViewMode] = useState('all'); // 'all' | 'personal' | 'couple'
   const [currentDate, setCurrentDate] = useState(() => {
@@ -263,6 +266,13 @@ const Calendar = () => {
       (prev.getFullYear() === y && prev.getMonth() === m - 1) ? prev : new Date(y, m - 1, 1)
     );
   }, [dayMatch?.params?.date]);
+
+  // 지워졌거나 없는 일정 주소(오래된 링크·다른 기기에서 삭제)로 들어오면 안내 후 캘린더로
+  useEffect(() => {
+    if (!eventEditId || isLoading || selectedEventReady) return;
+    toast.info('이미 지워진 일정이에요.');
+    navigatePage('/calendar', { replace: true });
+  }, [eventEditId, isLoading, selectedEventReady, navigatePage]);
 
   // Months for 3-month slider
   const months = useMemo(() => [
@@ -382,11 +392,14 @@ const Calendar = () => {
   }, [events, user?.uid, coupleId, closeModal]);
 
   const handleDeleteEvent = useCallback(async (eventId, scope, seriesId) => {
+    const deleteErrorMessage = (error) => `일정 삭제 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`;
     try {
       // filteredEvents 대신 events 사용: 탭 필터에 관계없이 원본 속성으로 판별
       const event = events.find(e => e.id === eventId);
       const isPersonal = event?.extendedProps?.isPersonal || false;
 
+      // 저장과 같게 연결이 멈추면 오래 기다리지 않음(삭제는 기기에 먼저 반영되고 연결되면 올라감)
+      const deleteTask = (async () => {
       if (scope) {
         // 반복 일정 삭제 — "이 일정만/이후 모두/전체" 범위대로 적용
         const instanceDateStr = typeof event?.start === 'string' ? event.start.split('T')[0] : '';
@@ -404,10 +417,17 @@ const Calendar = () => {
       } else {
         await deleteEvent(eventId, user?.uid, coupleId);
       }
+      })();
+      const { timedOut } = await waitAtMost(deleteTask, SAVE_ACK_TIMEOUT_MS);
       closeModal();
+      if (timedOut) {
+        deleteTask.catch((error) => toast.error(deleteErrorMessage(error)));
+        toast.info('연결이 불안정해 삭제가 지연되고 있어요.\n연결되면 자동으로 반영돼요.');
+        return;
+      }
       toast.success('일정을 삭제했어요.');
     } catch (error) {
-      toast.error(`일정 삭제 중 오류가 발생했어요.\n${getFriendlyErrorMessage(error)}`);
+      toast.error(deleteErrorMessage(error));
     }
   }, [events, user?.uid, coupleId, closeModal]);
 

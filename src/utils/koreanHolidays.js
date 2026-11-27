@@ -49,6 +49,55 @@ const shiftDate = (date, days) => {
   return d;
 };
 
+// 대체공휴일 적용 시작 연도(하루짜리 공휴일). 신정·현충일은 대체공휴일 없음
+const SUBSTITUTE_FROM = {
+  '삼일절': 2021, '어린이날': 2014, '광복절': 2021, '개천절': 2021, '한글날': 2021,
+  '부처님 오신 날': 2023, '크리스마스': 2023,
+};
+const LONG_HOLIDAY_FROM = 2014; // 설날·추석 연휴(일요일과 겹치거나 다른 공휴일과 겹칠 때)
+
+const isWeekend = (d) => d.getDay() === 0 || d.getDay() === 6;
+
+/**
+ * 그해 공휴일 목록(entries: {date, str, name, group})으로 대체공휴일 날짜를 계산.
+ * - 설날·추석: 연휴 중 일요일이 있거나 다른 공휴일과 겹치면 연휴 다음 첫 평일 하루
+ * - 하루짜리: 토·일이거나 다른 공휴일과 겹치면 다음 첫 평일(겹친 개수만큼)
+ * 반환: [{ str, name }]
+ */
+export const computeSubstituteHolidays = (year, entries) => {
+  const taken = new Set(entries.map((e) => e.str));
+  const result = [];
+  const pickAfter = (from, name) => {
+    const d = new Date(from);
+    do { d.setDate(d.getDate() + 1); } while (isWeekend(d) || taken.has(dateToStr(d)));
+    const str = dateToStr(d);
+    taken.add(str);
+    result.push({ str, name });
+  };
+  const groupsOn = (str) => new Set(entries.filter((e) => e.str === str).map((e) => e.group));
+  const isLong = (e) => e.group === 'seollal' || e.group === 'chuseok';
+
+  if (year >= LONG_HOLIDAY_FROM) {
+    [['seollal', '설날'], ['chuseok', '추석']].forEach(([group, label]) => {
+      const days = entries.filter((e) => e.group === group).sort((a, b) => a.date - b.date);
+      if (!days.length) return;
+      const hit = days.some((e) => e.date.getDay() === 0 || groupsOn(e.str).size > 1);
+      if (hit) pickAfter(days[days.length - 1].date, `대체공휴일(${label})`);
+    });
+  }
+
+  const eligibleOf = (list) => list.filter((e) => !isLong(e) && SUBSTITUTE_FROM[e.name] && year >= SUBSTITUTE_FROM[e.name]);
+  const dates = [...new Set(eligibleOf(entries).map((e) => e.str))].sort();
+  dates.forEach((str) => {
+    const onDay = entries.filter((e) => e.str === str);
+    if (onDay.some(isLong)) return; // 연휴와 겹친 건 위에서 한 번만 셈
+    const eligible = eligibleOf(onDay);
+    const n = isWeekend(eligible[0].date) ? eligible.length : onDay.length - 1;
+    for (let i = 0; i < n; i++) pickAfter(eligible[0].date, `대체공휴일(${eligible[i % eligible.length].name})`);
+  });
+  return result;
+};
+
 // Map<'YYYY-MM-DD', Array<{name, type: 'holiday' | 'couple'}>>
 export const getSpecialDaysMap = (years) => {
   const map = new Map();
@@ -60,32 +109,41 @@ export const getSpecialDaysMap = (years) => {
   };
 
   for (const year of years) {
+    const entries = []; // 대체공휴일 계산용
+    const addHoliday = (date, name, group = name) => {
+      const str = dateToStr(date);
+      add(str, name, 'holiday');
+      entries.push({ date, str, name, group });
+    };
+
     // 고정 공휴일
     for (const h of FIXED_HOLIDAYS) {
-      add(`${year}-${pad(h.month)}-${pad(h.day)}`, h.name, 'holiday');
+      addHoliday(new Date(year, h.month - 1, h.day), h.name);
     }
 
     // 설날 (음력 1/1): 전날·당일·다음날
     try {
       const seollal = lunarToDate(year, 1, 1);
-      add(dateToStr(shiftDate(seollal, -1)), '설날 연휴', 'holiday');
-      add(dateToStr(seollal), '설날', 'holiday');
-      add(dateToStr(shiftDate(seollal, 1)), '설날 연휴', 'holiday');
+      addHoliday(shiftDate(seollal, -1), '설날 연휴', 'seollal');
+      addHoliday(seollal, '설날', 'seollal');
+      addHoliday(shiftDate(seollal, 1), '설날 연휴', 'seollal');
     } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
 
     // 추석 (음력 8/15): 전날·당일·다음날
     try {
       const chuseok = lunarToDate(year, 8, 15);
-      add(dateToStr(shiftDate(chuseok, -1)), '추석 연휴', 'holiday');
-      add(dateToStr(chuseok), '추석', 'holiday');
-      add(dateToStr(shiftDate(chuseok, 1)), '추석 연휴', 'holiday');
+      addHoliday(shiftDate(chuseok, -1), '추석 연휴', 'chuseok');
+      addHoliday(chuseok, '추석', 'chuseok');
+      addHoliday(shiftDate(chuseok, 1), '추석 연휴', 'chuseok');
     } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
 
     // 부처님 오신 날 (음력 4/8)
     try {
       const buddha = lunarToDate(year, 4, 8);
-      add(dateToStr(buddha), '부처님 오신 날', 'holiday');
+      addHoliday(buddha, '부처님 오신 날');
     } catch { /* 음력 변환 범위 밖인 해는 건너뜀 */ }
+
+    computeSubstituteHolidays(year, entries).forEach(({ str, name }) => add(str, name, 'holiday'));
 
     // 커플 기념일
     for (const c of COUPLE_DAYS) {

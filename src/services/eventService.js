@@ -103,7 +103,7 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
 export const deleteEvent = async (eventId, userId = 'anonymous', coupleId = null) => {
   let eventData = {};
   try {
-    const eventSnap = await getDoc(doc(db, 'events', eventId));
+    const eventSnap = await getDocPreferCache(doc(db, 'events', eventId));
     if (!eventSnap.exists()) {
       // 이미 삭제된 일정(중복 삭제 요청, 파트너의 동시 삭제 등) — 목적은 이미 달성됐으므로 조용히 종료
       return eventId;
@@ -192,8 +192,13 @@ export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, las
   };
 };
 
+// 규칙이 coupleId를 보므로 목록 조회엔 coupleId 조건이 꼭 있어야 함(없으면 권한 오류로 통째로 거부)
+const travelEventQuery = (tripId, coupleId) =>
+  query(collection(db, 'events'), where('tripId', '==', tripId), where('coupleId', '==', coupleId));
+
 export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
-  const q = query(collection(db, 'events'), where('tripId', '==', tripId));
+  if (!coupleId) return;
+  const q = travelEventQuery(tripId, coupleId);
   const querySnapshot = await getDocs(q);
   if (!querySnapshot.empty) {
     const eventDoc = querySnapshot.docs[0];
@@ -211,7 +216,8 @@ export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', 
 };
 
 export const deleteTravelEvent = async (tripId, userId = 'anonymous', coupleId = null) => {
-  const q = query(collection(db, 'events'), where('tripId', '==', tripId));
+  if (!coupleId) return;
+  const q = travelEventQuery(tripId, coupleId);
   const querySnapshot = await getDocs(q);
   await Promise.all(querySnapshot.docs.map(async (eventDoc) => {
     await saveEditLog(eventDoc.id, {}, 'deleted', userId, coupleId);

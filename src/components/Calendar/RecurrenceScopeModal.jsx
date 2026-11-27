@@ -11,9 +11,12 @@
 // 중간 인스턴스에서 "전체 수정"을 고르면 실제로는 그 인스턴스 날짜부터 재계산되는데(과거는 안 건드림),
 // "전체"라는 이름과 실제 동작이 안 맞아 헷갈린다는 피드백으로 도입함.
 import React, { useState } from 'react';
+import { useDialog } from '../../hooks/useDialog';
 
 const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel, onChoose }) => {
   const [selected, setSelected] = useState(null);
+  const dialogRef = useDialog(true, onCancel);
+  const title = mode === 'delete' ? '반복 일정 삭제' : '반복 일정 수정';
 
   const futureCaption = instanceDateLabel
     ? `${instanceDateLabel}부터 ${mode === 'delete' ? '삭제돼요' : '적용돼요'}`
@@ -32,8 +35,8 @@ const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel
 
   return (
     <div className="modal-overlay">
-      <div className="confirm-card">
-        <p className="confirm-title">{mode === 'delete' ? '반복 일정 삭제' : '반복 일정 수정'}</p>
+      <div className="confirm-card" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}>
+        <p className="confirm-title">{title}</p>
         <p className="confirm-body">반복되는 일정 중 어디까지 적용할까요?</p>
         <div className="scope-choice-list" role="radiogroup" aria-label="적용 범위">
           {options.map((opt) => (

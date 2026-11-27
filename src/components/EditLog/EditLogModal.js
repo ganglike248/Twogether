@@ -133,7 +133,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
       case 'created': return '만듦';
       case 'updated': return '수정';
       case 'deleted': return '삭제';
-      case 'converted_to_personal': return '나만 보기로';
+      case 'converted_to_personal': return '개인 전환';
       case 'recurrence_created': return '반복 만듦';
       case 'recurrence_updated': return '반복 수정';
       case 'recurrence_deleted': return '반복 삭제';

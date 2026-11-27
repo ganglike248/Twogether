@@ -103,7 +103,7 @@ export const getLogSummary = (log, rows, who) => {
   switch (log.action) {
     case 'created': return `${by}새 일정을 만들었어요`;
     case 'deleted': return `${by}일정을 지웠어요`;
-    case 'converted_to_personal': return `${by}나만 보는 일정으로 바꿨어요`;
+    case 'converted_to_personal': return `${by}개인 일정으로 바꿨어요`;
     case 'recurrence_created': return `${by}반복 일정${c.occurrenceCount ? ` ${c.occurrenceCount}개` : ''}를 만들었어요`;
     case 'recurrence_updated': return `${by}반복 일정을 고쳤어요`;
     case 'recurrence_deleted': return `${by}반복 일정${c.deletedCount ? ` ${c.deletedCount}개` : ''}를 지웠어요`;

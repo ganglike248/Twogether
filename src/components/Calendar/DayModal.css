@@ -193,10 +193,10 @@
 }
 
 .day-special-item.holiday .day-special-name {
-  color: #d97706;
+  color: var(--color-holiday-name);
 }
 .day-special-item.couple .day-special-name {
-  color: #db2777;
+  color: var(--color-couple-day-name);
 }
 
 .day-events-list {
@@ -492,3 +492,9 @@
 
 .day-special-item.anniversary { background: var(--color-primary-light); border-color: var(--color-primary); }
 .day-special-item.anniversary .day-special-name { color: var(--color-primary-dark); }
+
+/* 여러 날·반복·디데이 표시(제목 아래 한 줄) */
+.day-event-item .event-meta {
+  font-size: 0.72rem;
+  color: var(--color-primary-dark);
+}

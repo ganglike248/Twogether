@@ -54,6 +54,10 @@
   --color-trip-border: rgba(165, 94, 234, 0.1);
   --color-trip-shadow: rgba(165, 94, 234, 0.2);
   --color-holiday: #f08090;
+  --color-holiday-name: #d97706; /* 날짜 창의 공휴일 이름 */
+  --color-couple-day-name: #db2777; /* 날짜 창의 커플 기념일(빼빼로데이 등) 이름 */
+  --color-saturday: #7ec8e3; /* 캘린더 토요일 숫자 */
+  --color-event-text: #757575; /* 캘린더 칸 안 일정 글자 */
   --color-holiday-background: rgba(232, 67, 90, 0.07);
   --color-holiday-border: rgba(232, 67, 90, 0.15);
   --color-action-created: #4CAF50;

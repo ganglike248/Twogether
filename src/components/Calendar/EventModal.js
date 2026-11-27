@@ -53,6 +53,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   const [scopeMode, setScopeMode] = useState('save'); // 'save' | 'delete'
   const [pendingEventData, setPendingEventData] = useState(null);
   const openedAtRef = useRef(0);
+  const deleteDialogRef = useDialog(showDeleteModal, () => { if (!deleting) setShowDeleteModal(false); });
 
   useEffect(() => {
     if (isOpen) openedAtRef.current = Date.now();
@@ -346,7 +347,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
         onClose();
       }}
     >
-      <div className="sheet-card" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
+      <div className="sheet-card" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={event && event.id ? '일정 수정' : '새 일정 추가'}>
         <div className="sheet-top-row">
           <span className="sheet-eyebrow">
             {event && event.id ? "일정 수정" : "새 일정 추가"}
@@ -485,7 +486,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   disabled={isSeriesMember}
                 />
                 <span className="sheet-switch"></span>
-                <span className="sheet-toggle-text">나만 보기</span>
+                <span className="sheet-toggle-text">개인 일정(나만 보기)</span>
               </label>
             )}
             {canConfigureRecurrence && !isSeriesMember && (
@@ -561,7 +562,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
       {/* 삭제 확인 모달 (반복 아닌 일반 일정) */}
       {showDeleteModal && (
         <div className="modal-overlay">
-          <div className="confirm-card">
+          <div className="confirm-card" ref={deleteDialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label="일정 삭제">
             <p className="confirm-title">일정 삭제</p>
             <p className="confirm-body">이 일정을 삭제할까요?</p>
             <div className="confirm-actions">
@@ -569,6 +570,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 type="button"
                 onClick={() => setShowDeleteModal(false)}
                 className="btn btn-secondary"
+                disabled={deleting}
               >
                 취소
               </button>
@@ -576,8 +578,9 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                 type="button"
                 onClick={confirmDelete}
                 className="btn btn-danger"
+                disabled={deleting}
               >
-                삭제
+                {deleting ? '삭제 중...' : '삭제'}
               </button>
             </div>
           </div>

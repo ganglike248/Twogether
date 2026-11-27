@@ -183,6 +183,7 @@ const CHECKS = [
     await p.getByText('오늘 뭐 할까?').first().waitFor({ timeout: 5000 });
   } },
   { name: '캘린더 수정기록 창', path: '/calendar/log', expect: '전체 수정 기록' },
+  { name: '지워진 일정 주소 → 안내 후 캘린더', path: '/calendar/event/no-such-event', expect: '이미 지워진 일정이에요', act: async (p) => { await p.waitForURL((u) => u.pathname === '/calendar', { timeout: 8000 }); if (await p.getByText('새 일정 추가').count()) throw new Error('빈 새 일정 창이 떴어요'); } },
   { name: '캘린더에서 계획 일정 삭제 → 버킷 계획 풀림', path: '/calendar/event/eb5', expect: '삭제', settleMs: 1200, act: async (p) => {
     await p.locator('.sheet-footer-row .btn-danger').click();
     await p.locator('.confirm-actions .btn-danger').click();

@@ -7,7 +7,19 @@ import EmptyState from "../common/EmptyState";
 import { MdCalendarToday } from "react-icons/md";
 import { pressable } from '../../utils/pressable';
 import { useDialog } from '../../hooks/useDialog';
-import { getLocalDateStr } from '../../utils/dataUtils';
+import { getLocalDateStr, getEventDayRange } from '../../utils/dataUtils';
+import { formatMonthDay } from '../../utils/dateFormat';
+
+// 목록 한 줄 아래 작은 표시: 여러 날이면 기간, 반복·디데이면 그 표시
+const eventMeta = (event) => {
+  const items = [];
+  const { startStr, endStr } = getEventDayRange(event);
+  if (startStr && endStr && endStr > startStr) items.push(`${formatMonthDay(startStr)} ~ ${formatMonthDay(endStr)}`);
+  const rec = event.extendedProps?.recurrence;
+  if (rec?.seriesId && !rec.isException) items.push('반복');
+  if (event.extendedProps?.isDday) items.push('디데이');
+  return items;
+};
 
 const DayModal = ({
   isOpen,
@@ -49,7 +61,7 @@ const DayModal = ({
       case "personal":
         return "🔒";
       default:
-        return <MdCalendarToday size={18} color="#4dabf7" />;
+        return <MdCalendarToday size={18} color="var(--color-primary-medium)" />;
     }
   };
 
@@ -58,7 +70,7 @@ const DayModal = ({
     if (eventType === "couple") return "데이트";
     if (eventType === "boyfriend" || eventType === "girlfriend")
       return getMemberName(eventType);
-    if (eventType === "personal") return "개인";
+    if (eventType === "personal") return "개인 일정";
     return "일정";
   };
 
@@ -87,7 +99,7 @@ const DayModal = ({
                 : "일정이 없어요"}
             </p>
           </div>
-          <button className="day-modal-close" onClick={onClose}>
+          <button className="day-modal-close" onClick={onClose} aria-label="닫기">
             &times;
           </button>
         </div>
@@ -108,9 +120,9 @@ const DayModal = ({
           {/* 일반 일정 */}
           {dayEvents.length === 0 ? (
             <EmptyState
-              icon={<MdCalendarToday size={56} color="#4dabf7" />}
+              icon={<MdCalendarToday size={56} color="var(--color-primary-medium)" />}
               title="이 날에는 일정이 없어요"
-              text="새로운 일정을 추가하거나 추억을 기록해보세요!"
+              text="아래 '일정 추가'로 이 날의 일정을 적어 보세요"
             />
           ) : (
             <div className="day-events-list">
@@ -119,6 +131,7 @@ const DayModal = ({
               {sortedEvents
                 .map((event) => {
                   const isTrip = event.extendedProps?.isTrip;
+                  const meta = eventMeta(event);
                   const eventTypeClass = isTrip
                     ? "trip"
                     : event.extendedProps?.eventType;
@@ -132,6 +145,9 @@ const DayModal = ({
                           닉네임을 세로로 넣어 글자 단위로 줄바꿈됐고, 같은 이름이 오른쪽 배지에 한 번 더 나왔음 */}
                       <div className="event-details">
                         <div className="event-title">{event.title}</div>
+                        {meta.length > 0 && (
+                          <div className="event-meta">{meta.join(' · ')}</div>
+                        )}
                         {event.extendedProps.description && (
                           <div className="event-description">{event.extendedProps.description}</div>
                         )}
