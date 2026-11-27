@@ -4,6 +4,7 @@
 import React, { useState } from 'react';
 import { MdDateRange, MdCheck, MdExpandMore } from 'react-icons/md';
 import ScheduleItem from './ScheduleItem';
+import TravelTabSkeleton from '../TravelTabSkeleton';
 import TravelTimeInput from './TravelTimeInput';
 import './ScheduleTimeline.css';
 
@@ -73,10 +74,7 @@ const ScheduleTimeline = ({
             </div>
 
             {loading ? (
-                <div className="td-loading">
-                    <div className="td-spinner" />
-                    <p>불러오는 중...</p>
-                </div>
+                <TravelTabSkeleton rows={3} />
             ) : schedules.length === 0 ? (
                 <div className="td-empty">
                     <div className="td-empty-icon"><MdDateRange size={48} color="var(--color-primary)" /></div>

@@ -1,0 +1,5 @@
+/* 여행 상세 탭 로딩 뼈대 */
+.tts { display: flex; flex-direction: column; gap: 16px; padding: 8px 2px; }
+.tts.card { background: white; border-radius: 14px; border: 1px solid var(--card-border); padding: 16px 14px; }
+.tts-row { display: flex; align-items: flex-start; gap: 12px; }
+.tts-lines { flex: 1; display: flex; flex-direction: column; gap: 8px; }

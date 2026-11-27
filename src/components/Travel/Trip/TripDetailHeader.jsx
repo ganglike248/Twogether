@@ -1,7 +1,8 @@
 // src/components/Travel/Trip/TripDetailHeader.jsx
 // 여행 상세 상단: 카드 없는 헤더 줄(뒤로 · 가운데 제목 · 수정/삭제) + 흰 여행 정보 카드
-import React from 'react';
-import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText } from 'react-icons/hi2';
+import React, { useState } from 'react';
+import { HiArrowLeft, HiPencil, HiTrash, HiMapPin, HiCalendarDays, HiDocumentText, HiChevronDown, HiChevronUp } from 'react-icons/hi2';
+import { tripPlaceName } from '../../../services/regions/regionData';
 import { formatDate } from '../../../utils/dataUtils';
 import { groupRegions } from '../../../services/regions/regionData';
 import TripMiniMap from '../../Map/TripMiniMap';
@@ -26,6 +27,22 @@ const formatTripRange = (startDate, endDate) => {
     return `${start} – ${end}`;
 };
 
+// 약도·정보 카드 접힘 상태 — 기기에 기억({ [tripId]: true|false }). 고른 적 없으면 다가오는 여행만 펼친 채로 시작
+// (여행 중·다녀온 여행은 일정이 바로 보이게 접힘).
+const INFO_OPEN_KEY = 'twogether_trip_info_open';
+const loadInfoOpen = (tripId, fallback) => {
+    try {
+        const saved = JSON.parse(localStorage.getItem(INFO_OPEN_KEY) || '{}')[tripId];
+        return typeof saved === 'boolean' ? saved : fallback;
+    } catch { return fallback; }
+};
+const saveInfoOpen = (tripId, open) => {
+    try {
+        const map = JSON.parse(localStorage.getItem(INFO_OPEN_KEY) || '{}');
+        localStorage.setItem(INFO_OPEN_KEY, JSON.stringify({ ...map, [tripId]: open }));
+    } catch { /* 기억만 못 함 */ }
+};
+
 const formatNightsDays = (tripDays) => (tripDays <= 1 ? '당일치기' : `${tripDays - 1}박 ${tripDays}일`);
 
 const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onEdit, onDelete }) => {
@@ -34,6 +51,9 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
     const status = { text: phase.label, cls: phase.cls };
     const budgetPercent = totalBudget > 0 ? Math.min((usedBudget / totalBudget) * 100, 100) : 0;
     const isOverBudget = usedBudget > totalBudget && totalBudget > 0;
+    const [infoOpen, setInfoOpen] = useState(() => loadInfoOpen(trip.id, phase.key === 'upcoming'));
+    const toggleInfo = () => setInfoOpen(prev => { saveInfoOpen(trip.id, !prev); return !prev; });
+    const summary = [formatTripRange(trip.startDate, trip.endDate), formatNightsDays(tripDays), tripPlaceName(trip)].filter(Boolean).join(' · ');
 
     return (
         <>
@@ -62,6 +82,13 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                 </div>
             </div>
 
+            {!infoOpen ? (
+                <button type="button" className="td-summary" onClick={toggleInfo} aria-expanded="false">
+                    <span className="td-summary-text">{summary}</span>
+                    <span className="td-summary-more">지도·정보 보기<HiChevronDown aria-hidden="true" /></span>
+                </button>
+            ) : (
+            <>
             {/* 이번 여행 약도 — 제목 바로 아래 별도 섹션, 여행 지역 둘레로 확대 */}
             <div className="td-map-section"><TripMiniMap trip={trip} onPickRegion={onEdit} /></div>
 
@@ -124,7 +151,10 @@ const TripDetailHeader = ({ trip, tripDays, usedBudget, totalBudget, onBack, onE
                         </span>
                     </div>
                 )}
+                <button type="button" className="td-info-fold" onClick={toggleInfo} aria-expanded="true">접기<HiChevronUp aria-hidden="true" /></button>
             </div>
+            </>
+            )}
         </>
     );
 };

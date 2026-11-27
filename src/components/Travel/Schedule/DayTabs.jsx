@@ -4,7 +4,7 @@ import React from 'react';
 
 const FILL_MAX_DAYS = 3;
 
-const DayTabs = ({ tripDays, activeDay, onSelect, getDayDate }) => {
+const DayTabs = ({ tripDays, activeDay, onSelect, getDayDate, todayDay = null }) => {
     const days = Array.from({ length: tripDays }, (_, i) => i + 1);
     const isFill = tripDays <= FILL_MAX_DAYS;
 
@@ -20,6 +20,7 @@ const DayTabs = ({ tripDays, activeDay, onSelect, getDayDate }) => {
                         className={`td-day ${activeDay === day ? 'active' : ''}`}
                         onClick={() => onSelect(day)}
                     >
+                        {todayDay === day && <span className="td-day-today">오늘</span>}
                         <span className="td-day-label">Day {day}</span>
                         <span className="td-day-date">{getDayDate(day)}</span>
                     </button>

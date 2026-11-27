@@ -171,3 +171,12 @@
         width: 100%;
     }
 }
+
+/* 우선순위 칩(드롭다운 대신) — 고른 칩은 목록의 높음·중간·낮음 표시와 같은 색 */
+.cm-priority { display: flex; gap: 6px; }
+.cm-priority-chip {
+    flex: 1; height: 40px; border-radius: 999px; border: 1.5px solid var(--card-border); background: white;
+    color: var(--color-gray-600); font-family: inherit; font-size: 0.88rem; cursor: pointer;
+}
+.cm-priority-chip.on { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }
+.cm-priority-chip.high.on { border-color: var(--color-danger); background: white; color: var(--color-danger); }

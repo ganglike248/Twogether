@@ -15,7 +15,7 @@ import { useAuthContext } from '../../../contexts/AuthContext';
 import { mutateTripSchedule, moveTripSchedule, toggleScheduleCompletion, saveTravelTime, subscribeTravelTimes, addTripRegionsFromText, deleteTravelTimesOf, moveUntimedSchedule } from '../../../services/tripService';
 import { hasUserScored } from '../../../services/travelDecisionService';
 import { convertToDate } from '../../../utils/dataUtils';
-import { getTripDayCount } from '../../../services/tripPhase';
+import { getTripDayCount, getTripPhase, getTripTodayDay } from '../../../services/tripPhase';
 import { normalizeIfPureNumber } from '../../../utils/numberFormat';
 import { extractUrl } from '../../../utils/appLinkUtils';
 import { getFriendlyErrorMessage } from '../../../utils/errorMessages';
@@ -45,7 +45,9 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
     const tabParam = qm.get('tab');
     const activeTab = tabParam === 'decisions' || tabParam === 'checklist' ? tabParam : 'schedule';
     const setActiveTab = (tab) => navigate(tab === 'schedule' ? location.pathname : `${location.pathname}?tab=${tab}`, { replace: true });
-    const [activeDayRaw, setActiveDay] = useState(1);
+    // 여행 중이면 오늘 Day부터 열림(그 밖엔 Day 1)
+    const todayDay = getTripPhase(trip) === 'ongoing' ? getTripTodayDay(trip) : null;
+    const [activeDayRaw, setActiveDay] = useState(todayDay || 1);
     const [selectedSchedule, setSelectedSchedule] = useState(null);
     const [daySchedules, setDaySchedules] = useState({});
     const [travelTimes, setTravelTimes] = useState({});
@@ -309,7 +311,8 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
             {/* 끝난 여행의 기록(두 사람의 기분·기록·TOP 3) */}
             <TripRecordCard trip={trip} schedules={schedules} />
 
-            {/* 탭 */}
+            {/* 탭(+ 일정 탭이면 Day 줄) — 스크롤해도 위에 붙어 있음 */}
+            <div className="td-sticky">
             <div className="td-tabs">
                 <button
                     className={`td-tab ${activeTab === 'schedule' ? 'active' : ''}`}
@@ -335,15 +338,20 @@ const TripDetail = ({ trip, onBack, onEdit, onDelete }) => {
                 </button>
             </div>
 
+            {activeTab === 'schedule' && (
+                <DayTabs
+                    tripDays={tripDays}
+                    activeDay={activeDay}
+                    todayDay={todayDay}
+                    onSelect={setActiveDay}
+                    getDayDate={getDayDate}
+                />
+            )}
+            </div>
+
             {/* Day별 일정 탭 */}
             {activeTab === 'schedule' && (
                 <>
-                    <DayTabs
-                        tripDays={tripDays}
-                        activeDay={activeDay}
-                        onSelect={setActiveDay}
-                        getDayDate={getDayDate}
-                    />
                     <ScheduleTimeline
                         key={activeDay}
                         activeDay={activeDay}

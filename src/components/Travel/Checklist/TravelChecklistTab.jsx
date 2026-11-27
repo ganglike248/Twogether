@@ -17,6 +17,7 @@ import ChecklistModal from './ChecklistModal';
 import ConfirmModal from '../../common/ConfirmModal';
 import { MdChecklist } from 'react-icons/md';
 import { toast } from 'react-toastify';
+import TravelTabSkeleton from '../TravelTabSkeleton';
 import { useQueryModal } from '../../../hooks/useQueryModal';
 import './TravelChecklistTab.css';
 
@@ -85,12 +86,7 @@ const TravelChecklistTab = forwardRef(({ trip }, ref) => {
   };
 
   if (loading) {
-    return (
-      <div className="tct-loading">
-        <div className="tct-spinner" />
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <TravelTabSkeleton rows={3} card />;
   }
 
   const items = checklist?.items || [];

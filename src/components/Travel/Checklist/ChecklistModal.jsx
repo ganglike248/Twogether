@@ -1,6 +1,6 @@
 // src/components/Travel/ChecklistModal.jsx
 import React, { useState } from 'react';
-import { MdClose, MdCircle } from 'react-icons/md';
+import { MdClose } from 'react-icons/md';
 import { toast } from 'react-toastify';
 import './ChecklistModal.css';
 import { useDialog } from '../../../hooks/useDialog';
@@ -120,15 +120,20 @@ const ChecklistModal = ({ isOpen, onClose, onSave, editingItem }) => {
           {/* 우선순위 */}
           <div className="cm-form-group">
             <label className="cm-label">우선순위</label>
-            <select
-              value={formData.priority}
-              onChange={(e) => handleChange('priority', e.target.value)}
-              className="cm-select"
-            >
-              <option value="high">높음</option>
-              <option value="medium">중간</option>
-              <option value="low">낮음</option>
-            </select>
+            <div className="cm-priority" role="radiogroup" aria-label="우선순위">
+              {[['high', '높음'], ['medium', '중간'], ['low', '낮음']].map(([key, label]) => (
+                <button
+                  key={key}
+                  type="button"
+                  role="radio"
+                  aria-checked={formData.priority === key}
+                  className={`cm-priority-chip ${key}${formData.priority === key ? ' on' : ''}`}
+                  onClick={() => handleChange('priority', key)}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
           </div>
 
           {/* 마감일 */}

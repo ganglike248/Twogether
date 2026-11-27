@@ -12,6 +12,7 @@ import DecisionSection from './DecisionSection';
 import OptionDetailSheet from './OptionDetailSheet';
 import DecisionViewSheet from './DecisionViewSheet';
 import useDecisionActions from './useDecisionActions';
+import TravelTabSkeleton from '../TravelTabSkeleton';
 import { getMembers } from './optionScoreUtils';
 import {
   DEFAULT_VIEW,
@@ -120,12 +121,7 @@ const TravelDecisionsTab = forwardRef(({ trip, onAddToSchedule, scheduledDaysByO
     : '주제 전체';
 
   if (loading) {
-    return (
-      <div className="tdt-loading">
-        <div className="tdt-spinner" />
-        <p>로딩 중...</p>
-      </div>
-    );
+    return <TravelTabSkeleton rows={3} card />;
   }
 
   return (

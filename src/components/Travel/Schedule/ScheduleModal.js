@@ -184,6 +184,45 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                                 )}
                             </>
                         )}
+                        {/* 순서: 제목 → 종류 → 날짜·시간 → 위치 → 설명 → 비용(무엇을 → 언제 → 어디서) */}
+                        <div className="schedule-modal-form-group">
+                            <label className="schedule-modal-form-label" htmlFor="schedule-title">
+                                일정 제목 <span className="schedule-modal-required">*</span>
+                            </label>
+                            <input
+                                id="schedule-title"
+                                type="text"
+                                value={formData.title}
+                                onChange={(e) => handleChange('title', e.target.value)}
+                                placeholder="예: 성산일출봉 관람"
+                                className={errors.title ? 'schedule-modal-error' : ''}
+                            />
+                            {errors.title && <span className="schedule-modal-error-text">{errors.title}</span>}
+                        </div>
+
+                        {/* 일정 종류 — 선택 사항, 다시 누르면 해제 */}
+                        <div className="schedule-modal-form-group">
+                            <span className="schedule-modal-form-label" id="schedule-category-label">종류</span>
+                            <div className="schedule-category-chips" role="group" aria-labelledby="schedule-category-label">
+                                {SCHEDULE_CATEGORIES.map(({ key, label, color, bg, Icon: icon }) => {
+                                    const on = formData.category === key;
+                                    return (
+                                        <button
+                                            key={key}
+                                            type="button"
+                                            className={`schedule-category-chip${on ? ' on' : ''}`}
+                                            style={on ? { color, background: bg, borderColor: color } : undefined}
+                                            aria-pressed={on}
+                                            onClick={() => handleChange('category', on ? '' : key)}
+                                        >
+                                            {React.createElement(icon, { 'aria-hidden': true })}
+                                            {label}
+                                        </button>
+                                    );
+                                })}
+                            </div>
+                        </div>
+
                         {dayOptions.length > 1 && (
                             <div className="schedule-modal-form-group">
                                 <label className="schedule-modal-form-label" htmlFor="schedule-day">
@@ -234,41 +273,16 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                         </div>
 
                         <div className="schedule-modal-form-group">
-                            <label className="schedule-modal-form-label" htmlFor="schedule-title">
-                                일정 제목 <span className="schedule-modal-required">*</span>
+                            <label className="schedule-modal-form-label" htmlFor="schedule-location">
+                                위치
                             </label>
                             <input
-                                id="schedule-title"
+                                id="schedule-location"
                                 type="text"
-                                value={formData.title}
-                                onChange={(e) => handleChange('title', e.target.value)}
-                                placeholder="예: 성산일출봉 관람"
-                                className={errors.title ? 'schedule-modal-error' : ''}
+                                value={formData.location}
+                                onChange={(e) => handleChange('location', e.target.value)}
+                                placeholder="예: 서귀포시 성산읍"
                             />
-                            {errors.title && <span className="schedule-modal-error-text">{errors.title}</span>}
-                        </div>
-
-                        {/* 일정 종류 — 선택 사항, 다시 누르면 해제 */}
-                        <div className="schedule-modal-form-group">
-                            <span className="schedule-modal-form-label" id="schedule-category-label">종류</span>
-                            <div className="schedule-category-chips" role="group" aria-labelledby="schedule-category-label">
-                                {SCHEDULE_CATEGORIES.map(({ key, label, color, bg, Icon: icon }) => {
-                                    const on = formData.category === key;
-                                    return (
-                                        <button
-                                            key={key}
-                                            type="button"
-                                            className={`schedule-category-chip${on ? ' on' : ''}`}
-                                            style={on ? { color, background: bg, borderColor: color } : undefined}
-                                            aria-pressed={on}
-                                            onClick={() => handleChange('category', on ? '' : key)}
-                                        >
-                                            {React.createElement(icon, { 'aria-hidden': true })}
-                                            {label}
-                                        </button>
-                                    );
-                                })}
-                            </div>
                         </div>
 
                         <div className="schedule-modal-form-group">
@@ -281,19 +295,6 @@ const ScheduleModal = ({ isOpen, onClose, schedule, onSave, onDelete, day, dayOp
                                 onChange={(e) => handleChange('description', e.target.value)}
                                 placeholder="일정에 대한 상세 설명을 입력하세요"
                                 rows="3"
-                            />
-                        </div>
-
-                        <div className="schedule-modal-form-group">
-                            <label className="schedule-modal-form-label" htmlFor="schedule-location">
-                                위치
-                            </label>
-                            <input
-                                id="schedule-location"
-                                type="text"
-                                value={formData.location}
-                                onChange={(e) => handleChange('location', e.target.value)}
-                                placeholder="예: 서귀포시 성산읍"
                             />
                         </div>
 

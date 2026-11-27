@@ -514,3 +514,38 @@
 .td-region-line { display: flex; align-items: baseline; gap: 0.45rem; min-width: 0; }
 .td-region-sido { flex: none; font-family: var(--font-display); font-weight: 400; font-size: 0.85rem; color: var(--color-primary-dark); }
 .td-region-places { font-size: 0.85rem; color: var(--color-gray-800); overflow-wrap: anywhere; }
+
+/* 탭 줄(+ Day 줄) 고정 — 스크롤해도 앱 상단 헤더(52px + 노치) 바로 아래에 붙음. 좌우는 컨테이너 여백까지 덮어 뒤 내용이 안 비침 */
+.td-sticky {
+    position: sticky;
+    top: calc(52px + env(safe-area-inset-top));
+    z-index: 5;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    margin: -6px -0.875rem;
+    padding: 6px 0.875rem;
+    background: var(--main-bg);
+}
+.td-day { position: relative; }
+.td-day-today {
+    position: absolute; top: -7px; left: 50%; transform: translateX(-50%);
+    font-size: 9px; line-height: 1.4; padding: 0 7px; border-radius: 999px;
+    background: var(--color-primary-dark); color: white; white-space: nowrap;
+}
+.td-days.scroll .td-days-track { padding-top: 7px; }
+.td-days.fill .td-days-track { padding-top: 0; }
+
+/* 약도·정보 접힘(한 줄 요약) */
+.td-summary {
+    width: 100%; display: flex; align-items: center; gap: 8px; text-align: left;
+    background: white; border: 1px solid var(--card-border); border-radius: 14px; padding: 11px 14px;
+    box-shadow: var(--shadow-sm); font-family: inherit; font-size: 0.8rem; color: var(--color-gray-700); cursor: pointer;
+}
+.td-summary-text { flex: 1; min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.td-summary-more { flex: none; font-size: 0.72rem; color: var(--color-primary-dark); display: inline-flex; align-items: center; gap: 2px; }
+.td-info-fold {
+    align-self: center; border: none; background: none; font-family: inherit; font-size: 0.75rem;
+    color: var(--color-primary-dark); cursor: pointer; padding: 4px 8px; display: inline-flex; align-items: center; gap: 2px;
+}
+.td-info-fold { display: flex; margin: 0 auto 8px; }

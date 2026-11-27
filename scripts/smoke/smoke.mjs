@@ -210,7 +210,26 @@ const CHECKS = [
       await p.context().setOffline(false);
     }
   } },
-  { name: '여행 상세(약도·기록 카드·일정)', path: '/travel/t1', expect: '이번 여행은 어땠나요?', act: async (p) => { await p.locator('.tmm svg').waitFor({ timeout: 8000 }); } },
+  { name: '여행 상세(약도·기록 카드·일정)', path: '/travel/t1', expect: '이번 여행은 어땠나요?', act: async (p) => {
+    // 다녀온 여행은 약도·정보가 한 줄로 접힌 채 시작 → 펼치면 약도
+    await p.locator('.td-summary').click();
+    await p.locator('.tmm svg').waitFor({ timeout: 8000 });
+    await p.locator('.td-info-fold').click();
+    await p.locator('.td-summary').waitFor({ timeout: 3000 });
+    // 탭 줄 고정: 화면을 낮게 해서 충분히 내린 뒤에도 탭이 상단 헤더(52px) 바로 아래에 붙어 있어야 함
+    await p.setViewportSize({ width: 390, height: 420 });
+    try {
+      const before = await p.locator('.td-tabs').boundingBox();
+      await p.evaluate(() => window.scrollTo(0, document.documentElement.scrollHeight));
+      await p.waitForTimeout(250);
+      const scrolled = await p.evaluate(() => window.scrollY);
+      const box = await p.locator('.td-tabs').boundingBox();
+      if (before.y - scrolled > 60) throw new Error('점검할 만큼 스크롤되지 않았어요');
+      if (!box || box.y < 50 || box.y > 75) throw new Error(`탭 줄이 고정되지 않았어요(y=${box?.y}, 스크롤 ${scrolled})`);
+    } finally {
+      await p.setViewportSize({ width: 390, height: 844 });
+    }
+  } },
   { name: '여행 끝 기록 1단계', path: '/travel/t1/review', expect: '이번 여행 어땠어요?' },
   { name: '여행 끝 기록 2단계(TOP 3)', path: '/travel/t1/review?step=2', expect: '좋았던 순간 TOP 3' },
   { name: '여행 끝 기록 3단계(지도 확인)', path: '/travel/t1/review?step=3', expect: '여행 지도' },
