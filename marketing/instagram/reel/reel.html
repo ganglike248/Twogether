@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<title>우리두리 릴스 — 소개 영상</title>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Jua&display=swap" />
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/orioncactus/pretendard@v1.3.9/dist/web/static/pretendard.min.css" />
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+html, body { background: #000; }
+#stage { width: 1080px; height: 1920px; position: relative; overflow: hidden; font-family: 'Pretendard', sans-serif; color: #2a2225; word-break: keep-all; }
+#stage > * { position: absolute; }
+
+@keyframes pop { from { opacity: 0; transform: scale(.5); } 50% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes rise { from { opacity: 0; transform: translateY(70px); } to { opacity: 1; transform: none; } }
+@keyframes fadeIn { from { opacity: 0; } to { opacity: 1; } }
+@keyframes bye { to { opacity: 0; transform: scale(.94); } }
+@keyframes wipe { from { clip-path: circle(0% at 50% 62%); } to { clip-path: circle(150% at 50% 62%); } }
+@keyframes hop { 0%, 100% { transform: none; } 18% { transform: scale(1.070, .900); } 50% { transform: translateY(-74px) scale(.960, 1.060); } 82% { transform: scale(1.050, .930); } }
+@keyframes sway { from { transform: rotate(-2.200deg); } to { transform: rotate(2.200deg); } }
+@keyframes blink { 0%, 92%, 100% { transform: scaleY(1); } 96% { transform: scaleY(.1); } }
+@keyframes wobble { from { transform: rotate(-9deg) translateY(0); } to { transform: rotate(9deg) translateY(-12px); } }
+@keyframes flyR { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 18% { opacity: 1; } 55% { transform: translate(250px, -150px) scale(1); } 100% { opacity: 1; transform: translate(430px, -20px) scale(1); } }
+@keyframes flyL { 0% { opacity: 0; transform: translate(0, 0) scale(.4); } 18% { opacity: 1; } 55% { transform: translate(-250px, -150px) scale(1); } 100% { opacity: 1; transform: translate(-430px, -20px) scale(1); } }
+@keyframes chipL { 0% { opacity: 0; transform: translate(-260px, 760px) scale(.3) rotate(-30deg); } 25% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes chipR { 0% { opacity: 0; transform: translate(260px, 760px) scale(.3) rotate(30deg); } 25% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes chipC { 0% { opacity: 0; transform: translate(0, 760px) scale(.3); } 25% { opacity: 1; } 100% { opacity: 1; transform: none; } }
+@keyframes ringPulse { 0% { opacity: 0; transform: scale(.7); } 30% { opacity: 1; } 100% { opacity: 0; transform: scale(1.5); } }
+@keyframes wordIn { from { opacity: 0; transform: translateY(60px) scale(.8) rotate(-3deg); } to { opacity: 1; transform: none; } }
+@keyframes spin { from { transform: rotate(0deg); } to { transform: rotate(960deg); } }
+@keyframes drop { 0% { opacity: 0; transform: translateY(-160px); } 60% { opacity: 1; transform: translateY(0); } 78% { transform: translateY(-22px); } 100% { opacity: 1; transform: none; } }
+@keyframes flapClose { from { transform: scaleY(-.7); } to { transform: scaleY(1); } }
+@keyframes floatUp { 0% { transform: translateY(0) rotate(-8deg); opacity: 0; } 12% { opacity: .6; } 80% { opacity: .35; } 100% { transform: translateY(-950px) rotate(10deg); opacity: 0; } }
+@keyframes balloonUp { from { opacity: 0; transform: translateY(520px); } 20% { opacity: 1; } to { opacity: 1; transform: none; } }
+@keyframes hanaC { to { transform: translate(165px, 250px) scale(.840); } }
+@keyframes duriC { to { transform: translate(-165px, 250px) scale(.840); } }
+@keyframes hanaF { from { transform: translate(165px, 250px) scale(.840); } to { transform: translate(122px, -170px) scale(1.120); } }
+@keyframes duriF { from { transform: translate(-165px, 250px) scale(.840); } to { transform: translate(-122px, -170px) scale(1.120); } }
+@keyframes smileOn { to { opacity: 1; } }
+@keyframes worryOff { to { opacity: 0; } }
+@keyframes cheekOn { to { opacity: .55; } }
+
+/* 배경 */
+.bg { inset: 0; }
+.bg.half { width: 540px; } .bg.half.l { left: 0; right: auto; background: #e1ecf5; } .bg.half.r { left: 540px; background: #ffeadf; }
+.bg.seam { left: 537px; right: auto; width: 6px; background: repeating-linear-gradient(#fff 0 26px, transparent 26px 52px); opacity: .9; }
+.bg.wipe { background: #fff9f7; }
+
+/* 주인공 */
+.who { top: 1060px; width: 300px; height: 348px; transform-origin: 50% 100%; }
+.who.hana { animation: hanaC 1300ms cubic-bezier(.65,0,.35,1) 9300ms both, hanaF 1400ms cubic-bezier(.65,0,.35,1) 20500ms forwards; }
+.who.duri { animation: duriC 1300ms cubic-bezier(.65,0,.35,1) 9300ms both, duriF 1400ms cubic-bezier(.65,0,.35,1) 20500ms forwards; }
+.hopper, .sway { width: 100%; height: 100%; transform-origin: 50% 96%; }
+.sway { animation: sway 2400ms ease-in-out infinite alternate; }
+.duri .sway { animation-duration: 2800ms; animation-delay: -900ms; }
+.blob { width: 100%; height: 100%; overflow: visible; }
+.blob .eyes { transform-box: fill-box; transform-origin: center; animation: blink 3400ms ease-in-out infinite; }
+.duri .blob .eyes { animation-delay: -1300ms; }
+.blob .m-smile { opacity: 0; animation: smileOn 300ms ease 9600ms forwards; }
+.blob .m-worry { animation: worryOff 300ms ease 9600ms forwards; }
+.blob .cheek { opacity: 0; animation: cheekOn 500ms ease 9800ms forwards; }
+
+/* 자막 */
+.cap { left: 80px; right: 60px; top: 240px; font-size: 98px; line-height: 1.2; font-weight: 800; letter-spacing: -0.045em; }
+.cap em { font-style: normal; color: #e07a93; }
+
+/* 생각 풍선 · 물음표 */
+.think { background: #fff; border-radius: 56px; padding: 34px 46px; font-size: 46px; font-weight: 700; line-height: 1.3; letter-spacing: -0.03em; text-align: center; box-shadow: 0 16px 40px rgba(90,70,90,.1); }
+.think::after, .think::before { content: ''; position: absolute; background: #fff; border-radius: 50%; }
+.think::after { width: 34px; height: 34px; bottom: -44px; } .think::before { width: 18px; height: 18px; bottom: -74px; }
+.think.tl { left: 70px; top: 690px; transform-origin: 60% 130%; } .think.tl::after { left: 170px; } .think.tl::before { left: 196px; }
+.think.tr { left: 590px; top: 630px; transform-origin: 40% 130%; } .think.tr::after { left: 190px; } .think.tr::before { left: 178px; }
+.think.aha { left: 90px; top: 1150px; font-size: 44px; padding: 30px 42px; transform-origin: 50% 130%; } .think.aha::after { left: 250px; bottom: -40px; } .think.aha::before { left: 274px; bottom: -66px; }
+.q { font-family: 'Jua', sans-serif; font-size: 150px; color: #e07a93; line-height: 1; }
+.q span { display: block; animation: wobble 900ms ease-in-out infinite alternate; }
+.q.ql { left: 372px; top: 930px; } .q.qr { left: 640px; top: 880px; } .q.qr span { animation-delay: -400ms; }
+
+/* 오가는 말 */
+.fly { background: #fff; border-radius: 48px; padding: 28px 40px; font-size: 42px; font-weight: 600; letter-spacing: -0.03em; white-space: nowrap; box-shadow: 0 14px 34px rgba(90,70,90,.1); }
+.fly.fl { left: 60px; top: 950px; border-bottom-left-radius: 12px; }
+.fly.fr { right: 60px; top: 930px; background: #ffb6c1; color: #4a2a33; border-bottom-right-radius: 12px; }
+.count { left: 80px; top: 520px; background: #fff; border-radius: 999px; padding: 18px 40px; font-size: 40px; font-weight: 700; color: #8d6f77; transform-origin: 20% 50%; }
+.nums { display: inline-block; position: relative; width: 44px; height: 54px; vertical-align: -12px; }
+.nums b { position: absolute; inset: 0; text-align: center; font-family: 'Jua', sans-serif; font-weight: 400; font-size: 56px; line-height: 54px; color: #e07a93; }
+
+/* 달력 */
+.calwrap { left: 110px; top: 520px; width: 860px; }
+.cal { background: #fff; border-radius: 56px; padding: 40px 38px 42px; box-shadow: 0 30px 70px rgba(190,120,135,.2); }
+.calhead { display: flex; align-items: center; gap: 14px; padding: 0 10px 18px; }
+.calhead b { font-family: 'Jua', sans-serif; font-weight: 400; font-size: 72px; color: #e07a93; }
+.calhead i { width: 44px; height: 44px; } .calhead i svg { width: 100%; height: 100%; fill: #ffb6c1; }
+.calhead span { margin-left: auto; font-size: 32px; font-weight: 700; color: #c9a9b0; }
+.dows { display: grid; grid-template-columns: repeat(7, 1fr); text-align: center; font-size: 28px; font-weight: 700; color: #c9bcc0; padding-bottom: 12px; }
+.dows span:first-child { color: #f3a0ae; } .dows span:last-child { color: #8fc1ea; }
+.cells { display: grid; grid-template-columns: repeat(7, 1fr); gap: 10px; }
+.cell { height: 118px; border-radius: 22px; background: #fff6f7; position: relative; padding: 10px 0 0 14px; }
+.cell span { font-size: 26px; font-weight: 600; color: #b9a9ad; }
+.chip { position: absolute; left: 6px; right: 6px; bottom: 10px; height: 50px; border-radius: 16px; font-size: 27px; font-weight: 700; line-height: 50px; text-align: center; letter-spacing: -0.04em; white-space: nowrap; }
+.chip.h { background: #c3d8ea; color: #3f6485; } .chip.d { background: #ffd3bd; color: #a8582f; } .chip.u { background: #ffc9d3; color: #b9506b; }
+.ring { position: absolute; inset: -8px; border-radius: 28px; border: 8px solid #ff9bac; opacity: 0; animation: ringPulse 1100ms ease-out 13300ms 2 both; }
+
+/* 기능 세 가지 */
+.word { left: 0; right: 0; top: 330px; text-align: center; font-size: 132px; font-weight: 800; letter-spacing: -0.05em; }
+.obj { left: 0; right: 0; top: 590px; display: flex; flex-direction: column; align-items: center; }
+.obj svg { width: 620px; overflow: visible; filter: drop-shadow(0 26px 40px rgba(110,80,120,.16)); }
+.trip .pin { transform-box: fill-box; transform-origin: 50% 100%; animation: drop 700ms ease-out 16250ms both; }
+.trip .route { animation: fadeIn 700ms ease 16000ms both; }
+.trip .case { transform-box: fill-box; transform-origin: 50% 100%; animation: sway 1500ms ease-in-out infinite alternate; }
+.wheel { top: 620px; } .wheel svg { width: 660px; }
+.wheel .wspin { animation: spin 1250ms cubic-bezier(.15,.6,.15,1) 17450ms both; }
+.wheel .ptr { position: absolute; left: 50%; top: -22px; margin-left: -26px; border-left: 26px solid transparent; border-right: 26px solid transparent; border-top: 46px solid #ff8fa3; z-index: 2; }
+.letter .flap { transform-box: fill-box; transform-origin: 50% 0; animation: flapClose 600ms cubic-bezier(.22,1,.36,1) 19050ms both; }
+.letter .seal { transform-box: fill-box; transform-origin: center; animation: pop 650ms cubic-bezier(.34,1.5,.64,1) 19450ms both; }
+.when { margin-top: 18px; background: #fff; border-radius: 999px; padding: 20px 46px; font-size: 44px; font-weight: 700; color: #e07a93; }
+
+/* 마무리 */
+.heart { bottom: 280px; opacity: 0; } .heart svg { width: 100%; height: 100%; fill: #ffb6c1; }
+.balloon { left: 478px; top: 560px; width: 124px; height: 310px; }
+.bsway { width: 100%; height: 100%; transform-origin: 50% 100%; animation: sway 2200ms ease-in-out infinite alternate; }
+.brand { left: 0; right: 0; top: 1310px; text-align: center; font-family: 'Jua', sans-serif; font-size: 160px; color: #e07a93; line-height: 1; }
+.tag { left: 0; right: 0; top: 1490px; text-align: center; font-size: 50px; font-weight: 700; letter-spacing: -0.03em; color: #4a3f42; }
+.store { left: 190px; right: 190px; top: 320px; text-align: center; background: #fff; border-radius: 999px; padding: 36px 0; font-size: 42px; font-weight: 600; letter-spacing: -0.02em; box-shadow: 0 16px 40px rgba(224,122,147,.18); }
+.store b { color: #e07a93; font-weight: 800; }
+.free { left: 0; right: 0; top: 452px; text-align: center; font-size: 32px; color: #8d6f77; font-weight: 500; }
+</style>
+</head>
+<body data-total="26000">
+<div id="stage">
+<!-- 배경: 처음엔 둘로 나뉜 화면 → 하나로 합쳐짐 → 기능마다 색 → 마무리 -->
+<div class="bg half l"></div><div class="bg half r"></div>
+<div class="bg seam" style="animation:bye 500ms ease 8900ms forwards"></div>
+<div class="bg wipe" style="animation:wipe 1300ms cubic-bezier(.65,0,.35,1) 8900ms both"></div>
+<div class="bg" style="background:#f5eefa;animation:fadeIn 500ms ease 15450ms both"></div>
+<div class="bg" style="background:#fff5dc;animation:fadeIn 500ms ease 17100ms both"></div>
+<div class="bg" style="background:#e9f7f1;animation:fadeIn 500ms ease 18750ms both"></div>
+<div class="bg" style="background:#fce6e8;animation:fadeIn 600ms ease 20400ms both"></div>
+
+<!-- 1. 헷갈림 -->
+<div class="cap"><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 300ms both, bye 400ms ease 4300ms forwards">서로 일정,</div><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 500ms both, bye 400ms ease 4300ms forwards"><em>맨날 헷갈리죠?</em></div></div>
+<div class="think tl" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 900ms both, bye 450ms ease 4350ms forwards">내일…<br />뭐였더라?</div>
+<div class="think tr" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 1900ms both, bye 450ms ease 4350ms forwards">토요일에<br />뭐 있었지?</div>
+<div class="q ql" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 650ms both, bye 450ms ease 4350ms forwards"><span>?</span></div>
+<div class="q qr" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 1650ms both, bye 450ms ease 4350ms forwards"><span>?</span></div>
+
+<!-- 2. 물어보고 또 물어보고 -->
+<div class="cap"><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 4650ms both, bye 400ms ease 8500ms forwards">물어보고,</div><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 4850ms both, bye 400ms ease 8500ms forwards"><em>또 물어보고</em></div></div>
+<div class="fly fl" style="animation:flyR 900ms cubic-bezier(.65,0,.35,1) 4950ms both, bye 400ms ease 6000ms forwards">내일 어디 가?</div>
+<div class="fly fr" style="animation:flyL 900ms cubic-bezier(.65,0,.35,1) 5950ms both, bye 400ms ease 7000ms forwards">회식! 어제 말했는데 ㅎㅎ</div>
+<div class="fly fl" style="animation:flyR 900ms cubic-bezier(.65,0,.35,1) 6950ms both, bye 400ms ease 8500ms forwards">…그럼 토요일은?</div>
+<div class="count" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 5200ms both, bye 450ms ease 8500ms forwards">오늘만 <span class="nums"><b style="animation:bye 250ms ease 6100ms forwards">1</b><b style="animation:pop 450ms cubic-bezier(.34,1.5,.64,1) 6150ms both, bye 250ms ease 7100ms forwards">2</b><b style="animation:pop 450ms cubic-bezier(.34,1.5,.64,1) 7150ms both">3</b></span>번째 질문</div>
+
+<!-- 3. 한 달력에 같이 -->
+<div class="cap"><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 9200ms both, bye 400ms ease 13050ms forwards">이제 한 달력에</div><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 9400ms both, bye 400ms ease 13050ms forwards"><em>같이 적어요</em></div></div>
+<div class="calwrap" style="animation:pop 950ms cubic-bezier(.34,1.5,.64,1) 9500ms both, bye 450ms ease 15350ms forwards"><div class="cal">
+  <div class="calhead"><b>12월</b><i><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><span>우리 달력</span></div>
+  <div class="dows"><span>일</span><span>월</span><span>화</span><span>수</span><span>목</span><span>금</span><span>토</span></div>
+  <div class="cells"><div class="cell"><span>1</span></div><div class="cell"><span>2</span></div><div class="cell"><span>3</span><b class="chip h" style="animation:chipL 900ms cubic-bezier(.22,1,.36,1) 10700ms both">출장</b></div><div class="cell"><span>4</span></div><div class="cell"><span>5</span><b class="chip u" style="animation:chipC 900ms cubic-bezier(.22,1,.36,1) 10910ms both">데이트</b></div><div class="cell"><span>6</span></div><div class="cell"><span>7</span></div><div class="cell"><span>8</span></div><div class="cell"><span>9</span><b class="chip d" style="animation:chipR 900ms cubic-bezier(.22,1,.36,1) 11120ms both">회식</b><i class="ring"></i></div><div class="cell"><span>10</span></div><div class="cell"><span>11</span><b class="chip h" style="animation:chipL 900ms cubic-bezier(.22,1,.36,1) 11330ms both">필테</b></div><div class="cell"><span>12</span><b class="chip d" style="animation:chipR 900ms cubic-bezier(.22,1,.36,1) 11540ms both">결혼식</b></div><div class="cell"><span>13</span></div><div class="cell"><span>14</span></div><div class="cell"><span>15</span></div><div class="cell"><span>16</span></div><div class="cell"><span>17</span></div><div class="cell"><span>18</span><b class="chip u" style="animation:chipC 900ms cubic-bezier(.22,1,.36,1) 11750ms both">여행</b></div><div class="cell"><span>19</span><b class="chip u" style="animation:chipC 900ms cubic-bezier(.22,1,.36,1) 11960ms both">여행</b></div><div class="cell"><span>20</span></div><div class="cell"><span>21</span></div><div class="cell"><span>22</span></div><div class="cell"><span>23</span></div><div class="cell"><span>24</span><b class="chip u" style="animation:chipC 900ms cubic-bezier(.22,1,.36,1) 12170ms both">데이트</b></div><div class="cell"><span>25</span></div><div class="cell"><span>26</span></div><div class="cell"><span>27</span><b class="chip d" style="animation:chipR 900ms cubic-bezier(.22,1,.36,1) 12380ms both">모임</b></div><div class="cell"><span>28</span></div></div>
+</div></div>
+<div class="cap"><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 13300ms both, bye 400ms ease 15300ms forwards">안 물어봐도</div><div style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 13500ms both, bye 400ms ease 15300ms forwards"><em>다 보여요</em></div></div>
+<div class="think aha" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 13350ms both, bye 450ms ease 15300ms forwards">아, 내일 회식이구나!</div>
+
+<!-- 4. 여행도, 뭐 할지도, 편지도 -->
+<div class="word" style="animation:wordIn 700ms cubic-bezier(.34,1.5,.64,1) 15650ms both, bye 350ms ease 17100ms forwards">여행 계획도</div>
+<div class="obj trip" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 15650ms both, bye 450ms ease 17150ms forwards">
+  <svg viewBox="0 0 420 420">
+    <path class="route" d="M40 330 C 120 240, 200 380, 300 250 S 360 150 372 118" fill="none" stroke="#b79ad8" stroke-width="7" stroke-linecap="round" stroke-dasharray="2 20"/>
+    <g class="case">
+      <path d="M150 120v-34a22 22 0 0 1 22-22h56a22 22 0 0 1 22 22v34" fill="none" stroke="#9c7fc4" stroke-width="14" stroke-linecap="round"/>
+      <rect x="70" y="116" width="260" height="212" rx="34" fill="#d9c7ee"/>
+      <rect x="70" y="116" width="260" height="212" rx="34" fill="none" stroke="#c4aee2" stroke-width="6"/>
+      <rect x="126" y="116" width="20" height="212" fill="#c4aee2"/><rect x="254" y="116" width="20" height="212" fill="#c4aee2"/>
+      <circle cx="120" cy="344" r="16" fill="#9c7fc4"/><circle cx="280" cy="344" r="16" fill="#9c7fc4"/>
+      <g transform="translate(176 190) scale(2)"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z" fill="#fff"/></g>
+    </g>
+    <g class="pin"><path d="M372 132c-22-26-34-44-34-62a34 34 0 0 1 68 0c0 18-12 36-34 62z" fill="#ff8fa3"/><circle cx="372" cy="70" r="13" fill="#fff"/></g>
+  </svg></div>
+<div class="word" style="animation:wordIn 700ms cubic-bezier(.34,1.5,.64,1) 17300ms both, bye 350ms ease 18750ms forwards">오늘 뭐 할지도</div>
+<div class="obj wheel" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 17250ms both, bye 450ms ease 18750ms forwards"><i class="ptr"></i><svg viewBox="-112 -112 224 224"><circle r="110" fill="#fff"/><g class="wspin"><path d="M0,0L-50.00,-86.60A100,100 0 0 1 50.00,-86.60Z" fill="#ffd6e0" stroke="#fff" stroke-width="3"/><path d="M0,0L50.00,-86.60A100,100 0 0 1 100.00,0.00Z" fill="#fdebb8" stroke="#fff" stroke-width="3"/><path d="M0,0L100.00,0.00A100,100 0 0 1 50.00,86.60Z" fill="#c7ceea" stroke="#fff" stroke-width="3"/><path d="M0,0L50.00,86.60A100,100 0 0 1 -50.00,86.60Z" fill="#b5ead7" stroke="#fff" stroke-width="3"/><path d="M0,0L-50.00,86.60A100,100 0 0 1 -100.00,0.00Z" fill="#e8d7f1" stroke="#fff" stroke-width="3"/><path d="M0,0L-100.00,0.00A100,100 0 0 1 -50.00,-86.60Z" fill="#ffe3cf" stroke="#fff" stroke-width="3"/></g><circle r="24" fill="#fff"/><circle r="14" fill="#ff9bac"/></svg></div>
+<div class="word" style="animation:wordIn 700ms cubic-bezier(.34,1.5,.64,1) 18950ms both, bye 350ms ease 20400ms forwards">아껴 둔 편지도</div>
+<div class="obj letter" style="animation:pop 750ms cubic-bezier(.34,1.5,.64,1) 18850ms both, bye 450ms ease 20450ms forwards">
+  <svg viewBox="0 0 420 380">
+    <rect x="40" y="90" width="340" height="240" rx="26" fill="#fff"/>
+    <rect x="40" y="90" width="340" height="240" rx="26" fill="none" stroke="#ffc9d3" stroke-width="6"/>
+    <path d="M46 318l122-110M374 318L252 208" stroke="#ffe3e8" stroke-width="6" stroke-linecap="round"/>
+    <path class="flap" d="M44 112q0-22 26-22h280q26 0 26 22L226 232q-16 12-32 0z" fill="#ffe3e8" stroke="#ffc9d3" stroke-width="6" stroke-linejoin="round"/>
+    <g class="seal" transform="translate(210 222)"><circle r="40" fill="#ff9bac"/><g transform="translate(-22 -23) scale(1.850)"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z" fill="#fff"/></g></g>
+  </svg>
+  <div class="when" style="animation:pop 700ms cubic-bezier(.34,1.5,.64,1) 19650ms both">12월 25일에 열려요</div></div>
+
+<!-- 5. 마무리 -->
+<i class="heart" style="left:110px;width:56px;height:56px;animation:floatUp 5200ms linear 20600ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><i class="heart" style="left:330px;width:34px;height:34px;animation:floatUp 5200ms linear 21700ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><i class="heart" style="left:800px;width:48px;height:48px;animation:floatUp 5200ms linear 21100ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><i class="heart" style="left:930px;width:30px;height:30px;animation:floatUp 5200ms linear 22300ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><i class="heart" style="left:560px;width:40px;height:40px;animation:floatUp 5200ms linear 22900ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i><i class="heart" style="left:220px;width:28px;height:28px;animation:floatUp 5200ms linear 23500ms infinite"><svg viewBox="0 0 24 24"><path d="M12 20.500s-8-4.900-8-10.700A4.600 4.600 0 0 1 12 7a4.600 4.600 0 0 1 8 2.800c0 5.800-8 10.700-8 10.700z"/></svg></i>
+<div class="balloon" style="animation:balloonUp 1500ms cubic-bezier(.22,1,.36,1) 21500ms both"><div class="bsway"><svg viewBox="0 0 120 300"><path d="M60 118q-14 60 6 100t-8 80" fill="none" stroke="#5b4a50" stroke-width="2.500"/><path d="M60 118c-34-22-52-44-52-70a30 30 0 0 1 52-20 30 30 0 0 1 52 20c0 26-18 48-52 70z" fill="#ee5d5f"/><ellipse cx="34" cy="38" rx="9" ry="5" fill="#fff" opacity=".5" transform="rotate(-35 34 38)"/></svg></div></div>
+<div class="brand" style="animation:pop 900ms cubic-bezier(.34,1.5,.64,1) 22000ms both">우리두리</div>
+<div class="tag" style="animation:rise 800ms cubic-bezier(.22,1,.36,1) 22500ms both">둘이 같이 쓰는 커플 캘린더</div>
+<div class="store" style="animation:pop 850ms cubic-bezier(.34,1.5,.64,1) 23300ms both">Google Play에서 <b>‘우리두리’</b> 검색</div>
+<div class="free" style="animation:fadeIn 700ms ease 23900ms both">안드로이드 · 무료 설치</div>
+
+<!-- 주인공 둘(처음부터 끝까지) -->
+<div class="who hana" style="left:120px"><div class="hopper" style="animation:hop 620ms ease-in-out 600ms none, hop 620ms ease-in-out 4850ms none, hop 620ms ease-in-out 6850ms none, hop 620ms ease-in-out 9500ms none, hop 620ms ease-in-out 10000ms none, hop 620ms ease-in-out 13250ms none, hop 620ms ease-in-out 15900ms none, hop 620ms ease-in-out 17500ms none, hop 620ms ease-in-out 19100ms none, hop 620ms ease-in-out 20800ms none, hop 620ms ease-in-out 21300ms none"><div class="sway"><svg viewBox="0 0 200 232" class="blob">
+  <ellipse cx="100" cy="220" rx="64" ry="9" fill="rgba(90,70,80,.13)"/>
+  <rect x="64" y="186" width="24" height="34" rx="11" fill="#7c9fb9"/><rect x="114" y="186" width="24" height="34" rx="11" fill="#7c9fb9"/>
+  <ellipse cx="100" cy="108" rx="81" ry="93" fill="#7c9fb9" transform="rotate(-5 100 108)"/>
+  <ellipse cx="104" cy="103" rx="76" ry="88" fill="#93b4cc" transform="rotate(-5 100 108)"/>
+  <ellipse cx="66" cy="50" rx="17" ry="8" fill="#fff" opacity=".42" transform="rotate(-30 66 50)"/>
+  <g transform="translate(10 0)">
+    <g class="eyes"><circle cx="80" cy="108" r="7.500" fill="#2b2b33"/><circle cx="122" cy="108" r="7.500" fill="#2b2b33"/></g>
+    <path class="m-worry" d="M93 124q4-3 8 0t8 0" stroke="#2b2b33" stroke-width="4.500" fill="none" stroke-linecap="round"/>
+    <path class="m-smile" d="M89 120q12 11 24 0" stroke="#2b2b33" stroke-width="4.500" fill="none" stroke-linecap="round"/>
+    <ellipse class="cheek" cx="64" cy="124" rx="9" ry="5.500" fill="#ff8fa3"/><ellipse class="cheek" cx="138" cy="124" rx="9" ry="5.500" fill="#ff8fa3"/>
+  </g>
+</svg></div></div></div>
+<div class="who duri" style="left:660px"><div class="hopper" style="animation:hop 620ms ease-in-out 1600ms none, hop 620ms ease-in-out 5850ms none, hop 620ms ease-in-out 9650ms none, hop 620ms ease-in-out 10150ms none, hop 620ms ease-in-out 16050ms none, hop 620ms ease-in-out 17650ms none, hop 620ms ease-in-out 19250ms none, hop 620ms ease-in-out 20950ms none, hop 620ms ease-in-out 21450ms none"><div class="sway"><svg viewBox="0 0 200 232" class="blob">
+  <ellipse cx="100" cy="220" rx="64" ry="9" fill="rgba(90,70,80,.13)"/>
+  <rect x="64" y="186" width="24" height="34" rx="11" fill="#ef9f79"/><rect x="114" y="186" width="24" height="34" rx="11" fill="#ef9f79"/>
+  <ellipse cx="100" cy="108" rx="81" ry="93" fill="#ef9f79" transform="rotate(5 100 108)"/>
+  <ellipse cx="96" cy="103" rx="76" ry="88" fill="#f8b592" transform="rotate(5 100 108)"/>
+  <ellipse cx="66" cy="50" rx="17" ry="8" fill="#fff" opacity=".42" transform="rotate(-30 66 50)"/>
+  <g transform="translate(-10 0)">
+    <g class="eyes"><circle cx="80" cy="108" r="7.500" fill="#2b2b33"/><circle cx="122" cy="108" r="7.500" fill="#2b2b33"/></g>
+    <path class="m-worry" d="M93 124q4-3 8 0t8 0" stroke="#2b2b33" stroke-width="4.500" fill="none" stroke-linecap="round"/>
+    <path class="m-smile" d="M89 120q12 11 24 0" stroke="#2b2b33" stroke-width="4.500" fill="none" stroke-linecap="round"/>
+    <ellipse class="cheek" cx="64" cy="124" rx="9" ry="5.500" fill="#ff8fa3"/><ellipse class="cheek" cx="138" cy="124" rx="9" ry="5.500" fill="#ff8fa3"/>
+  </g>
+</svg></div></div></div>
+</div>
+<script>
+  window.__ready = document.fonts.ready.then(() => { document.getAnimations().forEach((x) => x.pause()); return true; });
+  window.__seek = (t) => document.getAnimations().forEach((x) => { x.currentTime = t; });
+</script>
+</body>
+</html>
