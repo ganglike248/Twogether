@@ -73,16 +73,20 @@ export const updateEvent = async (eventId, eventData, userId = 'anonymous', coup
   const oldEventSnap = await getDocPreferCache(eventRef);
   const oldData = oldEventSnap.exists() ? oldEventSnap.data() : {};
 
+  // id·isPersonal은 화면용 값이라 문서에 넣지 않음. 값이 없는 칸(undefined)도 뺌
+  const { id: _id, isPersonal: _isPersonal, ...rest } = eventData;
+  const fields = Object.fromEntries(Object.entries(rest).filter(([, v]) => v !== undefined));
   const updatedData = {
-    ...eventData,
+    ...fields,
     updatedAt: serverTimestamp(),
     updatedBy: userId,
   };
 
+  // 예전 값이 없으면 null로 — undefined가 섞이면 수정기록 저장이 통째로 실패함
   const changes = {};
-  Object.keys(eventData).forEach(key => {
-    if (oldData[key] !== eventData[key]) {
-      changes[key] = { from: oldData[key], to: eventData[key] };
+  Object.keys(fields).forEach(key => {
+    if ((oldData[key] ?? null) !== (fields[key] ?? null)) {
+      changes[key] = { from: oldData[key] ?? null, to: fields[key] };
     }
   });
   await Promise.all([

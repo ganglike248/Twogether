@@ -149,6 +149,17 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     }
   }, [recurrence, startDate, recurrenceActive]);
 
+  // 시작일을 바꾸면 종료일도 같은 기간만큼 따라감 — 안 그러면 '종료 < 시작'이 돼 저장 버튼이 이유 없이 꺼짐
+  const handleStartDateChange = (next) => {
+    if (next && startDate && endDate) {
+      const days = Math.round((new Date(`${endDate}T00:00:00`) - new Date(`${startDate}T00:00:00`)) / 86400000);
+      setEndDate(getLocalDateStr(addDays(new Date(`${next}T00:00:00`), Math.max(0, days))));
+    } else if (next && (!endDate || endDate < next)) {
+      setEndDate(next);
+    }
+    setStartDate(next);
+  };
+
   const buildEventData = () => {
     const finalEndDate = endDate || startDate;
     const isMultiDay = startDate !== finalEndDate;
@@ -428,7 +439,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   type="date"
                   className="sheet-date-input"
                   value={startDate}
-                  onChange={(e) => setStartDate(e.target.value)}
+                  onChange={(e) => handleStartDateChange(e.target.value)}
                   aria-label="시작일"
                   // 반복 중인 인스턴스는 시작일을 수정해도 실제 발생 날짜엔 반영 안 됨 —
                   // "이후 모두"/"전체" 재생성이 항상 규칙+기준일(클릭한 인스턴스 자신의 날짜)로만

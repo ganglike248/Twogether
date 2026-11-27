@@ -57,7 +57,7 @@ const Calendar = () => {
       let color = event.color;
 
       if (event.extendedProps?.isPersonal) {
-        color = userColors.personal;
+        color = userColors.personal || event.color; // 바꾼 적 없으면 기본 개인 색
       } else if (eventType === 'boyfriend') {
         color = myRole === 'boyfriend' ? userColors.boyfriend : partnerColors.boyfriend;
       } else if (eventType === 'girlfriend') {
@@ -122,6 +122,7 @@ const Calendar = () => {
           description: ev.extendedProps?.description || '',
           eventType: isPersonalEvent ? myRole : (ev.extendedProps?.eventType || 'couple'),
           isPersonal: isPersonalEvent,
+          isDday: ev.extendedProps?.isDday === true,
           imageUrls: ev.extendedProps?.imageUrls || [],
           recurrence: ev.extendedProps?.recurrence || null
         };
@@ -135,6 +136,7 @@ const Calendar = () => {
           prev.description === resolved.description &&
           prev.eventType === resolved.eventType &&
           prev.isPersonal === resolved.isPersonal &&
+          prev.isDday === resolved.isDday &&
           (prev.imageUrls?.length || 0) === (resolved.imageUrls?.length || 0) &&
           JSON.stringify(prev.recurrence ?? null) === JSON.stringify(resolved.recurrence ?? null)
         ) {
@@ -413,7 +415,8 @@ const Calendar = () => {
   const getDayEvents = () => {
     if (!selectedDate) return [];
     // end는 여러 날짜 일정이면 배타적(다음날 00:00) — getEventDayRange가 포함 범위로 바꿔줌
-    return events.filter(event => {
+    // 달력과 같은 필터(전체·개인·커플)를 적용 — 달력에 안 보이는 일정이 날짜 창에만 나오지 않게
+    return filteredEvents.filter(event => {
       const { startStr, endStr } = getEventDayRange(event);
       return selectedDate >= startStr && selectedDate <= endStr;
     });

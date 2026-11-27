@@ -7,6 +7,7 @@ import EmptyState from "../common/EmptyState";
 import { MdCalendarToday } from "react-icons/md";
 import { pressable } from '../../utils/pressable';
 import { useDialog } from '../../hooks/useDialog';
+import { getLocalDateStr } from '../../utils/dataUtils';
 
 const DayModal = ({
   isOpen,
@@ -61,6 +62,8 @@ const DayModal = ({
     return "일정";
   };
 
+  const isToday = selectedDate === getLocalDateStr();
+
   const sortedEvents = [...dayEvents].sort(
     (a, b) => new Date(a.start) - new Date(b.start),
   );
@@ -95,7 +98,7 @@ const DayModal = ({
             <div className="day-special-list">
               {specialDays.map((s, i) => (
                 <div key={i} className={`day-special-item ${s.type}`}>
-                  <span className="day-special-prefix">{s.type === 'anniversary' ? '오늘은 우리' : '오늘은'}</span>
+                  <span className="day-special-prefix">{`${isToday ? '오늘은' : '이 날은'}${s.type === 'anniversary' ? ' 우리' : ''}`}</span>
                   <span className="day-special-name">{s.name}</span>
                 </div>
               ))}

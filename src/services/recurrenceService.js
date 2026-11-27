@@ -163,7 +163,7 @@ export async function updateRecurringEvent({
     if (!isPersonal) {
       const changes = {};
       Object.keys(newFields).forEach((k) => {
-        if (oldData[k] !== newFields[k]) changes[k] = { from: oldData[k], to: newFields[k] };
+        if (oldData[k] !== newFields[k]) changes[k] = { from: oldData[k] ?? null, to: newFields[k] };
       });
       await saveEditLog(eventId, changes, 'updated', userId, coupleId);
     }

@@ -22,6 +22,7 @@ const CalendarGrid = ({
     const ep = arg.event.extendedProps;
     if (ep.isSpecial) return ['special-day-event', ep.specialType];
     if (ep.isTrip) return ['trip-event'];
+    if (ep.isPersonal) return ['personal-event'];
     switch (ep.eventType) {
       case 'boyfriend': return ['boyfriend-event'];
       case 'girlfriend': return ['girlfriend-event'];

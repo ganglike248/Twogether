@@ -292,6 +292,10 @@
   color: #6c6ea0;
 }
 
+.fc-event.personal-event {
+  background: var(--color-personal);
+}
+
 .fc-event.trip-event {
   background: #e8d7f1;
   color: #8b5fa0;
