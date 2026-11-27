@@ -123,12 +123,12 @@
 "그날의 우리"는 1~3년 전 ±3일 라운드로빈 최대 4개, 알림 없음
 
 **캘린더/일정**: `useCalendarData`는 커플·여행·개인을 독립 상태로 두고 useMemo 병합(functional update 패턴 금지), events 구독에서
-`eventType==='travel'` 제외(여행은 trips에서). 날짜별 필터는 `getEventDayRange()`(end 배타적). EventModal 닫힘 0.5초 내 '수정기록' 클릭 무시.
+`eventType==='travel'` 제외(여행은 trips에서). 날짜별 필터는 `getEventDayRange()`(end 배타적). EventModal 닫힘 0.5초 내 '수정기록' 클릭 무시. 캘린더 모달 경로: `/calendar/day/:date`·`/calendar/event/new/:date`·`/calendar/event/:id`(+`/log` 그 일정 수정기록, 일정 창 위)·`/calendar/log`·`/calendar/month`(연·월 바로 가기). 반복 일정 날짜를 바꾸면 '이 일정만'으로만 저장. 검토 기록 `docs/calendar-review.md`
 `twogether_personal_default` 로컬스토리지 기억은 의도된 동작
 
 **반복 일정**: 인스턴스를 개별 문서로 사전 생성(최대 50, 종료 조건 필수) + `eventSeries`. 범위 선택 "이 일정만(→isException)/이후 모두/전체".
 **재생성 기준점은 클릭한 인스턴스 자신의 날짜**(오늘·최초 시작일 금지 — 월/년 위상 밀림). "전체" 수정은 `recurrence.isFirst`인 인스턴스에서만,
-삭제 "전체"는 항상. 재생성 0개면 저장 막음. 디데이와 상호 배타, 시리즈 인스턴스는 시작일 입력 비활성, 개인↔커플 전환·기존 일정 반복 전환 불가,
+삭제 "전체"는 항상. 재생성 0개면 저장 막음. 디데이와 상호 배타, 시리즈 인스턴스의 시작일을 바꾸면 범위는 '이 일정만'만(→예외로 옮김), 개인↔커플 전환·기존 일정 반복 전환 불가,
 여행 제외. 알림·수정기록은 시리즈 단위(`onEventSeriesCreate`, `recurrence_*`). 날짜 계산은 로컬 기준(`recurrenceRules.js`)
 
 **봉인 편지**: 내용은 `sealedMessages/{id}/private/content` 서브문서(isUnlocked 또는 작성자만 read). 삭제 순서 content → Storage → 상위 문서.

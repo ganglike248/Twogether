@@ -593,3 +593,15 @@
 
 .confirm-actions { gap: 0.5rem; }
 .confirm-actions .btn { flex: 1; justify-content: center; }
+
+/* 반복 일정 날짜를 옮길 때 안내 */
+.sheet-move-hint { margin: 0.35rem 0 0; font-size: 0.78rem; color: var(--color-primary-dark); }
+
+/* 이 일정의 수정기록 한 줄 */
+.sheet-log-link {
+  width: 100%; margin-top: 0.75rem; display: flex; align-items: center; justify-content: space-between; gap: 0.5rem;
+  border: none; border-radius: 12px; padding: 0.65rem 0.8rem; cursor: pointer;
+  background: var(--color-primary-light); font-family: inherit; font-size: 0.85rem; color: var(--color-text-desc); text-align: left;
+}
+.sheet-log-link-go { flex: none; color: var(--color-primary-dark); }
+.scope-choice-btn:disabled { cursor: default; opacity: 0.55; border-color: var(--color-gray-200); background: var(--color-gray-100); }

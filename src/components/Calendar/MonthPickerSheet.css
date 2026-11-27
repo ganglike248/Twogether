@@ -1,0 +1,35 @@
+/* src/components/Calendar/MonthPickerSheet.css — 연·월 바로 가기 창(바닥에 붙는 시트) */
+.mps-overlay {
+  position: fixed; inset: 0; z-index: 1000;
+  background: rgba(40, 30, 35, 0.45);
+  display: flex; align-items: flex-end; justify-content: center;
+}
+.mps-sheet {
+  width: 100%; max-width: 480px; box-sizing: border-box;
+  background: white; border-radius: 22px 22px 0 0;
+  padding: 0.75rem 1.1rem calc(1.25rem + env(safe-area-inset-bottom));
+  display: flex; flex-direction: column; gap: 0.9rem; outline: none;
+}
+.mps-grabber { width: 40px; height: 4px; border-radius: 2px; background: var(--color-gray-300); align-self: center; }
+.mps-head { display: flex; align-items: center; justify-content: space-between; }
+.mps-title { font-size: 1.15rem; color: var(--color-gray-900); }
+.mps-close { border: none; background: none; font-size: 1.5rem; line-height: 1; color: var(--color-gray-500); cursor: pointer; padding: 0 4px; }
+.mps-year { display: flex; align-items: center; justify-content: center; gap: 1.4rem; }
+.mps-year-text { font-family: var(--font-display); font-size: 1.25rem; color: var(--color-gray-900); min-width: 5.5rem; text-align: center; }
+.mps-year-btn {
+  width: 34px; height: 34px; border-radius: 50%; border: none; cursor: pointer;
+  background: var(--color-primary-light); color: var(--color-primary-dark); font-size: 1.2rem; line-height: 1;
+}
+.mps-months { display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.5rem; }
+.mps-month {
+  position: relative; height: 48px; border-radius: 12px; cursor: pointer;
+  border: 1.5px solid var(--color-gray-200); background: white;
+  font-family: inherit; font-size: 0.95rem; color: var(--color-gray-800);
+}
+.mps-month.now { color: var(--color-primary-dark); }
+.mps-month.viewing { border-color: var(--color-primary); background: var(--color-primary-light); color: var(--color-primary-dark); }
+.mps-dot { position: absolute; left: 50%; bottom: 6px; width: 4px; height: 4px; margin-left: -2px; border-radius: 50%; background: var(--color-primary); }
+.mps-today {
+  height: 44px; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 0.95rem;
+  border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark);
+}

@@ -112,3 +112,16 @@ export const getLogSummary = (log, rows, who) => {
     default: return '';
   }
 };
+
+/** 일정 창 한 줄용 '언제' — 방금 / N분 전 / N시간 전 / 어제 / M월 D일 */
+export const formatLogWhen = (date, now = new Date()) => {
+  if (!(date instanceof Date) || Number.isNaN(date.getTime())) return '';
+  const min = Math.floor((now - date) / 60000);
+  if (min < 1) return '방금';
+  if (min < 60) return `${min}분 전`;
+  const sameDay = (a, b) => a.getFullYear() === b.getFullYear() && a.getMonth() === b.getMonth() && a.getDate() === b.getDate();
+  if (sameDay(date, now)) return `${Math.floor(min / 60)}시간 전`;
+  const yesterday = new Date(now); yesterday.setDate(now.getDate() - 1);
+  if (sameDay(date, yesterday)) return '어제';
+  return `${date.getMonth() + 1}월 ${date.getDate()}일`;
+};

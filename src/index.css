@@ -181,6 +181,7 @@ body {
    font-family/weight를 덮음(주아는 굵기가 하나라 bold면 가짜 굵기로 뭉개져서 400 고정). 새 화면 제목도 여기에 추가 */
 #root .app-header-title,
 #root .calendar-title,
+#root .mps-title,
 #root .travel-plan-title,
 #root .sm-page-title,
 #root .acc-title,

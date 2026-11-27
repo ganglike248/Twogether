@@ -71,6 +71,15 @@
   white-space: nowrap;
 }
 
+/* 제목 = 연·월 바로 가기 버튼 */
+.calendar-title-btn {
+  display: inline-flex; align-items: center; gap: 2px;
+  border: none; background: none; padding: 4px 6px; border-radius: 999px;
+  cursor: pointer; font-family: inherit;
+}
+.calendar-title-btn:active { background: var(--color-primary-light); }
+.calendar-title-caret { font-size: 0.8rem; color: var(--color-primary-dark); line-height: 1; }
+
 .calendar-header-actions {
   display: flex;
   gap: 0.3rem;

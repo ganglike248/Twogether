@@ -13,8 +13,10 @@
 import React, { useState } from 'react';
 import { useDialog } from '../../hooks/useDialog';
 
-const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel, onChoose }) => {
-  const [selected, setSelected] = useState(null);
+// movedToLabel: 반복 일정의 날짜를 옮겨 저장하는 경우('11월 18일') — 이때는 '이 일정만'만 고를 수 있음
+const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, movedToLabel = '', onCancel, onChoose }) => {
+  const moved = !!movedToLabel;
+  const [selected, setSelected] = useState(moved ? 'this' : null);
   const dialogRef = useDialog(true, onCancel);
   const title = mode === 'delete' ? '반복 일정 삭제' : '반복 일정 수정';
 
@@ -22,7 +24,10 @@ const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel
     ? `${instanceDateLabel}부터 ${mode === 'delete' ? '삭제돼요' : '적용돼요'}`
     : null;
 
-  const options = [
+  const options = moved ? [
+    { value: 'this', label: '이 일정만', caption: `${instanceDateLabel} → ${movedToLabel}, 다른 일정은 그대로예요` },
+    { value: 'future', label: '이 일정 및 향후 모든 일정', caption: '날짜를 바꾸면 고를 수 없어요 — 요일을 바꾸려면 반복 설정에서', disabled: true },
+  ] : [
     { value: 'this', label: '이 일정만' },
     { value: 'future', label: '이 일정 및 향후 모든 일정', caption: futureCaption },
     ...(showAllOption ? [{ value: 'all', label: '모든 일정' }] : []),
@@ -37,7 +42,9 @@ const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel
     <div className="modal-overlay">
       <div className="confirm-card" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true" aria-label={title}>
         <p className="confirm-title">{title}</p>
-        <p className="confirm-body">반복되는 일정 중 어디까지 적용할까요?</p>
+        <p className="confirm-body">
+          {moved ? `날짜를 바꿨어요. 이 일정만 ${movedToLabel}로 옮겨요.` : '반복되는 일정 중 어디까지 적용할까요?'}
+        </p>
         <div className="scope-choice-list" role="radiogroup" aria-label="적용 범위">
           {options.map((opt) => (
             <button
@@ -46,6 +53,7 @@ const RecurrenceScopeModal = ({ mode, showAllOption, instanceDateLabel, onCancel
               className={`scope-choice-btn ${selected === opt.value ? 'sel' : ''}`}
               onClick={() => setSelected(opt.value)}
               aria-pressed={selected === opt.value}
+              disabled={opt.disabled}
             >
               <span className="scope-choice-label">{opt.label}</span>
               {opt.caption && <span className="scope-choice-caption">{opt.caption}</span>}

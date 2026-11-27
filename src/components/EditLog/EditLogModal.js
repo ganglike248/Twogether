@@ -155,6 +155,13 @@ const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
           <button className="modal-close" onClick={onClose} aria-label="닫기">&times;</button>
         </div>
 
+        {eventId && (() => {
+          const info = lookup[eventId];
+          const when = info?.start ? getLogDate({ changes: {}, eventId }, lookup) : '';
+          return info?.title ? <p className="log-modal-sub">{info.title}{when ? ` · ${when}` : ''}</p> : null;
+        })()}
+
+        {!eventId && (
         <div className="log-filters">
           <button 
             className={`filter-btn ${filter === 'all' ? 'active' : ''}`}
@@ -181,6 +188,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
             삭제
           </button>
         </div>
+        )}
 
         <div className="log-modal-body" ref={modalBodyRef}>
           {loading ? (
@@ -195,7 +203,8 @@ const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
           ) : (
             <div className="logs-list">
               {logs.map((log) => {
-                const isExpanded = expandedLogs.has(log.id);
+                // 한 일정의 기록은 몇 개 안 돼서 바뀐 내용을 펼친 채로 보여 줌
+                const isExpanded = !!eventId || expandedLogs.has(log.id);
                 const rows = log.action === 'updated' ? getChangeRows(log.changes, typeName) : [];
                 const hasChanges = rows.length > 0;
                 const summary = getLogSummary(log, rows, nameByUid(log.userId));
@@ -224,7 +233,7 @@ const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
 
                       {summary && <div className="log-summary"><span>{summary}</span></div>}
 
-                      {hasChanges && (
+                      {hasChanges && !eventId && (
                         <button className="details-toggle-btn" onClick={() => toggleExpanded(log.id)} aria-expanded={isExpanded}>
                           {isExpanded ? '▼ 간단히 보기' : '▶ 자세히 보기'}
                         </button>

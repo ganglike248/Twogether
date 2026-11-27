@@ -12,6 +12,10 @@ import { getFriendlyErrorMessage } from '../../utils/errorMessages';
 import AutoGrowTextarea from '../common/AutoGrowTextarea';
 import { useDialog } from '../../hooks/useDialog';
 import { getLocalDateStr } from '../../utils/dataUtils';
+import { getEditLogs } from '../../services/eventService';
+import { useNameByUid } from '../../hooks/useNameByUid';
+import { formatLogWhen } from '../EditLog/editLogFormat';
+import { formatMonthDay } from '../../utils/dateFormat';
 
 const DEFAULT_RECURRENCE = {
   enabled: false,
@@ -33,9 +37,11 @@ const toRuleObject = (r) => ({
   count: r.endType === 'count' ? r.count : null,
 });
 
-const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
+const EventModal = ({ isOpen, onClose, event, onSave, onDelete, onOpenLog }) => {
   const dialogRef = useDialog(isOpen, onClose);
-  const { getMemberName, myRole } = useAuthContext();
+  const { getMemberName, myRole, coupleId } = useAuthContext();
+  const nameByUid = useNameByUid();
+  const [logState, setLogState] = useState({ id: null, log: null });
   const { logEvent } = useAnalytics();
   const canClick = useDoubleClickPrevention(500);
   const [title, setTitle] = useState('');
@@ -59,6 +65,18 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
     if (isOpen) openedAtRef.current = Date.now();
   }, [isOpen]);
 
+  // 이 일정의 마지막 수정기록(커플 일정만 — 개인 일정은 기록을 안 남김). 없으면 줄을 안 보여 줌
+  const logEventId = isOpen && event?.id && !event?.isPersonal ? event.id : null;
+  const lastLog = logState.id === logEventId ? logState.log : null;
+  useEffect(() => {
+    if (!logEventId || !coupleId) return undefined;
+    let alive = true;
+    getEditLogs(coupleId, logEventId, 1)
+      .then(({ logs }) => { if (alive) setLogState({ id: logEventId, log: logs[0] || null }); })
+      .catch(() => { /* 기록 줄은 없어도 됨 */ });
+    return () => { alive = false; };
+  }, [logEventId, coupleId]);
+
   // 반복 일정의 "예외 아닌" 인스턴스인지 — 이 경우만 반복 규칙 편집/범위선택 UI 대상
   const isSeriesMember = !!(event?.recurrence?.seriesId) && !event?.recurrence?.isException;
   // 반복 설정 UI 자체를 보여줄지: 새 일정이거나(신규 생성 시 켤 수 있음), 이미 반복 중인 인스턴스 편집 시.
@@ -69,11 +87,11 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
   // "전체"를 고르면 실제로는 이 인스턴스 날짜부터 재계산되는데 이름과 동작이 안 맞아 헷갈린다는
   // 피드백으로 도입). "삭제"는 애매함이 없어서(항상 시리즈 전체 삭제) 이 제한을 안 둠.
   const isFirstInstance = event?.recurrence?.isFirst === true;
-  const instanceDateLabel = (() => {
-    if (!isSeriesMember || !startDate) return '';
-    const [, m, d] = startDate.split('-');
-    return `${Number(m)}월 ${Number(d)}일`;
-  })();
+  // 반복 일정의 이 날짜(원래 날짜) — 날짜를 바꿔도 범위 안내는 원래 날짜 기준
+  const originalStart = isSeriesMember ? (typeof event.start === 'string' ? event.start.split('T')[0] : '') : '';
+  const instanceDateLabel = originalStart ? formatMonthDay(originalStart) : '';
+  // 반복 일정의 날짜를 옮겼는지 — 옮기면 '이 일정만'으로만 저장(그 일정은 반복에서 떨어짐)
+  const dateMoved = isSeriesMember && !!startDate && startDate !== originalStart;
 
   const extractDate = (dateValue) => {
     if (!dateValue) return '';
@@ -442,13 +460,8 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
                   value={startDate}
                   onChange={(e) => handleStartDateChange(e.target.value)}
                   aria-label="시작일"
-                  // 반복 중인 인스턴스는 시작일을 수정해도 실제 발생 날짜엔 반영 안 됨 —
-                  // "이후 모두"/"전체" 재생성이 항상 규칙+기준일(클릭한 인스턴스 자신의 날짜)로만
-                  // 날짜를 계산하기 때문(재생성 위상 버그 방지 설계, recurrenceService.js 참고).
-                  // 그런데 이 값이 durationDays 계산엔 그대로 쓰여서, 수정이 조용히 무시되는 줄
-                  // 모르고 시작일만 바꾸면 모든 미래 인스턴스 기간이 의도치 않게 늘어나는 버그가
-                  // 있었음(2026-08-25 발견/수정) — 애초에 못 바꾸게 막아 혼동을 없앰
-                  disabled={isSeriesMember}
+                  // 반복 일정도 날짜를 바꿀 수 있음 — 바꾸면 범위가 '이 일정만'으로 고정돼(dateMoved)
+                  // "이후 모두/전체" 재생성에 바뀐 시작일이 섞이지 않음(2026-08-25 기간 늘어남 버그 방지 유지)
                   required
                 />
               </div>
@@ -465,6 +478,9 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               </div>
             </div>
           </div>
+          {dateMoved && (
+            <p className="sheet-move-hint">날짜를 바꾸면 이 일정만 옮겨져요 (원래 {instanceDateLabel})</p>
+          )}
 
           <div className="sheet-toggle-row">
             <label className="sheet-toggle-item">
@@ -513,6 +529,16 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
               disabled={loading}
               preview={recurPreview}
             />
+          )}
+
+          {lastLog && onOpenLog && (
+            <button type="button" className="sheet-log-link" onClick={() => onOpenLog(event.id)}>
+              <span>
+                수정 기록 · {nameByUid(lastLog.userId) ? `${nameByUid(lastLog.userId)}님이 ` : ''}
+                {formatLogWhen(lastLog.timestamp?.toDate ? lastLog.timestamp.toDate() : null)}{lastLog.action === 'created' ? ' 만들었어요' : ' 바꿨어요'}
+              </span>
+              <span className="sheet-log-link-go">보기 ›</span>
+            </button>
           )}
 
           <hr className="sheet-dashed" />
@@ -594,6 +620,7 @@ const EventModal = ({ isOpen, onClose, event, onSave, onDelete }) => {
           mode={scopeMode}
           showAllOption={scopeMode === 'delete' || isFirstInstance}
           instanceDateLabel={instanceDateLabel}
+          movedToLabel={scopeMode === 'save' && dateMoved ? formatMonthDay(startDate) : ''}
           onCancel={handleScopeCancel}
           onChoose={handleScopeChoose}
         />

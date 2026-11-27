@@ -8,6 +8,7 @@ import EditLogModal from '../EditLog/EditLogModal';
 import CalendarHeader from './CalendarHeader';
 import CalendarGrid from './CalendarGrid';
 import CalendarSkeleton from './CalendarSkeleton';
+import MonthPickerSheet from './MonthPickerSheet';
 import FloatingActionMenu from '../Travel/FloatingActionMenu';
 import {
   createEvent, updateEvent, deleteEvent,
@@ -77,6 +78,9 @@ const Calendar = () => {
   const eventNewMatch = matchPath('/calendar/event/new/:date', location.pathname);
   const eventEditMatch = matchPath('/calendar/event/:eventId', location.pathname);
   const logMatch = matchPath('/calendar/log', location.pathname);
+  const monthMatch = matchPath('/calendar/month', location.pathname);
+  // 일정 창 위에 그 일정의 수정기록 — 일정 창은 그대로 열어 둠(닫으면 일정 창으로 돌아감)
+  const eventLogMatch = matchPath('/calendar/event/:eventId/log', location.pathname);
 
   const isDayModalOpen = !!dayMatch;
   const selectedDate = dayMatch?.params?.date ?? null;
@@ -95,7 +99,7 @@ const Calendar = () => {
   // 리셋되며 번쩍이는 것을 막는다. 내용이 실제로 안 바뀌었으면 레퍼런스도 유지해
   // EventModal의 폼 재초기화(useEffect [event]) 자체를 줄인다.
   const eventNewDate = eventNewMatch?.params?.date ?? null;
-  const eventEditId = eventEditMatch?.params?.eventId ?? null;
+  const eventEditId = eventEditMatch?.params?.eventId ?? eventLogMatch?.params?.eventId ?? null;
   const selectedEvent = useMemo(() => {
     try {
       if (eventNewDate) {
@@ -152,7 +156,7 @@ const Calendar = () => {
 
   const selectedEventReady = !!selectedEvent;
   // (지워진 일정 주소면 아래 effect가 안내 후 캘린더로 돌려보냄 — 빈 '새 일정' 폼을 띄우지 않음)
-  const isModalOpen = !!(eventNewMatch || (eventEditMatch && !isLoading && selectedEventReady));
+  const isModalOpen = !!(eventNewMatch || ((eventEditMatch || eventLogMatch) && !isLoading && selectedEventReady));
 
   const [viewMode, setViewMode] = useState('all'); // 'all' | 'personal' | 'couple'
   const [currentDate, setCurrentDate] = useState(() => {
@@ -300,6 +304,54 @@ const Calendar = () => {
     const dateStr = `${year}-${month}-${date}`;
     navigatePage(`/calendar/event/new/${dateStr}`, { state: { modal: true } });
   }, [navigatePage, lockNav]);
+
+  // 연·월 바로 가기 창
+  const handleOpenMonthPicker = useCallback(() => {
+    if (navLockRef.current) return;
+    lockNav();
+    navigatePage('/calendar/month', { state: { modal: true } });
+  }, [navigatePage, lockNav]);
+
+  const handlePickMonth = useCallback((year, month) => {
+    setCurrentDate(new Date(year, month, 1));
+    closeModal();
+  }, [closeModal]);
+
+  const handlePickToday = useCallback(() => {
+    goToday();
+    closeModal();
+  }, [goToday, closeModal]);
+
+  // 일정이 있는 달('YYYY-M', 월은 0부터) — 고르기 창의 점 표시용(지금 필터 기준)
+  const monthsWithEvents = useMemo(() => {
+    const set = new Set();
+    filteredEvents.forEach((event) => {
+      const { startStr, endStr } = getEventDayRange(event);
+      [startStr, endStr].forEach((s) => {
+        const [y, m] = (s || '').split('-').map(Number);
+        if (y && m) set.add(`${y}-${m - 1}`);
+      });
+    });
+    return set;
+  }, [filteredEvents]);
+
+  // 일정 창 → 그 일정의 수정기록(쌓아서 열고, 닫으면 일정 창으로)
+  const handleOpenEventLog = useCallback((eventId) => {
+    if (navLockRef.current) return;
+    lockNav();
+    navigatePage(`/calendar/event/${eventId}/log`, { state: { modal: true } });
+  }, [navigatePage, lockNav]);
+
+  const closeEventLog = useCallback(() => {
+    if (navLockRef.current) return;
+    lockNav();
+    const historyIdx = window.history.state?.idx;
+    if (location.key === 'default' || !historyIdx) {
+      navigatePage(`/calendar/event/${eventLogMatch?.params?.eventId}`, { replace: true, state: { modal: true } });
+    } else {
+      navigatePage(-1);
+    }
+  }, [navigatePage, location.key, lockNav, eventLogMatch?.params?.eventId]);
 
   const handleEditEventFromDay = useCallback((event) => {
     if (navLockRef.current) return;
@@ -484,6 +536,7 @@ const Calendar = () => {
         onPrevMonth={() => navigate('prev')}
         onNextMonth={() => navigate('next')}
         onGoToday={goToday}
+        onOpenMonthPicker={handleOpenMonthPicker}
         onShowEditLog={() => {
           if (Date.now() - eventModalClosedAtRef.current < 500) return;
           if (navLockRef.current) return;
@@ -537,6 +590,7 @@ const Calendar = () => {
         event={selectedEvent}
         onSave={handleSaveEvent}
         onDelete={handleDeleteEvent}
+        onOpenLog={handleOpenEventLog}
       />
       <DayModal
         isOpen={isDayModalOpen}
@@ -548,11 +602,21 @@ const Calendar = () => {
         onEditEvent={handleEditEventFromDay}
       />
       <EditLogModal
-        isOpen={showEditLog}
-        onClose={closeModal}
-        eventId={null}
+        // 일정 창이 열린 뒤에 같이 열어야 겹친 순서(맨 위 = 기록)가 맞음(Esc·뒤로가 기록만 닫음)
+        isOpen={showEditLog || (!!eventLogMatch && isModalOpen)}
+        onClose={eventLogMatch ? closeEventLog : closeModal}
+        eventId={eventLogMatch?.params?.eventId ?? null}
         events={events}
       />
+      {monthMatch && (
+        <MonthPickerSheet
+          currentDate={currentDate}
+          monthsWithEvents={monthsWithEvents}
+          onPick={handlePickMonth}
+          onToday={handlePickToday}
+          onClose={closeModal}
+        />
+      )}
 
       {/* FloatingActionMenu - 일정 추가 */}
       <FloatingActionMenu

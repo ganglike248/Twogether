@@ -45,3 +45,16 @@ describe('수정기록 문구', () => {
     expect(getLogSummary({ action: 'recurrence_deleted', changes: { deletedCount: 3 } }, [], '민수')).toBe('민수님이 반복 일정 3개를 지웠어요');
   });
 });
+
+describe('일정 창 한 줄의 때', () => {
+  it('방금·분·시간·어제·날짜', async () => {
+    const { formatLogWhen } = await import('./editLogFormat');
+    const now = new Date(2026, 10, 27, 15, 0);
+    expect(formatLogWhen(new Date(2026, 10, 27, 14, 59, 40), now)).toBe('방금');
+    expect(formatLogWhen(new Date(2026, 10, 27, 14, 30), now)).toBe('30분 전');
+    expect(formatLogWhen(new Date(2026, 10, 27, 12, 0), now)).toBe('3시간 전');
+    expect(formatLogWhen(new Date(2026, 10, 26, 23, 0), now)).toBe('어제');
+    expect(formatLogWhen(new Date(2026, 10, 20, 9, 0), now)).toBe('11월 20일');
+    expect(formatLogWhen(null, now)).toBe('');
+  });
+});
