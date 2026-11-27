@@ -1,0 +1,116 @@
+/* src/components/Decisions/Decisions.css — 같이 정해요(목록·주제 상세·새로 정하기·이름 바꾸기) */
+.dcp-page { padding-bottom: calc(2rem + env(safe-area-inset-bottom)); }
+
+.dcp-add {
+  display: flex; gap: 0.5rem; align-items: center;
+  background: white; border: 1.5px solid var(--color-gray-200); border-radius: 14px;
+  padding: 0.4rem 0.4rem 0.4rem 0.85rem; margin-bottom: 1rem;
+}
+.dcp-add-input {
+  flex: 1; min-width: 0; border: none; outline: none; background: none;
+  font-family: inherit; font-size: 1rem; color: var(--color-gray-900);
+}
+
+.dcp-section { display: flex; flex-direction: column; gap: 0.55rem; margin-bottom: 1.4rem; }
+.dcp-section-title { margin: 0; font-size: 1.05rem; color: var(--color-gray-900); }
+.dcp-sechd { display: flex; align-items: baseline; justify-content: space-between; gap: 0.5rem; }
+.dcp-sechd-sub { font-size: 0.78rem; color: var(--color-text-desc); text-align: right; }
+
+.dcp-topic {
+  display: flex; align-items: center; gap: 0.75rem; cursor: pointer;
+  background: white; border-radius: 16px; padding: 0.85rem 1rem;
+  border: 1.5px solid var(--color-gray-200); box-shadow: var(--shadow-sm);
+}
+.dcp-topic.live { border-color: var(--color-primary); }
+.dcp-topic-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.2rem; }
+.dcp-topic-title { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-gray-900); }
+.dcp-topic-sub { font-size: 0.8rem; color: var(--color-text-desc); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.dcp-tag { flex: none; font-size: 0.72rem; padding: 0.2rem 0.6rem; border-radius: 999px; background: var(--color-primary); color: white; font-weight: 600; }
+.dcp-count { flex: none; font-size: 0.8rem; color: var(--color-primary-dark); }
+
+.dcp-empty { background: white; border-radius: 16px; padding: 1.4rem 1.1rem; text-align: center; border: 1.5px dashed var(--color-gray-300); }
+.dcp-empty-title { margin: 0 0 0.4rem; font-family: var(--font-display); font-size: 1.05rem; color: var(--color-gray-900); }
+.dcp-empty-text { margin: 0 0 0.9rem; font-size: 0.85rem; color: var(--color-text-desc); line-height: 1.5; }
+.dcp-suggest { display: flex; flex-wrap: wrap; justify-content: center; gap: 0.4rem; }
+.dcp-suggest-chip {
+  border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark);
+  border-radius: 999px; padding: 0.4rem 0.85rem; font-family: inherit; font-size: 0.85rem; cursor: pointer;
+}
+
+.dcp-skeleton { display: flex; flex-direction: column; gap: 0.6rem; }
+.dcp-skeleton span { height: 64px; border-radius: 16px; background: var(--color-gray-100); }
+.dcp-skeleton span.tall { height: 220px; }
+
+/* 이번 결정 — 카드 줄은 여행 후보와 같은 .dsec-row(좌우 여백만 화면에 맞춤) */
+.dcp-cards { margin: 0 -12px; }
+.dcp-again {
+  background: white; border-radius: 16px; padding: 1.4rem 1rem; display: flex; flex-direction: column; align-items: center; gap: 0.8rem;
+  border: 1.5px dashed var(--color-gray-300);
+}
+.dcp-again-title { margin: 0; font-family: var(--font-display); font-size: 1.05rem; color: var(--color-gray-900); }
+
+.dcp-none { margin: 0; font-size: 0.85rem; color: var(--color-text-desc); }
+.dcp-hist { display: flex; align-items: center; gap: 0.75rem; background: white; border-radius: 12px; padding: 0.65rem 0.6rem 0.65rem 0.9rem; }
+.dcp-hist-day { flex: none; width: 3.6rem; font-size: 0.78rem; color: var(--color-text-desc); }
+.dcp-hist-text { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 0.1rem; }
+.dcp-hist-title { font-size: 0.95rem; color: var(--color-gray-900); }
+.dcp-hist-sub { font-size: 0.75rem; color: var(--color-text-desc); }
+.dcp-hist-del { flex: none; border: none; background: none; color: var(--color-gray-500); font-size: 1rem; padding: 0.3rem; cursor: pointer; position: relative; }
+
+.dcp-topic-acts { display: flex; justify-content: center; gap: 1.4rem; margin-top: 0.5rem; }
+.dcp-link { border: none; background: none; font-family: inherit; font-size: 0.85rem; color: var(--color-text-desc); cursor: pointer; padding: 0.4rem; }
+.dcp-link.danger { color: var(--color-danger); }
+
+/* 버튼(시트·화면 공통) */
+.dcs-btn {
+  flex: 1; height: 44px; border-radius: 12px; cursor: pointer; font-family: inherit; font-size: 0.92rem;
+  border: 1.5px solid var(--color-primary); background: white; color: var(--color-primary-dark); padding: 0 1rem;
+}
+.dcs-btn.primary { background: var(--color-primary); color: white; font-weight: 700; }
+.dcs-btn.small { flex: none; height: 36px; font-size: 0.85rem; padding: 0 0.8rem; border-radius: 10px; }
+.dcs-btn.wide { width: 100%; flex: none; }
+.dcs-btn:disabled { opacity: 0.55; cursor: default; }
+
+/* 바닥에 붙는 시트(새로 정하기·이름 바꾸기) */
+.dcs-overlay { position: fixed; inset: 0; z-index: 1000; background: rgba(40, 30, 35, 0.45); display: flex; align-items: flex-end; justify-content: center; }
+.dcs-sheet {
+  width: 100%; max-width: 480px; max-height: 85dvh; overflow-y: auto; box-sizing: border-box; outline: none;
+  background: white; border-radius: 22px 22px 0 0; display: flex; flex-direction: column; gap: 0.7rem;
+  padding: 0.75rem 1.1rem calc(1.2rem + env(safe-area-inset-bottom));
+}
+.dcs-grabber { width: 40px; height: 4px; border-radius: 2px; background: var(--color-gray-300); align-self: center; flex: none; }
+.dcs-head { display: flex; align-items: center; justify-content: space-between; }
+.dcs-title { font-size: 1.15rem; color: var(--color-gray-900); }
+.dcs-close { border: none; background: none; font-size: 1.5rem; line-height: 1; color: var(--color-gray-500); cursor: pointer; padding: 0 4px; }
+.dcs-desc { margin: -0.2rem 0 0; font-size: 0.82rem; color: var(--color-text-desc); }
+.dcs-list { display: flex; flex-direction: column; gap: 0.45rem; }
+.dcs-check {
+  display: flex; align-items: center; gap: 0.65rem; text-align: left; cursor: pointer;
+  border: 1.5px solid var(--color-gray-200); border-radius: 12px; background: white; padding: 0.65rem 0.8rem;
+  font-family: inherit; font-size: 0.95rem; color: var(--color-gray-900);
+}
+.dcs-check.on { border-color: var(--color-primary); background: var(--color-primary-light); }
+.dcs-box {
+  flex: none; width: 20px; height: 20px; border-radius: 6px; border: 1.5px solid var(--color-gray-300);
+  display: flex; align-items: center; justify-content: center; font-size: 0.75rem; color: white;
+}
+.dcs-check.on .dcs-box { background: var(--color-primary); border-color: var(--color-primary); }
+.dcs-check-title { flex: 1; min-width: 0; }
+.dcs-check-note { flex: none; font-size: 0.72rem; color: var(--color-text-desc); }
+.dcs-add-row { display: flex; gap: 0.5rem; align-items: center; }
+.dcs-input {
+  flex: 1; min-width: 0; height: 44px; box-sizing: border-box; border: 1.5px solid var(--color-gray-200); border-radius: 12px;
+  padding: 0 0.8rem; font-family: inherit; font-size: 1rem; color: var(--color-gray-900); outline: none;
+}
+.dcs-input:focus { border-color: var(--color-primary); }
+.dcs-actions { display: flex; gap: 0.5rem; margin-top: 0.2rem; }
+.dcs-sr { position: absolute; width: 1px; height: 1px; overflow: hidden; clip: rect(0 0 0 0); white-space: nowrap; }
+
+/* 홈 '우리 이야기' 카드 */
+.home-decision-card { cursor: pointer; }
+.home-decision-card.live { border: 2px solid var(--color-primary); }
+.hdc-title { font-family: var(--font-display); font-size: 1.05rem; color: var(--color-gray-900); }
+.hdc-sub { font-size: 0.82rem; color: var(--color-text-desc); margin-top: -0.4rem; }
+.hdc-chips { display: flex; flex-wrap: wrap; gap: 0.35rem; }
+.hdc-chip { font-size: 0.78rem; padding: 0.25rem 0.65rem; border-radius: 999px; background: var(--color-primary-light); color: var(--color-text-desc); max-width: 9rem; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.hdc-go { align-self: flex-start; border: none; border-radius: 10px; background: var(--color-primary); color: white; font-weight: 700; font-family: inherit; font-size: 0.85rem; padding: 0.5rem 0.9rem; cursor: pointer; }

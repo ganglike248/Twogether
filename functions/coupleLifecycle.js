@@ -272,6 +272,9 @@ const createCoupleLifecycle = ({ db, auth, bucket, FieldValue, Timestamp, notify
     await deleteQuery(db.collection('events').where('coupleId', '==', coupleId));
     await deleteQuery(db.collection('eventSeries').where('coupleId', '==', coupleId).where('isPersonal', '==', false));
     await deleteQuery(db.collection('bucketlists').where('coupleId', '==', coupleId));
+    // 같이 정해요 — 주제마다 판(rounds) 서브컬렉션까지
+    const decisionTopics = await db.collection('decisions').where('coupleId', '==', coupleId).get();
+    for (const t of decisionTopics.docs) await db.recursiveDelete(t.ref, writer);
     await deleteQuery(db.collection('edit_logs').where('coupleId', '==', coupleId));
     await deleteQuery(db.collection('inviteCodes').where('coupleId', '==', coupleId));
     const letters = await db.collection('sealedMessages').where('coupleId', '==', coupleId).get();

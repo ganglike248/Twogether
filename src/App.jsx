@@ -38,6 +38,8 @@ const TripReviewPage = lazy(() => import('./components/Travel/Review/TripReviewP
 const MapPage = lazy(() => import('./components/Map/MapPage'));
 const RecapPage = lazy(() => import('./components/Recap/RecapPage'));
 const RecapListPage = lazy(() => import('./components/Recap/RecapListPage'));
+const DecisionsPage = lazy(() => import('./components/Decisions/DecisionsPage'));
+const DecisionTopicPage = lazy(() => import('./components/Decisions/DecisionTopicPage'));
 const AccountDeletionPage = lazy(() => import('./components/Privacy/AccountDeletionPage'));
 
 import './App.css';
@@ -187,6 +189,17 @@ const router = createBrowserRouter([
         path: '/recap/:period',
         element: <ProtectedRoute key="recap-period"><RecapPage /></ProtectedRoute>,
         key: 'recap-period',
+      },
+      {
+        // 같이 정해요(일상 결정) — 주제 목록 / 주제 상세(이번 결정 + 지난 결정)
+        path: '/decisions',
+        element: <ProtectedRoute key="decisions"><Layout><DecisionsPage /></Layout></ProtectedRoute>,
+        key: 'decisions',
+      },
+      {
+        path: '/decisions/:topicId',
+        element: <ProtectedRoute key="decision-topic"><Layout><DecisionTopicPage /></Layout></ProtectedRoute>,
+        key: 'decision-topic',
       },
       { path: '*', element: <NotFoundPage />, key: 'not-found' },
     ],

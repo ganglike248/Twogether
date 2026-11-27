@@ -34,6 +34,7 @@ import FirstStepsCard from './FirstStepsCard';
 import TodayEmptyCard from './TodayEmptyCard';
 import { setFirstStepsDismissed } from '../../services/authService';
 import WheelModal from '../Wheel/WheelModal';
+import DecisionHomeCard from '../Decisions/DecisionHomeCard';
 import HomeSkeleton from './HomeSkeleton';
 import { getRecapWindowMonth, hasCoupleEventInMonth, getWrapUpWindowYear, countCoupleEventsInYear } from '../../services/recap/recapWindow';
 import '../Recap/Recap.css';
@@ -644,6 +645,9 @@ const Home = () => {
               </div>
             )}
           </Link>
+
+          {/* 같이 정해요(일상 결정) */}
+          <DecisionHomeCard />
 
           {/* 하고 싶은 것(버킷) + 돌림판 */}
           {bucketStats.total > 0 && (

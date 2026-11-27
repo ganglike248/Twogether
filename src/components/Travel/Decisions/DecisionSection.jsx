@@ -10,7 +10,8 @@ import './DecisionSection.css';
 
 const CARD_STEP = 290; // 카드 280px + 간격 10px
 
-const CardRow = ({ decision, options, rankMap, cardProps, actions }) => {
+// 일상 결정(Decisions/DecisionTopicPage)도 같은 카드 줄을 씀
+export const CardRow = ({ decision, options, rankMap, cardProps, actions }) => {
   const [page, setPage] = useState(0);
   const total = options.length + 1; // + "후보 추가" 카드
 

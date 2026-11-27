@@ -104,6 +104,15 @@ const seed = async () => {
   await ev('eb5', ymd(addDays(5)), '스모크 계획 버킷');
   await put('bucketlists/b5', { coupleId: c, title: '스모크 계획 버킷', kind: 'once', category: '', completed: false, plannedDate: ymd(addDays(5)), plannedEventId: 'eb5', createdAt: now.toISOString(), createdBy: a });
   await put('bucketlists/b4', { coupleId: c, title: '한강 피크닉', kind: 'once', category: '', completed: false, plannedDate: ymd(addDays(-2)), plannedEventId: 'eb4', createdAt: now.toISOString(), createdBy: b });
+  // 같이 정해요 — d1 정하는 중(상대만 평가), d3 정하는 중(내가 평가 → 확정 점검), d2 지난 결정만(새로 정하기 점검)
+  const opt = (id, title, scores = []) => ({ id, title, url: '', address: '', description: '', price: '', images: [], scores, totalScore: scores.reduce((t, x) => t + x.score, 0) });
+  const nowMs = now.getTime();
+  await put('decisions/d1', { coupleId: c, title: '저녁 메뉴', createdBy: b, roundCount: 0, lastResult: null, currentRoundId: 'r1', updatedAtMs: nowMs });
+  await put('decisions/d1/rounds/r1', { coupleId: c, topicId: 'd1', status: 'deciding', startedBy: b, startedAtMs: nowMs, options: [opt('o1', '김치찌개', [{ userId: b, score: 4, comment: '' }]), opt('o2', '초밥')] });
+  await put('decisions/d3', { coupleId: c, title: '볼 영화', createdBy: a, roundCount: 0, lastResult: null, currentRoundId: 'r3', updatedAtMs: nowMs - 1000 });
+  await put('decisions/d3/rounds/r3', { coupleId: c, topicId: 'd3', status: 'deciding', startedBy: a, startedAtMs: nowMs, options: [opt('o5', '스모크 영화', [{ userId: a, score: 5, comment: '' }]), opt('o6', '다른 영화', [{ userId: a, score: 2, comment: '' }])] });
+  await put('decisions/d2', { coupleId: c, title: '주말 뭐 하지', createdBy: a, roundCount: 1, lastResult: { title: '성수 팝업', roundId: 'r2', atMs: nowMs - 86400000, viaWheel: false }, currentRoundId: null, updatedAtMs: nowMs - 86400000 });
+  await put('decisions/d2/rounds/r2', { coupleId: c, topicId: 'd2', status: 'decided', startedBy: a, startedAtMs: nowMs - 90000000, decidedOptionId: 'o3', decidedTitle: '성수 팝업', decidedAtMs: nowMs - 86400000, viaWheel: false, options: [opt('o3', '성수 팝업'), opt('o4', '한강 산책')] });
 };
 
 // ── Vite 개발 서버(에뮬레이터 연결 모드) ──
@@ -183,6 +192,30 @@ const CHECKS = [
     await p.getByText('오늘 뭐 할까?').first().waitFor({ timeout: 5000 });
   } },
   { name: '캘린더 수정기록 창', path: '/calendar/log', expect: '전체 수정 기록' },
+  { name: '같이 정해요 목록', path: '/decisions', expect: '정하는 중' },
+  { name: '같이 정해요 새 주제', path: '/decisions', expect: '지난 주제', act: async (p) => {
+    await p.getByLabel('새 주제 이름').fill('스모크 새 주제');
+    await p.getByRole('button', { name: '+ 새 주제' }).click();
+    await p.waitForURL(/\/decisions\/[^/]+$/, { timeout: 8000 });
+    await p.getByText('이번 결정').first().waitFor({ timeout: 8000 });
+  } },
+  { name: '같이 정해요 돌림판', path: '/decisions/d1', expect: '이번 결정', act: async (p) => {
+    await p.getByRole('button', { name: '돌림판으로 정하기' }).click();
+    await p.getByRole('dialog', { name: '돌림판으로 정하기' }).waitFor({ timeout: 5000 });
+    await p.keyboard.press('Escape');
+  } },
+  { name: '같이 정해요 확정 → 지난 결정', path: '/decisions/d3', expect: '이번 결정', settleMs: 800, act: async (p) => {
+    await p.locator('.dcard-btn.primary', { hasText: '확정하기' }).first().click();
+    await p.getByRole('button', { name: '정했어요' }).click();
+    await p.getByText('다시 정해 볼까요?').waitFor({ timeout: 8000 });
+    await p.locator('.dcp-hist-title', { hasText: '스모크 영화' }).waitFor({ timeout: 5000 });
+  } },
+  { name: '같이 정해요 새로 정하기', path: '/decisions/d2', expect: '지난 결정', settleMs: 800, act: async (p) => {
+    await p.getByRole('button', { name: '새로 정하기' }).click();
+    await p.getByRole('button', { name: '후보 2개로 시작' }).click();
+    await p.getByRole('button', { name: '돌림판으로 정하기' }).waitFor({ timeout: 8000 });
+  } },
+  { name: '홈 · 같이 정해요 카드', path: '/', expect: '우리 이야기', act: async (p) => { await p.getByRole('button', { name: '우리 이야기' }).click(); await p.getByText('정하는 중').first().waitFor({ timeout: 8000 }); } },
   { name: '캘린더 연·월 바로 가기', path: '/calendar/month', expect: '어느 달로 갈까요?', act: async (p) => {
     await p.getByRole('button', { name: '다음 해' }).click();
     await p.getByRole('button', { name: /년 3월/ }).click();

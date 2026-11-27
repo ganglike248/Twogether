@@ -24,7 +24,8 @@ const slicePath = (start, end) => {
 
 const shorten = (text, n) => (text.length > n ? `${text.slice(0, n)}…` : text);
 
-const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose, onPlan, onDone }) => {
+// metaText·onDecide: 같이 정해요(일상 결정)에서 쓸 때 — 결과 아래 문구와 [이걸로 정했어요]를 그 화면 동작으로
+const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose, onPlan, onDone, metaText, onDecide }) => {
   const [rotation, setRotation] = useState(0);
   const [spinning, setSpinning] = useState(false);
   const [result, setResult] = useState(null);
@@ -113,7 +114,7 @@ const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose, on
               <span className="wm-result-label">오늘은 이거!</span>
               <span className="wm-result-title">{result.title}</span>
               <span className="wm-result-meta">
-                {result.isLocal ? '직접 적은 후보' : `${result.category ? `${getCategoryDisplayName(result.category, customCategories)} · ` : ''}하고 싶은 것`}
+                {result.isLocal ? (metaText || '직접 적은 후보') : `${result.category ? `${getCategoryDisplayName(result.category, customCategories)} · ` : ''}하고 싶은 것`}
               </span>
               {!result.isLocal && !result.completed && onPlan && onDone && (
                 <span className="wm-result-acts">
@@ -133,7 +134,7 @@ const WheelSpinStep = ({ items, customCategories, onExclude, onBack, onClose, on
           <div className="wm-footer-row">
             <button type="button" className="wm-secondary" onClick={spin}>다시 돌리기</button>
             {count > 2 && <button type="button" className="wm-secondary" onClick={excludeAndRespin}>이건 빼고</button>}
-            <button type="button" className="wm-primary grow" onClick={onClose}>이걸로 정했어요</button>
+            <button type="button" className="wm-primary grow" onClick={() => (onDecide ? onDecide(result) : onClose())}>이걸로 정했어요</button>
           </div>
         ) : (
           <button type="button" className="wm-primary" onClick={spin} disabled={spinning || count < 2}>
