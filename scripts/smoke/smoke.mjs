@@ -182,6 +182,7 @@ const CHECKS = [
     await p.locator('.bk-pick').click();
     await p.getByText('오늘 뭐 할까?').first().waitFor({ timeout: 5000 });
   } },
+  { name: '캘린더 수정기록 창', path: '/calendar/log', expect: '전체 수정 기록' },
   { name: '캘린더에서 계획 일정 삭제 → 버킷 계획 풀림', path: '/calendar/event/eb5', expect: '삭제', settleMs: 1200, act: async (p) => {
     await p.locator('.sheet-footer-row .btn-danger').click();
     await p.locator('.confirm-actions .btn-danger').click();

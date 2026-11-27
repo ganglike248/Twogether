@@ -367,3 +367,5 @@
   align-items: center;
   padding: 2rem;
 }
+/* 제목·날짜 앞 아이콘 */
+.log-meta-icon { color: var(--color-primary-medium); flex-shrink: 0; }

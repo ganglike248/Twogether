@@ -1,6 +1,8 @@
 // src/components/EditLog/EditLogModal.js
-import React, { useState, useEffect, useRef, useCallback } from 'react';
-import { getEditLogs, getEventById } from '../../services/eventService';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
+import { getEditLogs } from '../../services/eventService';
+import { useNameByUid } from '../../hooks/useNameByUid';
+import { buildLogLookup, getLogTitle, getLogDate, getChangeRows, getLogSummary } from './editLogFormat';
 import { useAuthContext } from '../../contexts/AuthContext';
 import { MdCalendarToday, MdEdit } from 'react-icons/md';
 import './EditLogModal.css';
@@ -20,9 +22,11 @@ const MAX_PAGES_PER_FETCH = 20;
 // 반복 일정 로그는 배지 색을 기본 action과 같게 씀(별도 CSS 없이 created/updated/deleted 색 재사용)
 const actionClassName = (action) => (action || '').replace(/^recurrence_/, '');
 
-const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
+// events: 캘린더가 이미 갖고 있는 일정 목록(제목·날짜 표시용) — 기록마다 서버에서 일정을 다시 읽지 않음
+const EditLogModal = ({ isOpen, onClose, eventId = null, events = [] }) => {
   const dialogRef = useDialog(isOpen, onClose);
-  const { coupleId } = useAuthContext();
+  const { coupleId, getMemberName } = useAuthContext();
+  const nameByUid = useNameByUid();
   const [logs, setLogs] = useState([]);
   const [loading, setLoading] = useState(false);
   const [loadingMore, setLoadingMore] = useState(false);
@@ -30,8 +34,6 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
   const [lastDoc, setLastDoc] = useState(null);
   const [hasMore, setHasMore] = useState(true);
   const [expandedLogs, setExpandedLogs] = useState(new Set());
-  const [eventsData, setEventsData] = useState({});
-  const eventsDataRef = useRef({});
   const modalBodyRef = useRef(null);
 
   const fetchLogs = useCallback(async (isInitial = false, startAfterDoc = null) => {
@@ -55,20 +57,6 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
         cursor = result.lastDoc;
         if (!result.hasMore || filteredLogs.length >= PAGE_SIZE) break;
       }
-
-      const newEventsData = { ...eventsDataRef.current };
-      await Promise.all(filteredLogs.map(async (log) => {
-        if (log.eventId && !newEventsData[log.eventId]) {
-          try {
-            const eventData = await getEventById(log.eventId);
-            if (eventData) newEventsData[log.eventId] = eventData;
-          } catch (error) {
-            console.error(`Error fetching event ${log.eventId}:`, error);
-          }
-        }
-      }));
-      eventsDataRef.current = newEventsData;
-      setEventsData(newEventsData);
 
       if (isInitial) {
         setLogs(filteredLogs);
@@ -94,8 +82,6 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     setLastDoc(null);
     setHasMore(true);
     setExpandedLogs(new Set());
-    eventsDataRef.current = {};
-    setEventsData({});
     await fetchLogs(true, null);
   }, [fetchLogs]);
 
@@ -139,74 +125,18 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
     return date.toLocaleString('ko-KR');
   };
 
-  // 개선된 이벤트 날짜 포맷팅 함수 - eventsData에서 조회
-  const formatEventDate = (log) => {
-    // 삭제된 일정·반복 일정 요약 로그(eventId가 시리즈 ID)는 원본 문서가 없어 조회가 안 됨 —
-    // 로그에 함께 저장된 값(changes.start, 반복 수정·삭제의 기준일 changes.from)으로 보완
-    const eventData = eventsData[log.eventId]
-      || (log.changes?.start || log.changes?.from ? { start: log.changes.start || log.changes.from } : null);
-    if (!eventData || !eventData.start) {
-      return '날짜 정보 없음';
-    }
-
-    try {
-      let date;
-      if (eventData.start.toDate) {
-        // Firestore Timestamp
-        date = eventData.start.toDate();
-      } else if (typeof eventData.start === 'string') {
-        // 문자열 날짜
-        date = new Date(eventData.start);
-      } else {
-        // Date 객체
-        date = new Date(eventData.start);
-      }
-
-      return date.toLocaleDateString('ko-KR', {
-        year: 'numeric',
-        month: 'long',
-        day: 'numeric'
-      });
-    } catch (error) {
-      console.error('Date formatting error:', error);
-      return '날짜 형식 오류';
-    }
-  };
-
-  // 개선된 이벤트 제목 추출 함수 - eventsData에서 조회
-  const getEventTitle = (log) => {
-    const title = eventsData[log.eventId]?.title || log.changes?.title;
-    return title || '제목 없음';
-  };
-
-  const formatChangesImproved = (changes) => {
-    if (!changes || typeof changes !== 'object') return null;
-    
-    const ignoredFields = ['start', 'end', 'createdAt', 'updatedAt', 'createdBy', 'updatedBy'];
-    const meaningfulChanges = Object.entries(changes).filter(([key]) => 
-      !ignoredFields.includes(key)
-    );
-
-    if (meaningfulChanges.length === 0) return null;
-
-    return meaningfulChanges.map(([key, value]) => {
-      if (typeof value === 'object' && value.from !== undefined) {
-        return { field: key, from: value.from, to: value.to };
-      }
-      return { field: key, from: '', to: JSON.stringify(value) };
-    });
-  };
-
+  const lookup = useMemo(() => buildLogLookup(logs, events), [logs, events]);
+  const typeName = (type) => (type === 'couple' ? '데이트' : getMemberName(type) || '일정');
 
   const getActionText = (action) => {
     switch (action) {
-      case 'created': return '생성됨';
-      case 'updated': return '수정됨';
-      case 'deleted': return '삭제됨';
-      case 'converted_to_personal': return '개인 전환됨';
-      case 'recurrence_created': return '반복 일정 생성됨';
-      case 'recurrence_updated': return '반복 일정 수정됨';
-      case 'recurrence_deleted': return '반복 일정 삭제됨';
+      case 'created': return '만듦';
+      case 'updated': return '수정';
+      case 'deleted': return '삭제';
+      case 'converted_to_personal': return '나만 보기로';
+      case 'recurrence_created': return '반복 만듦';
+      case 'recurrence_updated': return '반복 수정';
+      case 'recurrence_deleted': return '반복 삭제';
       default: return action;
     }
   };
@@ -220,9 +150,9 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
       <div className="log-modal-container" ref={dialogRef} tabIndex={-1} role="dialog" aria-modal="true">
         <div className="log-modal-header">
           <h2 className="log-modal-title">
-            {eventId ? '이벤트 수정 기록' : '전체 수정 기록'}
+            {eventId ? '이 일정의 수정 기록' : '전체 수정 기록'}
           </h2>
-          <button className="modal-close" onClick={onClose}>&times;</button>
+          <button className="modal-close" onClick={onClose} aria-label="닫기">&times;</button>
         </div>
 
         <div className="log-filters">
@@ -256,93 +186,64 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
           {loading ? (
             <div className="loading-container">
               <div className="loading-spinner"></div>
-              <p>로그를 불러오는 중...</p>
+              <p>기록을 불러오는 중이에요</p>
             </div>
           ) : logs.length === 0 ? (
             <div className="empty-logs">
-              <p>수정 기록이 없습니다.</p>
+              <p>아직 수정 기록이 없어요</p>
             </div>
           ) : (
             <div className="logs-list">
               {logs.map((log) => {
                 const isExpanded = expandedLogs.has(log.id);
-                const meaningfulChanges = formatChangesImproved(log.changes);
-                const hasChanges = log.action === 'updated' && meaningfulChanges && meaningfulChanges.length > 0;
-                
+                const rows = log.action === 'updated' ? getChangeRows(log.changes, typeName) : [];
+                const hasChanges = rows.length > 0;
+                const summary = getLogSummary(log, rows, nameByUid(log.userId));
+                const dateText = getLogDate(log, lookup);
+
                 return (
                   <div key={log.id} className="log-item">
                     <div className="log-header">
-                      <span
-                        className={`log-action log-action-${actionClassName(log.action)}`}
-                      >
+                      <span className={`log-action log-action-${actionClassName(log.action)}`}>
                         {getActionText(log.action)}
                       </span>
-                      <span className="log-timestamp">
-                        {formatTimestamp(log.timestamp)}
-                      </span>
+                      <span className="log-timestamp">{formatTimestamp(log.timestamp)}</span>
                     </div>
-                    
+
                     <div className="log-details">
-                      {/* 개선된 날짜와 일정 제목 표시 */}
                       <div className="event-info">
-                        <div className="event-date">
-                          <MdCalendarToday className="log-meta-icon" color="#4dabf7" /> 날짜: {formatEventDate(log)}
-                        </div>
                         <div className="event-title">
-                          <MdEdit className="log-meta-icon" color="#74c0fc" /> 제목: {getEventTitle(log)}
+                          <MdEdit className="log-meta-icon" aria-hidden="true" /> {getLogTitle(log, lookup)}
                         </div>
-                      </div>
-                      
-                      {/* 요약 정보 */}
-                      <div className="log-summary">
-                        {log.action === 'created' && (
-                          <span>새로운 일정이 생성되었습니다</span>
-                        )}
-                        {log.action === 'deleted' && (
-                          <span>일정이 삭제되었습니다</span>
-                        )}
-                        {log.action === 'converted_to_personal' && (
-                          <span>개인 일정으로 전환되었습니다</span>
-                        )}
-                        {log.action === 'recurrence_created' && (
-                          <span>반복 일정 {log.changes?.occurrenceCount ? `${log.changes.occurrenceCount}개가 ` : ''}생성되었습니다</span>
-                        )}
-                        {log.action === 'recurrence_updated' && (
-                          <span>반복 일정이 수정되었습니다</span>
-                        )}
-                        {log.action === 'recurrence_deleted' && (
-                          <span>반복 일정 {log.changes?.deletedCount ? `${log.changes.deletedCount}개가 ` : ''}삭제되었습니다</span>
-                        )}
-                        {log.action === 'updated' && hasChanges && (
-                          <span>{meaningfulChanges.length}개 항목이 수정되었습니다</span>
+                        {dateText && (
+                          <div className="event-date">
+                            <MdCalendarToday className="log-meta-icon" aria-hidden="true" /> {dateText}
+                          </div>
                         )}
                       </div>
 
-                      {/* 자세히 보기 버튼 */}
+                      {summary && <div className="log-summary"><span>{summary}</span></div>}
+
                       {hasChanges && (
-                        <button 
-                          className="details-toggle-btn"
-                          onClick={() => toggleExpanded(log.id)}
-                        >
+                        <button className="details-toggle-btn" onClick={() => toggleExpanded(log.id)} aria-expanded={isExpanded}>
                           {isExpanded ? '▼ 간단히 보기' : '▶ 자세히 보기'}
                         </button>
                       )}
 
-                      {/* 확장된 변경사항 - 세로 정렬 */}
                       {isExpanded && hasChanges && (
                         <div className="log-changes-expanded">
-                          <strong>상세 변경사항:</strong>
                           <div className="changes-comparison-vertical">
-                            {meaningfulChanges.map((change, index) => (
-                              <div key={index} className="change-item-vertical">
+                            {rows.map((row) => (
+                              <div key={row.label} className="change-item-vertical">
+                                <div className="change-field">{row.label}</div>
                                 <div className="change-values-vertical">
                                   <div className="before-value-vertical">
-                                    <span className="label">변경 전:</span>
-                                    <span className="value">{change.from || '(없음)'}</span>
+                                    <span className="label">바꾸기 전</span>
+                                    <span className="value">{row.from}</span>
                                   </div>
                                   <div className="after-value-vertical">
-                                    <span className="label">변경 후:</span>
-                                    <span className="value">{change.to}</span>
+                                    <span className="label">바꾼 뒤</span>
+                                    <span className="value">{row.to}</span>
                                   </div>
                                 </div>
                               </div>
@@ -354,19 +255,19 @@ const EditLogModal = ({ isOpen, onClose, eventId = null }) => {
                   </div>
                 );
               })}
-              
+
               {/* 더 불러오는 중 표시 */}
               {loadingMore && (
                 <div className="loading-more">
                   <div className="loading-spinner small"></div>
-                  <p>더 많은 로그를 불러오는 중...</p>
+                  <p>더 불러오는 중이에요</p>
                 </div>
               )}
               
               {/* 더 이상 로드할 항목이 없을 때 */}
               {!hasMore && logs.length > 0 && (
                 <div className="no-more-logs">
-                  <p>모든 로그를 불러왔습니다.</p>
+                  <p>기록을 모두 불러왔어요</p>
                 </div>
               )}
             </div>

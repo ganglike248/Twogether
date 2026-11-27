@@ -531,6 +531,7 @@ const Calendar = () => {
         isOpen={showEditLog}
         onClose={closeModal}
         eventId={null}
+        events={events}
       />
 
       {/* FloatingActionMenu - 일정 추가 */}

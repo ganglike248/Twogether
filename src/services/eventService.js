@@ -192,11 +192,6 @@ export const getEditLogs = async (coupleId, eventId = null, limitCount = 10, las
   };
 };
 
-export const getEventById = async (eventId) => {
-  const docSnap = await getDoc(doc(db, 'events', eventId));
-  return docSnap.exists() ? { id: docSnap.id, ...docSnap.data() } : null;
-};
-
 export const updateTravelEvent = async (tripId, tripData, userId = 'anonymous', coupleId = null) => {
   const q = query(collection(db, 'events'), where('tripId', '==', tripId));
   const querySnapshot = await getDocs(q);
